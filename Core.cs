@@ -1,0 +1,410 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
+using PPR.GUI;
+using PPR.Levels;
+using PPR.Rendering;
+
+using SFML.Audio;
+using SFML.Graphics;
+using SFML.System;
+using SFML.Window;
+
+namespace PPR.Core {
+    public enum Menu { Main, LevelSelect, LastStats, Game }
+    public class Game {
+        static Menu _currentMenu = Menu.Main;
+        public static Menu currentMenu {
+            get => _currentMenu;
+            set {
+                if(Map.currentLevel != null && Map.currentLevel.objects.Count > 0 && health > 0 && !editing) {
+                    if(_currentMenu == Menu.Game && value == Menu.LastStats) { // Pause
+                        music.Pause();
+                    }
+                    else if(_currentMenu == Menu.LastStats && value == Menu.Game) { // Unpause
+                        music.Play();
+                    }
+                }
+                if((value == Menu.Main || value == Menu.LevelSelect) && music.Status == SoundStatus.Paused) {
+                    music.Play();
+                }
+                _currentMenu = value;
+            }
+        }
+        public static LevelMetadata? selectedMetadata = null;
+        public static float offset = 0f;
+        public static float prevOffset = 0f;
+        public static int currentBPM = 1;
+        public static Music music = new Music(Path.Combine("resources", "audio", "mainMenu.ogg"));
+        public const float musicVolume = 30f;
+        public static int score = 0;
+        static int _health = 80;
+        public static int health {
+            get => _health;
+            set {
+                value = Math.Clamp(value, 0, 80);
+                _health = value;
+                UI.health = value;
+            }
+        }
+        public static int accuracy = 100;
+        public static int[] scores = new int[3]; // score / 5 = index
+        public static int combo = 0;
+        public static int maxCombo = 0;
+        public static bool editing = false;
+        public static bool auto = false;
+        public void Start() {
+            music.Volume = musicVolume;
+            music.Play();
+        }
+
+        public void Update() {
+            if(currentMenu != Menu.Game) return;
+
+            if(MathF.Floor(prevOffset) != MathF.Floor(offset)) {
+                RecalculatePosition();
+            }
+
+            prevOffset = offset;
+
+            if(music.Status == SoundStatus.Playing) {
+                offset = MillisecondsToOffset(music.PlayingOffset.AsMilliseconds(), Map.currentLevel.speeds);
+            }
+        }
+        public static void GameStart(string musicPath) {
+            offset = 0;
+            prevOffset = 0;
+            health = 80;
+            score = 0;
+            accuracy = 100;
+            scores = new int[3];
+            combo = 0;
+            maxCombo = 0;
+            music.Stop();
+            if(File.Exists(musicPath)) {
+                music = new Music(musicPath) {
+                    Volume = musicVolume
+                };
+                if(!editing) music.Play();
+            }
+        }
+        public static void RecalculatePosition() {
+            for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
+                if(Map.currentLevel.speeds[i].offset <= offset) {
+                    currentBPM = Map.currentLevel.speeds[i].speed;
+                }
+            }
+            Map.StepAll();
+        }
+        public static void GenerateLevelList() {
+            UI.levelSelectLevels.Clear();
+            string[] directories = Directory.GetDirectories("levels");
+            List<Button> buttons = new List<Button>();
+            for(int i = 0; i < directories.Length; i++) {
+                string name = Path.GetFileName(directories[i]);
+                if(name == "_template") continue;
+                buttons.Add(new Button(new Vector2(28, 12 + i), name, 24, Color.Black, Color.White, Color.White));
+            }
+            UI.levelSelectLevels = buttons;
+        }
+        public static void RecalculateAccuracy() {
+            float sum = scores[0] + scores[1] + scores[2];
+            float mulSum = scores[1] * 0.5f + scores[2];
+            accuracy = (int)MathF.Floor(mulSum / sum * 100f);
+        }
+        public void KeyPressed(object caller, KeyEventArgs key) {
+            if(key.Code == Keyboard.Key.Escape) {
+                if(currentMenu == Menu.Game) currentMenu = Menu.LastStats;
+                else if(currentMenu == Menu.LastStats) {
+                    currentMenu = Map.currentLevel.objects.Count > 0 ? Menu.Game : Menu.LevelSelect;
+                }
+                else if(currentMenu == Menu.LevelSelect) currentMenu = Menu.Main;
+            }
+            if(currentMenu == Menu.Game) {
+                if(editing) {
+                    int flooredOffset = (int)MathF.Floor(offset);
+                    char character = key.Code switch
+                    {
+                        Keyboard.Key.Num1 => '1',
+                        Keyboard.Key.Num2 => '2',
+                        Keyboard.Key.Num3 => '3',
+                        Keyboard.Key.Num4 => '4',
+                        Keyboard.Key.Num5 => '5',
+                        Keyboard.Key.Num6 => '6',
+                        Keyboard.Key.Num7 => '7',
+                        Keyboard.Key.Num8 => '8',
+                        Keyboard.Key.Num9 => '9',
+                        Keyboard.Key.Num0 => '0',
+                        Keyboard.Key.Hyphen => '-',
+                        Keyboard.Key.Equal => '=',
+                        Keyboard.Key.Q => 'q',
+                        Keyboard.Key.W => 'w',
+                        Keyboard.Key.E => 'e',
+                        Keyboard.Key.R => 'r',
+                        Keyboard.Key.T => 't',
+                        Keyboard.Key.Y => 'y',
+                        Keyboard.Key.U => 'u',
+                        Keyboard.Key.I => 'i',
+                        Keyboard.Key.O => 'o',
+                        Keyboard.Key.P => 'p',
+                        Keyboard.Key.LBracket => '[',
+                        Keyboard.Key.RBracket => ']',
+                        Keyboard.Key.A => 'a',
+                        Keyboard.Key.S => 's',
+                        Keyboard.Key.D => 'd',
+                        Keyboard.Key.F => 'f',
+                        Keyboard.Key.G => 'g',
+                        Keyboard.Key.H => 'h',
+                        Keyboard.Key.J => 'j',
+                        Keyboard.Key.K => 'k',
+                        Keyboard.Key.L => 'l',
+                        Keyboard.Key.Semicolon => ';',
+                        Keyboard.Key.Quote => '\'',
+                        Keyboard.Key.Z => 'z',
+                        Keyboard.Key.X => 'x',
+                        Keyboard.Key.C => 'c',
+                        Keyboard.Key.V => 'v',
+                        Keyboard.Key.B => 'b',
+                        Keyboard.Key.N => 'n',
+                        Keyboard.Key.M => 'm',
+                        Keyboard.Key.Comma => ',',
+                        Keyboard.Key.Period => '.',
+                        Keyboard.Key.Slash => '/',
+                        _ => '\0'
+                    };
+                    if(character == '\0') {
+                        if(key.Code == Keyboard.Key.Backspace) {
+                            List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.offset == flooredOffset &&
+                                                                                                                                                                                                       obj.character != LevelObject.speedChar);
+                            foreach(LevelObject obj in objects) {
+                                _ = Map.currentLevel.objects.Remove(obj);
+                            }
+                        }
+                        else if(key.Code == Keyboard.Key.Up || key.Code == Keyboard.Key.Down) {
+                            if(!Map.currentLevel.speeds.Select(speed => speed.offset).Contains(flooredOffset)) {
+                                int speedIndex = 0;
+                                for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
+                                    if(Map.currentLevel.speeds[i].offset <= flooredOffset) speedIndex = i;
+                                }
+                                Map.currentLevel.speeds.Add(new LevelSpeed(Map.currentLevel.speeds[speedIndex].speed, flooredOffset));
+                                Map.currentLevel.speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
+                            }
+
+                            int index = Map.currentLevel.speeds.Select(speed => speed.offset).ToList().IndexOf(flooredOffset);
+
+                            Map.currentLevel.speeds[index].speed += (key.Shift ? 1 : 10) * (key.Code == Keyboard.Key.Up ? 1 : -1);
+
+                            if(index >= 1 && Map.currentLevel.speeds[index].speed == Map.currentLevel.speeds[index - 1].speed) {
+                                Map.currentLevel.speeds.RemoveAt(index);
+                            }
+
+                            List<LevelObject> speedObjects = Map.currentLevel.objects.FindAll(obj => obj.character == LevelObject.speedChar);
+                            foreach(LevelObject obj in speedObjects) {
+                                _ = Map.currentLevel.objects.Remove(obj);
+                            }
+                            for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
+                                Map.currentLevel.objects.Add(new LevelObject(LevelObject.speedChar, Map.currentLevel.speeds[i].offset));
+                            }
+                        }
+                        else if(key.Code == Keyboard.Key.Left || key.Code == Keyboard.Key.Right) {
+                            if(key.Shift) {
+                                Map.currentLevel.metadata.hpRestorage += key.Code == Keyboard.Key.Right ? 1 : -1;
+                            }
+                            else {
+                                Map.currentLevel.metadata.hpDrain += key.Code == Keyboard.Key.Right ? 1 : -1;
+                            }
+                        }
+                    }
+                    else {
+                        if(Map.currentLevel.objects.FindAll(obj => obj.character == character && obj.offset == flooredOffset).Count <= 0) {
+                            Map.currentLevel.objects.Add(new LevelObject(character, flooredOffset));
+                            if(key.Shift) {
+                                character = LevelObject.holdChar;
+                                Map.currentLevel.objects.Add(new LevelObject(character, flooredOffset, Map.currentLevel.objects));
+                            }
+                        }
+                    }
+
+                    RecalculatePosition();
+                }
+                else {
+                    for(int y = Map.linePos.y + 2; y >= Map.linePos.y - 2; y--) {
+                        if(CheckLine(y)) break;
+                    }
+                }
+            }
+        }
+        public void LostFocus(object caller, EventArgs args) {
+            if(currentMenu == Menu.Game) {
+                currentMenu = Menu.LastStats;
+            }
+            music.Volume = 0;
+        }
+        public void GainedFocus(object caller, EventArgs args) {
+            music.Volume = musicVolume;
+        }
+        bool CheckLine(int y) {
+            bool detected = false;
+            List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != '>' && !obj.removed && obj.position.y == y);
+            for(int i = 0; i < objects.Count; i++) {
+                detected = true;
+                objects[i].CheckPress();
+            }
+            return detected;
+        }
+        public void MouseWheelScrolled(object caller, MouseWheelScrollEventArgs scroll) {
+            if(currentMenu == Menu.LevelSelect) {
+                Vector2 mousePos = Renderer.instance.mousePosition;
+                if(mousePos.y >= 12 && mousePos.y <= 49) {
+                    if(mousePos.x >= 28 && mousePos.x <= 51) {
+                        if(scroll.Delta > 0 && UI.levelSelectLevels.First().position.y >= 12) return;
+                        if(scroll.Delta < 0 && UI.levelSelectLevels.Last().position.y <= 49) return;
+                        foreach(Button button in UI.levelSelectLevels) {
+                            button.position.y += (int)MathF.Floor(scroll.Delta);
+                        }
+                    }
+                    else if(mousePos.x >= 1 && mousePos.x <= 26) {
+                        if(scroll.Delta > 0 && UI.levelSelectScores.First().scorePosition.y >= 12) return;
+                        if(scroll.Delta < 0 && UI.levelSelectScores.Last().scoresPosition.y <= 49) return;
+                        foreach(LevelScore score in UI.levelSelectScores) {
+                            int increment = (int)MathF.Floor(scroll.Delta);
+                            score.scorePosition.y += increment;
+                            score.accComboPosition.y += increment;
+                            score.scoresPosition.y += increment;
+                            score.linePosition.y += increment;
+                        }
+                    }
+                }
+            }
+            else if(currentMenu == Menu.Game && editing) {
+                offset = MathF.Floor(offset);
+                offset += scroll.Delta;
+                RecalculateTime();
+            }
+        }
+        public static void RecalculateTime() {
+            music.PlayingOffset = Time.FromMilliseconds(Math.Abs(OffsetToMilliseconds((int)MathF.Floor(offset), Map.currentLevel.speeds)));
+        }
+        public static int OffsetToMilliseconds(int offset, List<LevelSpeed> sortedSpeeds) {
+            List<int> speeds = sortedSpeeds.Select(speed => speed.speed).ToList();
+            List<int> speedsStarts = sortedSpeeds.Select(speed => speed.offset).ToList();
+
+            int useOffset = offset;
+
+            int speedIndex = 0;
+            for(int i = 0; i < speedsStarts.Count; i++) {
+                if(speedsStarts[i] <= useOffset) speedIndex = i;
+            }
+            int time = 0;
+            for(int i = 0; i <= speedIndex; i++) {
+                if(i != speedIndex) time += (speedsStarts[i + 1] - speedsStarts[i]) * (60000 / speeds[i]);
+                else time += (useOffset - speedsStarts[i]) * (60000 / speeds[speedIndex]);
+            }
+            return time;
+        }
+        public static float MillisecondsToOffset(int time, List<LevelSpeed> sortedSpeeds) {
+            List<int> speeds = sortedSpeeds.Select(speed => speed.speed).ToList();
+            List<int> speedsStarts = sortedSpeeds.Select(speed => speed.offset).ToList();
+
+            int useTime = time;
+
+            int speedIndex = 0;
+            for(int i = 0; i < speedsStarts.Count; i++) {
+                if(OffsetToMilliseconds(speedsStarts[i], sortedSpeeds) <= useTime) speedIndex = i;
+                else break;
+            }
+            float offset = 0;
+            for(int i = 0; i <= speedIndex; i++) {
+                if(i != speedIndex) {
+                    int increment = speedsStarts[i + 1] - speedsStarts[i];
+                    offset += increment;
+                    useTime -= increment * (60000 / speeds[i]);
+                }
+                else offset += useTime / (60000f / speeds[i]);
+            }
+            return offset;
+        }
+    }
+
+    public class Vector2 {
+        public static Vector2 zero => new Vector2();
+        public static Vector2 one => new Vector2(1, 1);
+        public static Vector2 left => new Vector2(-1, 0);
+        public static Vector2 right => new Vector2(1, 0);
+        public static Vector2 up => new Vector2(0, -1);
+        public static Vector2 down => new Vector2(0, 1);
+
+        public int x;
+        public int y;
+        public Vector2 normalized => new Vector2(x == 0 ? 0 : (x == 1 ? 1 : -1), y == 0 ? 0 : (y == 1 ? 1 : -1));
+        public Vector2() {
+            x = 0;
+            y = 0;
+        }
+        public Vector2(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+        public Vector2(Vector2 vector) {
+            x = vector.x;
+            y = vector.y;
+        }
+
+        public void Normalize() {
+            x = x == 0 ? 0 : (x == 1 ? 1 : -1);
+            y = y == 0 ? 0 : (y == 1 ? 1 : -1);
+        }
+        public Vector2 Abs() {
+            return new Vector2(Math.Abs(x), Math.Abs(y));
+        }
+        public bool InBounds(int minX, int minY, int maxX, int maxY) {
+            return x >= minX && x <= maxX && y >= minY && y <= maxY;
+        }
+        public bool InBounds(Vector2 min, Vector2 max) {
+            return InBounds(min.x, min.y, max.x, max.y);
+        }
+        public override string ToString() {
+            return "(" + x + ", " + y + ")";
+        }
+
+        public static Vector2 operator +(Vector2 left, Vector2 right) {
+            return new Vector2(left.x + right.x, left.y + right.y);
+        }
+        public static Vector2 operator -(Vector2 left, Vector2 right) {
+            return new Vector2(left.x - right.x, left.y - right.y);
+        }
+        public static Vector2 operator *(Vector2 left, int right) {
+            return new Vector2(left.x * right, left.y * right);
+        }
+        public static Vector2 operator /(Vector2 left, int right) {
+            return new Vector2(left.x / right, left.y / right);
+        }
+        public static bool operator ==(Vector2 left, Vector2 right) {
+            return left.x == right.x && left.y == right.y;
+        }
+        public static bool operator !=(Vector2 left, Vector2 right) {
+            return left.x != right.x || left.y != right.y;
+        }
+        public override bool Equals(object obj) {
+            return obj is Vector2 vector &&
+                   x == vector.x &&
+                   y == vector.y;
+        }
+        public override int GetHashCode() {
+            return HashCode.Combine(x, y);
+        }
+    }
+
+    public static class Random_Extensions {
+        public static float NextFloat(this Random rng, float min, float max) {
+            return (float)rng.NextDouble() * (max - min) + min;
+        }
+    }
+    public static class IEnumerable_Extensions {
+        public static T ElementAtOrDefault<T>(this IList<T> list, int index, Func<T> @default) {
+            return index >= 0 && index < list.Count ? list[index] : @default();
+        }
+    }
+}
