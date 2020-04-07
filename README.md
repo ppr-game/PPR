@@ -49,4 +49,4 @@ Now you can begin creating your level
 - `Any English letter`, `any number` or `-`, `=`, `[`, `]`, `;`, `'`, `,`, `.`, `/` - place a corresponding note at the current time (on the line)
 - `Backspace` - remove all the notes at the current time (on the line)
 - `Up/down arrows` - increase/decrease the speed by 10 BPM (`+ Shift` - 1 BPM)
-- `Left/right arrows` - decrease/increase the health drain *(the value which will substracted from the **health** on **misses**)* (`+ Shift` - restorage (the opposite of drain))
+- `Left/right arrows` - decrease/increase the health drain *(the value which will be substracted from the **health** on **misses**)* (`+ Shift` - restorage (the opposite of drain))
