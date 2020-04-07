@@ -6,7 +6,7 @@ Inspired by [osu!](https://osu.ppy.sh) and [Dance Dance Revolution](https://en.w
 ### Gameplay
 Press the corresponding buttons when they hit a white line at the bottom
 
-The blue arrows at the left indicate speed changes and can be ignored
+The blue arrows on the left indicate the speed changes and can be ignored
 
 When you hit the note when it's perfectly on the line, you get a **perfect hit**, 1 **combo** point and 10 **score** points multiplied by your current **combo**,
  when you hit it right before or after it has passed the line, you get a **hit**, 1 **combo** point and 5 **score** points multiplied by your current **combo**,
