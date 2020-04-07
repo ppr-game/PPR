@@ -4,6 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Platforms>AnyCPU;x86</Platforms>
+    <StartupObject>MainGame</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
