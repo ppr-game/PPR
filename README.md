@@ -6,6 +6,9 @@ Inspired by [osu!](https://osu.ppy.sh) and [Dance Dance Revolution](https://en.w
 ### Gameplay
 Press the corresponding buttons when they hit a white line at the bottom
 
+There are also **holdable notes**, that are indicated with the `│` symbol and that you should **hold**, instead of just pressing,
+also they only register **perfect hits** and **misses**
+
 The blue arrows on the left indicate the speed changes and can be ignored
 
 When you hit the note when it's perfectly on the line, you get a **perfect hit**, 1 **combo** point and 10 **score** points multiplied by your current **combo**,
