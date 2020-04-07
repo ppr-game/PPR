@@ -2,6 +2,7 @@
 A rhythm game where you need to use your whole keyboard to play
 Inspired by [osu!](https://osu.ppy.sh) and [Dance Dance Revolution](https://en.wikipedia.org/wiki/Dance_Dance_Revolution)
 
+
 ## How to play
 ### Gameplay
 Press the corresponding buttons when they hit a white line at the bottom
