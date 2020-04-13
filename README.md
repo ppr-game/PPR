@@ -6,6 +6,7 @@ Inspired by [osu!](https://osu.ppy.sh) and [Dance Dance Revolution](https://en.w
 ## How to play
 ### Install levels
 Unpack levels in `game's folder/levels` to play them
+
 Download levels in my Discord server: https://discord.gg/AuYUVs5
 ### Gameplay
 Press the corresponding buttons when they hit a white line at the bottom
