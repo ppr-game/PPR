@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Diagnostics;
 
 using PPR.GUI;
 using PPR.Levels;
@@ -11,6 +12,9 @@ using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+
+using DiscordRPC;
+using DiscordRPC.Logging;
 
 namespace PPR.Core {
     public enum Menu { Main, LevelSelect, LastStats, Game }
@@ -31,6 +35,34 @@ namespace PPR.Core {
                     music.Play();
                 }
                 _currentMenu = value;
+                switch(value) {
+                    case Menu.Main:
+                        RPC.client.SetPresence(new RichPresence() {
+                            Details = "In main menu",
+                            Timestamps = Timestamps.Now
+                        });
+                        break;
+                    case Menu.LevelSelect:
+                        RPC.client.SetPresence(new RichPresence() {
+                            Details = "Choosing what to " + (editing ? "edit" : "play"),
+                            Timestamps = Timestamps.Now
+                        });
+                        break;
+                    case Menu.Game:
+                        RPC.client.SetPresence(new RichPresence() {
+                            Details = editing ? "Editing" : auto ? "Watching" : "Playing",
+                            State = Map.currentLevel.metadata.name,
+                            Timestamps = Timestamps.Now
+                        });
+                        break;
+                    case Menu.LastStats:
+                        RPC.client.SetPresence(new RichPresence() {
+                            Details = "Looking at statistics",
+                            State = Map.currentLevel.metadata.name,
+                            Timestamps = Timestamps.Now
+                        });
+                        break;
+                }
             }
         }
         public static LevelMetadata? selectedMetadata = null;
@@ -56,6 +88,8 @@ namespace PPR.Core {
         public static bool editing = false;
         public static bool auto = false;
         public void Start() {
+            RPC.Initialize();
+
             music.Volume = musicVolume;
             music.Play();
         }
@@ -325,6 +359,21 @@ namespace PPR.Core {
                 else offset += useTime / (60000f / speeds[i]);
             }
             return offset;
+        }
+    }
+    public static class RPC {
+        public static DiscordRpcClient client;
+        public static void Initialize() {
+            client = new DiscordRpcClient("699266677698723941") {
+                Logger = new ConsoleLogger(LogLevel.Trace)
+            };
+            client.OnError += (sender, e) => Debug.Fail(e.Message);
+            client.OnPresenceUpdate += (sender, e) => Debug.Print("aaa");
+            _ = client.Initialize();
+            client.SetPresence(new RichPresence() { 
+                Details = "In main menu",
+                Timestamps = Timestamps.Now
+            });
         }
     }
 

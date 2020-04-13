@@ -19,6 +19,11 @@ public static class MainGame {
 
         game.Start();
 
+        renderer.window.Closed += (caller, e) => {
+            RPC.client.ClearPresence();
+            RPC.client.Dispose();
+        };
+
         Clock fpsClock = new Clock();
         while(renderer.window.IsOpen) { // Executes every frame
 

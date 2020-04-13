@@ -135,9 +135,9 @@ namespace PPR.GUI {
             foreach(Button button in mainMenuButtons) {
                 if(button.Draw()) {
                     if(button.text == "PLAY" || button.text == "EDIT") {
-                        Game.currentMenu = Menu.LevelSelect;
                         Game.editing = button.text == "EDIT";
                         Game.auto = false;
+                        Game.currentMenu = Menu.LevelSelect;
                         Game.GenerateLevelList();
                     }
                     else if(button.text == "EXIT") {
@@ -153,10 +153,10 @@ namespace PPR.GUI {
                 Button button = levelSelectLevels[i];
                 if(button.position.y < 12 || button.position.y > 49) continue;
                 if(button.Draw()) {
-                    Game.currentMenu = Menu.Game;
                     lastLevel = button.text;
                     string path = Path.Combine("levels", lastLevel);
                     Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine(path, "level.txt")), lastLevel, Path.Combine(path, "music.ogg"));
+                    Game.currentMenu = Menu.Game;
                     Game.RecalculatePosition();
                 }
                 if(button.currentButton == ButtonState.Hovered && button.prevFrameButton != ButtonState.Hovered) {
@@ -180,9 +180,9 @@ namespace PPR.GUI {
             }
             foreach(Button button in levelSelectButtons) {
                 if(button.text == "NEW" && Game.editing && button.Draw()) {
-                    Game.currentMenu = Menu.Game;
                     lastLevel = "unnamed";
                     Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine("levels", "_template", "level.txt")), lastLevel, "");
+                    Game.currentMenu = Menu.Game;
                     Game.RecalculatePosition();
                 }
                 else if(button.text == "AUTO" && !Game.editing) {
