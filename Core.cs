@@ -66,6 +66,7 @@ namespace PPR.Core {
             }
         }
         public static LevelMetadata? selectedMetadata = null;
+        public static Time time;
         public static float offset = 0f;
         public static float prevOffset = 0f;
         public static int currentBPM = 1;
@@ -93,7 +94,6 @@ namespace PPR.Core {
             music.Volume = musicVolume;
             music.Play();
         }
-
         public void Update() {
             if(currentMenu != Menu.Game) return;
 
@@ -158,7 +158,7 @@ namespace PPR.Core {
             }
             if(currentMenu == Menu.Game) {
                 if(editing) {
-                    int flooredOffset = (int)MathF.Floor(offset);
+                    int flooredOffset = (int)offset;
                     char character = key.Code switch
                     {
                         Keyboard.Key.Num1 => '1',
@@ -296,14 +296,14 @@ namespace PPR.Core {
                         if(scroll.Delta > 0 && UI.levelSelectLevels.First().position.y >= 12) return;
                         if(scroll.Delta < 0 && UI.levelSelectLevels.Last().position.y <= 49) return;
                         foreach(Button button in UI.levelSelectLevels) {
-                            button.position.y += (int)MathF.Floor(scroll.Delta);
+                            button.position.y += (int)scroll.Delta;
                         }
                     }
                     else if(mousePos.x >= 1 && mousePos.x <= 26) {
                         if(scroll.Delta > 0 && UI.levelSelectScores.First().scorePosition.y >= 12) return;
                         if(scroll.Delta < 0 && UI.levelSelectScores.Last().scoresPosition.y <= 49) return;
                         foreach(LevelScore score in UI.levelSelectScores) {
-                            int increment = (int)MathF.Floor(scroll.Delta);
+                            int increment = (int)scroll.Delta;
                             score.scorePosition.y += increment;
                             score.accComboPosition.y += increment;
                             score.scoresPosition.y += increment;
@@ -313,50 +313,46 @@ namespace PPR.Core {
                 }
             }
             else if(currentMenu == Menu.Game && editing) {
-                offset = MathF.Floor(offset);
+                offset = (int)offset;
                 offset += scroll.Delta;
                 RecalculateTime();
             }
         }
         public static void RecalculateTime() {
-            music.PlayingOffset = Time.FromMilliseconds(Math.Abs(OffsetToMilliseconds((int)MathF.Floor(offset), Map.currentLevel.speeds)));
+            long useMicrosecs = (long)(Math.Abs(OffsetToMilliseconds(offset, Map.currentLevel.speeds)) * 1000f);
+            time = Time.FromMicroseconds(useMicrosecs);
+            music.PlayingOffset = time;
         }
-        public static int OffsetToMilliseconds(int offset, List<LevelSpeed> sortedSpeeds) {
-            List<int> speeds = sortedSpeeds.Select(speed => speed.speed).ToList();
-            List<int> speedsStarts = sortedSpeeds.Select(speed => speed.offset).ToList();
-
-            int useOffset = offset;
+        public static float OffsetToMilliseconds(float offset, List<LevelSpeed> sortedSpeeds) {
+            float useOffset = offset;
 
             int speedIndex = 0;
-            for(int i = 0; i < speedsStarts.Count; i++) {
-                if(speedsStarts[i] <= useOffset) speedIndex = i;
+            for(int i = 0; i < sortedSpeeds.Count; i++) {
+                if(sortedSpeeds[i].offset <= useOffset) speedIndex = i;
             }
-            int time = 0;
+            float time = 0;
             for(int i = 0; i <= speedIndex; i++) {
-                if(i != speedIndex) time += (speedsStarts[i + 1] - speedsStarts[i]) * (60000 / speeds[i]);
-                else time += (useOffset - speedsStarts[i]) * (60000 / speeds[speedIndex]);
+                if(i != speedIndex) time += (sortedSpeeds[i + 1].offset - sortedSpeeds[i].offset) * (60000f / sortedSpeeds[i].speed);
+                else time += (useOffset - sortedSpeeds[i].offset) * (60000f / sortedSpeeds[speedIndex].speed);
             }
             return time;
         }
-        public static float MillisecondsToOffset(int time, List<LevelSpeed> sortedSpeeds) {
-            List<int> speeds = sortedSpeeds.Select(speed => speed.speed).ToList();
-            List<int> speedsStarts = sortedSpeeds.Select(speed => speed.offset).ToList();
-
-            int useTime = time;
+        public static float MillisecondsToOffset(float time, List<LevelSpeed> sortedSpeeds) {
+            float useTime = time;
 
             int speedIndex = 0;
-            for(int i = 0; i < speedsStarts.Count; i++) {
-                if(OffsetToMilliseconds(speedsStarts[i], sortedSpeeds) <= useTime) speedIndex = i;
+            for(int i = 0; i < sortedSpeeds.Count; i++) {
+                if(OffsetToMilliseconds(sortedSpeeds[i].offset, sortedSpeeds) <= useTime) speedIndex = i;
                 else break;
             }
             float offset = 0;
             for(int i = 0; i <= speedIndex; i++) {
                 if(i != speedIndex) {
-                    int increment = speedsStarts[i + 1] - speedsStarts[i];
+                    int increment = sortedSpeeds[i + 1].offset - sortedSpeeds[i].offset;
                     offset += increment;
-                    useTime -= increment * (60000 / speeds[i]);
+                    useTime -= increment * (60000f / sortedSpeeds[i].speed);
                 }
-                else offset += useTime / (60000f / speeds[i]);
+                else offset += useTime / (60000f / sortedSpeeds[i].speed);
             }
             return offset;
         }
@@ -364,11 +360,8 @@ namespace PPR.Core {
     public static class RPC {
         public static DiscordRpcClient client;
         public static void Initialize() {
-            client = new DiscordRpcClient("699266677698723941") {
-                Logger = new ConsoleLogger(LogLevel.Trace)
-            };
+            client = new DiscordRpcClient("699266677698723941");
             client.OnError += (sender, e) => Debug.Fail(e.Message);
-            client.OnPresenceUpdate += (sender, e) => Debug.Print("aaa");
             _ = client.Initialize();
             client.SetPresence(new RichPresence() { 
                 Details = "In main menu",

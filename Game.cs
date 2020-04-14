@@ -26,7 +26,6 @@ public static class MainGame {
 
         Clock fpsClock = new Clock();
         while(renderer.window.IsOpen) { // Executes every frame
-
             renderer.window.DispatchEvents();
 
             renderer.Update();

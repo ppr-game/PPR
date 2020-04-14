@@ -237,7 +237,7 @@ namespace PPR.GUI {
                         else if(button.text == "║") {
                             Game.music.Pause();
                             button.text = "►";
-                            Game.offset = MathF.Floor(Game.offset);
+                            Game.offset = (int)Game.offset;
                             Game.RecalculateTime();
                         }
                     }

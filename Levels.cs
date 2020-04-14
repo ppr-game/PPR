@@ -126,7 +126,7 @@ namespace PPR.Levels {
                                                                                      timeSpan.Seconds;
 
             int minOffset = offsets.Count > 0 ? offsets.Min() : 0;
-            int minTime = Game.OffsetToMilliseconds(minOffset, speeds);
+            int minTime = (int)Game.OffsetToMilliseconds(minOffset, speeds);
             skipTime = minTime - 5000;
             skippable = skipTime > 5000;
 
