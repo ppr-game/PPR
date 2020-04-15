@@ -30,7 +30,7 @@ namespace PPR.Core {
                         music.Play();
                     }
                 }
-                if(value == Menu.LastStats && !auto && health > 0) {
+                if(value == Menu.LastStats && !auto && Map.currentLevel.objects.Count <= 0 && health > 0) {
                     string path = Path.Combine("scores", Map.currentLevel.metadata.name + ".txt");
                     string text = File.Exists(path) ? File.ReadAllText(path) : "";
                     text = Map.TextFromScore(new LevelScore(Vector2.zero, score, accuracy, maxCombo, scores)) + "\n" + text;
