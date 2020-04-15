@@ -4,11 +4,10 @@ using System.IO;
 
 using PPR.Core;
 using PPR.GUI;
-using PPR.Rendering.Bitmap;
 using PPR.Levels;
+using PPR.Rendering.Bitmap;
 
 using SFML.Graphics;
-using SFML.System;
 using SFML.Window;
 
 namespace PPR.Rendering {
@@ -152,7 +151,7 @@ namespace PPR.Rendering {
         }
         public void SetCharacter(Vector2 position, char character, Color foregroundColor, Color backgroundColor) {
             SetCharacter(position, foregroundColor == backgroundColor || foregroundColor.A == 0 ? ' ' : character);
-            SetCellColor(position, foregroundColor,  backgroundColor);
+            SetCellColor(position, foregroundColor, backgroundColor);
         }
         public char GetCharacter(Vector2 position) {
             return !displayString.ContainsKey(position) ? '\0' : displayString[position];
@@ -167,7 +166,7 @@ namespace PPR.Rendering {
             }
         }
         public static Color LerpColors(Color a, Color b, float t) {
-            return t <= 0f ? a : t >= 1f ? b : 
+            return t <= 0f ? a : t >= 1f ? b :
                 new Color((byte)MathF.Floor(a.R + (b.R - a.R) * t), (byte)MathF.Floor(a.G + (b.G - a.G) * t), (byte)MathF.Floor(a.B + (b.B - a.B) * t), (byte)MathF.Floor(a.A + (b.A - a.A) * t));
         }
         public static Color AnimateColor(float time, Color start, Color end, float rate) {

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Diagnostics;
+
+using DiscordRPC;
 
 using PPR.GUI;
 using PPR.Levels;
@@ -12,9 +14,6 @@ using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-
-using DiscordRPC;
-using DiscordRPC.Logging;
 
 namespace PPR.Core {
     public enum Menu { Main, LevelSelect, LastStats, Game }
@@ -375,7 +374,7 @@ namespace PPR.Core {
             client = new DiscordRpcClient("699266677698723941");
             client.OnError += (sender, e) => Debug.Fail(e.Message);
             _ = client.Initialize();
-            client.SetPresence(new RichPresence() { 
+            client.SetPresence(new RichPresence() {
                 Details = "In main menu",
                 Timestamps = Timestamps.Now
             });
