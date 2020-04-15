@@ -28,12 +28,6 @@ namespace PPR.Levels {
             }
             if(Game.health <= 0 || currentLevel.objects.Count == 0) {
                 Game.currentMenu = Menu.LastStats;
-                if(!Game.auto) {
-                    string path = Path.Combine("scores", currentLevel.metadata.name + ".txt");
-                    string text = File.Exists(path) ? File.ReadAllText(path) : "";
-                    text = TextFromScore(new LevelScore(Vector2.zero, Game.score, Game.accuracy, Game.maxCombo, Game.scores)) + "\n" + text;
-                    File.WriteAllText(path, text);
-                }
             }
         }
         public static void LoadLevelFromLines(string[] lines, string name, string musicPath) {
