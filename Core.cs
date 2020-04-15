@@ -283,7 +283,11 @@ namespace PPR.Core {
             music.Volume = musicVolume;
         }
         bool CheckLine(int y) {
-            List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != '>' && !obj.removed && obj.position.y == y);
+            List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != LevelObject.speedChar &&
+                                                                                                                                                                                       obj.character != LevelObject.holdChar &&
+                                                                                                                                                                                       !obj.removed &&
+                                                                                                                                                                                       !obj.ignore &&
+                                                                                                                                                                                       obj.position.y == y);
             for(int i = 0; i < objects.Count; i++) {
                 objects[i].CheckPress();
                 if(objects[i].removed) return true;

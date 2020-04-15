@@ -136,6 +136,7 @@ namespace PPR.GUI {
                 if(button.Draw()) {
                     if(button.text == "PLAY" || button.text == "EDIT") {
                         Game.editing = button.text == "EDIT";
+                        Renderer.instance.window.SetKeyRepeatEnabled(Game.editing);
                         Game.auto = false;
                         Game.currentMenu = Menu.LevelSelect;
                         Game.GenerateLevelList();

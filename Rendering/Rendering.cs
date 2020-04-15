@@ -59,6 +59,7 @@ namespace PPR.Rendering {
             finalRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
             window.Closed += (_, __) => window.Close();
             window.MouseMoved += UpdateMousePosition;
+            window.SetKeyRepeatEnabled(false);
             if(frameRate < 0)
                 window.SetVerticalSyncEnabled(true);
             else if(frameRate != 0)
