@@ -104,7 +104,10 @@ namespace PPR.Core {
             prevOffset = offset;
 
             if(music.Status == SoundStatus.Playing) {
-                offset = MillisecondsToOffset(music.PlayingOffset.AsMilliseconds(), Map.currentLevel.speeds);
+                float newOffset = MillisecondsToOffset(music.PlayingOffset.AsMilliseconds(), Map.currentLevel.speeds);
+                offset = (newOffset < offset && currentBPM > 0) || (newOffset > offset && currentBPM < 0)
+                    ? MillisecondsToOffset(time.AsMicroseconds() / 1000f, Map.currentLevel.speeds)
+                    : newOffset;
             }
         }
         public static void GameStart(string musicPath) {
