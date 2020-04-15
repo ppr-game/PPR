@@ -283,13 +283,12 @@ namespace PPR.Core {
             music.Volume = musicVolume;
         }
         bool CheckLine(int y) {
-            bool detected = false;
             List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != '>' && !obj.removed && obj.position.y == y);
             for(int i = 0; i < objects.Count; i++) {
-                detected = true;
                 objects[i].CheckPress();
+                if(objects[i].removed) return true;
             }
-            return detected;
+            return false;
         }
         public void MouseWheelScrolled(object caller, MouseWheelScrollEventArgs scroll) {
             if(currentMenu == Menu.LevelSelect) {
