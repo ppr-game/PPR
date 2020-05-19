@@ -56,7 +56,7 @@ namespace PPR.Rendering {
             window = new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "Press Press Revolution");
             bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
             finalRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
-            window.Closed += (_, __) => window.Close();
+            //window.Closed += (_, __) => window.Close();
             window.MouseMoved += UpdateMousePosition;
             window.SetKeyRepeatEnabled(false);
             if(frameRate < 0)

@@ -8,14 +8,15 @@ using SFML.System;
 
 public static class MainGame {
     public static float deltaTime = 0f;
+    public static readonly Renderer renderer = new Renderer(80, 60, 0);
+    public static readonly Game game = new Game();
 
     static void Main() {
-        Renderer renderer = new Renderer(80, 60, 0);
-        Game game = new Game();
         renderer.window.KeyPressed += game.KeyPressed;
         renderer.window.MouseWheelScrolled += game.MouseWheelScrolled;
         renderer.window.LostFocus += game.LostFocus;
         renderer.window.GainedFocus += game.GainedFocus;
+        renderer.window.Closed += (_, __) => game.End();
 
         game.Start();
 

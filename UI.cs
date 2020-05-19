@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
+using PPR.Configuration;
 using PPR.Core;
 using PPR.Levels;
 using PPR.Rendering;
@@ -12,7 +13,6 @@ using SFML.System;
 using SFML.Window;
 
 namespace PPR.GUI {
-    public enum ButtonState { Idle, Hovered, Clicked, Selected };
     public class Button {
         public Vector2 position;
         public string text;
@@ -23,13 +23,14 @@ namespace PPR.GUI {
         public Renderer.TextAlignment align;
         Color currentColor;
         Color prevColor;
-        public ButtonState currentButton = ButtonState.Clicked;
-        ButtonState prevButton = ButtonState.Hovered;
-        public ButtonState prevFrameButton = ButtonState.Hovered;
+        public State currentState = State.Clicked;
+        State prevState = State.Hovered;
+        public State prevFrameState = State.Hovered;
         readonly float[] animTimes;
         readonly float[] animRateOffsets;
         public bool selected = false;
         int posX;
+        public enum State { Idle, Hovered, Clicked, Selected };
         public Button(Vector2 position, string text, int width, Color idleColor, Color hoverColor, Color clickColor, Renderer.TextAlignment align = Renderer.TextAlignment.Left) {
             this.position = position;
             this.text = text;
@@ -43,7 +44,7 @@ namespace PPR.GUI {
             currentColor = hoverColor;
         }
 
-        ButtonState DrawWithState(Vector2 position, string text) {
+        State DrawWithState() {
             Renderer.instance.DrawText(position, text.Substring(0, Math.Min(text.Length, width)), Color.White, Color.Transparent, align);
             posX = position.x - align switch
             {
@@ -52,20 +53,20 @@ namespace PPR.GUI {
                 _ => 0
             };
             return Renderer.instance.mousePosition.InBounds(posX, position.y, posX + width - 1, position.y)
-                              ? Mouse.IsButtonPressed(Mouse.Button.Left) ? ButtonState.Clicked : ButtonState.Hovered
-                               : selected ? ButtonState.Selected : ButtonState.Idle;
+                              ? Mouse.IsButtonPressed(Mouse.Button.Left) ? State.Clicked : State.Hovered
+                               : selected ? State.Selected : State.Idle;
         }
         public bool Draw() {
-            prevFrameButton = currentButton;
-            currentButton = DrawWithState(position, text);
-            if(prevButton != currentButton) {
+            prevFrameState = currentState;
+            currentState = DrawWithState();
+            if(prevState != currentState) {
                 Color color = idleColor;
-                switch(currentButton) {
-                    case ButtonState.Hovered:
+                switch(currentState) {
+                    case State.Hovered:
                         color = hoverColor;
                         break;
-                    case ButtonState.Selected:
-                    case ButtonState.Clicked:
+                    case State.Selected:
+                    case State.Clicked:
                         color = clickColor;
                         break;
                 }
@@ -78,7 +79,7 @@ namespace PPR.GUI {
                 }
                 currentColor = color;
             }
-            prevButton = currentButton;
+            prevState = currentState;
 
             for(int x = 0; x < width; x++) {
                 Vector2 pos = new Vector2(posX + x, position.y);
@@ -88,7 +89,104 @@ namespace PPR.GUI {
                                                                                                            Renderer.AnimateColor(animTimes[x], prevColor, currentColor, 4f + animRateOffsets[x]));
                 animTimes[x] += MainGame.deltaTime;
             }
-            return Renderer.instance.window.HasFocus() ? currentButton == ButtonState.Clicked && prevFrameButton != ButtonState.Clicked : false;
+            return Renderer.instance.window.HasFocus() ? currentState == State.Clicked && prevFrameState != State.Clicked : false;
+        }
+    }
+    public class Slider {
+        public Vector2 position;
+        public readonly int minValue;
+        public readonly int maxValue;
+        public readonly int size;
+        public readonly int step;
+        public int value;
+        public string text;
+        public Color idleColor;
+        public Color hoverColor;
+        public Color clickColor;
+        public bool showValue;
+        public Renderer.TextAlignment align;
+        public TextAlignment alignText;
+        Color currentColor;
+        Color prevColor;
+        public State currentState = State.Clicked;
+        State prevState = State.Hovered;
+        public State prevFrameState = State.Hovered;
+        readonly float[] animTimes;
+        readonly float[] animRateOffsets;
+        int posX;
+        public enum State { Idle, Hovered, Clicked };
+        public enum TextAlignment { Left, Right };
+        public Slider(Vector2 position, int minValue, int maxValue, int size, string text, Color idleColor, Color hoverColor, Color clickColor, bool showValue = true, Renderer.TextAlignment align = Renderer.TextAlignment.Left, TextAlignment alignText = TextAlignment.Left) {
+            this.position = position;
+            this.minValue = minValue;
+            this.maxValue = maxValue;
+            this.size = size;
+            step = (maxValue - minValue) / size + 1;
+            this.text = text;
+            this.idleColor = idleColor;
+            this.hoverColor = hoverColor;
+            this.clickColor = clickColor;
+            this.showValue = showValue;
+            this.align = align;
+            this.alignText = alignText;
+            animTimes = new float[size];
+            animRateOffsets = new float[size];
+            currentColor = hoverColor;
+        }
+        State DrawWithState() {
+            bool left = alignText == TextAlignment.Left;
+            string leftText = (left ? text : (showValue ? value.ToString() : "")) + " ";
+            string rightText = left ? (showValue ? value.ToString() : "") : text;
+            posX =  position.x - align switch
+            {
+                Renderer.TextAlignment.Right => size + rightText.Length + 1,
+                Renderer.TextAlignment.Center => (int)MathF.Ceiling(size / 2f),
+                _ => -leftText.Length
+            };
+            if(leftText != "") Renderer.instance.DrawText(new Vector2(posX - leftText.Length, position.y), leftText, hoverColor, idleColor);
+            if(rightText != "") Renderer.instance.DrawText(new Vector2(posX + size + 1, position.y), rightText, hoverColor, idleColor);
+            return Renderer.instance.mousePosition.InBounds(posX, position.y, posX + size - 1, position.y)
+                              ? Mouse.IsButtonPressed(Mouse.Button.Left) ? State.Clicked : State.Hovered : State.Idle;
+        }
+        public int Draw() {
+            prevFrameState = currentState;
+            currentState = DrawWithState();
+            if(prevState != currentState) {
+                Color color = idleColor;
+                switch(currentState) {
+                    case State.Hovered:
+                        color = hoverColor;
+                        break;
+                    case State.Clicked:
+                        color = clickColor;
+                        break;
+                }
+                if(currentColor != color) {
+                    prevColor = currentColor;
+                    for(int x = 0; x < size; x++) {
+                        animTimes[x] = 0f;
+                        animRateOffsets[x] = new Random().NextFloat(-1f, 1f);
+                    }
+                }
+                currentColor = color;
+            }
+            prevState = currentState;
+
+            if(Renderer.instance.window.HasFocus() && currentState == State.Clicked) {
+                value = Math.Clamp((Renderer.instance.mousePosition.x - posX) * step, minValue, maxValue);
+            }
+
+            for(int x = 0; x < size; x++) {
+                Vector2 pos = new Vector2(posX + x, position.y);
+                int drawValue = value / step;
+                char curChar = '█';
+                if(x < drawValue) curChar = '─';
+                else if(x > drawValue) curChar = '-';
+                Renderer.instance.SetCharacter(pos, curChar, Renderer.AnimateColor(animTimes[x], currentColor, prevColor, 4f + animRateOffsets[x]),
+                                                                                                                                     Renderer.AnimateColor(animTimes[x], prevColor, currentColor, 4f + animRateOffsets[x]));
+                animTimes[x] += MainGame.deltaTime;
+            }
+            return value;
         }
     }
     public static class UI {
@@ -112,12 +210,14 @@ namespace PPR.GUI {
             }
         }
         static readonly string mainMenuText = File.ReadAllText(Path.Combine("resources", "ui", "mainMenu.txt"));
+        static readonly string settingsText = File.ReadAllText(Path.Combine("resources", "ui", "settings.txt"));
         static readonly string levelSelectText = File.ReadAllText(Path.Combine("resources", "ui", "levelSelect.txt"));
         static readonly string lastStatsText = File.ReadAllText(Path.Combine("resources", "ui", "lastStats.txt"));
         static readonly List<Button> mainMenuButtons = new List<Button>() {
             new Button(new Vector2(40, 25), "PLAY", 4, Color.Black, Color.Green, Color.Green, Renderer.TextAlignment.Center),
             new Button(new Vector2(40, 27), "EDIT", 4, Color.Black, Color.Yellow, Color.Yellow, Renderer.TextAlignment.Center),
-            new Button(new Vector2(40, 29), "EXIT", 4, Color.Black, Color.Red, Color.Red, Renderer.TextAlignment.Center),
+            new Button(new Vector2(40, 29), "SETTINGS", 8, Color.Black, Color.Blue, Color.Blue, Renderer.TextAlignment.Center),
+            new Button(new Vector2(40, 31), "EXIT", 4, Color.Black, Color.Red, Color.Red, Renderer.TextAlignment.Center),
         };
         public static List<Button> levelSelectLevels = new List<Button>();
         public static List<LevelScore> levelSelectScores;
@@ -125,6 +225,7 @@ namespace PPR.GUI {
             new Button(new Vector2(28, 10), "AUTO", 4, Color.Black, Color.Blue, new Color(0, 0, 64)),
             new Button(new Vector2(28, 10), "NEW", 3, Color.Black, Color.Green, Color.Green),
         };
+        public static readonly Slider musicVolumeSlider = new Slider(new Vector2(2, 13), 0, 100, 21, "VOLUME", Color.Black, Color.Blue, Color.Blue);
         static string lastLevel = "";
         static readonly List<Button> lastStatsButtons = new List<Button>() {
             new Button(new Vector2(2, 53), "CONTINUE", 8, Color.Black, Color.Cyan, Color.Cyan),
@@ -149,8 +250,11 @@ namespace PPR.GUI {
                         Game.currentMenu = Menu.LevelSelect;
                         Game.GenerateLevelList();
                     }
+                    else if(button.text == "SETTINGS") {
+                        Game.currentMenu = Menu.Settings;
+                    }
                     else if(button.text == "EXIT") {
-                        Renderer.instance.window.Close();
+                        MainGame.game.End();
                     }
                 }
             }
@@ -168,14 +272,14 @@ namespace PPR.GUI {
                     Game.currentMenu = Menu.Game;
                     Game.RecalculatePosition();
                 }
-                if(button.currentButton == ButtonState.Hovered && button.prevFrameButton != ButtonState.Hovered) {
+                if(button.currentState == Button.State.Hovered && button.prevFrameState != Button.State.Hovered) {
                     string levelPath = Path.Combine("levels", button.text);
                     Game.selectedMetadata = new LevelMetadata(File.ReadAllLines(Path.Combine(levelPath, "level.txt")), button.text);
                     string musicPath = Path.Combine(levelPath, "music.ogg");
                     if(File.Exists(musicPath)) {
                         Game.music.Stop();
                         Game.music = new Music(musicPath) {
-                            Volume = Game.musicVolume
+                            Volume = Config.musicVolume
                         };
                         Game.music.Play();
                     }
@@ -227,6 +331,24 @@ namespace PPR.GUI {
                 if(score.scoresPosition.y >= 12 && score.scoresPosition.y <= 49) DrawMiniScores(score.scoresPosition, score.scores);
                 if(score.linePosition.y >= 12 && score.linePosition.y <= 49) Renderer.instance.DrawText(score.linePosition, "├──────────────────────────┤", Color.White, Color.Transparent);
             }
+        }
+        static void DrawSettings() {
+            Renderer.instance.DrawText(zero, settingsText, Color.White, Color.Black);
+            DrawSettingsList();
+        }
+        static void DrawSettingsList(bool left = true, int y = 13, bool bottom = false) {
+            if(left) {
+                musicVolumeSlider.position.x = 2;
+                musicVolumeSlider.align = Renderer.TextAlignment.Left;
+                musicVolumeSlider.alignText = Slider.TextAlignment.Left;
+            }
+            else {
+                musicVolumeSlider.position.x = 78;
+                musicVolumeSlider.align = Renderer.TextAlignment.Right;
+                musicVolumeSlider.alignText = Slider.TextAlignment.Right;
+            }
+            musicVolumeSlider.position.y = bottom ? MainGame.renderer.height - y - 1 : y;
+            Config.musicVolume = musicVolumeSlider.Draw();
         }
         static readonly Vector2 levelNamePos = new Vector2(0, 0);
         static readonly Vector2 scorePos = new Vector2(0, 57);
@@ -367,6 +489,7 @@ namespace PPR.GUI {
                 DrawScores(lastScoresPos);
                 DrawCombo(lastMaxComboPos, true);
             }
+            DrawSettingsList(false, 2, true);
             foreach(Button button in lastStatsButtons) {
                 if(button.text == "CONTINUE") {
                     if(Map.currentLevel.objects.Count > 0 && Game.health > 0 && button.Draw()) Game.currentMenu = Menu.Game;
@@ -399,6 +522,9 @@ namespace PPR.GUI {
                     break;
                 case Menu.LevelSelect:
                     DrawLevelSelect();
+                    break;
+                case Menu.Settings:
+                    DrawSettings();
                     break;
                 case Menu.Game:
                     DrawGame();

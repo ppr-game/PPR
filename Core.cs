@@ -6,6 +6,7 @@ using System.Linq;
 
 using DiscordRPC;
 
+using PPR.Configuration;
 using PPR.GUI;
 using PPR.Levels;
 using PPR.Rendering;
@@ -16,7 +17,7 @@ using SFML.System;
 using SFML.Window;
 
 namespace PPR.Core {
-    public enum Menu { Main, LevelSelect, LastStats, Game }
+    public enum Menu { Main, LevelSelect, Settings, LastStats, Game }
     public class Game {
         static Menu _currentMenu = Menu.Main;
         public static Menu currentMenu {
@@ -76,7 +77,6 @@ namespace PPR.Core {
         public static float prevOffset = 0f;
         public static int currentBPM = 1;
         public static Music music = new Music(Path.Combine("resources", "audio", "mainMenu.ogg"));
-        public const float musicVolume = 30f;
         public static int score = 0;
         static int _health = 80;
         public static int health {
@@ -95,9 +95,14 @@ namespace PPR.Core {
         public static bool auto = false;
         public void Start() {
             RPC.Initialize();
+            Config.LoadConfig();
 
-            music.Volume = musicVolume;
+            music.Volume = Config.musicVolume;
             music.Play();
+        }
+        public void End() {
+            Config.SaveConfig();
+            Renderer.instance.window.Close();
         }
         public void Update() {
             if(currentMenu != Menu.Game) return;
@@ -127,7 +132,7 @@ namespace PPR.Core {
             music.Stop();
             if(File.Exists(musicPath)) {
                 music = new Music(musicPath) {
-                    Volume = musicVolume
+                    Volume = Config.musicVolume
                 };
                 if(!editing) music.Play();
             }
@@ -162,7 +167,7 @@ namespace PPR.Core {
                 else if(currentMenu == Menu.LastStats) {
                     currentMenu = Map.currentLevel.objects.Count > 0 ? Menu.Game : Menu.LevelSelect;
                 }
-                else if(currentMenu == Menu.LevelSelect) currentMenu = Menu.Main;
+                else if(currentMenu == Menu.LevelSelect || currentMenu == Menu.Settings) currentMenu = Menu.Main;
             }
             if(currentMenu == Menu.Game) {
                 if(editing) {
@@ -285,7 +290,7 @@ namespace PPR.Core {
             music.Volume = 0;
         }
         public void GainedFocus(object caller, EventArgs args) {
-            music.Volume = musicVolume;
+            music.Volume = Config.musicVolume;
         }
         bool CheckLine(int y) {
             List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != LevelObject.speedChar &&
