@@ -73,7 +73,14 @@ namespace PPR.Core {
         }
         public static LevelMetadata? selectedMetadata = null;
         public static Time time;
-        public static float offset = 0f;
+        static float _offset = 0f;
+        public static float offset {
+            set {
+                _offset = value;
+                UI.progress = (int)(value / Map.currentLevel.metadata.maxOffset * 80f);
+            }
+            get => _offset;
+        }
         public static float prevOffset = 0f;
         public static int currentBPM = 1;
         public static Music music = new Music(Path.Combine("resources", "audio", "mainMenu.ogg"));

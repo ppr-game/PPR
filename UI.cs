@@ -209,6 +209,25 @@ namespace PPR.GUI {
                 }
             }
         }
+
+        static readonly Color[] prevProgressColors = new Color[80];
+        static readonly Color[] progressColors = new Color[80];
+        static readonly float[] progressAnimTimes = new float[80];
+        static readonly float[] progressAnimRateOffsets = new float[80];
+        public static int progress {
+            set {
+                for(int x = 0; x < 80; x++) {
+                    Color color = value > x ? Color.White : new Color(16, 16, 16);
+                    if(progressColors[x] != color) {
+                        prevProgressColors[x] = progressColors[x];
+                        progressAnimTimes[x] = 0f;
+                        progressAnimRateOffsets[x] = new Random().NextFloat(-3f, 3f);
+                    }
+                    progressColors[x] = color;
+                }
+            }
+        }
+
         static readonly string mainMenuText = File.ReadAllText(Path.Combine("resources", "ui", "mainMenu.txt"));
         static readonly string settingsText = File.ReadAllText(Path.Combine("resources", "ui", "settings.txt"));
         static readonly string levelSelectText = File.ReadAllText(Path.Combine("resources", "ui", "levelSelect.txt"));
@@ -381,6 +400,7 @@ namespace PPR.GUI {
             }
             else {
                 DrawHealth();
+                DrawProgress();
                 DrawScore(scorePos, Color.Blue);
                 DrawAccuracy(accPos, Color.Blue);
                 DrawCombo(comboPos);
@@ -394,12 +414,20 @@ namespace PPR.GUI {
         }
         static void DrawHealth() {
             for(int x = 0; x < 80; x++) {
-                Vector2 pos = new Vector2(x, 0);
-                //Console.WriteLine(x + ":" + prevHealthColors[x] + "-" + healthColors[x] + " : " + healthAnimTimes[x]);
+                Vector2 pos = new Vector2(x, 1);
                 float rate = 3.5f + healthAnimRateOffsets[x];
                 Renderer.instance.SetCellColor(pos, Color.Transparent,
                                                                                                            Renderer.AnimateColor(healthAnimTimes[x], prevHealthColors[x], healthColors[x], rate));
                 healthAnimTimes[x] += MainGame.deltaTime;
+            }
+        }
+        static void DrawProgress() {
+            for(int x = 0; x < 80; x++) {
+                Vector2 pos = new Vector2(x, 0);
+                float rate = 3.5f + progressAnimRateOffsets[x];
+                Renderer.instance.SetCellColor(pos, Color.Transparent,
+                                                                                                           Renderer.AnimateColor(progressAnimTimes[x], prevProgressColors[x], progressColors[x], rate));
+                progressAnimTimes[x] += MainGame.deltaTime;
             }
         }
         static int scoreChange = 0;

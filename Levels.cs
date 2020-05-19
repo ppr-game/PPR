@@ -95,6 +95,7 @@ namespace PPR.Levels {
         public string difficulty;
         public string author;
         public string length;
+        public int maxOffset;
         public int minBPM;
         public int maxBPM;
         public int avgBPM;
@@ -112,7 +113,7 @@ namespace PPR.Levels {
 
             speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
 
-            int maxOffset = offsets.Count > 0 ? offsets.Max() : 0;
+            maxOffset = offsets.Count > 0 ? offsets.Max() : 0;
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.OffsetToMilliseconds(maxOffset, speeds));
             length = (timeSpan.Hours > 0 ? timeSpan.Hours + ":" : "") +
                               (timeSpan.Minutes > 0 ? timeSpan.Minutes + ":" : "") +
