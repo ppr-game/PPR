@@ -20,6 +20,7 @@ namespace PPR.GUI {
         public Color idleColor;
         public Color hoverColor;
         public Color clickColor;
+        public Renderer.TextAlignment align;
         Color currentColor;
         Color prevColor;
         public ButtonState currentButton = ButtonState.Clicked;
@@ -28,22 +29,29 @@ namespace PPR.GUI {
         readonly float[] animTimes;
         readonly float[] animRateOffsets;
         public bool selected = false;
-        public Button(Vector2 position, string text, int width, Color idleColor, Color hoverColor, Color clickColor) {
+        int posX;
+        public Button(Vector2 position, string text, int width, Color idleColor, Color hoverColor, Color clickColor, Renderer.TextAlignment align = Renderer.TextAlignment.Left) {
             this.position = position;
             this.text = text;
             this.width = width;
             this.idleColor = idleColor;
             this.hoverColor = hoverColor;
             this.clickColor = clickColor;
+            this.align = align;
             animTimes = new float[width];
             animRateOffsets = new float[width];
             currentColor = hoverColor;
         }
 
         ButtonState DrawWithState(Vector2 position, string text) {
-            Renderer.instance.DrawText(position, text.Substring(0, Math.Min(text.Length, width)), Color.White, Color.Transparent);
-            Vector2 maxBound = new Vector2(position.x + width - 1, position.y);
-            return Renderer.instance.mousePosition.InBounds(position, maxBound)
+            Renderer.instance.DrawText(position, text.Substring(0, Math.Min(text.Length, width)), Color.White, Color.Transparent, align);
+            posX = position.x - align switch
+            {
+                Renderer.TextAlignment.Right => text.Length - 1,
+                Renderer.TextAlignment.Center => (int)MathF.Ceiling(text.Length / 2f),
+                _ => 0
+            };
+            return Renderer.instance.mousePosition.InBounds(posX, position.y, posX + width - 1, position.y)
                               ? Mouse.IsButtonPressed(Mouse.Button.Left) ? ButtonState.Clicked : ButtonState.Hovered
                                : selected ? ButtonState.Selected : ButtonState.Idle;
         }
@@ -73,7 +81,7 @@ namespace PPR.GUI {
             prevButton = currentButton;
 
             for(int x = 0; x < width; x++) {
-                Vector2 pos = position + new Vector2(x, 0);
+                Vector2 pos = new Vector2(posX + x, position.y);
                 //Color fg = Color.White - new Color(prevColor.R, prevColor.G, prevColor.B, 0);
                 //Color bg = Color.White - new Color(currentColor.R, currentColor.G, currentColor.B, 0);
                 Renderer.instance.SetCellColor(pos, Renderer.AnimateColor(animTimes[x], currentColor, prevColor, 4f + animRateOffsets[x]),
@@ -107,9 +115,9 @@ namespace PPR.GUI {
         static readonly string levelSelectText = File.ReadAllText(Path.Combine("resources", "ui", "levelSelect.txt"));
         static readonly string lastStatsText = File.ReadAllText(Path.Combine("resources", "ui", "lastStats.txt"));
         static readonly List<Button> mainMenuButtons = new List<Button>() {
-            new Button(new Vector2(38, 25), "PLAY", 4, Color.Black, Color.Green, Color.Green),
-            new Button(new Vector2(38, 27), "EDIT", 4, Color.Black, Color.Yellow, Color.Yellow),
-            new Button(new Vector2(38, 29), "EXIT", 4, Color.Black, Color.Red, Color.Red),
+            new Button(new Vector2(40, 25), "PLAY", 4, Color.Black, Color.Green, Color.Green, Renderer.TextAlignment.Center),
+            new Button(new Vector2(40, 27), "EDIT", 4, Color.Black, Color.Yellow, Color.Yellow, Renderer.TextAlignment.Center),
+            new Button(new Vector2(40, 29), "EXIT", 4, Color.Black, Color.Red, Color.Red, Renderer.TextAlignment.Center),
         };
         public static List<Button> levelSelectLevels = new List<Button>();
         public static List<LevelScore> levelSelectScores;
@@ -127,7 +135,7 @@ namespace PPR.GUI {
         static readonly List<Button> levelEditorButtons = new List<Button>() {
             new Button(new Vector2(78, 58), "►", 1, Color.Black, Color.Green, new Color(0, 64, 0)),
         };
-        static readonly Button skipButton = new Button(new Vector2(74, 58), "SKIP", 4, Color.Black, new Color(255, 127, 0), new Color(255, 127, 0));
+        static readonly Button skipButton = new Button(new Vector2(78, 58), "SKIP", 4, Color.Black, new Color(255, 127, 0), new Color(255, 127, 0), Renderer.TextAlignment.Right);
 
         static readonly Vector2 zero = Vector2.zero;
         static void DrawMainMenu() {
@@ -331,7 +339,7 @@ namespace PPR.GUI {
         static void DrawLevelName(Vector2 position, Color color) {
             Renderer.instance.DrawText(position, Map.currentLevel.metadata.name + " : " + Map.currentLevel.metadata.author, color, Color.Transparent);
         }
-        static readonly Vector2 passFailText = new Vector2(38, 5);
+        static readonly Vector2 passFailText = new Vector2(40, 5);
         static readonly Vector2 lastLevelPos = new Vector2(2, 13);
         static readonly Vector2 lastScorePos = new Vector2(2, 16);
         static readonly Vector2 lastAccPos = new Vector2(2, 18);
@@ -351,7 +359,7 @@ namespace PPR.GUI {
                     color = Color.Red;
                 }
             }
-            Renderer.instance.DrawText(passFailText, text, color, Color.Transparent);
+            Renderer.instance.DrawText(passFailText, text, color, Color.Transparent, Renderer.TextAlignment.Center);
             DrawLevelName(lastLevelPos, Color.White);
             if(!Game.editing) {
                 DrawScore(lastScorePos, Color.Blue);
