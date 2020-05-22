@@ -282,6 +282,12 @@ namespace PPR.Levels {
 
         public void Draw() {
             if(removed && !ignore) {
+                if(removeAnimationTime <= 0f) {
+                    List<LevelObject> samePosObjects = Map.currentLevel.objects.FindAll(obj => obj.position == position && obj != this);
+                    if(samePosObjects.Count > 0) {
+                        samePosObjects.ForEach(obj => Map.currentLevel.objects.Remove(obj));
+                    }
+                }
                 Color startColor = Color.Green;
                 if(!Game.auto) startColor = position.y >= Map.linePos.y - 1 && position.y <= Map.linePos.y + 1 ?
                                                                                   position.y == Map.linePos.y ? Color.Green : character == holdChar ? Color.Red : Color.Yellow : Color.Red;
