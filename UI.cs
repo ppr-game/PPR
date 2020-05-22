@@ -368,6 +368,7 @@ namespace PPR.GUI {
             }
             musicVolumeSlider.position.y = bottom ? MainGame.renderer.height - y - 1 : y;
             Config.musicVolume = musicVolumeSlider.Draw();
+            Config.ApplyConfig();
         }
         static readonly Vector2 levelNamePos = new Vector2(0, 0);
         static readonly Vector2 scorePos = new Vector2(0, 57);
