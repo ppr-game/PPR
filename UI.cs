@@ -83,10 +83,9 @@ namespace PPR.GUI {
 
             for(int x = 0; x < width; x++) {
                 Vector2 pos = new Vector2(posX + x, position.y);
-                //Color fg = Color.White - new Color(prevColor.R, prevColor.G, prevColor.B, 0);
-                //Color bg = Color.White - new Color(currentColor.R, currentColor.G, currentColor.B, 0);
-                Renderer.instance.SetCellColor(pos, Renderer.AnimateColor(animTimes[x], currentColor, prevColor, 4f + animRateOffsets[x]),
-                                                                                                           Renderer.AnimateColor(animTimes[x], prevColor, currentColor, 4f + animRateOffsets[x]));
+                Renderer.instance.SetCellColor(pos,
+                                                                    Renderer.AnimateColor(animTimes[x], currentColor, currentState == State.Idle ? hoverColor : idleColor, 4f + animRateOffsets[x]),
+                                                                    Renderer.AnimateColor(animTimes[x], prevColor, currentColor, 4f + animRateOffsets[x]));
                 animTimes[x] += MainGame.deltaTime;
             }
             return Renderer.instance.window.HasFocus() ? currentState == State.Clicked && prevFrameState != State.Clicked : false;
@@ -182,8 +181,9 @@ namespace PPR.GUI {
                 char curChar = '█';
                 if(x < drawValue) curChar = '─';
                 else if(x > drawValue) curChar = '-';
-                Renderer.instance.SetCharacter(pos, curChar, Renderer.AnimateColor(animTimes[x], currentColor, prevColor, 4f + animRateOffsets[x]),
-                                                                                                                                     Renderer.AnimateColor(animTimes[x], prevColor, currentColor, 4f + animRateOffsets[x]));
+                Renderer.instance.SetCharacter(pos, curChar, 
+                                                                            Renderer.AnimateColor(animTimes[x], currentColor, currentState == State.Idle ? hoverColor : idleColor, 4f + animRateOffsets[x]),
+                                                                            Renderer.AnimateColor(animTimes[x], prevColor, currentColor, 4f + animRateOffsets[x]));
                 animTimes[x] += MainGame.deltaTime;
             }
             return value;
