@@ -128,8 +128,10 @@ namespace PPR.Core {
             }
         }
         public static void GameStart(string musicPath) {
+            UI.progress = 80;
             offset = 0;
             prevOffset = 0;
+            UI.health = 0;
             health = 80;
             score = 0;
             accuracy = 100;
