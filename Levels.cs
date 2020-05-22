@@ -204,14 +204,16 @@ namespace PPR.Levels {
 
         public bool ignore = false;
 
-        public LevelObject(char character, int offset, List<LevelObject> objects = null/*, int[] speeds, int[] speedsStarts*/) {
+        public LevelObject(char character, int offset, List<LevelObject> objects = null) {
             int x = 0;
+            int xLineOffset = 0;
+            int mul = 90 / lines.Select(line => line.Length).Max();
             foreach(string line in lines) {
                 if(line.Contains(character)) {
-                    int mul = 80 / line.Length;
-                    x = (line.IndexOf(character) + 1) * mul;
+                    x = (line.IndexOf(character) + 1) * (mul - 1) + xLineOffset * mul / 3;
                     break;
                 }
+                xLineOffset++;
             }
             if(character == holdChar && objects != null) {
                 List<LevelObject> existingObjects = new List<LevelObject>(objects);
@@ -225,15 +227,6 @@ namespace PPR.Levels {
                     }
                 }
             }
-            /*int speedIndex = 0;
-            for(int i = 0; i < speedsStarts.Length; i++) {
-                if(speedsStarts[i] <= time) speedIndex = i;
-            }
-            int y = 0;
-            for(int i = 0; i <= speedIndex; i++) {
-                if(i != speedIndex) y += (int)MathF.Floor((speedsStarts[i + 1] - speedsStarts[i]) / speeds[i]);
-                else y += (int)MathF.Floor((time - speedsStarts[i]) / speeds[speedIndex]);
-            }*/
             startPosition = new Vector2(x, -offset + Map.linePos.y);
             position = new Vector2(startPosition);
             this.character = character;
