@@ -134,6 +134,7 @@ namespace PPR.Core {
             UI.health = 0;
             health = 80;
             score = 0;
+            UI.prevScore = 0;
             accuracy = 100;
             scores = new int[3];
             combo = 0;

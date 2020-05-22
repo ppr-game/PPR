@@ -238,13 +238,16 @@ namespace PPR.GUI {
             new Button(new Vector2(40, 29), "SETTINGS", 8, Color.Black, Color.Blue, Color.Blue, Renderer.TextAlignment.Center),
             new Button(new Vector2(40, 31), "EXIT", 4, Color.Black, Color.Red, Color.Red, Renderer.TextAlignment.Center),
         };
+
         public static List<Button> levelSelectLevels = new List<Button>();
         public static List<LevelScore> levelSelectScores;
         static readonly List<Button> levelSelectButtons = new List<Button>() {
             new Button(new Vector2(28, 10), "AUTO", 4, Color.Black, Color.Blue, new Color(0, 0, 64)),
             new Button(new Vector2(28, 10), "NEW", 3, Color.Black, Color.Green, Color.Green),
         };
+
         public static readonly Slider musicVolumeSlider = new Slider(new Vector2(2, 13), 0, 100, 21, "VOLUME", Color.Black, Color.Blue, Color.Blue);
+
         static string lastLevel = "";
         static readonly List<Button> lastStatsButtons = new List<Button>() {
             new Button(new Vector2(2, 53), "CONTINUE", 8, Color.Black, Color.Cyan, Color.Cyan),
@@ -252,9 +255,11 @@ namespace PPR.GUI {
             new Button(new Vector2(2, 55), "SAVE", 4, Color.Black, Color.Blue, new Color(0, 0, 64)),
             new Button(new Vector2(2, 57), "EXIT", 4, Color.Black, Color.Red, Color.Red),
         };
+
         static readonly List<Button> levelEditorButtons = new List<Button>() {
             new Button(new Vector2(78, 58), "►", 1, Color.Black, Color.Green, new Color(0, 64, 0)),
         };
+
         static readonly Button skipButton = new Button(new Vector2(78, 58), "SKIP", 4, Color.Black, new Color(255, 127, 0), new Color(255, 127, 0), Renderer.TextAlignment.Right);
 
         static readonly Vector2 zero = Vector2.zero;
@@ -432,7 +437,7 @@ namespace PPR.GUI {
             }
         }
         static int scoreChange = 0;
-        static int prevScore = 0;
+        public static int prevScore = 0;
         static float newScoreAnimationTime = 0f;
         static void DrawScore(Vector2 position, Color color) {
             string scoreStr = "SCORE: " + Game.score;
