@@ -351,10 +351,17 @@ namespace PPR.GUI {
         static void DrawScores(List<LevelScore> scores) {
             if(scores == null) return;
             foreach(LevelScore score in scores) {
-                if(score.scorePosition.y >= 12 && score.scorePosition.y <= 49) Renderer.instance.DrawText(score.scorePosition, score.scoreStr, Color.Blue, Color.Transparent);
-                if(score.accComboPosition.y >= 12 && score.accComboPosition.y <= 49) Renderer.instance.DrawText(score.accComboPosition, score.accCombo, Color.Blue, Color.Transparent);
-                if(score.scoresPosition.y >= 12 && score.scoresPosition.y <= 49) DrawMiniScores(score.scoresPosition, score.scores);
-                if(score.linePosition.y >= 12 && score.linePosition.y <= 49) Renderer.instance.DrawText(score.linePosition, "├──────────────────────────┤", Color.White, Color.Transparent);
+                if(score.scorePosition.y >= 12 && score.scorePosition.y <= 49)
+                    Renderer.instance.DrawText(score.scorePosition, score.scoreStr, Color.Blue, Color.Transparent);
+                if(score.accComboPosition.y >= 12 && score.accComboPosition.y <= 49) {
+                    Renderer.instance.DrawText(score.accComboPosition, score.accuracyStr, score.accuracyColor, Color.Transparent);
+                    Renderer.instance.DrawText(score.accComboDividerPosition, "│", Color.Blue, Color.Transparent);
+                    Renderer.instance.DrawText(score.maxComboPosition, score.maxComboStr, score.maxComboColor, Color.Transparent);
+                }
+                if(score.scoresPosition.y >= 12 && score.scoresPosition.y <= 49)
+                    DrawMiniScores(score.scoresPosition, score.scores);
+                if(score.linePosition.y >= 12 && score.linePosition.y <= 49)
+                    Renderer.instance.DrawText(score.linePosition, "├──────────────────────────┤", Color.White, Color.Transparent);
             }
         }
         static void DrawSettings() {
@@ -409,7 +416,7 @@ namespace PPR.GUI {
                 DrawHealth();
                 DrawProgress();
                 DrawScore(scorePos, Color.Blue);
-                DrawAccuracy(accPos, Color.Blue);
+                DrawAccuracy(accPos);
                 DrawCombo(comboPos);
                 DrawMiniScores(miniScoresPos, Game.scores);
                 DrawLevelName(levelNamePos, Color.Black);
@@ -454,20 +461,12 @@ namespace PPR.GUI {
 
             prevScore = Game.score;
         }
-        static void DrawAccuracy(Vector2 position, Color color) {
-            Renderer.instance.DrawText(position, "ACCURACY: " + Game.accuracy + "%", color, Color.Transparent);
+        static void DrawAccuracy(Vector2 position) {
+            Renderer.instance.DrawText(position, "ACCURACY: " + Game.accuracy + "%", Game.GetAccuracyColor(Game.accuracy), Color.Transparent);
         }
         static void DrawCombo(Vector2 position, bool maxCombo = false) {
-            string prefix = maxCombo ? "MAX " : "";
-            Color color = Color.Blue;
-            if(Game.scores[0] <= 0 && Game.accuracy < 100) {
-                prefix = "FULL ";
-                color = Color.Yellow;
-            }
-            else if(Game.accuracy >= 100) {
-                prefix = "PERFECT ";
-                color = Color.Green;
-            }
+            string prefix = Game.accuracy >= 100 ? "PERFECT " : Game.scores[0] <= 0 ? "FULL " : maxCombo ? "MAX " : "";
+            Color color = Game.GetComboColor(Game.accuracy, Game.scores[0]);
             Renderer.instance.DrawText(position, prefix + "COMBO: " + (maxCombo ? Game.maxCombo : Game.combo), color, Color.Transparent);
         }
         static void DrawMiniScores(Vector2 position, int[] scores) {
@@ -520,7 +519,7 @@ namespace PPR.GUI {
             DrawLevelName(lastLevelPos, Color.White);
             if(!Game.editing) {
                 DrawScore(lastScorePos, Color.Blue);
-                DrawAccuracy(lastAccPos, Color.Blue);
+                DrawAccuracy(lastAccPos);
                 DrawScores(lastScoresPos);
                 DrawCombo(lastMaxComboPos, true);
             }
@@ -536,11 +535,9 @@ namespace PPR.GUI {
                         Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine(path, "level.txt")), lastLevel, Path.Combine(path, "music.ogg"));
                     }
                 }
-                else if(button.text == "AUTO") {
-                    if(!Game.editing && button.Draw()) {
-                        Game.auto = !Game.auto;
-                        button.selected = Game.auto;
-                    }
+                else if(button.text == "AUTO" && !Game.editing) {
+                    if(button.Draw()) Game.auto = !Game.auto;
+                    button.selected = Game.auto;
                 }
                 else if(button.text == "SAVE") {
                     if(Game.editing && button.Draw()) {

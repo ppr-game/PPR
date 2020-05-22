@@ -71,7 +71,12 @@ namespace PPR.Levels {
         public Vector2 accComboPosition;
         public int accuracy;
         public int maxCombo;
-        public string accCombo;
+        public string accuracyStr;
+        public Color accuracyColor;
+        public Vector2 accComboDividerPosition;
+        public Vector2 maxComboPosition;
+        public string maxComboStr;
+        public Color maxComboColor;
         public Vector2 scoresPosition;
         public int[] scores;
         public Vector2 linePosition;
@@ -82,7 +87,12 @@ namespace PPR.Levels {
             accComboPosition = new Vector2(position.x, position.y + 1);
             this.accuracy = accuracy;
             this.maxCombo = maxCombo;
-            accCombo = accuracy + "%│" + maxCombo + "x";
+            accuracyStr = accuracy + "%";
+            accuracyColor = Game.GetAccuracyColor(accuracy);
+            accComboDividerPosition = accComboPosition + new Vector2(accuracyStr.Length, 0);
+            maxComboPosition = accComboDividerPosition + new Vector2(1, 0);
+            maxComboStr = maxCombo + "x";
+            maxComboColor = Game.GetComboColor(accuracy, scores[0]);
             scoresPosition = new Vector2(position.x, position.y + 2);
             this.scores = scores;
             linePosition = new Vector2(position.x - 1, position.y + 3);

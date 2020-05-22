@@ -176,6 +176,12 @@ namespace PPR.Core {
             float mulSum = scores[1] * 0.5f + scores[2];
             accuracy = (int)MathF.Floor(mulSum / sum * 100f);
         }
+        public static Color GetAccuracyColor(int accuracy) {
+            return accuracy >= 100 ? Color.Green : accuracy >= 70 ? Color.Yellow : Color.Red;
+        }
+        public static Color GetComboColor(int accuracy, int misses) {
+            return accuracy >= 100 ? Color.Green : misses <= 0 ? Color.Yellow : Color.Blue;
+        }
         public void KeyPressed(object caller, KeyEventArgs key) {
             if(key.Code == Keyboard.Key.Escape) {
                 if(currentMenu == Menu.Game) currentMenu = Menu.LastStats;
