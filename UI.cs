@@ -252,6 +252,7 @@ namespace PPR.GUI {
         static readonly List<Button> lastStatsButtons = new List<Button>() {
             new Button(new Vector2(2, 53), "CONTINUE", 8, Color.Black, Color.Cyan, Color.Cyan),
             new Button(new Vector2(2, 55), "RESTART", 7, Color.Black, Color.Yellow, Color.Yellow),
+            new Button(new Vector2(10, 55), "AUTO", 4, Color.Black, Color.Blue, new Color(0, 0, 64)),
             new Button(new Vector2(2, 55), "SAVE", 4, Color.Black, Color.Blue, new Color(0, 0, 64)),
             new Button(new Vector2(2, 57), "EXIT", 4, Color.Black, Color.Red, Color.Red),
         };
@@ -533,6 +534,12 @@ namespace PPR.GUI {
                         Game.currentMenu = Menu.Game;
                         string path = Path.Combine("levels", lastLevel);
                         Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine(path, "level.txt")), lastLevel, Path.Combine(path, "music.ogg"));
+                    }
+                }
+                else if(button.text == "AUTO") {
+                    if(!Game.editing && button.Draw()) {
+                        Game.auto = !Game.auto;
+                        button.selected = Game.auto;
                     }
                 }
                 else if(button.text == "SAVE") {

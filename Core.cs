@@ -31,7 +31,10 @@ namespace PPR.Core {
                         music.Play();
                     }
                 }
-                if(value == Menu.LastStats && !auto && Map.currentLevel.objects.Count <= 0 && health > 0) {
+                if(value == Menu.Game) {
+                    if(auto) usedAuto = true;
+                }
+                if(value == Menu.LastStats && !usedAuto && Map.currentLevel.objects.Count <= 0 && health > 0) {
                     string path = Path.Combine("scores", Map.currentLevel.metadata.name + ".txt");
                     string text = File.Exists(path) ? File.ReadAllText(path) : "";
                     text = Map.TextFromScore(new LevelScore(Vector2.zero, score, accuracy, maxCombo, scores)) + "\n" + text;
@@ -100,6 +103,7 @@ namespace PPR.Core {
         public static int maxCombo = 0;
         public static bool editing = false;
         public static bool auto = false;
+        public static bool usedAuto = false;
         public void Start() {
             RPC.Initialize();
             Config.LoadConfig();
@@ -128,6 +132,7 @@ namespace PPR.Core {
             }
         }
         public static void GameStart(string musicPath) {
+            usedAuto = auto;
             UI.progress = 80;
             offset = 0;
             prevOffset = 0;
@@ -135,8 +140,8 @@ namespace PPR.Core {
             health = 80;
             score = 0;
             UI.prevScore = 0;
-            accuracy = 100;
             scores = new int[3];
+            accuracy = 100;
             combo = 0;
             maxCombo = 0;
             music.Stop();
