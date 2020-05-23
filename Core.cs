@@ -340,6 +340,8 @@ namespace PPR.Core {
                             int increment = (int)scroll.Delta;
                             score.scorePosition.y += increment;
                             score.accComboPosition.y += increment;
+                            score.accComboDividerPosition.y += increment;
+                            score.maxComboPosition.y += increment;
                             score.scoresPosition.y += increment;
                             score.linePosition.y += increment;
                         }
