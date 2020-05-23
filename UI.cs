@@ -390,6 +390,9 @@ namespace PPR.GUI {
         static readonly Vector2 miniScoresPos = new Vector2(25, 59);
         static readonly Vector2 bpmPos = new Vector2(0, 57);
         static readonly Vector2 timePos = new Vector2(0, 58);
+        static readonly Vector2 offsetPos = new Vector2(0, 59);
+        static readonly Vector2 hpDrainPos = new Vector2(20, 58);
+        static readonly Vector2 hpRestoragePos = new Vector2(20, 59);
         static void DrawGame() {
             if(Game.editing) {
                 foreach(Button button in levelEditorButtons) {
@@ -409,11 +412,16 @@ namespace PPR.GUI {
                         }
                     }
                 }
-                Renderer.instance.DrawText(bpmPos, "BPM: " + Game.currentBPM +
-                                                                                                          "   HP DRAIN:" + Map.currentLevel.metadata.hpDrain, Color.White, Color.Transparent);
-                Renderer.instance.DrawText(timePos, "TIME: " + Game.music.PlayingOffset.AsSeconds() + "sec" +
-                                                                                                          "   HP RESTORAGE:" + Map.currentLevel.metadata.hpRestorage, Color.White, Color.Transparent);
-                DrawLevelName(levelNamePos, Color.White);
+                Renderer.instance.DrawText(bpmPos, "BPM: " + Game.currentBPM, Color.Blue, Color.Transparent);
+                TimeSpan curTime = TimeSpan.FromMilliseconds(Game.music.PlayingOffset.AsMilliseconds());
+                Renderer.instance.DrawText(timePos, "TIME: " + (curTime < TimeSpan.Zero ? "'-'" : "") + curTime.ToString((curTime.Hours != 0 ? "h':'mm" : "m") + "':'ss"),
+                                            Color.Blue, Color.Transparent);
+                Renderer.instance.DrawText(offsetPos, "OFFSET: " + (int)MathF.Round(Game.offset), Color.Blue, Color.Transparent);
+
+                Renderer.instance.DrawText(hpDrainPos, "HP DRAIN: " + Map.currentLevel.metadata.hpDrain, Color.Red, Color.Transparent);
+                Renderer.instance.DrawText(hpRestoragePos, "HP RESTORAGE: " + Map.currentLevel.metadata.hpRestorage, Color.Red, Color.Transparent);
+                DrawProgress();
+                DrawLevelName(levelNamePos, Color.Black);
             }
             else {
                 DrawHealth();

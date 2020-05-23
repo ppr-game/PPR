@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Xml;
 
 using PPR.Core;
 using PPR.Rendering;
@@ -16,8 +18,25 @@ namespace PPR.Levels {
             if(Game.currentMenu != Menu.Game) return;
             Renderer.instance.DrawText(linePos, "────────────────────────────────────────────────────────────────────────────────",
                                                                                     Color.White, Color.Transparent);
-            for(int i = 0; i < currentLevel.objects.Count; i++) {
-                currentLevel.objects[i].Draw();
+            if(Game.editing) {
+                int roundedOffset = (int)MathF.Round(Game.offset);
+                for(int y = 0; y < 30 + currentLevel.metadata.linesFrequency; y++) {
+                    int useY = y * 2 + roundedOffset % (currentLevel.metadata.linesFrequency * 2) - currentLevel.metadata.linesFrequency - (58 - linePos.y);
+                    if(useY > linePos.y) continue;
+                    if(y % currentLevel.metadata.linesFrequency == 0) {
+                        for(int x = 0; x < 80; x++) {
+                            Renderer.instance.SetCellColor(new Vector2(x, useY), Color.White, new Color(6, 6, 6));
+                        }
+                    }
+                    else {
+                        for(int x = 0; x < 80; x++) {
+                            Renderer.instance.SetCellColor(new Vector2(x, useY), Color.White, new Color(4, 4, 4));
+                        }
+                    }
+                }
+                for(int i = 0; i < currentLevel.objects.Count; i++) {
+                    currentLevel.objects[i].Draw();
+                }
             }
         }
         public static void StepAll() {
@@ -109,6 +128,7 @@ namespace PPR.Levels {
         public int minBPM;
         public int maxBPM;
         public int avgBPM;
+        public int linesFrequency;
         public string bpm;
         public readonly bool skippable;
         public readonly int skipTime;
@@ -120,14 +140,13 @@ namespace PPR.Levels {
             hpRestorage = int.Parse(meta[1]);
             difficulty = meta[2];
             author = meta[3];
+            linesFrequency = meta.Length > 4 ? int.Parse(meta[4]) : 4;
 
             speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
 
             maxOffset = offsets.Count > 0 ? offsets.Max() : 0;
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.OffsetToMilliseconds(maxOffset, speeds));
-            length = (timeSpan.Hours > 0 ? timeSpan.Hours + ":" : "") +
-                              (timeSpan.Minutes > 0 ? timeSpan.Minutes + ":" : "") +
-                                                                                     timeSpan.Seconds;
+            length = (timeSpan < TimeSpan.Zero ? "'-'" : "") + timeSpan.ToString((timeSpan.Hours != 0 ? "h':'mm" : "m") + "':'ss");
 
             int minOffset = offsets.Count > 0 ? offsets.Min() : 0;
             int minTime = (int)Game.OffsetToMilliseconds(minOffset, speeds);
@@ -160,7 +179,7 @@ namespace PPR.Levels {
                                                                                                                                   lines[0].ToList().FindAll(obj => obj != LevelObject.holdChar).Count,
                                                                                                                                   lines[1].Length > 0 ? lines[1].Split(':').Select(str => int.Parse(str)).ToList() : new List<int>(),
                                                                                       SpeedsFromLists(lines[2].Length > 0 ? lines[2].Split(':').Select(str => int.Parse(str)).ToList() : new List<int>(),
-                                                                                                                                  lines[3].Length > 0 ? lines[3].Split(':').Select(str => int.Parse(str)).ToList() : new List<int>())) { }
+                                                                                                                        lines[3].Length > 0 ? lines[3].Split(':').Select(str => int.Parse(str)).ToList() : new List<int>())) { }
     }
     public class Level {
         public LevelMetadata metadata;

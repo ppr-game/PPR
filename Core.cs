@@ -80,7 +80,7 @@ namespace PPR.Core {
         public static float offset {
             set {
                 _offset = value;
-                UI.progress = (int)(value / Map.currentLevel.metadata.maxOffset * 80f);
+                if(!editing) UI.progress = (int)(value / Map.currentLevel.metadata.maxOffset * 80f);
             }
             get => _offset;
         }
@@ -127,6 +127,7 @@ namespace PPR.Core {
             if(music.Status == SoundStatus.Playing) {
                 offset = MillisecondsToOffset(music.PlayingOffset.AsMilliseconds(), Map.currentLevel.speeds);
             }
+            if(editing) UI.progress = (int)(music.PlayingOffset.AsSeconds() / music.Duration.AsSeconds() * 80f);
         }
         public static void GameStart(string musicPath) {
             usedAuto = auto;
@@ -189,7 +190,7 @@ namespace PPR.Core {
             }
             if(currentMenu == Menu.Game) {
                 if(editing) {
-                    int flooredOffset = (int)offset;
+                    int roundedOffset = (int)MathF.Round(offset);
                     char character = key.Code switch
                     {
                         Keyboard.Key.Num1 => '1',
@@ -241,23 +242,23 @@ namespace PPR.Core {
                     };
                     if(character == '\0') {
                         if(key.Code == Keyboard.Key.Backspace) {
-                            List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.offset == flooredOffset &&
+                            List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.offset == roundedOffset &&
                                                                                                                                                                                                        obj.character != LevelObject.speedChar);
                             foreach(LevelObject obj in objects) {
                                 _ = Map.currentLevel.objects.Remove(obj);
                             }
                         }
                         else if(key.Code == Keyboard.Key.Up || key.Code == Keyboard.Key.Down) {
-                            if(!Map.currentLevel.speeds.Select(speed => speed.offset).Contains(flooredOffset)) {
+                            if(!Map.currentLevel.speeds.Select(speed => speed.offset).Contains(roundedOffset)) {
                                 int speedIndex = 0;
                                 for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
-                                    if(Map.currentLevel.speeds[i].offset <= flooredOffset) speedIndex = i;
+                                    if(Map.currentLevel.speeds[i].offset <= roundedOffset) speedIndex = i;
                                 }
-                                Map.currentLevel.speeds.Add(new LevelSpeed(Map.currentLevel.speeds[speedIndex].speed, flooredOffset));
+                                Map.currentLevel.speeds.Add(new LevelSpeed(Map.currentLevel.speeds[speedIndex].speed, roundedOffset));
                                 Map.currentLevel.speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
                             }
 
-                            int index = Map.currentLevel.speeds.Select(speed => speed.offset).ToList().IndexOf(flooredOffset);
+                            int index = Map.currentLevel.speeds.Select(speed => speed.offset).ToList().IndexOf(roundedOffset);
 
                             Map.currentLevel.speeds[index].speed += (key.Shift ? 1 : 10) * (key.Code == Keyboard.Key.Up ? 1 : -1);
 
@@ -283,11 +284,11 @@ namespace PPR.Core {
                         }
                     }
                     else {
-                        if(Map.currentLevel.objects.FindAll(obj => obj.character == character && obj.offset == flooredOffset).Count <= 0) {
-                            Map.currentLevel.objects.Add(new LevelObject(character, flooredOffset));
+                        if(Map.currentLevel.objects.FindAll(obj => obj.character == character && obj.offset == roundedOffset).Count <= 0) {
+                            Map.currentLevel.objects.Add(new LevelObject(character, roundedOffset));
                             if(key.Shift) {
                                 character = LevelObject.holdChar;
-                                Map.currentLevel.objects.Add(new LevelObject(character, flooredOffset, Map.currentLevel.objects));
+                                Map.currentLevel.objects.Add(new LevelObject(character, roundedOffset, Map.currentLevel.objects));
                             }
                         }
                     }
