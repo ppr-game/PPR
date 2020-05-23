@@ -27,7 +27,7 @@ namespace PPR.Core {
                     if(_currentMenu == Menu.Game && value == Menu.LastStats) { // Pause
                         music.Pause();
                     }
-                    else if(_currentMenu == Menu.LastStats && value == Menu.Game) { // Unpause
+                    else if(!editing && _currentMenu == Menu.LastStats && value == Menu.Game) { // Unpause
                         music.Play();
                     }
                 }

@@ -393,14 +393,17 @@ namespace PPR.GUI {
         static void DrawGame() {
             if(Game.editing) {
                 foreach(Button button in levelEditorButtons) {
+                    button.text = Game.music.Status switch
+                    {
+                        SoundStatus.Playing => "║",
+                        _ => "►"
+                    };
                     if(button.Draw()) {
                         if(button.text == "►") {
                             Game.music.Play();
-                            button.text = "║";
                         }
                         else if(button.text == "║") {
                             Game.music.Pause();
-                            button.text = "►";
                             Game.offset = (int)Game.offset;
                             Game.RecalculateTime();
                         }
