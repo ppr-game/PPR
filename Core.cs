@@ -23,7 +23,7 @@ namespace PPR.Core {
         public static Menu currentMenu {
             get => _currentMenu;
             set {
-                if(Map.currentLevel != null && Map.currentLevel.objects.Count > 0 && health > 0 && !editing) {
+                if(Map.currentLevel != null && Map.currentLevel.objects.Count > 0 && health > 0) {
                     if(_currentMenu == Menu.Game && value == Menu.LastStats) { // Pause
                         music.Pause();
                     }
