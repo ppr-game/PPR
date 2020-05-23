@@ -535,8 +535,8 @@ namespace PPR.GUI {
                         Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine(path, "level.txt")), lastLevel, Path.Combine(path, "music.ogg"));
                     }
                 }
-                else if(button.text == "AUTO" && !Game.editing) {
-                    if(button.Draw()) Game.auto = !Game.auto;
+                else if(button.text == "AUTO") {
+                    if(!Game.editing && button.Draw()) Game.auto = !Game.auto;
                     button.selected = Game.auto;
                 }
                 else if(button.text == "SAVE") {
