@@ -125,10 +125,7 @@ namespace PPR.Core {
             prevOffset = offset;
 
             if(music.Status == SoundStatus.Playing) {
-                float newOffset = MillisecondsToOffset(music.PlayingOffset.AsMilliseconds(), Map.currentLevel.speeds);
-                offset = (newOffset < offset && currentBPM > 0) || (newOffset > offset && currentBPM < 0)
-                    ? MillisecondsToOffset(time.AsMicroseconds() / 1000f, Map.currentLevel.speeds)
-                    : newOffset;
+                offset = MillisecondsToOffset(music.PlayingOffset.AsMilliseconds(), Map.currentLevel.speeds);
             }
         }
         public static void GameStart(string musicPath) {
@@ -350,7 +347,7 @@ namespace PPR.Core {
                 }
             }
             else if(currentMenu == Menu.Game && editing) {
-                offset = (int)offset;
+                offset = MathF.Round(offset);
                 offset += scroll.Delta;
                 RecalculateTime();
             }

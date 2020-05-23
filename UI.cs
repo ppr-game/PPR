@@ -404,7 +404,7 @@ namespace PPR.GUI {
                         }
                         else if(button.text == "║") {
                             Game.music.Pause();
-                            Game.offset = (int)Game.offset;
+                            Game.offset = MathF.Round(Game.offset);
                             Game.RecalculateTime();
                         }
                     }

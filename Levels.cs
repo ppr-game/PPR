@@ -360,7 +360,7 @@ namespace PPR.Levels {
         }
         public void Step() {
             if(removed) return;
-            position.y = startPosition.y + (int)MathF.Floor(Game.offset);
+            position.y = startPosition.y + (int)MathF.Round(Game.offset);
         }
 
 
