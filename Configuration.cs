@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 using PPR.Core;
 using PPR.GUI;
@@ -8,7 +7,7 @@ namespace PPR.Configuration {
     public static class Config {
         public const string CONFIG_FILE_PATH = "config.txt";
 
-        public static int musicVolume;
+        public static int musicVolume = 15;
 
         public static void LoadConfig() {
             string text = File.ReadAllLines(CONFIG_FILE_PATH)[0];
