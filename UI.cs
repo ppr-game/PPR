@@ -242,8 +242,8 @@ namespace PPR.GUI {
         public static List<Button> levelSelectLevels = new List<Button>();
         public static List<LevelScore> levelSelectScores;
         static readonly List<Button> levelSelectButtons = new List<Button>() {
-            new Button(new Vector2(28, 10), "AUTO", 4, Color.Black, Color.Blue, new Color(0, 0, 64)),
-            new Button(new Vector2(28, 10), "NEW", 3, Color.Black, Color.Green, Color.Green),
+            new Button(new Vector2(25, 10), "AUTO", 4, Color.Black, Color.Blue, new Color(0, 0, 64)),
+            new Button(new Vector2(25, 10), "NEW", 3, Color.Black, Color.Green, Color.Green),
         };
 
         public static readonly Slider musicVolumeSlider = new Slider(new Vector2(2, 13), 0, 100, 21, "VOLUME", Color.Black, Color.Blue, Color.Blue);
@@ -331,13 +331,13 @@ namespace PPR.GUI {
             DrawMetadata(Game.selectedMetadata);
             DrawScores(levelSelectScores);
         }
-        static readonly Vector2 metaLengthPos = new Vector2(53, 12);
-        static readonly Vector2 metaDiffPos = new Vector2(53, 13);
-        static readonly Vector2 metaBPMpos = new Vector2(53, 14);
-        static readonly Vector2 metaAuthorPos = new Vector2(53, 15);
+        static readonly Vector2 metaLengthPos = new Vector2(56, 12);
+        static readonly Vector2 metaDiffPos = new Vector2(56, 13);
+        static readonly Vector2 metaBPMpos = new Vector2(56, 14);
+        static readonly Vector2 metaAuthorPos = new Vector2(56, 15);
 
-        static readonly Vector2 metaObjCountPos = new Vector2(53, 48);
-        static readonly Vector2 metaSpdCountPos = new Vector2(53, 49);
+        static readonly Vector2 metaObjCountPos = new Vector2(56, 48);
+        static readonly Vector2 metaSpdCountPos = new Vector2(56, 49);
         static void DrawMetadata(LevelMetadata? metadata) {
             if(metadata == null) return;
             Renderer.instance.DrawText(metaLengthPos, "LENGTH:" + metadata.Value.length, Color.White, Color.Transparent);
@@ -361,7 +361,7 @@ namespace PPR.GUI {
                 if(score.scoresPosition.y >= 12 && score.scoresPosition.y <= 49)
                     DrawMiniScores(score.scoresPosition, score.scores);
                 if(score.linePosition.y >= 12 && score.linePosition.y <= 49)
-                    Renderer.instance.DrawText(score.linePosition, "├──────────────────────────┤", Color.White, Color.Transparent);
+                    Renderer.instance.DrawText(score.linePosition, "├───────────────────────┤", Color.White, Color.Transparent);
             }
         }
         static void DrawSettings() {

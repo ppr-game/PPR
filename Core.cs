@@ -169,7 +169,7 @@ namespace PPR.Core {
             for(int i = 0; i < directories.Length; i++) {
                 string name = Path.GetFileName(directories[i]);
                 if(name == "_template") continue;
-                buttons.Add(new Button(new Vector2(28, 12 + i), name, 24, Color.Black, Color.White, Color.White));
+                buttons.Add(new Button(new Vector2(25, 12 + i), name, 30, Color.Black, Color.White, Color.White));
             }
             UI.levelSelectLevels = buttons;
         }
