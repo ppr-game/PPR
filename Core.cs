@@ -84,6 +84,7 @@ namespace PPR.Core {
             }
             get => _offset;
         }
+        public static int roundedOffset = 0;
         public static float prevOffset = 0f;
         public static int currentBPM = 1;
         public static Music music = new Music(Path.Combine("resources", "audio", "mainMenu.ogg"));
@@ -119,6 +120,7 @@ namespace PPR.Core {
             if(currentMenu != Menu.Game) return;
 
             if(MathF.Floor(prevOffset) != MathF.Floor(offset)) {
+                roundedOffset = (int)MathF.Round(offset);
                 RecalculatePosition();
             }
 
@@ -133,6 +135,7 @@ namespace PPR.Core {
             usedAuto = auto;
             UI.progress = 80;
             offset = 0;
+            roundedOffset = 0;
             prevOffset = 0;
             UI.health = 0;
             health = 80;
@@ -190,7 +193,6 @@ namespace PPR.Core {
             }
             if(currentMenu == Menu.Game) {
                 if(editing) {
-                    int roundedOffset = (int)MathF.Round(offset);
                     char character = key.Code switch
                     {
                         Keyboard.Key.Num1 => '1',
@@ -249,29 +251,35 @@ namespace PPR.Core {
                             }
                         }
                         else if(key.Code == Keyboard.Key.Up || key.Code == Keyboard.Key.Down) {
-                            if(!Map.currentLevel.speeds.Select(speed => speed.offset).Contains(roundedOffset)) {
-                                int speedIndex = 0;
-                                for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
-                                    if(Map.currentLevel.speeds[i].offset <= roundedOffset) speedIndex = i;
+                            int delta = key.Code == Keyboard.Key.Up ? 1 : -1;
+                            if(key.Alt) {
+                                Map.currentLevel.metadata.linesFrequency += delta;
+                            }
+                            else {
+                                if(!Map.currentLevel.speeds.Select(speed => speed.offset).Contains(roundedOffset)) {
+                                    int speedIndex = 0;
+                                    for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
+                                        if(Map.currentLevel.speeds[i].offset <= roundedOffset) speedIndex = i;
+                                    }
+                                    Map.currentLevel.speeds.Add(new LevelSpeed(Map.currentLevel.speeds[speedIndex].speed, roundedOffset));
+                                    Map.currentLevel.speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
                                 }
-                                Map.currentLevel.speeds.Add(new LevelSpeed(Map.currentLevel.speeds[speedIndex].speed, roundedOffset));
-                                Map.currentLevel.speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
-                            }
 
-                            int index = Map.currentLevel.speeds.Select(speed => speed.offset).ToList().IndexOf(roundedOffset);
+                                int index = Map.currentLevel.speeds.Select(speed => speed.offset).ToList().IndexOf(roundedOffset);
 
-                            Map.currentLevel.speeds[index].speed += (key.Shift ? 1 : 10) * (key.Code == Keyboard.Key.Up ? 1 : -1);
+                                Map.currentLevel.speeds[index].speed += (key.Shift ? 1 : 10) * delta;
 
-                            if(index >= 1 && Map.currentLevel.speeds[index].speed == Map.currentLevel.speeds[index - 1].speed) {
-                                Map.currentLevel.speeds.RemoveAt(index);
-                            }
+                                if(index >= 1 && Map.currentLevel.speeds[index].speed == Map.currentLevel.speeds[index - 1].speed) {
+                                    Map.currentLevel.speeds.RemoveAt(index);
+                                }
 
-                            List<LevelObject> speedObjects = Map.currentLevel.objects.FindAll(obj => obj.character == LevelObject.speedChar);
-                            foreach(LevelObject obj in speedObjects) {
-                                _ = Map.currentLevel.objects.Remove(obj);
-                            }
-                            for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
-                                Map.currentLevel.objects.Add(new LevelObject(LevelObject.speedChar, Map.currentLevel.speeds[i].offset));
+                                List<LevelObject> speedObjects = Map.currentLevel.objects.FindAll(obj => obj.character == LevelObject.speedChar);
+                                foreach(LevelObject obj in speedObjects) {
+                                    _ = Map.currentLevel.objects.Remove(obj);
+                                }
+                                for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
+                                    Map.currentLevel.objects.Add(new LevelObject(LevelObject.speedChar, Map.currentLevel.speeds[i].offset));
+                                }
                             }
                         }
                         else if(key.Code == Keyboard.Key.Left || key.Code == Keyboard.Key.Right) {
@@ -350,7 +358,7 @@ namespace PPR.Core {
                 }
             }
             else if(currentMenu == Menu.Game && editing) {
-                offset = MathF.Round(offset);
+                offset = roundedOffset;
                 offset += scroll.Delta;
                 RecalculateTime();
             }

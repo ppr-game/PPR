@@ -407,16 +407,16 @@ namespace PPR.GUI {
                         }
                         else if(button.text == "║") {
                             Game.music.Pause();
-                            Game.offset = MathF.Round(Game.offset);
+                            Game.offset = Game.roundedOffset;
                             Game.RecalculateTime();
                         }
                     }
                 }
-                Renderer.instance.DrawText(bpmPos, "BPM: " + Game.currentBPM, Color.Blue, Color.Transparent);
+                Renderer.instance.DrawText(bpmPos, "BPM: " + Game.currentBPM + "  " + Map.currentLevel.metadata.linesFrequency, Color.Blue, Color.Transparent);
                 TimeSpan curTime = TimeSpan.FromMilliseconds(Game.music.PlayingOffset.AsMilliseconds());
                 Renderer.instance.DrawText(timePos, "TIME: " + (curTime < TimeSpan.Zero ? "'-'" : "") + curTime.ToString((curTime.Hours != 0 ? "h':'mm" : "m") + "':'ss"),
                                             Color.Blue, Color.Transparent);
-                Renderer.instance.DrawText(offsetPos, "OFFSET: " + (int)MathF.Round(Game.offset), Color.Blue, Color.Transparent);
+                Renderer.instance.DrawText(offsetPos, "OFFSET: " + Game.roundedOffset, Color.Blue, Color.Transparent);
 
                 Renderer.instance.DrawText(hpDrainPos, "HP DRAIN: " + Map.currentLevel.metadata.hpDrain, Color.Red, Color.Transparent);
                 Renderer.instance.DrawText(hpRestoragePos, "HP RESTORAGE: " + Map.currentLevel.metadata.hpRestorage, Color.Red, Color.Transparent);

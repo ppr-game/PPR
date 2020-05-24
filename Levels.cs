@@ -19,9 +19,9 @@ namespace PPR.Levels {
             Renderer.instance.DrawText(linePos, "────────────────────────────────────────────────────────────────────────────────",
                                                                                     Color.White, Color.Transparent);
             if(Game.editing) {
-                int roundedOffset = (int)MathF.Round(Game.offset);
-                for(int y = 0; y < 30 + currentLevel.metadata.linesFrequency; y++) {
-                    int useY = y * 2 + roundedOffset % (currentLevel.metadata.linesFrequency * 2) - currentLevel.metadata.linesFrequency - (58 - linePos.y);
+                int doubleFrequency = currentLevel.metadata.linesFrequency * 2;
+                for(int y = -linePos.y / 2; y < linePos.y / 2 + 30 + currentLevel.metadata.linesFrequency; y++) {
+                    int useY = y * 2 + Game.roundedOffset % doubleFrequency - doubleFrequency + linePos.y + 2;
                     if(useY > linePos.y) continue;
                     if(y % currentLevel.metadata.linesFrequency == 0) {
                         for(int x = 0; x < 80; x++) {
@@ -34,9 +34,9 @@ namespace PPR.Levels {
                         }
                     }
                 }
-                for(int i = 0; i < currentLevel.objects.Count; i++) {
-                    currentLevel.objects[i].Draw();
-                }
+            }
+            for(int i = 0; i < currentLevel.objects.Count; i++) {
+                currentLevel.objects[i].Draw();
             }
         }
         public static void StepAll() {
@@ -61,7 +61,8 @@ namespace PPR.Levels {
             lines[4] = level.metadata.hpDrain + ":" +
                                    level.metadata.hpRestorage + ":" +
                                    level.metadata.difficulty + ":" +
-                                   level.metadata.author;
+                                   level.metadata.author + ":" + 
+                                   level.metadata.linesFrequency;
             return string.Join('\n', lines);
         }
         public static List<LevelScore> ScoresFromLines(string[] lines, Vector2 position) {
@@ -379,7 +380,7 @@ namespace PPR.Levels {
         }
         public void Step() {
             if(removed) return;
-            position.y = startPosition.y + (int)MathF.Round(Game.offset);
+            position.y = startPosition.y + Game.roundedOffset;
         }
 
 
