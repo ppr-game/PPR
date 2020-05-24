@@ -10,13 +10,15 @@ namespace PPR.Configuration {
         public static int musicVolume = 15;
 
         public static void LoadConfig() {
-            string text = File.ReadAllLines(CONFIG_FILE_PATH)[0];
-            string[] values = text.Split(',');
-            for(int i = 0; i < values.Length; i++) {
-                switch(i) {
-                    case 0:
-                        musicVolume = int.Parse(values[0]);
-                        break;
+            if(File.Exists(CONFIG_FILE_PATH)) {
+                string text = File.ReadAllLines(CONFIG_FILE_PATH)[0];
+                string[] values = text.Split(',');
+                for(int i = 0; i < values.Length; i++) {
+                    switch(i) {
+                        case 0:
+                            musicVolume = int.Parse(values[0]);
+                            break;
+                    }
                 }
             }
 
