@@ -24,7 +24,6 @@ namespace PPR.Configuration {
         }
         public static void SaveConfig() {
             string text = musicVolume.ToString();
-            _ = Directory.CreateDirectory(CONFIG_FILE_PATH);
             File.WriteAllText(CONFIG_FILE_PATH, text);
         }
         public static void ApplyConfig() {
