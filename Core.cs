@@ -38,7 +38,7 @@ namespace PPR.Core {
                     string path = Path.Combine("scores", Map.currentLevel.metadata.name + ".txt");
                     string text = File.Exists(path) ? File.ReadAllText(path) : "";
                     text = Map.TextFromScore(new LevelScore(Vector2.zero, score, accuracy, maxCombo, scores)) + "\n" + text;
-                    _ = Directory.CreateDirectory(path);
+                    _ = Directory.CreateDirectory(Path.GetDirectoryName(path));
                     File.WriteAllText(path, text);
                 }
                 if((value == Menu.Main || value == Menu.LevelSelect) && music.Status == SoundStatus.Paused) {
