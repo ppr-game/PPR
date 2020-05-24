@@ -86,6 +86,7 @@ namespace PPR.Core {
             get => _offset;
         }
         public static int roundedOffset = 0;
+        static int prevRoundedOffset = 0;
         public static float prevOffset = 0f;
         public static int currentBPM = 1;
         public static Music music = new Music(Path.Combine("resources", "audio", "mainMenu.ogg"));
@@ -121,6 +122,7 @@ namespace PPR.Core {
             if(currentMenu != Menu.Game) return;
 
             if(MathF.Floor(prevOffset) != MathF.Floor(offset)) {
+                prevRoundedOffset = roundedOffset;
                 roundedOffset = (int)MathF.Round(offset);
                 RecalculatePosition();
             }
@@ -129,6 +131,9 @@ namespace PPR.Core {
 
             if(music.Status == SoundStatus.Playing) {
                 offset = MillisecondsToOffset(music.PlayingOffset.AsMilliseconds(), Map.currentLevel.speeds);
+                if(roundedOffset - prevRoundedOffset > 1)
+                    Debug.WriteLine("Lag detected: the offset changed to quickly ({0}), current speed: {1} BPM, {2} ms",
+                        roundedOffset - prevRoundedOffset, currentBPM, 60000f / currentBPM);
             }
             if(editing) UI.progress = (int)(music.PlayingOffset.AsSeconds() / music.Duration.AsSeconds() * 80f);
         }
@@ -159,6 +164,7 @@ namespace PPR.Core {
                 if(Map.currentLevel.speeds[i].offset <= offset) {
                     currentBPM = Map.currentLevel.speeds[i].speed;
                 }
+                else break;
             }
             Map.StepAll();
         }

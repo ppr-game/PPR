@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 using PPR.Core;
 using PPR.GUI;
@@ -38,6 +39,7 @@ public static class MainGame {
 
             deltaTime = fpsClock.Restart().AsSeconds();
             UI.fps = (int)MathF.Round(1f / deltaTime);
+            if(UI.fps < 30) Debug.WriteLine("Lag detected: too low fps ({0})", UI.fps);
         }
     }
 }

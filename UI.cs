@@ -246,7 +246,8 @@ namespace PPR.GUI {
             new Button(new Vector2(25, 10), "NEW", 3, Color.Black, Color.Green, Color.Green),
         };
 
-        public static readonly Slider musicVolumeSlider = new Slider(new Vector2(2, 13), 0, 100, 21, "VOLUME", Color.Black, Color.Blue, Color.Blue);
+        public static readonly Slider musicVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, "VOLUME", Color.Black, Color.Blue, Color.Blue);
+        public static readonly Button showFpsSwitch = new Button(Vector2.zero, "SHOW FPS", 8, Color.Black, Color.Blue, new Color(0, 0, 64));
 
         static string lastLevel = "";
         static readonly List<Button> lastStatsButtons = new List<Button>() {
@@ -373,14 +374,27 @@ namespace PPR.GUI {
                 musicVolumeSlider.position.x = 2;
                 musicVolumeSlider.align = Renderer.TextAlignment.Left;
                 musicVolumeSlider.alignText = Slider.TextAlignment.Left;
+
+                showFpsSwitch.position.x = 2;
+                showFpsSwitch.align = Renderer.TextAlignment.Left;
             }
             else {
                 musicVolumeSlider.position.x = 78;
                 musicVolumeSlider.align = Renderer.TextAlignment.Right;
                 musicVolumeSlider.alignText = Slider.TextAlignment.Right;
+
+                showFpsSwitch.position.x = 77;
+                showFpsSwitch.align = Renderer.TextAlignment.Right;
             }
+
             musicVolumeSlider.position.y = bottom ? MainGame.renderer.height - y - 1 : y;
+            showFpsSwitch.position.y = bottom ? MainGame.renderer.height - y - 3 : y + 2;
+
+            if(showFpsSwitch.Draw()) showFpsSwitch.selected = !showFpsSwitch.selected;
+
             Config.musicVolume = musicVolumeSlider.Draw();
+            Config.showFps = showFpsSwitch.selected;
+
             Config.ApplyConfig();
         }
         static readonly Vector2 levelNamePos = new Vector2(0, 0);
@@ -582,7 +596,8 @@ namespace PPR.GUI {
                     DrawLastStats();
                     break;
             }
-            //Renderer.instance.DrawText(zero, fps + " FPS", fps >= 60 ? Color.Green : fps > 20 ? Color.Yellow : Color.Red, Color.Transparent);
+            if(Config.showFps)
+                Renderer.instance.DrawText(zero, fps + " FPS", fps >= 60 ? Color.Green : fps > 20 ? Color.Yellow : Color.Red, Color.Transparent);
         }
     }
 }
