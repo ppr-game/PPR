@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PressPressRevolution": {
+      "commandName": "Project",
+      "workingDirectory": ".\\"
+    }
+  }
+}
