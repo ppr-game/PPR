@@ -7,6 +7,8 @@ using PPR.GUI;
 using PPR.Levels;
 using PPR.Rendering.Bitmap;
 
+using PressPressRevolution.Properties;
+
 using SFML.Graphics;
 using SFML.Window;
 
@@ -94,24 +96,25 @@ namespace PPR.Rendering {
             text.foregroundColors = foregroundColors;
             text.text = displayString;
 
-            bloomRT.Clear();
-
             Sprite defSprite = new Sprite(text.renderTexture.Texture);
 
-            Shader.Bind(bloom);
-
-            bloom.SetUniform("image", defSprite.Texture);
-            bloom.SetUniform("horizontal", false);
-            bloomRT.Draw(new Sprite(defSprite), new RenderStates(bloom));
-            bloomRT.Display();
-
+            bloomRT.Clear();
             finalRT.Clear();
 
-            bloom.SetUniform("image", bloomRT.Texture);
-            bloom.SetUniform("horizontal", true);
-            finalRT.Draw(new Sprite(bloomRT.Texture), new RenderStates(bloom));
+            if(Settings.Default.bloom) {
+                Shader.Bind(bloom);
 
-            Shader.Bind(null);
+                bloom.SetUniform("image", defSprite.Texture);
+                bloom.SetUniform("horizontal", false);
+                bloomRT.Draw(new Sprite(defSprite), new RenderStates(bloom));
+                bloomRT.Display();
+
+                bloom.SetUniform("image", bloomRT.Texture);
+                bloom.SetUniform("horizontal", true);
+                finalRT.Draw(new Sprite(bloomRT.Texture), new RenderStates(bloom));
+
+                Shader.Bind(null);
+            }
 
             finalRT.Draw(defSprite, new RenderStates(BlendMode.Add));
 

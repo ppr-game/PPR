@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 
-using PPR.Configuration;
 using PPR.Core;
 using PPR.Levels;
 using PPR.Rendering;
+
+using PressPressRevolution.Properties;
 
 using SFML.Audio;
 using SFML.Graphics;
@@ -88,7 +89,7 @@ namespace PPR.GUI {
                                                                     Renderer.AnimateColor(animTimes[x], prevColor, currentColor, 4f + animRateOffsets[x]));
                 animTimes[x] += MainGame.deltaTime;
             }
-            return Renderer.instance.window.HasFocus() ? currentState == State.Clicked && prevFrameState != State.Clicked : false;
+            return Renderer.instance.window.HasFocus() && currentState == State.Clicked && prevFrameState != State.Clicked;
         }
     }
     public class Slider {
@@ -246,9 +247,6 @@ namespace PPR.GUI {
             new Button(new Vector2(25, 10), "NEW", 3, Color.Black, Color.Green, Color.Green),
         };
 
-        public static readonly Slider musicVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, "VOLUME", Color.Black, Color.Blue, Color.Blue);
-        public static readonly Button showFpsSwitch = new Button(Vector2.zero, "SHOW FPS", 8, Color.Black, Color.Blue, new Color(0, 0, 64));
-
         static string lastLevel = "";
         static readonly List<Button> lastStatsButtons = new List<Button>() {
             new Button(new Vector2(2, 53), "CONTINUE", 8, Color.Black, Color.Cyan, Color.Cyan),
@@ -305,7 +303,7 @@ namespace PPR.GUI {
                     if(File.Exists(musicPath)) {
                         Game.music.Stop();
                         Game.music = new Music(musicPath) {
-                            Volume = Config.musicVolume
+                            Volume = Settings.Default.musicVolume
                         };
                         Game.music.Play();
                     }
@@ -365,37 +363,39 @@ namespace PPR.GUI {
                     Renderer.instance.DrawText(score.linePosition, "├───────────────────────┤", Color.White, Color.Transparent);
             }
         }
+
+        static readonly Vector2 audioGroupTextPos = new Vector2(2, 13);
+        public static readonly Slider musicVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, "VOLUME", Color.Black, Color.Blue, Color.Blue);
+
+        static readonly Vector2 graphicsGroupTextPos = new Vector2(2, 18);
+        public static readonly Button bloomSwitch = new Button(new Vector2(4, 20), "BLOOM", 5, Color.Black, Color.Blue, new Color(0, 0, 64));
+        public static readonly Button showFpsSwitch = new Button(new Vector2(4, 22), "SHOW FPS", 8, Color.Black, Color.Blue, new Color(0, 0, 64));
         static void DrawSettings() {
             Renderer.instance.DrawText(zero, settingsText, Color.White, Color.Black);
             DrawSettingsList();
         }
-        static void DrawSettingsList(bool left = true, int y = 13, bool bottom = false) {
-            if(left) {
-                musicVolumeSlider.position.x = 2;
+        static void DrawSettingsList(bool pauseMenu = false) {
+            if(pauseMenu) {
+                musicVolumeSlider.position.x = 78;
+                musicVolumeSlider.position.y = 57;
+                musicVolumeSlider.align = Renderer.TextAlignment.Right;
+                musicVolumeSlider.alignText = Slider.TextAlignment.Right;
+            }
+            else {
+                Renderer.instance.DrawText(audioGroupTextPos, "[ AUDIO ]", Color.White, Color.Transparent);
+                musicVolumeSlider.position.x = 4;
+                musicVolumeSlider.position.y = 15;
                 musicVolumeSlider.align = Renderer.TextAlignment.Left;
                 musicVolumeSlider.alignText = Slider.TextAlignment.Left;
 
-                showFpsSwitch.position.x = 2;
-                showFpsSwitch.align = Renderer.TextAlignment.Left;
-            }
-            else {
-                musicVolumeSlider.position.x = 78;
-                musicVolumeSlider.align = Renderer.TextAlignment.Right;
-                musicVolumeSlider.alignText = Slider.TextAlignment.Right;
-
-                showFpsSwitch.position.x = 77;
-                showFpsSwitch.align = Renderer.TextAlignment.Right;
+                Renderer.instance.DrawText(graphicsGroupTextPos, "[ GRAPHICS ]", Color.White, Color.Transparent);
+                if(bloomSwitch.Draw()) Settings.Default.bloom = bloomSwitch.selected = !bloomSwitch.selected;
+                if(showFpsSwitch.Draw()) Settings.Default.showFps = showFpsSwitch.selected = !showFpsSwitch.selected;
             }
 
-            musicVolumeSlider.position.y = bottom ? MainGame.renderer.height - y - 1 : y;
-            showFpsSwitch.position.y = bottom ? MainGame.renderer.height - y - 3 : y + 2;
+            Settings.Default.musicVolume = musicVolumeSlider.Draw();
 
-            if(showFpsSwitch.Draw()) showFpsSwitch.selected = !showFpsSwitch.selected;
-
-            Config.musicVolume = musicVolumeSlider.Draw();
-            Config.showFps = showFpsSwitch.selected;
-
-            Config.ApplyConfig();
+            Game.music.Volume = Settings.Default.musicVolume;
         }
         static readonly Vector2 levelNamePos = new Vector2(0, 0);
         static readonly Vector2 scorePos = new Vector2(0, 57);
@@ -548,7 +548,7 @@ namespace PPR.GUI {
                 DrawScores(lastScoresPos);
                 DrawCombo(lastMaxComboPos, true);
             }
-            DrawSettingsList(false, 2, true);
+            DrawSettingsList(true);
             foreach(Button button in lastStatsButtons) {
                 if(button.text == "CONTINUE") {
                     if(Map.currentLevel.objects.Count > 0 && Game.health > 0 && button.Draw()) Game.currentMenu = Menu.Game;
@@ -596,7 +596,7 @@ namespace PPR.GUI {
                     DrawLastStats();
                     break;
             }
-            if(Config.showFps)
+            if(Settings.Default.showFps)
                 Renderer.instance.DrawText(zero, fps + " FPS", fps >= 60 ? Color.Green : fps > 20 ? Color.Yellow : Color.Red, Color.Transparent);
         }
     }

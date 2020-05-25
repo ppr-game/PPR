@@ -1,15 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 
 using DiscordRPC;
 
-using PPR.Configuration;
 using PPR.GUI;
 using PPR.Levels;
 using PPR.Rendering;
+
+using PressPressRevolution.Properties;
 
 using SFML.Audio;
 using SFML.Graphics;
@@ -108,14 +111,22 @@ namespace PPR.Core {
         public static bool auto = false;
         public static bool usedAuto = false;
         public void Start() {
-            RPC.Initialize();
-            Config.LoadConfig();
+            Settings.Default.Reload();
+            UI.musicVolumeSlider.value = Settings.Default.musicVolume;
+            UI.bloomSwitch.selected = Settings.Default.bloom;
+            UI.showFpsSwitch.selected = Settings.Default.showFps;
 
-            music.Volume = Config.musicVolume;
+            foreach(SettingsPropertyValue value in Settings.Default.PropertyValues) {
+                Debug.WriteLine(value.Name + "=" + value.PropertyValue);
+            }
+
+            RPC.Initialize();
+
+            music.Volume = Settings.Default.musicVolume;
             music.Play();
         }
         public void End() {
-            Config.SaveConfig();
+            Settings.Default.Save();
             Renderer.instance.window.Close();
         }
         public void Update() {
@@ -154,7 +165,7 @@ namespace PPR.Core {
             music.Stop();
             if(File.Exists(musicPath)) {
                 music = new Music(musicPath) {
-                    Volume = Config.musicVolume
+                    Volume = Settings.Default.musicVolume
                 };
                 if(!editing) music.Play();
             }
@@ -324,7 +335,7 @@ namespace PPR.Core {
             music.Volume = 0;
         }
         public void GainedFocus(object caller, EventArgs args) {
-            music.Volume = Config.musicVolume;
+            music.Volume = Settings.Default.musicVolume;
         }
         bool CheckLine(int y) {
             List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != LevelObject.speedChar &&

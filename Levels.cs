@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Xml;
 
 using PPR.Core;
 using PPR.Rendering;
@@ -61,7 +59,7 @@ namespace PPR.Levels {
             lines[4] = level.metadata.hpDrain + ":" +
                                    level.metadata.hpRestorage + ":" +
                                    level.metadata.difficulty + ":" +
-                                   level.metadata.author + ":" + 
+                                   level.metadata.author + ":" +
                                    level.metadata.linesFrequency;
             return string.Join('\n', lines);
         }
@@ -349,7 +347,7 @@ namespace PPR.Levels {
         }
         public void CheckPress() {
             if(removed || ignore) return;
-            if(Keyboard.IsKeyPressed(key) && (character == holdChar ? position.y == Map.linePos.y : true)) {
+            if(Keyboard.IsKeyPressed(key) && (character != holdChar || position.y == Map.linePos.y)) {
                 if(character == holdChar || position.y >= Map.linePos.y - 1) {
                     Hit();
                 }
