@@ -58,6 +58,7 @@ then get the music for your level, convert it to the `.ogg` format, if it isn't 
 put it in your level folder next to the `level.txt` file and rename it to `music.ogg`.
 Now you can begin creating your level
 ### Editor controls
+- `Mouse Wheel Scroll` - scroll the time
 - `Any English letter`, `any number` or `-`, `=`, `[`, `]`, `;`, `'`, `,`, `.`, `/` - place a corresponding note at the current time (on the line)
 - `Backspace` - remove all the notes at the current time (on the line)
 - `Up/down arrows` - increase/decrease the speed by 10 BPM (`+ Shift` - 1 BPM) (`+ Alt` - increase/decrease the guide lines spacing)
