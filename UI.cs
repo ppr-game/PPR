@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 
+using NLog;
+
 using PPR.Core;
 using PPR.Levels;
 using PPR.Rendering;
@@ -191,6 +193,8 @@ namespace PPR.GUI {
         }
     }
     public static class UI {
+        static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
         public static int fps = 0;
 
         static readonly Color[] prevHealthColors = new Color[80];
@@ -312,6 +316,7 @@ namespace PPR.GUI {
                     string scoresPath = Path.Combine("scores", button.text + ".txt");
                     if(File.Exists(scoresPath)) {
                         levelSelectScores = Map.ScoresFromLines(File.ReadAllLines(scoresPath), scoresPos);
+                        logger.Info("Loaded scores for level {0}, total scores count: {1}", button.text, levelSelectScores.Count);
                     }
                 }
             }

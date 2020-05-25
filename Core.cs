@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
-using System.Dynamic;
 using System.IO;
 using System.Linq;
 
 using DiscordRPC;
+
+using NLog;
 
 using PPR.GUI;
 using PPR.Levels;
@@ -22,6 +23,8 @@ using SFML.Window;
 namespace PPR.Core {
     public enum Menu { Main, LevelSelect, Settings, LastStats, Game }
     public class Game {
+        static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
         static Menu _currentMenu = Menu.Main;
         public static Menu currentMenu {
             get => _currentMenu;
@@ -116,8 +119,10 @@ namespace PPR.Core {
             UI.bloomSwitch.selected = Settings.Default.bloom;
             UI.showFpsSwitch.selected = Settings.Default.showFps;
 
+            // TODO: Automatic settings list generation
+            logger.Info("Current settings:");
             foreach(SettingsPropertyValue value in Settings.Default.PropertyValues) {
-                Debug.WriteLine(value.Name + "=" + value.PropertyValue);
+                logger.Info(value.Name + "=" + value.PropertyValue);
             }
 
             RPC.Initialize();
@@ -126,7 +131,15 @@ namespace PPR.Core {
             music.Play();
         }
         public void End() {
+            logger.Info("Exiting");
+
             Settings.Default.Save();
+
+            RPC.client.ClearPresence();
+            RPC.client.Dispose();
+
+            LogManager.Shutdown();
+
             Renderer.instance.window.Close();
         }
         public void Update() {
@@ -143,7 +156,7 @@ namespace PPR.Core {
             if(music.Status == SoundStatus.Playing) {
                 offset = MillisecondsToOffset(music.PlayingOffset.AsMilliseconds(), Map.currentLevel.speeds);
                 if(roundedOffset - prevRoundedOffset > 1)
-                    Debug.WriteLine("Lag detected: the offset changed to quickly ({0}), current speed: {1} BPM, {2} ms",
+                    logger.Warn("Lag detected: the offset changed too quickly ({0}), current speed: {1} BPM, {2} ms",
                         roundedOffset - prevRoundedOffset, currentBPM, 60000f / currentBPM);
             }
             if(editing) UI.progress = (int)(music.PlayingOffset.AsSeconds() / music.Duration.AsSeconds() * 80f);
@@ -169,6 +182,8 @@ namespace PPR.Core {
                 };
                 if(!editing) music.Play();
             }
+
+            logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
         }
         public static void RecalculatePosition() {
             for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
@@ -189,6 +204,8 @@ namespace PPR.Core {
                 buttons.Add(new Button(new Vector2(25, 12 + i), name, 30, Color.Black, Color.White, Color.White));
             }
             UI.levelSelectLevels = buttons;
+
+            logger.Info("Loaded levels, total level count: {0}", buttons.Count);
         }
         public static void RecalculateAccuracy() {
             float sum = scores[0] + scores[1] + scores[2];
@@ -421,10 +438,12 @@ namespace PPR.Core {
         }
     }
     public static class RPC {
+        static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
         public static DiscordRpcClient client;
         public static void Initialize() {
             client = new DiscordRpcClient("699266677698723941");
-            client.OnError += (sender, e) => Debug.Fail(e.Message);
+            client.OnError += (sender, e) => logger.Error(e.Message);
             _ = client.Initialize();
             client.SetPresence(new RichPresence() {
                 Details = "In main menu",

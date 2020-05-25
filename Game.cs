@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Diagnostics;
 
+using NLog;
+
 using PPR.Core;
 using PPR.GUI;
 using PPR.Rendering;
 
 using SFML.System;
+using SFML.Window;
 
 public static class MainGame {
+    static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
     public static float deltaTime = 0f;
     public static readonly Renderer renderer = new Renderer(80, 60, 0);
     public static readonly Game game = new Game();
@@ -21,10 +26,7 @@ public static class MainGame {
 
         game.Start();
 
-        renderer.window.Closed += (caller, e) => {
-            RPC.client.ClearPresence();
-            RPC.client.Dispose();
-        };
+        logger.Info("Loading finished");
 
         Clock fpsClock = new Clock();
         while(renderer.window.IsOpen) { // Executes every frame
@@ -39,7 +41,7 @@ public static class MainGame {
 
             deltaTime = fpsClock.Restart().AsSeconds();
             UI.fps = (int)MathF.Round(1f / deltaTime);
-            if(UI.fps < 30) Debug.WriteLine("Lag detected: too low fps ({0})", UI.fps);
+            if(UI.fps < 30 && renderer.window.HasFocus()) logger.Warn("Lag detected: too low fps ({0})", UI.fps);
         }
     }
 }

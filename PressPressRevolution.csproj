@@ -24,12 +24,16 @@
 
   <ItemGroup>
     <PackageReference Include="DiscordRichPresence" Version="1.0.150" />
+    <PackageReference Include="NLog" Version="4.7.2" />
     <PackageReference Include="SFML.Net" Version="2.5.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="levels\_template\level.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Properties\Settings.settings">
