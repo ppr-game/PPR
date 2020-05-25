@@ -120,6 +120,8 @@ namespace PPR.Core {
             UI.showFpsSwitch.selected = Settings.Default.showFps;
             UI.showConsoleSwitch.selected = Settings.Default.showConsole;
 
+            if(!Settings.Default.showConsole) MainGame.HideConsoleWindow();
+
             Settings.Default.PropertyChanged += (_, e) => {
                 if(e.PropertyName == "showConsole") {
                     if(Settings.Default.showConsole) MainGame.ShowConsoleWindow();
