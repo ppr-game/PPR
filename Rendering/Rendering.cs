@@ -55,10 +55,9 @@ namespace PPR.Rendering {
             foregroundColors = new Dictionary<Vector2, Color>(this.width * this.height);
             displayString = new Dictionary<Vector2, char>(this.width * this.height);
 
-            window = new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "Press Press Revolution");
+            window = new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "Press Press Revolution", Styles.Close);
             bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
             finalRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
-            //window.Closed += (_, __) => window.Close();
             window.MouseMoved += UpdateMousePosition;
             window.SetKeyRepeatEnabled(false);
             if(frameRate < 0)
