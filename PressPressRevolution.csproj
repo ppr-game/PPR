@@ -5,7 +5,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Platforms>AnyCPU;x86</Platforms>
     <StartupObject>MainGame</StartupObject>
-    <Version>0.4.2-beta</Version>
+    <Version>0.5.1-beta</Version>
     <Authors>ConfiG</Authors>
     <Company />
     <PackageId>com.github.cgytrus.PressPressRevolution</PackageId>
