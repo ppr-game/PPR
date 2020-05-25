@@ -18,30 +18,32 @@ namespace PPR.Rendering {
 
         readonly Dictionary<Vector2, float> randomColorAnimationOffsets;
 
-        readonly Dictionary<Vector2, Color> backgroundColors;
-        readonly Dictionary<Vector2, Color> foregroundColors;
-        readonly Dictionary<Vector2, char> displayString;
+        public readonly Dictionary<Vector2, Color> backgroundColors;
+        public readonly Dictionary<Vector2, Color> foregroundColors;
+        public readonly Dictionary<Vector2, char> displayString;
         public char[] charSet = { '#', '+', '-', '|', '\\', '/' };
-        public readonly Vector2 fontSize;
+        public Vector2 fontSize;
         public readonly int width;
-        public readonly int windowWidth;
+        public int windowWidth;
         public readonly int height;
-        public readonly int windowHeight;
+        public int windowHeight;
         public int frameRate;
-        readonly BitmapText text;
+        public BitmapText text;
         public readonly RenderWindow window;
         public static Vector2 cameraPosition = Vector2.zero;
         readonly Shader bloom = Shader.FromString(File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
                                                                                                                      File.ReadAllText(Path.Combine("resources", "bloom_frag.glsl")));
-        readonly RenderTexture bloomRT;
-        readonly RenderTexture finalRT;
+        public RenderTexture bloomRT;
+        public RenderTexture finalRT;
 
         public Vector2 mousePosition = new Vector2(-1, -1);
 
         public Renderer(int width, int height, int frameRate) {
             instance = this;
 
-            fontSize = new Vector2(10, 10);
+            string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.Default.font, "mappings.txt"));
+            string[] fontSizeStr = fontMappingsLines[0].Split(',');
+            fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
 
             this.width = width;
             windowWidth = width * fontSize.x;
@@ -58,13 +60,14 @@ namespace PPR.Rendering {
             window = new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "Press Press Revolution", Styles.Close);
             bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
             finalRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
+
             window.MouseMoved += UpdateMousePosition;
             window.SetKeyRepeatEnabled(false);
-            if(frameRate < 0)
-                window.SetVerticalSyncEnabled(true);
-            else if(frameRate != 0)
-                window.SetFramerateLimit((uint)frameRate);
-            BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "font.png")), "\0☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αβΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ", fontSize);
+
+            if(frameRate < 0) window.SetVerticalSyncEnabled(true);
+            else if(frameRate != 0) window.SetFramerateLimit((uint)frameRate);
+
+            BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")), fontMappingsLines[1], fontSize);
             text = new BitmapText(font, new Vector2(width, height)) {
                 backgroundColors = backgroundColors,
                 foregroundColors = foregroundColors,

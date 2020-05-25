@@ -70,5 +70,17 @@ namespace PressPressRevolution.Properties {
                 this["showConsole"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Codepage 437\\10x10")]
+        public string font {
+            get {
+                return ((string)(this["font"]));
+            }
+            set {
+                this["font"] = value;
+            }
+        }
     }
 }

@@ -14,5 +14,8 @@
     <Setting Name="showConsole" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="font" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Codepage 437\10x10</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

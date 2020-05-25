@@ -12,6 +12,7 @@ using NLog;
 using PPR.GUI;
 using PPR.Levels;
 using PPR.Rendering;
+using PPR.Rendering.Bitmap;
 
 using PressPressRevolution.Properties;
 
@@ -119,6 +120,21 @@ namespace PPR.Core {
             UI.bloomSwitch.selected = Settings.Default.bloom;
             UI.showFpsSwitch.selected = Settings.Default.showFps;
             UI.showConsoleSwitch.selected = Settings.Default.showConsole;
+            string[] splitedFontPath = Settings.Default.font.Split(Path.DirectorySeparatorChar);
+            UI.fontSwitch1.text = splitedFontPath[0];
+            UI.fontSwitch2.text = splitedFontPath.Length > 1 ? splitedFontPath[1] : "";
+            UI.fontSwitch3.text = splitedFontPath.Length > 2 ? splitedFontPath[2] : "";
+            string[] allFontsDirs1 = Directory.GetDirectories(Path.Combine("resources", "fonts"))
+                .Select(dir => Path.GetFileName(dir)).ToArray();
+            logger.Info(Settings.Default.font);
+            string[] allFontsDirs2 = Directory.GetDirectories(Path.Combine("resources", "fonts", UI.fontSwitch1.text))
+                .Select(dir => Path.GetFileName(dir)).ToArray();
+            string[] allFontsDirs3 = Directory.GetDirectories(Path.Combine("resources", "fonts", UI.fontSwitch1.text, UI.fontSwitch2.text))
+                .Select(dir => Path.GetFileName(dir)).ToArray();
+            UI.fontSwitch1index = Array.IndexOf(allFontsDirs1, UI.fontSwitch1.text);
+            UI.fontSwitch2index = Array.IndexOf(allFontsDirs2, UI.fontSwitch2.text);
+            UI.fontSwitch3index = Array.IndexOf(allFontsDirs3, UI.fontSwitch3.text);
+            UI.UpdateFontSwitch1();
 
             if(!Settings.Default.showConsole) MainGame.HideConsoleWindow();
 
@@ -126,6 +142,26 @@ namespace PPR.Core {
                 if(e.PropertyName == "showConsole") {
                     if(Settings.Default.showConsole) MainGame.ShowConsoleWindow();
                     else MainGame.HideConsoleWindow();
+                }
+                else if(e.PropertyName == "font") {
+                    string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.Default.font, "mappings.txt"));
+                    string[] fontSizeStr = fontMappingsLines[0].Split(',');
+                    Renderer.instance.fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
+                    Renderer.instance.windowWidth = Renderer.instance.width * Renderer.instance.fontSize.x;
+                    Renderer.instance.windowHeight = Renderer.instance.height * Renderer.instance.fontSize.y;
+                    FloatRect visibleArea = new FloatRect(0, 0, Renderer.instance.windowWidth, Renderer.instance.windowHeight);
+                    Renderer.instance.window.SetView(new View(visibleArea));
+                    Renderer.instance.bloomRT.SetView(new View(visibleArea));
+                    Renderer.instance.finalRT.SetView(new View(visibleArea));
+                    Renderer.instance.window.Size = new Vector2u((uint)Renderer.instance.windowWidth, (uint)Renderer.instance.windowHeight);
+                    Renderer.instance.bloomRT = new RenderTexture((uint)Renderer.instance.windowWidth, (uint)Renderer.instance.windowHeight);
+                    Renderer.instance.finalRT = new RenderTexture((uint)Renderer.instance.windowWidth, (uint)Renderer.instance.windowHeight);
+                    BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")), fontMappingsLines[1], Renderer.instance.fontSize);
+                    Renderer.instance.text = new BitmapText(font, new Vector2(Renderer.instance.width, Renderer.instance.height)) {
+                        backgroundColors = Renderer.instance.backgroundColors,
+                        foregroundColors = Renderer.instance.foregroundColors,
+                        text = Renderer.instance.displayString
+                    };
                 }
             };
 

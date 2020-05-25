@@ -19,7 +19,15 @@ namespace PPR.GUI {
     public class Button {
         public Vector2 position;
         public string text;
-        public readonly int width;
+        int _width;
+        public int width {
+            get => _width;
+            set {
+                _width = value;
+                animTimes = new float[value];
+                animRateOffsets = new float[value];
+            }
+        }
         public Color idleColor;
         public Color hoverColor;
         public Color clickColor;
@@ -29,8 +37,8 @@ namespace PPR.GUI {
         public State currentState = State.Clicked;
         State prevState = State.Hovered;
         public State prevFrameState = State.Hovered;
-        readonly float[] animTimes;
-        readonly float[] animRateOffsets;
+        float[] animTimes;
+        float[] animRateOffsets;
         public bool selected = false;
         int posX;
         public enum State { Idle, Hovered, Clicked, Selected };
@@ -374,10 +382,17 @@ namespace PPR.GUI {
 
         static readonly Vector2 graphicsGroupTextPos = new Vector2(2, 18);
         public static readonly Button bloomSwitch = new Button(new Vector2(4, 20), "BLOOM", 5, Color.Black, Color.Blue, new Color(0, 0, 64));
+        static readonly Vector2 fontSwitchLabelPos = new Vector2(4, 22);
+        public static int fontSwitch1index = 0;
+        public static int fontSwitch2index = 0;
+        public static int fontSwitch3index = 0;
+        public static readonly Button fontSwitch1 = new Button(new Vector2(9, 22), "never gonna give you up", 23, Color.Black, Color.Blue, new Color(0, 0, 64));
+        public static readonly Button fontSwitch2 = new Button(new Vector2(11, 22), "never gonna let you down", 24, Color.Black, Color.Blue, new Color(0, 0, 64));
+        public static readonly Button fontSwitch3 = new Button(new Vector2(13, 22), "https://youtu.be/dQw4w9WgXcQ", 28, Color.Black, Color.Blue, new Color(0, 0, 64));
 
-        static readonly Vector2 advancedGroupTextPos = new Vector2(2, 23);
-        public static readonly Button showFpsSwitch = new Button(new Vector2(4, 25), "SHOW FPS", 8, Color.Black, Color.Blue, new Color(0, 0, 64));
-        public static readonly Button showConsoleSwitch = new Button(new Vector2(4, 27), "SHOW CONSOLE", 12, Color.Black, Color.Blue, new Color(0, 0, 64));
+        static readonly Vector2 advancedGroupTextPos = new Vector2(2, 25);
+        public static readonly Button showFpsSwitch = new Button(new Vector2(4, 27), "SHOW FPS", 8, Color.Black, Color.Blue, new Color(0, 0, 64));
+        public static readonly Button showConsoleSwitch = new Button(new Vector2(4, 29), "SHOW CONSOLE", 12, Color.Black, Color.Blue, new Color(0, 0, 64));
         static void DrawSettings() {
             Renderer.instance.DrawText(zero, settingsText, Color.White, Color.Black);
             DrawSettingsList();
@@ -398,6 +413,30 @@ namespace PPR.GUI {
 
                 Renderer.instance.DrawText(graphicsGroupTextPos, "[ GRAPHICS ]", Color.White, Color.Transparent);
                 if(bloomSwitch.Draw()) Settings.Default.bloom = bloomSwitch.selected = !bloomSwitch.selected;
+                Renderer.instance.DrawText(fontSwitchLabelPos, "FONT", Color.Blue, Color.Transparent);
+                if(fontSwitch1index >= 0 && fontSwitch1.Draw()) {
+                    fontSwitch1index++;
+                    fontSwitch2index = 0;
+                    fontSwitch3index = 0;
+                    UpdateFontSwitch1();
+
+                    Settings.Default.font = Path.Combine(fontSwitch1.text,
+                        fontSwitch2index >= 0 ? fontSwitch2.text : "", fontSwitch3index >= 0 ? fontSwitch3.text : "");
+                }
+                if(fontSwitch2index >= 0 && fontSwitch2.Draw()) {
+                    fontSwitch2index++;
+                    fontSwitch3index = 0;
+                    UpdateFontSwitch2();
+
+                    Settings.Default.font = Path.Combine(fontSwitch1.text, fontSwitch2.text,
+                        fontSwitch3index >= 0 ? fontSwitch3.text : "");
+                }
+                if(fontSwitch3index >= 0 && fontSwitch3.Draw()) {
+                    fontSwitch3index++;
+                    UpdateFontSwitch3();
+
+                    Settings.Default.font = Path.Combine(fontSwitch1.text, fontSwitch2.text, fontSwitch3.text);
+                }
 
                 Renderer.instance.DrawText(advancedGroupTextPos, "[ ADVANCED ]", Color.White, Color.Transparent);
                 if(showFpsSwitch.Draw()) Settings.Default.showFps = showFpsSwitch.selected = !showFpsSwitch.selected;
@@ -408,6 +447,69 @@ namespace PPR.GUI {
 
             Game.music.Volume = Settings.Default.musicVolume;
         }
+        // i know this code is rly bad but i'm lazy and you can't say me anything to that
+        public static void UpdateFontSwitch1() {
+            string path = Path.Combine("resources", "fonts");
+            if(Directory.Exists(path)) {
+                string[] directories = Directory.GetDirectories(path);
+                if(directories.Length > 0) {
+                    if(fontSwitch1index >= directories.Length) fontSwitch1index = 0;
+                    fontSwitch1.text = Path.GetFileName(directories[fontSwitch1index]);
+                    fontSwitch1.width = fontSwitch1.text.Length;
+                }
+                else {
+                    fontSwitch1index = -1;
+                    fontSwitch2index = -1;
+                    fontSwitch3index = -1;
+                }
+            }
+            else {
+                fontSwitch1index = -1;
+                fontSwitch2index = -1;
+                fontSwitch3index = -1;
+            }
+            UpdateFontSwitch2();
+        }
+        public static void UpdateFontSwitch2() {
+            string path = Path.Combine("resources", "fonts", fontSwitch1.text);
+            if(Directory.Exists(path)) {
+                string[] directories = Directory.GetDirectories(path);
+                if(directories.Length > 0) {
+                    if(fontSwitch2index >= directories.Length) fontSwitch2index = 0;
+                    fontSwitch2.text = Path.GetFileName(directories[fontSwitch2index]);
+                    fontSwitch2.width = fontSwitch2.text.Length;
+                    fontSwitch2.position.x = fontSwitch1.position.x + fontSwitch1.width + 1;
+                }
+                else {
+                    fontSwitch2index = -1;
+                    fontSwitch3index = -1;
+                }
+            }
+            else {
+                fontSwitch2index = -1;
+                fontSwitch3index = -1;
+            }
+            UpdateFontSwitch3();
+        }
+        public static void UpdateFontSwitch3() {
+            string path = Path.Combine("resources", "fonts", fontSwitch1.text, fontSwitch2.text);
+            if(Directory.Exists(path)) {
+                string[] directories = Directory.GetDirectories(path);
+                if(directories.Length > 0) {
+                    if(fontSwitch3index >= directories.Length) fontSwitch3index = 0;
+                    fontSwitch3.text = Path.GetFileName(directories[fontSwitch3index]);
+                    fontSwitch3.width = fontSwitch3.text.Length;
+                    fontSwitch3.position.x = fontSwitch2.position.x + fontSwitch2.width + 1;
+                }
+                else {
+                    fontSwitch3index = -1;
+                }
+            }
+            else {
+                fontSwitch3index = -1;
+            }
+        }
+
         static readonly Vector2 levelNamePos = new Vector2(0, 0);
         static readonly Vector2 scorePos = new Vector2(0, 57);
         static readonly Vector2 accPos = new Vector2(0, 58);

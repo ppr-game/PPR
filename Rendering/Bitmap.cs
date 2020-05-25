@@ -86,7 +86,7 @@ namespace PPR.Rendering.Bitmap {
         readonly uint imageHeight = 0;
         readonly uint textWidth = 0;
         readonly uint textHeight = 0;
-        public readonly BitmapFont font;
+        public BitmapFont font;
         public BitmapText(BitmapFont font, Vector2 size) {
             this.font = font;
             charWidth = (byte)font.characterSize.x;
