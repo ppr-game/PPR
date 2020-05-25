@@ -57,6 +57,8 @@ the difficulty of your level and the level author name (usually your nickname), 
 then get the music for your level, convert it to the `.ogg` format, if it isn't already,
 put it in your level folder next to the `level.txt` file and rename it to `music.ogg`.
 Now you can begin creating your level
+
+*You can publish your level in my Discord server I linked above*
 ### Editor controls
 - `Mouse Wheel Scroll` - scroll the time
 - `Any English letter`, `any number` or `-`, `=`, `[`, `]`, `;`, `'`, `,`, `.`, `/` - place a corresponding note at the current time (on the line)
