@@ -58,5 +58,17 @@ namespace PressPressRevolution.Properties {
                 this["showFps"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool showConsole {
+            get {
+                return ((bool)(this["showConsole"]));
+            }
+            set {
+                this["showConsole"] = value;
+            }
+        }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 using NLog;
 
@@ -8,10 +8,26 @@ using PPR.GUI;
 using PPR.Rendering;
 
 using SFML.System;
-using SFML.Window;
 
 public static class MainGame {
     static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool AllocConsole();
+    [DllImport("kernel32.dll")]
+    static extern IntPtr GetConsoleWindow();
+    [DllImport("user32.dll")]
+    static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+    const int SW_HIDE = 0;
+    const int SW_SHOW = 5;
+    public static void ShowConsoleWindow() {
+        IntPtr handle = GetConsoleWindow();
+        _ = handle == IntPtr.Zero ? AllocConsole() : ShowWindow(handle, SW_SHOW);
+    }
+    public static void HideConsoleWindow() {
+        IntPtr handle = GetConsoleWindow();
+        _ = ShowWindow(handle, SW_HIDE);
+    }
 
     public static float deltaTime = 0f;
     public static readonly Renderer renderer = new Renderer(80, 60, 0);

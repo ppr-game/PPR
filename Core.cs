@@ -118,6 +118,14 @@ namespace PPR.Core {
             UI.musicVolumeSlider.value = Settings.Default.musicVolume;
             UI.bloomSwitch.selected = Settings.Default.bloom;
             UI.showFpsSwitch.selected = Settings.Default.showFps;
+            UI.showConsoleSwitch.selected = Settings.Default.showConsole;
+
+            Settings.Default.PropertyChanged += (_, e) => {
+                if(e.PropertyName == "showConsole") {
+                    if(Settings.Default.showConsole) MainGame.ShowConsoleWindow();
+                    else MainGame.HideConsoleWindow();
+                }
+            };
 
             // TODO: Automatic settings list generation
             logger.Info("Current settings:");
