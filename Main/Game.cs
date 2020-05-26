@@ -49,6 +49,9 @@ namespace PPR.Main {
                 if((value == Menu.Main || value == Menu.LevelSelect) && music.Status == SoundStatus.Paused) {
                     music.Play();
                 }
+                if(value == Menu.LevelSelect) {
+                    GenerateLevelList();
+                }
                 _currentMenu = value;
                 switch(value) {
                     case Menu.Main:
@@ -80,7 +83,6 @@ namespace PPR.Main {
                 }
             }
         }
-        public static LevelMetadata? selectedMetadata = null;
         public static Time time;
         static float _offset = 0f;
         public static float offset {
@@ -227,15 +229,36 @@ namespace PPR.Main {
             Map.StepAll();
         }
         public static void GenerateLevelList() {
-            UI.levelSelectLevels.Clear();
             string[] directories = Directory.GetDirectories("levels");
             List<Button> buttons = new List<Button>();
+            List<LevelMetadata?> metadatas = new List<LevelMetadata?>();
             for(int i = 0; i < directories.Length; i++) {
                 string name = Path.GetFileName(directories[i]);
                 if(name == "_template") continue;
                 buttons.Add(new Button(new Vector2(25, 12 + i), name, 30, Color.Black, Color.White, Color.White));
+                metadatas.Add(new LevelMetadata(File.ReadAllLines(Path.Combine(directories[i], "level.txt")), name));
+                logger.Info("Loaded metadata for level {0}", name);
             }
             UI.levelSelectLevels = buttons;
+            UI.levelSelectMetadatas = metadatas;
+
+            List<List<LevelScore>> scores = new List<List<LevelScore>> {
+                Capacity = buttons.Count
+            };
+            if(Directory.Exists("scores")) {
+                for(int i = 0; i < directories.Length; i++) {
+                    string name = Path.GetFileName(directories[i]);
+                    string scoresPath = Path.Combine("scores", name + ".txt");
+                    if(File.Exists(scoresPath)) {
+                        scores.Add(Map.ScoresFromLines(File.ReadAllLines(scoresPath), UI.scoresPos));
+                        logger.Info("Loaded scores for level {0}, total scores count: {1}", name, scores[i].Count);
+                    }
+                    else {
+                        scores.Add(null);
+                    }
+                }
+            }
+            UI.levelSelectScores = scores;
 
             logger.Info("Loaded levels, total level count: {0}", buttons.Count);
         }
@@ -410,9 +433,9 @@ namespace PPR.Main {
                         }
                     }
                     else if(mousePos.x >= 1 && mousePos.x <= 26) {
-                        if(scroll.Delta > 0 && UI.levelSelectScores.First().scorePosition.y >= 12) return;
-                        if(scroll.Delta < 0 && UI.levelSelectScores.Last().scoresPosition.y <= 49) return;
-                        foreach(LevelScore score in UI.levelSelectScores) {
+                        if(scroll.Delta > 0 && UI.levelSelectScores[UI.currentLevelSelectIndex].First().scorePosition.y >= 12) return;
+                        if(scroll.Delta < 0 && UI.levelSelectScores[UI.currentLevelSelectIndex].Last().scoresPosition.y <= 49) return;
+                        foreach(LevelScore score in UI.levelSelectScores[UI.currentLevelSelectIndex]) {
                             int increment = (int)scroll.Delta;
                             score.scorePosition.y += increment;
                             score.accComboPosition.y += increment;

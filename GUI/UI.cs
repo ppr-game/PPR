@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using NLog;
-
 using PPR.GUI.Elements;
 using PPR.Main;
 using PPR.Main.Levels;
@@ -17,8 +15,6 @@ using SFML.System;
 
 namespace PPR.GUI {
     public static class UI {
-        static readonly Logger logger = LogManager.GetCurrentClassLogger();
-
         public static int fps = 0;
 
         static readonly Color[] prevHealthColors = new Color[80];
@@ -68,8 +64,10 @@ namespace PPR.GUI {
             new Button(new Vector2(40, 31), "EXIT", 4, Color.Black, Color.Red, Color.Red, Renderer.TextAlignment.Center),
         };
 
-        public static List<Button> levelSelectLevels = new List<Button>();
-        public static List<LevelScore> levelSelectScores;
+        public static int currentLevelSelectIndex = 0;
+        public static List<Button> levelSelectLevels;
+        public static List<List<LevelScore>> levelSelectScores;
+        public static List<LevelMetadata?> levelSelectMetadatas;
         static readonly List<Button> levelSelectButtons = new List<Button>() {
             new Button(new Vector2(25, 10), "AUTO", 4, Color.Black, Color.Blue, new Color(0, 0, 64)),
             new Button(new Vector2(25, 10), "NEW", 3, Color.Black, Color.Green, Color.Green),
@@ -100,7 +98,6 @@ namespace PPR.GUI {
                         Renderer.instance.window.SetKeyRepeatEnabled(Game.editing);
                         Game.auto = false;
                         Game.currentMenu = Menu.LevelSelect;
-                        Game.GenerateLevelList();
                     }
                     else if(button.text == "SETTINGS") {
                         Game.currentMenu = Menu.Settings;
@@ -111,7 +108,7 @@ namespace PPR.GUI {
                 }
             }
         }
-        static readonly Vector2 scoresPos = new Vector2(1, 12);
+        public static readonly Vector2 scoresPos = new Vector2(1, 12);
         static void DrawLevelSelect() {
             Renderer.instance.DrawText(zero, levelSelectText, Color.White, Color.Black);
             for(int i = 0; i < levelSelectLevels.Count; i++) {
@@ -126,7 +123,6 @@ namespace PPR.GUI {
                 }
                 if(button.currentState == Button.State.Hovered && button.prevFrameState != Button.State.Hovered) {
                     string levelPath = Path.Combine("levels", button.text);
-                    Game.selectedMetadata = new LevelMetadata(File.ReadAllLines(Path.Combine(levelPath, "level.txt")), button.text);
                     string musicPath = Path.Combine(levelPath, "music.ogg");
                     if(File.Exists(musicPath)) {
                         Game.music.Stop();
@@ -136,12 +132,7 @@ namespace PPR.GUI {
                         Game.music.Play();
                     }
 
-                    levelSelectScores = null;
-                    string scoresPath = Path.Combine("scores", button.text + ".txt");
-                    if(File.Exists(scoresPath)) {
-                        levelSelectScores = Map.ScoresFromLines(File.ReadAllLines(scoresPath), scoresPos);
-                        logger.Info("Loaded scores for level {0}, total scores count: {1}", button.text, levelSelectScores.Count);
-                    }
+                    currentLevelSelectIndex = i;
                 }
             }
             foreach(Button button in levelSelectButtons) {
@@ -156,8 +147,8 @@ namespace PPR.GUI {
                     button.selected = Game.auto;
                 }
             }
-            DrawMetadata(Game.selectedMetadata);
-            DrawScores(levelSelectScores);
+            DrawMetadata(levelSelectMetadatas[currentLevelSelectIndex]);
+            DrawScores(levelSelectScores[currentLevelSelectIndex]);
         }
         static readonly Vector2 metaLengthPos = new Vector2(56, 12);
         static readonly Vector2 metaDiffPos = new Vector2(56, 13);
