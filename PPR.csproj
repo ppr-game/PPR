@@ -46,10 +46,43 @@
     <None Update="resources\audio\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="resources\fonts\Codepage 437\8x8\x1\*">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="resources\fonts\Codepage 437\8x8\x2\*">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="resources\fonts\Codepage 437\10x10\x1\*">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="resources\fonts\Codepage 437\10x10\x2\*">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="resources\fonts\Codepage 437\12x12\x1\*">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="resources\fonts\Codepage 437\12x12\x2\*">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="resources\fonts\Codepage 437\14x14\x1\*">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="resources\fonts\Codepage 437\14x14\x2\*">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="resources\fonts\Codepage 437\16x16\x1\*">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="resources\fonts\Codepage 437\16x16\x2\*">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="resources\fonts\Codepage 437\18x18\x1\*">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="resources\fonts\Codepage 437\20x20\x2\*">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="resources\fonts\Codepage 437\20x20\x2\*">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="resources\ui\*">
