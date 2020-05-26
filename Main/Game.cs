@@ -242,6 +242,7 @@ namespace PPR.Main {
             if(Directory.Exists("scores")) {
                 for(int i = 0; i < directories.Length; i++) {
                     string name = Path.GetFileName(directories[i]);
+                    if(name == "_template") continue;
                     string scoresPath = Path.Combine("scores", name + ".txt");
                     if(File.Exists(scoresPath)) {
                         scores.Add(Map.ScoresFromLines(File.ReadAllLines(scoresPath), UI.scoresPos));
