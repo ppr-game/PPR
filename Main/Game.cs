@@ -119,19 +119,13 @@ namespace PPR.Main {
             UI.musicVolumeSlider.value = Settings.Default.musicVolume;
             UI.bloomSwitch.selected = Settings.Default.bloom;
             UI.showFpsSwitch.selected = Settings.Default.showFps;
-            UI.showConsoleSwitch.selected = Settings.Default.showConsole;
             UI.UpdateFontSwitchButtons();
             UI.fullscreenSwitch.selected = Settings.Default.fullscreen;
 
             Core.renderer.SetFullscreen(Settings.Default.fullscreen, true);
-            if(!Settings.Default.showConsole) Core.HideConsoleWindow();
 
             Settings.Default.PropertyChanged += (_, e) => {
-                if(e.PropertyName == "showConsole") {
-                    if(Settings.Default.showConsole) Core.ShowConsoleWindow();
-                    else Core.HideConsoleWindow();
-                }
-                else if(e.PropertyName == "font") {
+                if(e.PropertyName == "font") {
                     string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.Default.font, "mappings.txt"));
                     string[] fontSizeStr = fontMappingsLines[0].Split(',');
                     Vector2 oldFontSize = new Vector2(Core.renderer.fontSize);

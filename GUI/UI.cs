@@ -147,8 +147,10 @@ namespace PPR.GUI {
                     button.selected = Game.auto;
                 }
             }
-            DrawMetadata(levelSelectMetadatas[currentLevelSelectIndex]);
-            DrawScores(levelSelectScores[currentLevelSelectIndex]);
+            if(levelSelectButtons.Count > 0 && levelSelectMetadatas.Count > 0 && levelSelectScores.Count > 0) {
+                DrawMetadata(levelSelectMetadatas[currentLevelSelectIndex]);
+                DrawScores(levelSelectScores[currentLevelSelectIndex]);
+            }
         }
         static readonly Vector2 metaLengthPos = new Vector2(56, 12);
         static readonly Vector2 metaDiffPos = new Vector2(56, 13);
@@ -195,7 +197,6 @@ namespace PPR.GUI {
 
         static readonly Vector2 advancedGroupTextPos = new Vector2(2, 27);
         public static readonly Button showFpsSwitch = new Button(new Vector2(4, 29), "SHOW FPS", 8, Color.Black, Color.Blue, new Color(0, 0, 64));
-        public static readonly Button showConsoleSwitch = new Button(new Vector2(4, 31), "SHOW CONSOLE", 12, Color.Black, Color.Blue, new Color(0, 0, 64));
         static void DrawSettings() {
             Renderer.instance.DrawText(zero, settingsText, Color.White, Color.Black);
             DrawSettingsList();
@@ -230,7 +231,6 @@ namespace PPR.GUI {
 
                 Renderer.instance.DrawText(advancedGroupTextPos, "[ ADVANCED ]", Color.White, Color.Transparent);
                 if(showFpsSwitch.Draw()) Settings.Default.showFps = showFpsSwitch.selected = !showFpsSwitch.selected;
-                if(showConsoleSwitch.Draw()) Settings.Default.showConsole = showConsoleSwitch.selected = !showConsoleSwitch.selected;
             }
 
             Settings.Default.musicVolume = musicVolumeSlider.Draw();
