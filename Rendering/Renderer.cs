@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 
 using PPR.GUI;
-using PPR.Levels;
 using PPR.Main;
+using PPR.Main.Levels;
 using PPR.Properties;
 
 using SFML.Graphics;
@@ -19,7 +19,6 @@ namespace PPR.Rendering {
         public readonly Dictionary<Vector2, Color> backgroundColors;
         public readonly Dictionary<Vector2, Color> foregroundColors;
         public readonly Dictionary<Vector2, char> displayString;
-        public char[] charSet = { '#', '+', '-', '|', '\\', '/' };
         public Vector2 fontSize;
         public readonly int width;
         public int windowWidth;

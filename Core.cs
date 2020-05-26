@@ -3,8 +3,8 @@ using System.Runtime.InteropServices;
 
 using NLog;
 
-using PPR.Main;
 using PPR.GUI;
+using PPR.Main;
 using PPR.Rendering;
 
 using SFML.System;
