@@ -146,21 +146,23 @@ namespace PPR.Core {
                 else if(e.PropertyName == "font") {
                     string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.Default.font, "mappings.txt"));
                     string[] fontSizeStr = fontMappingsLines[0].Split(',');
-                    Renderer.instance.fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
-                    Renderer.instance.windowWidth = Renderer.instance.width * Renderer.instance.fontSize.x;
-                    Renderer.instance.windowHeight = Renderer.instance.height * Renderer.instance.fontSize.y;
-                    FloatRect visibleArea = new FloatRect(0, 0, Renderer.instance.windowWidth, Renderer.instance.windowHeight);
-                    Renderer.instance.window.SetView(new View(visibleArea));
-                    Renderer.instance.bloomRT.SetView(new View(visibleArea));
-                    Renderer.instance.finalRT.SetView(new View(visibleArea));
-                    Renderer.instance.window.Size = new Vector2u((uint)Renderer.instance.windowWidth, (uint)Renderer.instance.windowHeight);
-                    Renderer.instance.bloomRT = new RenderTexture((uint)Renderer.instance.windowWidth, (uint)Renderer.instance.windowHeight);
-                    Renderer.instance.finalRT = new RenderTexture((uint)Renderer.instance.windowWidth, (uint)Renderer.instance.windowHeight);
-                    BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")), fontMappingsLines[1], Renderer.instance.fontSize);
-                    Renderer.instance.text = new BitmapText(font, new Vector2(Renderer.instance.width, Renderer.instance.height)) {
-                        backgroundColors = Renderer.instance.backgroundColors,
-                        foregroundColors = Renderer.instance.foregroundColors,
-                        text = Renderer.instance.displayString
+                    Vector2 oldFontSize = new Vector2(MainGame.renderer.fontSize);
+                    MainGame.renderer.fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
+                    Vector2f fontSizeChange = new Vector2f((float)MainGame.renderer.fontSize.x / oldFontSize.x, (float)MainGame.renderer.fontSize.y / oldFontSize.y);
+                    MainGame.renderer.windowWidth = MainGame.renderer.width * MainGame.renderer.fontSize.x;
+                    MainGame.renderer.windowHeight = MainGame.renderer.height * MainGame.renderer.fontSize.y;
+                    Mouse.SetPosition(new Vector2i((int)(Mouse.GetPosition(MainGame.renderer.window).X * fontSizeChange.X), (int)(Mouse.GetPosition(MainGame.renderer.window).Y * fontSizeChange.Y)), MainGame.renderer.window);
+                    FloatRect visibleArea = new FloatRect(0, 0, MainGame.renderer.windowWidth, MainGame.renderer.windowHeight);
+                    MainGame.renderer.window.SetView(new View(visibleArea));
+                    MainGame.renderer.window.Size = new Vector2u((uint)MainGame.renderer.windowWidth, (uint)MainGame.renderer.windowHeight);
+                    MainGame.renderer.bloomRT = new RenderTexture((uint)MainGame.renderer.windowWidth, (uint)MainGame.renderer.windowHeight);
+                    MainGame.renderer.finalRT = new RenderTexture((uint)MainGame.renderer.windowWidth, (uint)MainGame.renderer.windowHeight);
+
+                    BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")), fontMappingsLines[1], MainGame.renderer.fontSize);
+                    MainGame.renderer.text = new BitmapText(font, new Vector2(MainGame.renderer.width, MainGame.renderer.height)) {
+                        backgroundColors = MainGame.renderer.backgroundColors,
+                        foregroundColors = MainGame.renderer.foregroundColors,
+                        text = MainGame.renderer.displayString
                     };
                 }
             };
@@ -186,7 +188,7 @@ namespace PPR.Core {
 
             LogManager.Shutdown();
 
-            Renderer.instance.window.Close();
+            MainGame.renderer.window.Close();
         }
         public void Update() {
             if(currentMenu != Menu.Game) return;
@@ -414,7 +416,7 @@ namespace PPR.Core {
         }
         public void MouseWheelScrolled(object caller, MouseWheelScrollEventArgs scroll) {
             if(currentMenu == Menu.LevelSelect) {
-                Vector2 mousePos = Renderer.instance.mousePosition;
+                Vector2 mousePos = MainGame.renderer.mousePosition;
                 if(mousePos.y >= 12 && mousePos.y <= 49) {
                     if(mousePos.x >= 28 && mousePos.x <= 51) {
                         if(scroll.Delta > 0 && UI.levelSelectLevels.First().position.y >= 12) return;
