@@ -13,6 +13,7 @@ Download levels in my Discord server: https://discord.gg/AuYUVs5
 **OR**
 
 DM me in Discord: ConfiG#9039
+
 ### Gameplay
 Press the corresponding buttons when they hit a white line at the bottom
 
@@ -38,6 +39,7 @@ There's **perfect combo** and **full combo**
 **Perfect combo** is when you don't have any **hits** and/or **misses** and only have **perfect hits**
 
 **Full combo** is when you don't have any **misses**, but you have some **hits**
+
 ### Statistics
 The stuff below the line is your **statistics**
 
@@ -48,6 +50,7 @@ The "ACCURACY" line displays your current **accuracy** in percentage *(the ratio
 The "COMBO" line displays your current **combo** and if you have **perfect** or **full** combo
 
 The numbers on the **green**, **yellow** and **red** backgrounds are your current amount of **perfect hits**, **hits** and **misses** respectively
+
 ## How to create levels
 To begin creating a level, press "EDIT" in the main menu, then press "NEW" at the top,
 pause the game by pressing `Escape` on your keayboard, press "SAVE" and "EXIT",
@@ -60,9 +63,29 @@ put it in your level folder next to the `level.txt` file and rename it to `music
 Now you can begin creating your level
 
 *You can publish your level in my Discord server I linked above*
+
 ### Editor controls
 - `Mouse Wheel Scroll` - scroll the time
+
 - `Any English letter`, `any number` or `-`, `=`, `[`, `]`, `;`, `'`, `,`, `.`, `/` - place a corresponding note at the current time (on the line)
+
 - `Backspace` - remove all the notes at the current time (on the line)
+
 - `Up/down arrows` - increase/decrease the speed by 10 BPM (`+ Shift` - 1 BPM) (`+ Alt` - increase/decrease the guide lines spacing)
+
 - `Left/right arrows` - decrease/increase the health drain *(the value which will be substracted from the **health** on **misses**)* (`+ Shift` - restorage (the opposite of drain))
+
+## Custom fonts
+### How to install custom fonts
+Unpack the font folder in `game's folder/resources/fonts`
+
+Open the game and go to `Settings -> Graphics -> Font`, click the buttons on the right to choose the font (usually it's 1: Font name, 2: Font size, 3: Font scale)
+
+### How to create custom fonts
+Make an image of any size (1 image pixel = 1 screen pixel) with the characters you want to have in your font, save it as font.png, create mappings.txt and put the character size (`width,height`) on the first line and a list of the characters you have in your font in the direction of left to right and top to bottom on the second without separating them
+
+You can add multiple fonts in yuor font folder, to do that, create folders in your font folder and put fonts there
+
+**Higly recommended font folder hierarchy:** `[font name]/[font size (can be multiple)]/[font scale (usually x1 and x2 is enough, but you may want to add x3 and/or x4 if your font is too small or if you want to)]`
+
+*You can use the default included font as an example*
