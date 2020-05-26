@@ -30,16 +30,10 @@ public static class Core {
     }
 
     public static float deltaTime = 0f;
-    public static readonly Renderer renderer = new Renderer(80, 60, 0);
     public static readonly Game game = new Game();
+    public static readonly Renderer renderer = new Renderer(80, 60, 0);
 
     static void Main() {
-        renderer.window.KeyPressed += game.KeyPressed;
-        renderer.window.MouseWheelScrolled += game.MouseWheelScrolled;
-        renderer.window.LostFocus += game.LostFocus;
-        renderer.window.GainedFocus += game.GainedFocus;
-        renderer.window.Closed += (_, __) => game.End();
-
         game.Start();
 
         logger.Info("Loading finished");

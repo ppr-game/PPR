@@ -82,5 +82,17 @@ namespace PPR.Properties {
                 this["font"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool fullscreen {
+            get {
+                return ((bool)(this["fullscreen"]));
+            }
+            set {
+                this["fullscreen"] = value;
+            }
+        }
     }
 }

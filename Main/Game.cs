@@ -119,7 +119,9 @@ namespace PPR.Main {
             UI.showFpsSwitch.selected = Settings.Default.showFps;
             UI.showConsoleSwitch.selected = Settings.Default.showConsole;
             UI.UpdateFontSwitchButtons();
+            UI.fullscreenSwitch.selected = Settings.Default.fullscreen;
 
+            Core.renderer.SetFullscreen(Settings.Default.fullscreen, true);
             if(!Settings.Default.showConsole) Core.HideConsoleWindow();
 
             Settings.Default.PropertyChanged += (_, e) => {
@@ -135,12 +137,10 @@ namespace PPR.Main {
                     Vector2f fontSizeChange = new Vector2f((float)Core.renderer.fontSize.x / oldFontSize.x, (float)Core.renderer.fontSize.y / oldFontSize.y);
                     Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.x;
                     Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.y;
-                    Mouse.SetPosition(new Vector2i((int)(Mouse.GetPosition(Core.renderer.window).X * fontSizeChange.X), (int)(Mouse.GetPosition(Core.renderer.window).Y * fontSizeChange.Y)), Core.renderer.window);
-                    FloatRect visibleArea = new FloatRect(0, 0, Core.renderer.windowWidth, Core.renderer.windowHeight);
-                    Core.renderer.window.SetView(new View(visibleArea));
-                    Core.renderer.bloomRT = new RenderTexture((uint)Core.renderer.windowWidth, (uint)Core.renderer.windowHeight);
-                    Core.renderer.window.Size = new Vector2u((uint)Core.renderer.windowWidth, (uint)Core.renderer.windowHeight);
-                    Core.renderer.finalRT = new RenderTexture((uint)Core.renderer.windowWidth, (uint)Core.renderer.windowHeight);
+                    Core.renderer.UpdateWindow();
+
+                    Mouse.SetPosition(new Vector2i((int)(Mouse.GetPosition(Core.renderer.window).X * fontSizeChange.X),
+                        (int)(Mouse.GetPosition(Core.renderer.window).Y * fontSizeChange.Y)), Core.renderer.window);
 
                     BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")), fontMappingsLines[1], Core.renderer.fontSize);
                     Core.renderer.text = new BitmapText(font, new Vector2(Core.renderer.width, Core.renderer.height)) {

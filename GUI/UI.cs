@@ -200,16 +200,11 @@ namespace PPR.GUI {
         public static readonly Button bloomSwitch = new Button(new Vector2(4, 20), "BLOOM", 5, Color.Black, Color.Blue, new Color(0, 0, 64));
         static readonly Vector2 fontSwitchLabelPos = new Vector2(4, 22);
         public static readonly List<Button> fontSwitchButtonsList = new List<Button>();
-        /*public static int fontSwitch1index = 0;
-        public static int fontSwitch2index = 0;
-        public static int fontSwitch3index = 0;
-        public static readonly Button fontSwitch1 = new Button(new Vector2(9, 22), "never gonna give you up", 23, Color.Black, Color.Blue, new Color(0, 0, 64));
-        public static readonly Button fontSwitch2 = new Button(new Vector2(11, 22), "never gonna let you down", 24, Color.Black, Color.Blue, new Color(0, 0, 64));
-        public static readonly Button fontSwitch3 = new Button(new Vector2(13, 22), "https://youtu.be/dQw4w9WgXcQ", 28, Color.Black, Color.Blue, new Color(0, 0, 64));*/
+        public static readonly Button fullscreenSwitch = new Button(new Vector2(4, 24), "FULLSCREEN", 10, Color.Black, Color.Blue, new Color(0, 0, 64));
 
-        static readonly Vector2 advancedGroupTextPos = new Vector2(2, 25);
-        public static readonly Button showFpsSwitch = new Button(new Vector2(4, 27), "SHOW FPS", 8, Color.Black, Color.Blue, new Color(0, 0, 64));
-        public static readonly Button showConsoleSwitch = new Button(new Vector2(4, 29), "SHOW CONSOLE", 12, Color.Black, Color.Blue, new Color(0, 0, 64));
+        static readonly Vector2 advancedGroupTextPos = new Vector2(2, 27);
+        public static readonly Button showFpsSwitch = new Button(new Vector2(4, 29), "SHOW FPS", 8, Color.Black, Color.Blue, new Color(0, 0, 64));
+        public static readonly Button showConsoleSwitch = new Button(new Vector2(4, 31), "SHOW CONSOLE", 12, Color.Black, Color.Blue, new Color(0, 0, 64));
         static void DrawSettings() {
             Renderer.instance.DrawText(zero, settingsText, Color.White, Color.Black);
             DrawSettingsList();
@@ -236,6 +231,10 @@ namespace PPR.GUI {
                         IncreaseFontSwitchDirectory(i);
                         UpdateFontSwitchButtons();
                     }
+                }
+                if(fullscreenSwitch.Draw()) {
+                    fullscreenSwitch.selected = !fullscreenSwitch.selected;
+                    Core.renderer.SetFullscreen(fullscreenSwitch.selected);
                 }
 
                 Renderer.instance.DrawText(advancedGroupTextPos, "[ ADVANCED ]", Color.White, Color.Transparent);

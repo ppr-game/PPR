@@ -4,7 +4,6 @@ using PPR.Main;
 using PPR.Rendering;
 
 using SFML.Graphics;
-using SFML.Window;
 
 namespace PPR.GUI.Elements {
     public class Button {
@@ -55,7 +54,7 @@ namespace PPR.GUI.Elements {
                 _ => 0
             };
             return Renderer.instance.mousePosition.InBounds(posX, position.y, posX + width - 1, position.y)
-                              ? Mouse.IsButtonPressed(Mouse.Button.Left) ? State.Clicked : State.Hovered
+                              ? Core.renderer.leftButtonPressed ? State.Clicked : State.Hovered
                                : selected ? State.Selected : State.Idle;
         }
         public bool Draw() {

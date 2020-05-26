@@ -8,6 +8,7 @@ using PPR.Main.Levels;
 using PPR.Properties;
 
 using SFML.Graphics;
+using SFML.System;
 using SFML.Window;
 
 namespace PPR.Rendering {
@@ -26,14 +27,14 @@ namespace PPR.Rendering {
         public int windowHeight;
         public int frameRate;
         public BitmapText text;
-        public readonly RenderWindow window;
-        public static Vector2 cameraPosition = Vector2.zero;
+        public RenderWindow window;
         readonly Shader bloom = Shader.FromString(File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
                                                                                                                      File.ReadAllText(Path.Combine("resources", "bloom_frag.glsl")));
         public RenderTexture bloomRT;
         public RenderTexture finalRT;
 
         public Vector2 mousePosition = new Vector2(-1, -1);
+        public bool leftButtonPressed = false;
 
         public Renderer(int width, int height, int frameRate) {
             instance = this;
@@ -58,8 +59,7 @@ namespace PPR.Rendering {
             bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
             finalRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
 
-            window.MouseMoved += UpdateMousePosition;
-            window.SetKeyRepeatEnabled(false);
+            SubscribeWindowEvents();
 
             if(frameRate < 0) window.SetVerticalSyncEnabled(true);
             else if(frameRate != 0) window.SetFramerateLimit((uint)frameRate);
@@ -70,6 +70,60 @@ namespace PPR.Rendering {
                 foregroundColors = foregroundColors,
                 text = displayString
             };
+        }
+        public void SubscribeWindowEvents() {
+            window.KeyPressed += Core.game.KeyPressed;
+            window.MouseWheelScrolled += Core.game.MouseWheelScrolled;
+            window.LostFocus += Core.game.LostFocus;
+            window.GainedFocus += Core.game.GainedFocus;
+            window.Closed += (_, __) => Core.game.End();
+            window.MouseMoved += UpdateMousePosition;
+            window.MouseButtonPressed += (_, e) => {
+                if(e.Button == Mouse.Button.Left) leftButtonPressed = true;
+            };
+            window.MouseButtonReleased += (_, e) => {
+                if(e.Button == Mouse.Button.Left) leftButtonPressed = false;
+            };
+            window.SetKeyRepeatEnabled(false);
+        }
+        public void SetFullscreen(bool fullscreen = false, bool ignoreChangeCheck = false) {
+            if(ignoreChangeCheck || Settings.Default.fullscreen != fullscreen) {
+                Settings.Default.fullscreen = fullscreen;
+                window.Close();
+                if(!fullscreen) {
+                    Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.x;
+                    Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.y;
+                }
+                window = fullscreen
+                    ? new RenderWindow(VideoMode.FullscreenModes[0], "Press Press Revolution", Styles.Fullscreen)
+                    : new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "Press Press Revolution", Styles.Close);
+                SubscribeWindowEvents();
+                UpdateWindow();
+            }
+        }
+        public void UpdateWindow() {
+            FloatRect visibleArea = new FloatRect(0, 0, windowWidth, windowHeight);
+            if(Settings.Default.fullscreen) {
+                VideoMode videoMode = VideoMode.FullscreenModes[0];
+
+                Vector2 oldCenter = new Vector2(windowWidth / 2, windowHeight / 2);
+
+                windowWidth = (int)videoMode.Width;
+                windowHeight = (int)videoMode.Height;
+
+                Vector2 newCenter = new Vector2(windowWidth / 2, windowHeight / 2);
+
+                visibleArea = new FloatRect(oldCenter.x - newCenter.x, oldCenter.y - newCenter.y, windowWidth, windowHeight);
+            }
+            else {
+                window.Size = new Vector2u((uint)windowWidth, (uint)windowHeight);
+
+                if(frameRate < 0) window.SetVerticalSyncEnabled(true);
+                else if(frameRate != 0) window.SetFramerateLimit((uint)frameRate);
+            }
+            window.SetView(new View(visibleArea));
+            bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
+            finalRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
         }
 
         public void ClearText() {
@@ -82,7 +136,9 @@ namespace PPR.Rendering {
                 mousePosition = new Vector2(-1, -1);
                 return;
             }
-            mousePosition = new Vector2((int)MathF.Floor(mouse.X / fontSize.x), (int)MathF.Floor(mouse.Y / fontSize.y));
+            View windowView = window.GetView();
+            mousePosition = new Vector2((int)((mouse.X + windowView.Center.X - windowView.Size.X / 2) / fontSize.x),
+                (int)((mouse.Y + windowView.Center.Y - windowView.Size.Y / 2) / fontSize.y));
         }
         public void Update() {
             ClearText();
@@ -139,16 +195,19 @@ namespace PPR.Rendering {
 
             string[] lines = text.Split('\n');
             int height = lines.Length;
-            int index = 0;
+
+            if(height == 1) DrawOneLineText(new Vector2(posX, position.y), text, foregroundColor, backgroundColor, replacingSpaces);
+
             for(int l = 0; l < height; l++) {
                 string curLine = lines[l];
-                for(int lx = 0; lx < curLine.Length; lx++) {
-                    char curChar = curLine[lx];
-                    if(!replacingSpaces && curChar == ' ') continue;
-                    SetCharacter(new Vector2(posX + lx, position.y + l), curChar, foregroundColor, backgroundColor);
-                    index++;
-                }
-                index++; // Every line has \n at the end, so we need to account that too, when counting the index
+                DrawOneLineText(new Vector2(posX, position.y + l), curLine, foregroundColor, backgroundColor, replacingSpaces);
+            }
+        }
+        void DrawOneLineText(Vector2 position, string text, Color foregroundColor, Color backgroundColor, bool replacingSpaces = true) {
+            for(int x = 0; x < text.Length; x++) {
+                char curChar = text[x];
+                if(!replacingSpaces && curChar == ' ') continue;
+                SetCharacter(new Vector2(position.x + x, position.y), curChar, foregroundColor, backgroundColor);
             }
         }
 

@@ -4,7 +4,6 @@ using PPR.Main;
 using PPR.Rendering;
 
 using SFML.Graphics;
-using SFML.Window;
 
 namespace PPR.GUI.Elements {
     public class Slider {
@@ -61,7 +60,7 @@ namespace PPR.GUI.Elements {
             if(leftText != "") Renderer.instance.DrawText(new Vector2(posX - leftText.Length, position.y), leftText, hoverColor, idleColor);
             if(rightText != "") Renderer.instance.DrawText(new Vector2(posX + size + 1, position.y), rightText, hoverColor, idleColor);
             return Renderer.instance.mousePosition.InBounds(posX, position.y, posX + size - 1, position.y)
-                              ? Mouse.IsButtonPressed(Mouse.Button.Left) ? State.Clicked : State.Hovered : State.Idle;
+                              ? Core.renderer.leftButtonPressed ? State.Clicked : State.Hovered : State.Idle;
         }
         public int Draw() {
             prevFrameState = currentState;
