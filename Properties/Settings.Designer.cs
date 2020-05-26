@@ -73,7 +73,7 @@ namespace PPR.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Codepage 437\\10x10")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Codepage 437\\10x10\\x1")]
         public string font {
             get {
                 return ((string)(this["font"]));

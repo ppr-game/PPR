@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using NLog;
 
@@ -105,7 +106,7 @@ namespace PPR.GUI {
                         Game.currentMenu = Menu.Settings;
                     }
                     else if(button.text == "EXIT") {
-                        global::Core.game.End();
+                        Core.game.End();
                     }
                 }
             }
@@ -198,12 +199,13 @@ namespace PPR.GUI {
         static readonly Vector2 graphicsGroupTextPos = new Vector2(2, 18);
         public static readonly Button bloomSwitch = new Button(new Vector2(4, 20), "BLOOM", 5, Color.Black, Color.Blue, new Color(0, 0, 64));
         static readonly Vector2 fontSwitchLabelPos = new Vector2(4, 22);
-        public static int fontSwitch1index = 0;
+        public static readonly List<Button> fontSwitchButtonsList = new List<Button>();
+        /*public static int fontSwitch1index = 0;
         public static int fontSwitch2index = 0;
         public static int fontSwitch3index = 0;
         public static readonly Button fontSwitch1 = new Button(new Vector2(9, 22), "never gonna give you up", 23, Color.Black, Color.Blue, new Color(0, 0, 64));
         public static readonly Button fontSwitch2 = new Button(new Vector2(11, 22), "never gonna let you down", 24, Color.Black, Color.Blue, new Color(0, 0, 64));
-        public static readonly Button fontSwitch3 = new Button(new Vector2(13, 22), "https://youtu.be/dQw4w9WgXcQ", 28, Color.Black, Color.Blue, new Color(0, 0, 64));
+        public static readonly Button fontSwitch3 = new Button(new Vector2(13, 22), "https://youtu.be/dQw4w9WgXcQ", 28, Color.Black, Color.Blue, new Color(0, 0, 64));*/
 
         static readonly Vector2 advancedGroupTextPos = new Vector2(2, 25);
         public static readonly Button showFpsSwitch = new Button(new Vector2(4, 27), "SHOW FPS", 8, Color.Black, Color.Blue, new Color(0, 0, 64));
@@ -229,28 +231,11 @@ namespace PPR.GUI {
                 Renderer.instance.DrawText(graphicsGroupTextPos, "[ GRAPHICS ]", Color.White, Color.Transparent);
                 if(bloomSwitch.Draw()) Settings.Default.bloom = bloomSwitch.selected = !bloomSwitch.selected;
                 Renderer.instance.DrawText(fontSwitchLabelPos, "FONT", Color.Blue, Color.Transparent);
-                if(fontSwitch1index >= 0 && fontSwitch1.Draw()) {
-                    fontSwitch1index++;
-                    fontSwitch2index = 0;
-                    fontSwitch3index = 0;
-                    UpdateFontSwitch1();
-
-                    Settings.Default.font = Path.Combine(fontSwitch1.text,
-                        fontSwitch2index >= 0 ? fontSwitch2.text : "", fontSwitch3index >= 0 ? fontSwitch3.text : "");
-                }
-                if(fontSwitch2index >= 0 && fontSwitch2.Draw()) {
-                    fontSwitch2index++;
-                    fontSwitch3index = 0;
-                    UpdateFontSwitch2();
-
-                    Settings.Default.font = Path.Combine(fontSwitch1.text, fontSwitch2.text,
-                        fontSwitch3index >= 0 ? fontSwitch3.text : "");
-                }
-                if(fontSwitch3index >= 0 && fontSwitch3.Draw()) {
-                    fontSwitch3index++;
-                    UpdateFontSwitch3();
-
-                    Settings.Default.font = Path.Combine(fontSwitch1.text, fontSwitch2.text, fontSwitch3.text);
+                for(int i = fontSwitchButtonsList.Count - 1; i >= 0; i--) {
+                    if(fontSwitchButtonsList[i].Draw()) {
+                        IncreaseFontSwitchDirectory(i);
+                        UpdateFontSwitchButtons();
+                    }
                 }
 
                 Renderer.instance.DrawText(advancedGroupTextPos, "[ ADVANCED ]", Color.White, Color.Transparent);
@@ -262,67 +247,44 @@ namespace PPR.GUI {
 
             Game.music.Volume = Settings.Default.musicVolume;
         }
-        // i know this code is rly bad but i'm lazy and you can't say me anything to that
-        public static void UpdateFontSwitch1() {
-            string path = Path.Combine("resources", "fonts");
-            if(Directory.Exists(path)) {
-                string[] directories = Directory.GetDirectories(path);
-                if(directories.Length > 0) {
-                    if(fontSwitch1index >= directories.Length) fontSwitch1index = 0;
-                    fontSwitch1.text = Path.GetFileName(directories[fontSwitch1index]);
-                    fontSwitch1.width = fontSwitch1.text.Length;
-                }
-                else {
-                    fontSwitch1index = -1;
-                    fontSwitch2index = -1;
-                    fontSwitch3index = -1;
-                }
+        public static void IncreaseFontSwitchDirectory(int at) {
+            // Disassemble the path
+            List<string> fullDirNames = Settings.Default.font.Split(Path.DirectorySeparatorChar).ToList();
+            while(fullDirNames.Count > at + 1) {
+                fullDirNames.RemoveAt(fullDirNames.Count - 1);
             }
-            else {
-                fontSwitch1index = -1;
-                fontSwitch2index = -1;
-                fontSwitch3index = -1;
+            string fullDir = Path.Combine(fullDirNames.ToArray());
+            string inDir = Path.GetDirectoryName(fullDir);
+            string[] inDirNames = Directory.GetDirectories(Path.Combine("resources", "fonts", inDir)).Select(dir => Path.GetFileName(dir)).ToArray();
+
+            // Move to the next folder
+            int curPathIndex = Array.IndexOf(inDirNames, fullDirNames.Last());
+            int nextIndex = curPathIndex + 1;
+            fullDirNames.RemoveAt(at);
+            fullDirNames.Add(inDirNames[nextIndex >= inDirNames.Length ? 0 : nextIndex]);
+
+            // Assemble the path back
+            string newPath = Path.Combine(fullDirNames.ToArray());
+            string[] newPathDirs = Directory.GetDirectories(Path.Combine("resources", "fonts", newPath));
+            while(newPathDirs.Length > 0) {
+                newPath = Path.Combine(newPath, Path.GetFileName(newPathDirs[0]));
+                newPathDirs = Directory.GetDirectories(Path.Combine("resources", "fonts", newPath));
             }
-            UpdateFontSwitch2();
+            Settings.Default.font = newPath;
         }
-        public static void UpdateFontSwitch2() {
-            string path = Path.Combine("resources", "fonts", fontSwitch1.text);
-            if(Directory.Exists(path)) {
-                string[] directories = Directory.GetDirectories(path);
-                if(directories.Length > 0) {
-                    if(fontSwitch2index >= directories.Length) fontSwitch2index = 0;
-                    fontSwitch2.text = Path.GetFileName(directories[fontSwitch2index]);
-                    fontSwitch2.width = fontSwitch2.text.Length;
-                    fontSwitch2.position.x = fontSwitch1.position.x + fontSwitch1.width + 1;
-                }
-                else {
-                    fontSwitch2index = -1;
-                    fontSwitch3index = -1;
-                }
-            }
-            else {
-                fontSwitch2index = -1;
-                fontSwitch3index = -1;
-            }
-            UpdateFontSwitch3();
+        public static void UpdateFontSwitchButtons() {
+            fontSwitchButtonsList.Clear();
+            UpdateFontSwitchButton(Settings.Default.font);
         }
-        public static void UpdateFontSwitch3() {
-            string path = Path.Combine("resources", "fonts", fontSwitch1.text, fontSwitch2.text);
-            if(Directory.Exists(path)) {
-                string[] directories = Directory.GetDirectories(path);
-                if(directories.Length > 0) {
-                    if(fontSwitch3index >= directories.Length) fontSwitch3index = 0;
-                    fontSwitch3.text = Path.GetFileName(directories[fontSwitch3index]);
-                    fontSwitch3.width = fontSwitch3.text.Length;
-                    fontSwitch3.position.x = fontSwitch2.position.x + fontSwitch2.width + 1;
-                }
-                else {
-                    fontSwitch3index = -1;
-                }
-            }
-            else {
-                fontSwitch3index = -1;
-            }
+        static void UpdateFontSwitchButton(string path) {
+            string[] names = path.Split(Path.DirectorySeparatorChar);
+
+            Vector2 position = new Vector2(fontSwitchLabelPos.x + 5 + (names.Length > 1 ? 1 : 0) + Path.GetDirectoryName(path).Length, fontSwitchLabelPos.y);
+            string text = names[^1];
+            fontSwitchButtonsList.Insert(0, new Button(position, text, text.Length, Color.Black, Color.Blue, new Color(0, 0, 64)));
+
+            string nextPath = Path.GetDirectoryName(path);
+            if(nextPath != "") UpdateFontSwitchButton(nextPath);
         }
 
         static readonly Vector2 levelNamePos = new Vector2(0, 0);
@@ -385,7 +347,7 @@ namespace PPR.GUI {
                 float rate = 3.5f + healthAnimRateOffsets[x];
                 Renderer.instance.SetCellColor(pos, Color.Transparent,
                                                                                                            Renderer.AnimateColor(healthAnimTimes[x], prevHealthColors[x], healthColors[x], rate));
-                healthAnimTimes[x] += global::Core.deltaTime;
+                healthAnimTimes[x] += Core.deltaTime;
             }
         }
         static void DrawProgress() {
@@ -394,7 +356,7 @@ namespace PPR.GUI {
                 float rate = 3.5f + progressAnimRateOffsets[x];
                 Renderer.instance.SetCellColor(pos, Color.Transparent,
                                                                                                            Renderer.AnimateColor(progressAnimTimes[x], prevProgressColors[x], progressColors[x], rate));
-                progressAnimTimes[x] += global::Core.deltaTime;
+                progressAnimTimes[x] += Core.deltaTime;
             }
         }
         static int scoreChange = 0;
@@ -410,7 +372,7 @@ namespace PPR.GUI {
             }
             Renderer.instance.DrawText(new Vector2(position.x + scoreStr.Length + 2, position.y), "+" + scoreChange,
                                                                                     Renderer.AnimateColor(newScoreAnimationTime, color, Color.Transparent, 2f), Color.Transparent);
-            newScoreAnimationTime += global::Core.deltaTime;
+            newScoreAnimationTime += Core.deltaTime;
 
             prevScore = Game.score;
         }

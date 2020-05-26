@@ -100,7 +100,7 @@ namespace PPR.GUI.Elements {
                 Renderer.instance.SetCharacter(pos, curChar,
                                                                             Renderer.AnimateColor(animTimes[x], currentColor, currentState == State.Idle ? hoverColor : idleColor, 4f + animRateOffsets[x]),
                                                                             Renderer.AnimateColor(animTimes[x], prevColor, currentColor, 4f + animRateOffsets[x]));
-                animTimes[x] += global::Core.deltaTime;
+                animTimes[x] += Core.deltaTime;
             }
             return value;
         }

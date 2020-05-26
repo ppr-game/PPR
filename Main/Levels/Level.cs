@@ -248,7 +248,7 @@ namespace PPR.Main.Levels {
                 Renderer.instance.SetCellColor(position, Renderer.AnimateColor(removeAnimationTime, startColor, Color.White, 3f),
                                                                                                                      Renderer.AnimateColor(removeAnimationTime, startColor, Color.Transparent, 3f));
                 if(removeAnimationTime >= 1f) _ = Map.currentLevel.objects.Remove(this);
-                removeAnimationTime += global::Core.deltaTime;
+                removeAnimationTime += Core.deltaTime;
                 return;
             }
             if(!ignore) Renderer.instance.SetCharacter(position, character, character == speedChar ? speedColor : color, Color.Transparent);

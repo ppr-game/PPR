@@ -118,49 +118,35 @@ namespace PPR.Main {
             UI.bloomSwitch.selected = Settings.Default.bloom;
             UI.showFpsSwitch.selected = Settings.Default.showFps;
             UI.showConsoleSwitch.selected = Settings.Default.showConsole;
-            string[] splitedFontPath = Settings.Default.font.Split(Path.DirectorySeparatorChar);
-            UI.fontSwitch1.text = splitedFontPath[0];
-            UI.fontSwitch2.text = splitedFontPath.Length > 1 ? splitedFontPath[1] : "";
-            UI.fontSwitch3.text = splitedFontPath.Length > 2 ? splitedFontPath[2] : "";
-            string[] allFontsDirs1 = Directory.GetDirectories(Path.Combine("resources", "fonts"))
-                .Select(dir => Path.GetFileName(dir)).ToArray();
-            logger.Info(Settings.Default.font);
-            string[] allFontsDirs2 = Directory.GetDirectories(Path.Combine("resources", "fonts", UI.fontSwitch1.text))
-                .Select(dir => Path.GetFileName(dir)).ToArray();
-            string[] allFontsDirs3 = Directory.GetDirectories(Path.Combine("resources", "fonts", UI.fontSwitch1.text, UI.fontSwitch2.text))
-                .Select(dir => Path.GetFileName(dir)).ToArray();
-            UI.fontSwitch1index = Array.IndexOf(allFontsDirs1, UI.fontSwitch1.text);
-            UI.fontSwitch2index = Array.IndexOf(allFontsDirs2, UI.fontSwitch2.text);
-            UI.fontSwitch3index = Array.IndexOf(allFontsDirs3, UI.fontSwitch3.text);
-            UI.UpdateFontSwitch1();
+            UI.UpdateFontSwitchButtons();
 
-            if(!Settings.Default.showConsole) global::Core.HideConsoleWindow();
+            if(!Settings.Default.showConsole) Core.HideConsoleWindow();
 
             Settings.Default.PropertyChanged += (_, e) => {
                 if(e.PropertyName == "showConsole") {
-                    if(Settings.Default.showConsole) global::Core.ShowConsoleWindow();
-                    else global::Core.HideConsoleWindow();
+                    if(Settings.Default.showConsole) Core.ShowConsoleWindow();
+                    else Core.HideConsoleWindow();
                 }
                 else if(e.PropertyName == "font") {
                     string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.Default.font, "mappings.txt"));
                     string[] fontSizeStr = fontMappingsLines[0].Split(',');
-                    Vector2 oldFontSize = new Vector2(global::Core.renderer.fontSize);
-                    global::Core.renderer.fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
-                    Vector2f fontSizeChange = new Vector2f((float)global::Core.renderer.fontSize.x / oldFontSize.x, (float)global::Core.renderer.fontSize.y / oldFontSize.y);
-                    global::Core.renderer.windowWidth = global::Core.renderer.width * global::Core.renderer.fontSize.x;
-                    global::Core.renderer.windowHeight = global::Core.renderer.height * global::Core.renderer.fontSize.y;
-                    Mouse.SetPosition(new Vector2i((int)(Mouse.GetPosition(global::Core.renderer.window).X * fontSizeChange.X), (int)(Mouse.GetPosition(global::Core.renderer.window).Y * fontSizeChange.Y)), global::Core.renderer.window);
-                    FloatRect visibleArea = new FloatRect(0, 0, global::Core.renderer.windowWidth, global::Core.renderer.windowHeight);
-                    global::Core.renderer.window.SetView(new View(visibleArea));
-                    global::Core.renderer.window.Size = new Vector2u((uint)global::Core.renderer.windowWidth, (uint)global::Core.renderer.windowHeight);
-                    global::Core.renderer.bloomRT = new RenderTexture((uint)global::Core.renderer.windowWidth, (uint)global::Core.renderer.windowHeight);
-                    global::Core.renderer.finalRT = new RenderTexture((uint)global::Core.renderer.windowWidth, (uint)global::Core.renderer.windowHeight);
+                    Vector2 oldFontSize = new Vector2(Core.renderer.fontSize);
+                    Core.renderer.fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
+                    Vector2f fontSizeChange = new Vector2f((float)Core.renderer.fontSize.x / oldFontSize.x, (float)Core.renderer.fontSize.y / oldFontSize.y);
+                    Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.x;
+                    Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.y;
+                    Mouse.SetPosition(new Vector2i((int)(Mouse.GetPosition(Core.renderer.window).X * fontSizeChange.X), (int)(Mouse.GetPosition(Core.renderer.window).Y * fontSizeChange.Y)), Core.renderer.window);
+                    FloatRect visibleArea = new FloatRect(0, 0, Core.renderer.windowWidth, Core.renderer.windowHeight);
+                    Core.renderer.window.SetView(new View(visibleArea));
+                    Core.renderer.bloomRT = new RenderTexture((uint)Core.renderer.windowWidth, (uint)Core.renderer.windowHeight);
+                    Core.renderer.window.Size = new Vector2u((uint)Core.renderer.windowWidth, (uint)Core.renderer.windowHeight);
+                    Core.renderer.finalRT = new RenderTexture((uint)Core.renderer.windowWidth, (uint)Core.renderer.windowHeight);
 
-                    BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")), fontMappingsLines[1], global::Core.renderer.fontSize);
-                    global::Core.renderer.text = new BitmapText(font, new Vector2(global::Core.renderer.width, global::Core.renderer.height)) {
-                        backgroundColors = global::Core.renderer.backgroundColors,
-                        foregroundColors = global::Core.renderer.foregroundColors,
-                        text = global::Core.renderer.displayString
+                    BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")), fontMappingsLines[1], Core.renderer.fontSize);
+                    Core.renderer.text = new BitmapText(font, new Vector2(Core.renderer.width, Core.renderer.height)) {
+                        backgroundColors = Core.renderer.backgroundColors,
+                        foregroundColors = Core.renderer.foregroundColors,
+                        text = Core.renderer.displayString
                     };
                 }
             };
@@ -186,7 +172,7 @@ namespace PPR.Main {
 
             LogManager.Shutdown();
 
-            global::Core.renderer.window.Close();
+            Core.renderer.window.Close();
         }
         public void Update() {
             if(currentMenu != Menu.Game) return;
@@ -414,7 +400,7 @@ namespace PPR.Main {
         }
         public void MouseWheelScrolled(object caller, MouseWheelScrollEventArgs scroll) {
             if(currentMenu == Menu.LevelSelect) {
-                Vector2 mousePos = global::Core.renderer.mousePosition;
+                Vector2 mousePos = Core.renderer.mousePosition;
                 if(mousePos.y >= 12 && mousePos.y <= 49) {
                     if(mousePos.x >= 28 && mousePos.x <= 51) {
                         if(scroll.Delta > 0 && UI.levelSelectLevels.First().position.y >= 12) return;

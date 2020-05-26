@@ -211,3 +211,12 @@ dotnet_naming_style.начинаетсясмаленькойбуквы.capitaliz
 
 # IDE0055: Исправить форматирование
 dotnet_diagnostic.IDE0055.severity = none
+
+# Default severity for all analyzer diagnostics
+dotnet_analyzer_diagnostic.severity = warning
+
+# IDE0072: Add missing cases
+dotnet_diagnostic.IDE0072.severity = none
+
+# IDE0010: Add missing cases
+dotnet_diagnostic.IDE0010.severity = none
