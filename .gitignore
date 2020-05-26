@@ -343,4 +343,3 @@ healthchecksdb
 scores/
 levels/*
 !levels/_template
-resources/fonts/some other font

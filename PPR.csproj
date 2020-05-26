@@ -46,6 +46,9 @@
     <None Update="resources\audio\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+      <None Update="resources\fonts\*">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     <None Update="resources\ui\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
