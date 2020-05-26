@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using PPR.Core;
+using PPR.Main;
 using PPR.Rendering;
 
 using SFML.Graphics;
@@ -322,7 +322,7 @@ namespace PPR.Levels {
                 Renderer.instance.SetCellColor(position, Renderer.AnimateColor(removeAnimationTime, startColor, Color.White, 3f),
                                                                                                                      Renderer.AnimateColor(removeAnimationTime, startColor, Color.Transparent, 3f));
                 if(removeAnimationTime >= 1f) _ = Map.currentLevel.objects.Remove(this);
-                removeAnimationTime += MainGame.deltaTime;
+                removeAnimationTime += global::Core.deltaTime;
                 return;
             }
             if(!ignore) Renderer.instance.SetCharacter(position, character, character == speedChar ? speedColor : color, Color.Transparent);

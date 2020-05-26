@@ -2,12 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using PPR.Core;
 using PPR.GUI;
 using PPR.Levels;
-using PPR.Rendering.Bitmap;
-
-using PressPressRevolution.Properties;
+using PPR.Main;
+using PPR.Properties;
 
 using SFML.Graphics;
 using SFML.Window;

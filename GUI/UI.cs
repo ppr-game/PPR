@@ -4,202 +4,17 @@ using System.IO;
 
 using NLog;
 
-using PPR.Core;
+using PPR.GUI.Elements;
 using PPR.Levels;
+using PPR.Main;
+using PPR.Properties;
 using PPR.Rendering;
-
-using PressPressRevolution.Properties;
 
 using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
-using SFML.Window;
 
 namespace PPR.GUI {
-    public class Button {
-        public Vector2 position;
-        public string text;
-        int _width;
-        public int width {
-            get => _width;
-            set {
-                _width = value;
-                animTimes = new float[value];
-                animRateOffsets = new float[value];
-            }
-        }
-        public Color idleColor;
-        public Color hoverColor;
-        public Color clickColor;
-        public Renderer.TextAlignment align;
-        Color currentColor;
-        Color prevColor;
-        public State currentState = State.Clicked;
-        State prevState = State.Hovered;
-        public State prevFrameState = State.Hovered;
-        float[] animTimes;
-        float[] animRateOffsets;
-        public bool selected = false;
-        int posX;
-        public enum State { Idle, Hovered, Clicked, Selected };
-        public Button(Vector2 position, string text, int width, Color idleColor, Color hoverColor, Color clickColor, Renderer.TextAlignment align = Renderer.TextAlignment.Left) {
-            this.position = position;
-            this.text = text;
-            this.width = width;
-            this.idleColor = idleColor;
-            this.hoverColor = hoverColor;
-            this.clickColor = clickColor;
-            this.align = align;
-            animTimes = new float[width];
-            animRateOffsets = new float[width];
-            currentColor = hoverColor;
-        }
-
-        State DrawWithState() {
-            Renderer.instance.DrawText(position, text.Substring(0, Math.Min(text.Length, width)), Color.White, Color.Transparent, align);
-            posX = position.x - align switch
-            {
-                Renderer.TextAlignment.Right => text.Length - 1,
-                Renderer.TextAlignment.Center => (int)MathF.Ceiling(text.Length / 2f),
-                _ => 0
-            };
-            return Renderer.instance.mousePosition.InBounds(posX, position.y, posX + width - 1, position.y)
-                              ? Mouse.IsButtonPressed(Mouse.Button.Left) ? State.Clicked : State.Hovered
-                               : selected ? State.Selected : State.Idle;
-        }
-        public bool Draw() {
-            prevFrameState = currentState;
-            currentState = DrawWithState();
-            if(prevState != currentState) {
-                Color color = idleColor;
-                switch(currentState) {
-                    case State.Hovered:
-                        color = hoverColor;
-                        break;
-                    case State.Selected:
-                    case State.Clicked:
-                        color = clickColor;
-                        break;
-                }
-                if(currentColor != color) {
-                    prevColor = currentColor;
-                    for(int x = 0; x < width; x++) {
-                        animTimes[x] = 0f;
-                        animRateOffsets[x] = new Random().NextFloat(-1f, 1f);
-                    }
-                }
-                currentColor = color;
-            }
-            prevState = currentState;
-
-            for(int x = 0; x < width; x++) {
-                Vector2 pos = new Vector2(posX + x, position.y);
-                Renderer.instance.SetCellColor(pos,
-                                                                    Renderer.AnimateColor(animTimes[x], currentColor, currentState == State.Idle ? hoverColor : idleColor, 4f + animRateOffsets[x]),
-                                                                    Renderer.AnimateColor(animTimes[x], prevColor, currentColor, 4f + animRateOffsets[x]));
-                animTimes[x] += MainGame.deltaTime;
-            }
-            return Renderer.instance.window.HasFocus() && currentState == State.Clicked && prevFrameState != State.Clicked;
-        }
-    }
-    public class Slider {
-        public Vector2 position;
-        public readonly int minValue;
-        public readonly int maxValue;
-        public readonly int size;
-        public readonly int step;
-        public int value;
-        public string text;
-        public Color idleColor;
-        public Color hoverColor;
-        public Color clickColor;
-        public bool showValue;
-        public Renderer.TextAlignment align;
-        public TextAlignment alignText;
-        Color currentColor;
-        Color prevColor;
-        public State currentState = State.Clicked;
-        State prevState = State.Hovered;
-        public State prevFrameState = State.Hovered;
-        readonly float[] animTimes;
-        readonly float[] animRateOffsets;
-        int posX;
-        public enum State { Idle, Hovered, Clicked };
-        public enum TextAlignment { Left, Right };
-        public Slider(Vector2 position, int minValue, int maxValue, int size, string text, Color idleColor, Color hoverColor, Color clickColor, bool showValue = true, Renderer.TextAlignment align = Renderer.TextAlignment.Left, TextAlignment alignText = TextAlignment.Left) {
-            this.position = position;
-            this.minValue = minValue;
-            this.maxValue = maxValue;
-            this.size = size;
-            step = (maxValue - minValue) / size + 1;
-            this.text = text;
-            this.idleColor = idleColor;
-            this.hoverColor = hoverColor;
-            this.clickColor = clickColor;
-            this.showValue = showValue;
-            this.align = align;
-            this.alignText = alignText;
-            animTimes = new float[size];
-            animRateOffsets = new float[size];
-            currentColor = hoverColor;
-        }
-        State DrawWithState() {
-            bool left = alignText == TextAlignment.Left;
-            string leftText = (left ? text : (showValue ? value.ToString() : "")) + " ";
-            string rightText = left ? (showValue ? value.ToString() : "") : text;
-            posX =  position.x - align switch
-            {
-                Renderer.TextAlignment.Right => size + rightText.Length + 1,
-                Renderer.TextAlignment.Center => (int)MathF.Ceiling(size / 2f),
-                _ => -leftText.Length
-            };
-            if(leftText != "") Renderer.instance.DrawText(new Vector2(posX - leftText.Length, position.y), leftText, hoverColor, idleColor);
-            if(rightText != "") Renderer.instance.DrawText(new Vector2(posX + size + 1, position.y), rightText, hoverColor, idleColor);
-            return Renderer.instance.mousePosition.InBounds(posX, position.y, posX + size - 1, position.y)
-                              ? Mouse.IsButtonPressed(Mouse.Button.Left) ? State.Clicked : State.Hovered : State.Idle;
-        }
-        public int Draw() {
-            prevFrameState = currentState;
-            currentState = DrawWithState();
-            if(prevState != currentState) {
-                Color color = idleColor;
-                switch(currentState) {
-                    case State.Hovered:
-                        color = hoverColor;
-                        break;
-                    case State.Clicked:
-                        color = clickColor;
-                        break;
-                }
-                if(currentColor != color) {
-                    prevColor = currentColor;
-                    for(int x = 0; x < size; x++) {
-                        animTimes[x] = 0f;
-                        animRateOffsets[x] = new Random().NextFloat(-1f, 1f);
-                    }
-                }
-                currentColor = color;
-            }
-            prevState = currentState;
-
-            if(Renderer.instance.window.HasFocus() && currentState == State.Clicked) {
-                value = Math.Clamp((Renderer.instance.mousePosition.x - posX) * step, minValue, maxValue);
-            }
-
-            for(int x = 0; x < size; x++) {
-                Vector2 pos = new Vector2(posX + x, position.y);
-                int drawValue = value / step;
-                char curChar = '█';
-                if(x < drawValue) curChar = '─';
-                else if(x > drawValue) curChar = '-';
-                Renderer.instance.SetCharacter(pos, curChar, 
-                                                                            Renderer.AnimateColor(animTimes[x], currentColor, currentState == State.Idle ? hoverColor : idleColor, 4f + animRateOffsets[x]),
-                                                                            Renderer.AnimateColor(animTimes[x], prevColor, currentColor, 4f + animRateOffsets[x]));
-                animTimes[x] += MainGame.deltaTime;
-            }
-            return value;
-        }
-    }
     public static class UI {
         static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -290,7 +105,7 @@ namespace PPR.GUI {
                         Game.currentMenu = Menu.Settings;
                     }
                     else if(button.text == "EXIT") {
-                        MainGame.game.End();
+                        global::Core.game.End();
                     }
                 }
             }
@@ -570,7 +385,7 @@ namespace PPR.GUI {
                 float rate = 3.5f + healthAnimRateOffsets[x];
                 Renderer.instance.SetCellColor(pos, Color.Transparent,
                                                                                                            Renderer.AnimateColor(healthAnimTimes[x], prevHealthColors[x], healthColors[x], rate));
-                healthAnimTimes[x] += MainGame.deltaTime;
+                healthAnimTimes[x] += global::Core.deltaTime;
             }
         }
         static void DrawProgress() {
@@ -579,7 +394,7 @@ namespace PPR.GUI {
                 float rate = 3.5f + progressAnimRateOffsets[x];
                 Renderer.instance.SetCellColor(pos, Color.Transparent,
                                                                                                            Renderer.AnimateColor(progressAnimTimes[x], prevProgressColors[x], progressColors[x], rate));
-                progressAnimTimes[x] += MainGame.deltaTime;
+                progressAnimTimes[x] += global::Core.deltaTime;
             }
         }
         static int scoreChange = 0;
@@ -595,7 +410,7 @@ namespace PPR.GUI {
             }
             Renderer.instance.DrawText(new Vector2(position.x + scoreStr.Length + 2, position.y), "+" + scoreChange,
                                                                                     Renderer.AnimateColor(newScoreAnimationTime, color, Color.Transparent, 2f), Color.Transparent);
-            newScoreAnimationTime += MainGame.deltaTime;
+            newScoreAnimationTime += global::Core.deltaTime;
 
             prevScore = Game.score;
         }

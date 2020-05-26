@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 
-using PPR.Core;
+using PPR.Main;
 
 using SFML.Graphics;
 using SFML.System;
 
-namespace PPR.Rendering.Bitmap {
+namespace PPR.Rendering {
     public class BitmapFont {
         public Texture texture;
         public Vector2 characterSize;
