@@ -128,15 +128,15 @@ namespace PPR.Main {
                 if(e.PropertyName == "font") {
                     string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.Default.font, "mappings.txt"));
                     string[] fontSizeStr = fontMappingsLines[0].Split(',');
-                    Vector2 oldFontSize = new Vector2(Core.renderer.fontSize);
+                    //Vector2 oldFontSize = new Vector2(Core.renderer.fontSize);
                     Core.renderer.fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
-                    Vector2f fontSizeChange = new Vector2f((float)Core.renderer.fontSize.x / oldFontSize.x, (float)Core.renderer.fontSize.y / oldFontSize.y);
+                    //Vector2f fontSizeChange = new Vector2f((float)Core.renderer.fontSize.x / oldFontSize.x, (float)Core.renderer.fontSize.y / oldFontSize.y);
                     Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.x;
                     Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.y;
                     Core.renderer.UpdateWindow();
 
-                    Mouse.SetPosition(new Vector2i((int)(Mouse.GetPosition(Core.renderer.window).X * fontSizeChange.X),
-                        (int)(Mouse.GetPosition(Core.renderer.window).Y * fontSizeChange.Y)), Core.renderer.window);
+                    //Mouse.SetPosition(new Vector2i((int)(Mouse.GetPosition(Core.renderer.window).X * fontSizeChange.X),
+                    //    (int)(Mouse.GetPosition(Core.renderer.window).Y * fontSizeChange.Y)), Core.renderer.window);
 
                     BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")), fontMappingsLines[1], Core.renderer.fontSize);
                     Core.renderer.text = new BitmapText(font, new Vector2(Core.renderer.width, Core.renderer.height)) {
