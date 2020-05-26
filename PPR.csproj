@@ -46,9 +46,12 @@
     <None Update="resources\audio\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-      <None Update="resources\fonts\*">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
+    <None Update="resources\fonts\Codepage 437\10x10\x1">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="resources\fonts\Codepage 437\10x10\x2">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="resources\ui\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
