@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <Platforms>AnyCPU;x86</Platforms>
+    <Platforms>AnyCPU;x86;x64</Platforms>
     <StartupObject>Core</StartupObject>
     <Version>0.7.0-beta</Version>
     <Authors>ConfiG</Authors>
@@ -15,6 +15,14 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Prefer32Bit>true</Prefer32Bit>
+    <Optimize>false</Optimize>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Prefer32Bit>true</Prefer32Bit>
     <Optimize>false</Optimize>
     <DebugType>full</DebugType>
@@ -39,6 +47,9 @@
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Update="resources\colors\Default\Classic (Lighter Blue)\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="resources\colors\Default\Classic\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

@@ -73,19 +73,17 @@ namespace PPR.Main.Levels {
             difficulty = meta[2];
             author = meta[3];
             linesFrequency = meta.Length > 4 ? int.Parse(meta[4]) : 4;
-
             initialOffsetMS = meta.Length > 5 ? int.Parse(meta[5]) : 0;
-
             logger.Info("Initial offset of this level: {0} ms", initialOffsetMS);
 
             speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
 
             maxOffset = offsets.Count > 0 ? offsets.Max() : 0;
-            TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.OffsetToMilliseconds(maxOffset, speeds));
-            length = (timeSpan < TimeSpan.Zero ? "'-'" : "") + timeSpan.ToString((timeSpan.Hours != 0 ? "h':'mm" : "m") + "':'ss");
+            TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.OffsetToMilliseconds(maxOffset, speeds) - initialOffsetMS);
+            length = (timeSpan < TimeSpan.Zero ? "-" : "") + timeSpan.ToString((timeSpan.Hours != 0 ? "h':'mm" : "m") + "':'ss");
 
             int minOffset = offsets.Count > 0 ? offsets.Min() : 0;
-            int minTime = (int)Game.OffsetToMilliseconds(minOffset, speeds);
+            int minTime = (int)Game.OffsetToMilliseconds(minOffset, speeds) + initialOffsetMS;
             skipTime = minTime - 5000;
             skippable = skipTime > 5000;
 

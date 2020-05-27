@@ -86,8 +86,26 @@ Open the game and go to `Settings -> Graphics -> Font`, click the buttons on the
 ### How to create custom fonts
 Make an image of any size (1 image pixel = 1 screen pixel) with the characters you want to have in your font, save it as font.png, create mappings.txt and put the character size (`width,height`) on the first line and a list of the characters you have in your font in the direction of left to right and top to bottom on the second without separating them
 
-You can add multiple fonts in yuor font folder, to do that, create folders in your font folder and put fonts there
+You can add multiple fonts in your font folder, to do that, create folders in your font folder and put fonts there
 
 **Higly recommended font folder hierarchy:** `[font name]/[font size (can be multiple)]/[font scale (usually x1 and x2 is enough, but you may want to add x3 and/or x4 if your font is too small or if you want to)]`
 
 *You can use the default included font as an example*
+
+## Custom color schemes
+### How to install custom color schemes
+Unpack the font folder in `game's folder/resources/colors`
+
+Open the game and go to `Settings -> Graphics -> Colors`, click the buttons on the right to choose the color scheme
+
+### How to create custom color schemes
+The same as fonts but there's only one file in a folder (`colors.txt`), you can copy one of the default color schemes and use it as a template
+
+## Custom sounds
+### How to install custom sounds
+Unpack the font folder in `game's folder/resources/audio`
+
+Open the game and go to `Settings -> Audio -> Sounds`, click the buttons on the right to choose the sound pack
+
+### How to create custom sounds
+The same as fonts but there are only audio files in a folder, you can copy the default sound pack and use it as a template

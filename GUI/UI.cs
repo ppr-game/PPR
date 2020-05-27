@@ -138,7 +138,7 @@ namespace PPR.GUI {
                     Game.currentMenu = Menu.Game;
                     Game.RecalculatePosition();
                 }
-                if(button.currentState == Button.State.Hovered && button.prevFrameState != Button.State.Hovered) {
+                if(button.currentState == Button.State.Hovered && button.prevFrameState != Button.State.Hovered && button.prevFrameState != Button.State.Clicked) {
                     string levelPath = Path.Combine("levels", button.text);
                     string musicPath = Path.Combine(levelPath, "music.ogg");
                     if(File.Exists(musicPath)) {
@@ -351,12 +351,12 @@ namespace PPR.GUI {
                         else if(button.text == "║") {
                             Game.music.Pause();
                             Game.offset = Game.roundedOffset;
-                            Game.RecalculateTime();
+                            Game.UpdateTime();
                         }
                     }
                 }
                 Renderer.instance.DrawText(bpmPos, "BPM: " + Game.currentBPM + "  " + Map.currentLevel.metadata.linesFrequency, ColorScheme.blue, Color.Transparent);
-                TimeSpan curTime = TimeSpan.FromMilliseconds(Game.music.PlayingOffset.AsMilliseconds() - Map.currentLevel.metadata.initialOffsetMS);
+                TimeSpan curTime = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
                 Renderer.instance.DrawText(timePos, "TIME: " + (curTime < TimeSpan.Zero ? "'-'" : "") + curTime.ToString((curTime.Hours != 0 ? "h':'mm" : "m") + "':'ss"),
                                             ColorScheme.blue, Color.Transparent);
                 Renderer.instance.DrawText(offsetPos, "OFFSET: " + Game.roundedOffset, ColorScheme.blue, Color.Transparent);
@@ -378,10 +378,8 @@ namespace PPR.GUI {
                 DrawLevelName(levelNamePos, ColorScheme.black);
                 LevelMetadata metadata = Map.currentLevel.metadata;
 
-                int skipTime = metadata.initialOffsetMS + metadata.skipTime;
-
-                if(metadata.skippable && Game.music.PlayingOffset.AsMilliseconds() < skipTime && skipButton.Draw()) {
-                    Game.music.PlayingOffset = Time.FromMilliseconds(skipTime);
+                if(metadata.skippable && Game.music.PlayingOffset.AsMilliseconds() < Map.currentLevel.metadata.skipTime && skipButton.Draw()) {
+                    Game.music.PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.skipTime);
                 }
             }
         }
