@@ -98,6 +98,10 @@ namespace PPR.Main {
         public static float prevOffset = 0f;
         public static int currentBPM = 1;
         public static Music music = new Music(Path.Combine("resources", "audio", "mainMenu.ogg"));
+        public static SoundBuffer hitsoundbuffer = File.Exists(Path.Combine("resources", "fonts", Settings.Default.font, "hitsound.wav")) ? new SoundBuffer(Path.Combine("resources", "fonts", Settings.Default.font, "hitsound.wav")) : new SoundBuffer(Path.Combine("resources", "audio", "hitsound.wav"));
+        public static Sound hitsound = new Sound(hitsoundbuffer);
+        public static SoundBuffer ticksoundbuffer = File.Exists(Path.Combine("resources", "fonts", Settings.Default.font, "ticksound.wav")) ? new SoundBuffer(Path.Combine("resources", "fonts", Settings.Default.font, "ticksound.wav")) : new SoundBuffer(Path.Combine("resources", "audio", "ticksound.wav"));
+        public static Sound ticksound = new Sound(ticksoundbuffer);
         public static int score = 0;
         static int _health = 80;
         public static int health {
@@ -126,7 +130,10 @@ namespace PPR.Main {
 
             RPC.Initialize();
 
+            hitsound.Volume = Settings.Default.musicVolume;
+            ticksound.Volume = Settings.Default.musicVolume;
             music.Volume = Settings.Default.musicVolume;
+            music.Loop = true;
             music.Play();
         }
         public void PropertyChanged(object caller, PropertyChangedEventArgs e) {
@@ -155,6 +162,11 @@ namespace PPR.Main {
             }
             else if(e.PropertyName == "fullscreen") {
                 Core.renderer.SetFullscreen(Settings.Default.fullscreen);
+            }
+            else if(e.PropertyName == "musicVolume") {
+                music.Volume = Settings.Default.musicVolume;
+                hitsound.Volume = Settings.Default.musicVolume;
+                ticksound.Volume = Settings.Default.musicVolume;
             }
         }
         public void ReloadSettings() {

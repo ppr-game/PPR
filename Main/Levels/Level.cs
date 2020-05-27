@@ -297,6 +297,9 @@ namespace PPR.Main.Levels {
             Game.maxCombo = Math.Max(Game.combo, Game.maxCombo);
             Game.score += score * Game.combo;
             Game.scores[score / 5]++;
+
+            if(character == holdChar) Game.ticksound.Play();
+            else Game.hitsound.Play();
         }
         void Miss() {
             Game.health -= Map.currentLevel.metadata.hpDrain;
