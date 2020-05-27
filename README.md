@@ -75,6 +75,8 @@ Now you can begin creating your level
 
 - `Left/right arrows` - decrease/increase the health drain *(the value which will be substracted from the **health** on **misses**)* (`+ Shift` - restorage (the opposite of drain))
 
+- `F1/F2` - increase/decrease the initial music offset by 1 ms (`+ Shift` - 10 ms)
+
 ## Custom fonts
 ### How to install custom fonts
 Unpack the font folder in `game's folder/resources/fonts`

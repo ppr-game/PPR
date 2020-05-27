@@ -58,7 +58,8 @@ namespace PPR.Main.Levels {
                                    level.metadata.hpRestorage + ":" +
                                    level.metadata.difficulty + ":" +
                                    level.metadata.author + ":" +
-                                   level.metadata.linesFrequency;
+                                   level.metadata.linesFrequency + ":" +
+                                   level.metadata.initialOffsetMS;
             return string.Join('\n', lines);
         }
         public static List<LevelScore> ScoresFromLines(string[] lines, Vector2 position) {
