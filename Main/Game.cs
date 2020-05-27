@@ -416,6 +416,17 @@ namespace PPR.Main {
                                 Map.currentLevel.metadata.hpDrain += key.Code == Keyboard.Key.Right ? 1 : -1;
                             }
                         }
+                        else if(key.Code == Keyboard.Key.F1 || key.Code == Keyboard.Key.F2) {
+                            if(key.Shift) {
+                                Map.currentLevel.metadata.initialOffsetMS += key.Code == Keyboard.Key.F2 ? 10 : -10;
+                            }
+                            else {
+                                Map.currentLevel.metadata.initialOffsetMS += key.Code == Keyboard.Key.F2 ? 1 : -1;
+                            }
+                            if (music.Status == SoundStatus.Playing) {
+                                RecalculateTime();
+                            }
+                        }
                     }
                     else {
                         if(Map.currentLevel.objects.FindAll(obj => obj.character == character && obj.offset == roundedOffset).Count <= 0) {

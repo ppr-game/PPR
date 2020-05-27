@@ -335,6 +335,7 @@ namespace PPR.GUI {
         static readonly Vector2 offsetPos = new Vector2(0, 59);
         static readonly Vector2 hpDrainPos = new Vector2(20, 58);
         static readonly Vector2 hpRestoragePos = new Vector2(20, 59);
+        static readonly Vector2 musicOffsetPos = new Vector2(40, 59);
         static void DrawGame() {
             if(Game.editing) {
                 foreach(Button button in levelEditorButtons) {
@@ -362,6 +363,8 @@ namespace PPR.GUI {
 
                 Renderer.instance.DrawText(hpDrainPos, "HP DRAIN: " + Map.currentLevel.metadata.hpDrain, ColorScheme.red, Color.Transparent);
                 Renderer.instance.DrawText(hpRestoragePos, "HP RESTORAGE: " + Map.currentLevel.metadata.hpRestorage, ColorScheme.red, Color.Transparent);
+
+                Renderer.instance.DrawText(musicOffsetPos, "MUSIC OFFSET: " + Map.currentLevel.metadata.initialOffsetMS + " MS", ColorScheme.darkGray, Color.Transparent);
                 DrawProgress();
                 DrawLevelName(levelNamePos, ColorScheme.black);
             }
