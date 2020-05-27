@@ -5,7 +5,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Platforms>AnyCPU;x86;x64</Platforms>
     <StartupObject>Core</StartupObject>
-    <Version>0.7.0-beta</Version>
+    <Version>0.7.1-beta</Version>
     <Authors>ConfiG</Authors>
     <Company />
     <PackageId>com.github.cgytrus.PPR</PackageId>
@@ -60,6 +60,9 @@
     <None Update="resources\audio\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+      <None Update="resources\audio\Default\*">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     <None Update="resources\fonts\Codepage 437\8x8\x1\*">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
