@@ -82,5 +82,17 @@ namespace PPR.Properties {
                 this["fullscreen"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Default\\Classic")]
+        public string colorScheme {
+            get {
+                return ((string)(this["colorScheme"]));
+            }
+            set {
+                this["colorScheme"] = value;
+            }
+        }
     }
 }

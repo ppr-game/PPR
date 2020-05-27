@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using PPR.GUI;
 using PPR.Rendering;
 
 using SFML.Graphics;
@@ -12,7 +13,7 @@ namespace PPR.Main.Levels {
         public static void Draw() {
             if(Game.currentMenu != Menu.Game) return;
             Renderer.instance.DrawText(linePos, "────────────────────────────────────────────────────────────────────────────────",
-                                                                                    Color.White, Color.Transparent);
+                                                                                    ColorScheme.white, Color.Transparent);
             if(Game.editing) {
                 int doubleFrequency = currentLevel.metadata.linesFrequency * 2;
                 for(int y = -linePos.y / 2; y < linePos.y / 2 + 30 + currentLevel.metadata.linesFrequency; y++) {
@@ -20,12 +21,12 @@ namespace PPR.Main.Levels {
                     if(useY > linePos.y) continue;
                     if(y % currentLevel.metadata.linesFrequency == 0) {
                         for(int x = 0; x < 80; x++) {
-                            Renderer.instance.SetCellColor(new Vector2(x, useY), Color.White, new Color(6, 6, 6));
+                            Renderer.instance.SetCellColor(new Vector2(x, useY), ColorScheme.white, new Color(6, 6, 6));
                         }
                     }
                     else {
                         for(int x = 0; x < 80; x++) {
-                            Renderer.instance.SetCellColor(new Vector2(x, useY), Color.White, new Color(4, 4, 4));
+                            Renderer.instance.SetCellColor(new Vector2(x, useY), ColorScheme.white, new Color(4, 4, 4));
                         }
                     }
                 }

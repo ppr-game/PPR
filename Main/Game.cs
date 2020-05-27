@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
 using System.IO;
 using System.Linq;
@@ -156,6 +157,9 @@ namespace PPR.Main {
                 }
             };
 
+            ColorScheme.Reload();
+
+
             // TODO: Automatic settings list generation
             logger.Info("Current settings:");
             foreach(SettingsPropertyValue value in Settings.Default.PropertyValues) {
@@ -170,6 +174,47 @@ namespace PPR.Main {
             music.Volume = Settings.Default.musicVolume;
             music.Loop = true;
             music.Play();
+        }
+        public void PropertyChanged(object caller, PropertyChangedEventArgs e) {
+            if(e.PropertyName == "font") {
+                string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.Default.font, "mappings.txt"));
+                string[] fontSizeStr = fontMappingsLines[0].Split(',');
+                //Vector2 oldFontSize = new Vector2(Core.renderer.fontSize);
+                Core.renderer.fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
+                //Vector2f fontSizeChange = new Vector2f((float)Core.renderer.fontSize.x / oldFontSize.x, (float)Core.renderer.fontSize.y / oldFontSize.y);
+                Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.x;
+                Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.y;
+                Core.renderer.UpdateWindow();
+
+                //Mouse.SetPosition(new Vector2i((int)(Mouse.GetPosition(Core.renderer.window).X * fontSizeChange.X),
+                //    (int)(Mouse.GetPosition(Core.renderer.window).Y * fontSizeChange.Y)), Core.renderer.window);
+
+                BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")), fontMappingsLines[1], Core.renderer.fontSize);
+                Core.renderer.text = new BitmapText(font, new Vector2(Core.renderer.width, Core.renderer.height)) {
+                    backgroundColors = Core.renderer.backgroundColors,
+                    foregroundColors = Core.renderer.foregroundColors,
+                    text = Core.renderer.displayString
+                };
+            }
+            else if(e.PropertyName == "colorScheme") {
+                ColorScheme.Reload();
+            }
+            else if(e.PropertyName == "fullscreen") {
+                Core.renderer.SetFullscreen(Settings.Default.fullscreen);
+            }
+        }
+        public void ReloadSettings() {
+            Settings.Default.PropertyChanged -= PropertyChanged;
+
+            Settings.Default.Reload();
+            UI.musicVolumeSlider.value = Settings.Default.musicVolume;
+            UI.bloomSwitch.selected = Settings.Default.bloom;
+            UI.showFpsSwitch.selected = Settings.Default.showFps;
+            UI.fullscreenSwitch.selected = Settings.Default.fullscreen;
+
+            Core.renderer.SetFullscreen(Settings.Default.fullscreen);
+
+            Settings.Default.PropertyChanged += PropertyChanged;
         }
         public void End() {
             logger.Info("Exiting");
@@ -242,7 +287,7 @@ namespace PPR.Main {
             for(int i = 0; i < directories.Length; i++) {
                 string name = Path.GetFileName(directories[i]);
                 if(name == "_template") continue;
-                buttons.Add(new Button(new Vector2(25, 12 + i), name, 30, Color.Black, Color.White, Color.White));
+                buttons.Add(new Button(new Vector2(25, 12 + i), name, 30, ColorScheme.black, ColorScheme.white, ColorScheme.white));
                 metadatas.Add(new LevelMetadata(File.ReadAllLines(Path.Combine(directories[i], "level.txt")), name));
                 logger.Info("Loaded metadata for level {0}", name);
             }
@@ -276,10 +321,10 @@ namespace PPR.Main {
             accuracy = (int)MathF.Floor(mulSum / sum * 100f);
         }
         public static Color GetAccuracyColor(int accuracy) {
-            return accuracy >= 100 ? Color.Green : accuracy >= 70 ? Color.Yellow : Color.Red;
+            return accuracy >= 100 ? ColorScheme.green : accuracy >= 70 ? ColorScheme.yellow : ColorScheme.red;
         }
         public static Color GetComboColor(int accuracy, int misses) {
-            return accuracy >= 100 ? Color.Green : misses <= 0 ? Color.Yellow : Color.Blue;
+            return accuracy >= 100 ? ColorScheme.green : misses <= 0 ? ColorScheme.yellow : ColorScheme.blue;
         }
         public void KeyPressed(object caller, KeyEventArgs key) {
             if(key.Code == Keyboard.Key.Escape) {

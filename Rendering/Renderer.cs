@@ -86,20 +86,17 @@ namespace PPR.Rendering {
             };
             window.SetKeyRepeatEnabled(false);
         }
-        public void SetFullscreen(bool fullscreen = false, bool ignoreChangeCheck = false) {
-            if(ignoreChangeCheck || Settings.Default.fullscreen != fullscreen) {
-                Settings.Default.fullscreen = fullscreen;
-                window.Close();
-                if(!fullscreen) {
-                    Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.x;
-                    Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.y;
-                }
-                window = fullscreen
-                    ? new RenderWindow(VideoMode.FullscreenModes[0], "Press Press Revolution", Styles.Fullscreen)
-                    : new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "Press Press Revolution", Styles.Close);
-                SubscribeWindowEvents();
-                UpdateWindow();
+        public void SetFullscreen(bool fullscreen = false) {
+            window.Close();
+            if(!fullscreen) {
+                Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.x;
+                Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.y;
             }
+            window = fullscreen
+                ? new RenderWindow(VideoMode.FullscreenModes[0], "Press Press Revolution", Styles.Fullscreen)
+                : new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "Press Press Revolution", Styles.Close);
+            SubscribeWindowEvents();
+            UpdateWindow();
         }
         public void UpdateWindow() {
             FloatRect visibleArea = new FloatRect(0, 0, windowWidth, windowHeight);
