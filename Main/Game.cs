@@ -492,7 +492,7 @@ namespace PPR.Main {
         public static void RecalculateTime() {
             long useMicrosecs = (long)(Math.Abs(OffsetToMilliseconds(offset, Map.currentLevel.speeds)) * 1000f);
             time = Time.FromMicroseconds(useMicrosecs);
-            music.PlayingOffset = time + Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
+            music.PlayingOffset = time - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
         }
         public static float OffsetToMilliseconds(float offset, List<LevelSpeed> sortedSpeeds) {
             float useOffset = offset;
