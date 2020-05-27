@@ -177,7 +177,7 @@ namespace PPR.Rendering {
             window.Draw(new Sprite(finalRT.Texture));
         }
         public enum TextAlignment { Left, Center, Right }
-        public void DrawText(Vector2 position, string text, Color foregroundColor, Color backgroundColor, TextAlignment align = TextAlignment.Left, bool replacingSpaces = true) {
+        public void DrawText(Vector2 position, string text, Color foregroundColor, Color backgroundColor, TextAlignment align = TextAlignment.Left, bool replacingSpaces = false) {
             if(text.Length == 0) return; // Don't do anything, if the text is empty
             if(text.Length == 1) {
                 SetCharacter(position, text[0], foregroundColor, backgroundColor);
