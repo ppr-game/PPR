@@ -23,7 +23,7 @@ using SFML.Window;
 namespace PPR.Main {
     public enum Menu { Main, LevelSelect, Settings, LastStats, Game }
     public class Game {
-        public static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         static Menu _currentMenu = Menu.Main;
         public static Menu currentMenu {
@@ -502,8 +502,8 @@ namespace PPR.Main {
         }
         public static void RecalculateTime() {
             long useMicrosecs = (long)(Math.Abs(OffsetToMilliseconds(offset, Map.currentLevel.speeds)) * 1000f);
-            time = Time.FromMicroseconds(useMicrosecs);
-            music.PlayingOffset = time - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
+            time = Time.FromMicroseconds(useMicrosecs - Map.currentLevel.metadata.initialOffsetMS);
+            music.PlayingOffset = time;
         }
         public static float OffsetToMilliseconds(float offset, List<LevelSpeed> sortedSpeeds) {
             float useOffset = offset;
