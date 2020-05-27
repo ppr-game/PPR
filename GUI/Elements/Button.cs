@@ -25,8 +25,8 @@ namespace PPR.GUI.Elements {
         Color currentColor;
         Color prevColor;
         public State currentState = State.Clicked;
-        State prevState = State.Hovered;
-        public State prevFrameState = State.Hovered;
+        State prevState = State.Clicked;
+        public State prevFrameState = State.Clicked;
         float[] animTimes;
         float[] animRateOffsets;
         public bool selected = false;
@@ -46,7 +46,7 @@ namespace PPR.GUI.Elements {
         }
 
         State DrawWithState() {
-            Renderer.instance.DrawText(position, text.Substring(0, Math.Min(text.Length, width)), Color.White, Color.Transparent, align);
+            Renderer.instance.DrawText(position, text.Substring(0, Math.Min(text.Length, width)), ColorScheme.white, Color.Transparent, align);
             posX = position.x - align switch
             {
                 Renderer.TextAlignment.Right => text.Length - 1,

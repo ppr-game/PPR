@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using PPR.GUI;
 using PPR.Rendering;
 
 using SFML.Graphics;
@@ -150,8 +151,8 @@ namespace PPR.Main.Levels {
         public char character;
         public Keyboard.Key key;
         public int offset;
-        static readonly Color color = Color.White;
-        static readonly Color speedColor = Color.Blue;
+        static readonly Color color = ColorScheme.white;
+        static readonly Color speedColor = ColorScheme.blue;
 
         public bool removed;
         float removeAnimationTime;
@@ -242,10 +243,10 @@ namespace PPR.Main.Levels {
                         samePosObjects.ForEach(obj => Map.currentLevel.objects.Remove(obj));
                     }
                 }
-                Color startColor = Color.Green;
+                Color startColor = ColorScheme.green;
                 if(!Game.auto) startColor = position.y >= Map.linePos.y - 1 && position.y <= Map.linePos.y + 1 ?
-                                                                                  position.y == Map.linePos.y ? Color.Green : character == holdChar ? Color.Red : Color.Yellow : Color.Red;
-                Renderer.instance.SetCellColor(position, Renderer.AnimateColor(removeAnimationTime, startColor, Color.White, 3f),
+                                                                                  position.y == Map.linePos.y ? ColorScheme.green : character == holdChar ? ColorScheme.red : ColorScheme.yellow : ColorScheme.red;
+                Renderer.instance.SetCellColor(position, Renderer.AnimateColor(removeAnimationTime, startColor, ColorScheme.white, 3f),
                                                                                                                      Renderer.AnimateColor(removeAnimationTime, startColor, Color.Transparent, 3f));
                 if(removeAnimationTime >= 1f) _ = Map.currentLevel.objects.Remove(this);
                 removeAnimationTime += Core.deltaTime;
