@@ -84,7 +84,8 @@ namespace PPR.Main {
                 }
             }
         }
-        public static Time time;
+        public static Time timeFromStart;
+        static Time prevPlayingOffset;
         static float _offset = 0f;
         public static float offset {
             set {
@@ -180,13 +181,18 @@ namespace PPR.Main {
 
             prevOffset = offset;
 
+            if(music.PlayingOffset != prevPlayingOffset) {
+                RecalculateTimeFromStart();
+            }
+            prevPlayingOffset = music.PlayingOffset;
+
             if(music.Status == SoundStatus.Playing) {
-                offset = MillisecondsToOffset(music.PlayingOffset.AsMilliseconds() - Map.currentLevel.metadata.initialOffsetMS, Map.currentLevel.speeds);
+                offset = MillisecondsToOffset(timeFromStart.AsMilliseconds(), Map.currentLevel.speeds);
                 if(roundedOffset - prevRoundedOffset > 1)
                     logger.Warn("Lag detected: the offset changed too quickly ({0}), current speed: {1} BPM, {2} ms",
                         roundedOffset - prevRoundedOffset, currentBPM, 60000f / currentBPM);
             }
-            if(editing) UI.progress = (int)((music.PlayingOffset.AsMilliseconds() + Map.currentLevel.metadata.initialOffsetMS) * 1000 / music.Duration.AsSeconds() * 80f);
+            if(editing) UI.progress = (int)(music.PlayingOffset.AsSeconds() / (music.Duration.AsSeconds() - Map.currentLevel.metadata.initialOffsetMS / 1000f) * 80f);
         }
         public static void GameStart(string musicPath) {
             usedAuto = auto;
@@ -208,10 +214,8 @@ namespace PPR.Main {
                 music = new Music(musicPath) {
                     Volume = Settings.Default.musicVolume
                 };
-                if(!editing) {
-                    music.PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
-                    music.Play();
-                }
+                music.PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
+                if(!editing) music.Play();
             }
 
             logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
@@ -423,6 +427,7 @@ namespace PPR.Main {
                             else {
                                 Map.currentLevel.metadata.initialOffsetMS += key.Code == Keyboard.Key.F2 ? 1 : -1;
                             }
+                            UpdateTime();
                         }
                     }
                     else {
@@ -494,12 +499,15 @@ namespace PPR.Main {
             else if(currentMenu == Menu.Game && editing) {
                 offset = roundedOffset;
                 offset += scroll.Delta;
-                RecalculateTime();
+                UpdateTime();
             }
         }
-        public static void RecalculateTime() {
+        public static void RecalculateTimeFromStart() {
+            timeFromStart = music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
+        }
+        public static void UpdateTime() {
             long useMicrosecs = (long)(Math.Abs(OffsetToMilliseconds(offset, Map.currentLevel.speeds)) * 1000f);
-            music.PlayingOffset = Time.FromMicroseconds(useMicrosecs) - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
+            music.PlayingOffset = Time.FromMicroseconds(useMicrosecs) + Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
         }
         public static float OffsetToMilliseconds(float offset, List<LevelSpeed> sortedSpeeds) {
             float useOffset = offset;
