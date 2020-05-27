@@ -181,7 +181,7 @@ namespace PPR.Main {
             prevOffset = offset;
 
             if(music.Status == SoundStatus.Playing) {
-                offset = MillisecondsToOffset(music.PlayingOffset.AsMilliseconds() + Map.currentLevel.metadata.initialOffsetMS, Map.currentLevel.speeds);
+                offset = MillisecondsToOffset(music.PlayingOffset.AsMilliseconds() - Map.currentLevel.metadata.initialOffsetMS, Map.currentLevel.speeds);
                 if(roundedOffset - prevRoundedOffset > 1)
                     logger.Warn("Lag detected: the offset changed too quickly ({0}), current speed: {1} BPM, {2} ms",
                         roundedOffset - prevRoundedOffset, currentBPM, 60000f / currentBPM);
@@ -423,9 +423,6 @@ namespace PPR.Main {
                             else {
                                 Map.currentLevel.metadata.initialOffsetMS += key.Code == Keyboard.Key.F2 ? 1 : -1;
                             }
-                            if (music.Status == SoundStatus.Playing) {
-                                RecalculateTime();
-                            }
                         }
                     }
                     else {
@@ -502,8 +499,7 @@ namespace PPR.Main {
         }
         public static void RecalculateTime() {
             long useMicrosecs = (long)(Math.Abs(OffsetToMilliseconds(offset, Map.currentLevel.speeds)) * 1000f);
-            time = Time.FromMicroseconds(useMicrosecs - Map.currentLevel.metadata.initialOffsetMS);
-            music.PlayingOffset = time;
+            music.PlayingOffset = Time.FromMicroseconds(useMicrosecs) - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
         }
         public static float OffsetToMilliseconds(float offset, List<LevelSpeed> sortedSpeeds) {
             float useOffset = offset;

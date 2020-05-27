@@ -378,10 +378,8 @@ namespace PPR.GUI {
                 DrawLevelName(levelNamePos, ColorScheme.black);
                 LevelMetadata metadata = Map.currentLevel.metadata;
 
-                int skipTime = metadata.initialOffsetMS + metadata.skipTime;
-
-                if(metadata.skippable && Game.music.PlayingOffset.AsMilliseconds() < skipTime && skipButton.Draw()) {
-                    Game.music.PlayingOffset = Time.FromMilliseconds(skipTime);
+                if(metadata.skippable && Game.music.PlayingOffset.AsMilliseconds() - metadata.initialOffsetMS < metadata.skipTime && skipButton.Draw()) {
+                    Game.music.PlayingOffset = Time.FromMilliseconds(metadata.skipTime) + Time.FromMilliseconds(metadata.initialOffsetMS);
                 }
             }
         }
