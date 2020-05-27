@@ -33,6 +33,7 @@ namespace PPR.Rendering {
         public RenderTexture bloomRT;
         public RenderTexture finalRT;
 
+        public Vector2f mousePositionF = new Vector2f(-1f, -1f);
         public Vector2 mousePosition = new Vector2(-1, -1);
         public bool leftButtonPressed = false;
 
@@ -114,13 +115,13 @@ namespace PPR.Rendering {
             }
             else {
                 window.Size = new Vector2u((uint)windowWidth, (uint)windowHeight);
-
-                if(frameRate < 0) window.SetVerticalSyncEnabled(true);
-                else if(frameRate != 0) window.SetFramerateLimit((uint)frameRate);
             }
             window.SetView(new View(visibleArea));
             bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
             finalRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
+
+            if(frameRate < 0) window.SetVerticalSyncEnabled(true);
+            else if(frameRate != 0) window.SetFramerateLimit((uint)frameRate);
         }
 
         public void ClearText() {
@@ -134,8 +135,9 @@ namespace PPR.Rendering {
                 return;
             }
             View windowView = window.GetView();
-            mousePosition = new Vector2((int)((mouse.X + windowView.Center.X - windowView.Size.X / 2) / fontSize.x),
-                (int)((mouse.Y + windowView.Center.Y - windowView.Size.Y / 2) / fontSize.y));
+            mousePositionF = new Vector2f((mouse.X + windowView.Center.X - windowView.Size.X / 2f) / fontSize.x,
+                (mouse.Y + windowView.Center.Y - windowView.Size.Y / 2f) / fontSize.y);
+            mousePosition = new Vector2((int)mousePositionF.X, (int)mousePositionF.Y);
         }
         public void Update() {
             ClearText();

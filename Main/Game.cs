@@ -192,7 +192,16 @@ namespace PPR.Main {
                     logger.Warn("Lag detected: the offset changed too quickly ({0}), current speed: {1} BPM, {2} ms",
                         roundedOffset - prevRoundedOffset, currentBPM, 60000f / currentBPM);
             }
-            if(editing) UI.progress = (int)(music.PlayingOffset.AsSeconds() / (music.Duration.AsSeconds() - Map.currentLevel.metadata.initialOffsetMS / 1000f) * 80f);
+            if(editing) {
+                float initialOffset = Map.currentLevel.metadata.initialOffsetMS / 1000f;
+                float duration = music.Duration.AsSeconds() - initialOffset;
+                if(Core.renderer.mousePosition.y == 0 && Core.renderer.leftButtonPressed) {
+                    float mouseProgress = Core.renderer.mousePositionF.X / 80f;
+                    music.PlayingOffset = Time.FromSeconds(duration * mouseProgress + initialOffset);
+                    offset = MillisecondsToOffset(timeFromStart.AsMilliseconds(), Map.currentLevel.speeds);
+                }
+                UI.progress = (int)(music.PlayingOffset.AsSeconds() / duration * 80f);
+            }
         }
         public static void GameStart(string musicPath) {
             usedAuto = auto;

@@ -67,6 +67,10 @@ Now you can begin creating your level
 ### Editor controls
 - `Mouse Wheel Scroll` - scroll the time
 
+- `Page Up/Down` - scroll the time by 10 offset
+
+- `Drag the progress bar line at the top` - scroll the time with your mouse
+
 - `Any English letter`, `any number` or `-`, `=`, `[`, `]`, `;`, `'`, `,`, `.`, `/` - place a corresponding note at the current time (on the line)
 
 - `Backspace` - remove all the notes at the current time (on the line)
