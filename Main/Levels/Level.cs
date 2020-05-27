@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using NLog;
 using PPR.GUI;
 using PPR.Rendering;
 
@@ -26,6 +26,7 @@ namespace PPR.Main.Levels {
         public Vector2 scoresPosition;
         public int[] scores;
         public Vector2 linePosition;
+
         public LevelScore(Vector2 position, int score, int accuracy, int maxCombo, int[] scores) {
             scorePosition = position;
             this.score = score;
@@ -56,11 +57,15 @@ namespace PPR.Main.Levels {
         public int maxBPM;
         public int avgBPM;
         public int linesFrequency;
+        public int initialOffsetMS;
         public string bpm;
         public readonly bool skippable;
         public readonly int skipTime;
         public readonly int objectCount;
         public readonly int speedsCount;
+
+        static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
         public LevelMetadata(string name, string[] meta, int objectCount, List<int> offsets, List<LevelSpeed> speeds) {
             this.name = name;
             hpDrain = int.Parse(meta[0]);
@@ -68,6 +73,10 @@ namespace PPR.Main.Levels {
             difficulty = meta[2];
             author = meta[3];
             linesFrequency = meta.Length > 4 ? int.Parse(meta[4]) : 4;
+
+            initialOffsetMS = meta.Length > 5 ? int.Parse(meta[5]) : 0;
+
+            logger.Info("Initial offset of this level: {0} ms", initialOffsetMS);
 
             speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
 
