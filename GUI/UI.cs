@@ -138,7 +138,7 @@ namespace PPR.GUI {
                     Game.currentMenu = Menu.Game;
                     Game.RecalculatePosition();
                 }
-                if(button.currentState == Button.State.Hovered && button.prevFrameState != Button.State.Hovered) {
+                if(button.currentState == Button.State.Hovered && button.prevFrameState != Button.State.Hovered && button.prevFrameState != Button.State.Clicked) {
                     string levelPath = Path.Combine("levels", button.text);
                     string musicPath = Path.Combine(levelPath, "music.ogg");
                     if(File.Exists(musicPath)) {
