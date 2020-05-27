@@ -94,5 +94,29 @@ namespace PPR.Properties {
                 this["colorScheme"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        public int soundsVolume {
+            get {
+                return ((int)(this["soundsVolume"]));
+            }
+            set {
+                this["soundsVolume"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Default")]
+        public string audio {
+            get {
+                return ((string)(this["audio"]));
+            }
+            set {
+                this["audio"] = value;
+            }
+        }
     }
 }

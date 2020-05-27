@@ -5,6 +5,7 @@ using Microsoft.VisualBasic.CompilerServices;
 using PPR.GUI;
 using PPR.Rendering;
 
+using SFML.Audio;
 using SFML.Graphics;
 using SFML.Window;
 
@@ -271,6 +272,7 @@ namespace PPR.Main.Levels {
                 }
                 else if(Game.auto && position.y >= Map.linePos.y) {
                     Hit();
+                    PlayHitsound();
                     Game.RecalculateAccuracy();
                     removed = true;
                 }
@@ -288,6 +290,7 @@ namespace PPR.Main.Levels {
                 else {
                     Miss();
                 }
+                PlayHitsound();
                 Game.RecalculateAccuracy();
                 removed = true;
             }
@@ -297,6 +300,11 @@ namespace PPR.Main.Levels {
                 removed = true;
             }
         }
+        void PlayHitsound() {
+            if(character == speedChar || ignore || removed) return;
+            if(character == holdChar) Game.ticksound.Play();
+            else Game.hitsound.Play();
+        }
         void Hit() {
             Game.health += Map.currentLevel.metadata.hpRestorage;
             int score = position.y == Map.linePos.y || character == holdChar || Game.auto ? 10 : 5;
@@ -304,9 +312,6 @@ namespace PPR.Main.Levels {
             Game.maxCombo = Math.Max(Game.combo, Game.maxCombo);
             Game.score += score * Game.combo;
             Game.scores[score / 5]++;
-
-            if(character == holdChar) Game.ticksound.Play();
-            else Game.hitsound.Play();
         }
         void Miss() {
             Game.health -= Map.currentLevel.metadata.hpDrain;
@@ -316,6 +321,8 @@ namespace PPR.Main.Levels {
         public void Step() {
             if(removed) return;
             position.y = startPosition.y + Game.roundedOffset;
+            if(Game.editing && Game.music.Status == SoundStatus.Playing && position.y == Map.linePos.y)
+                PlayHitsound();
         }
 
 
