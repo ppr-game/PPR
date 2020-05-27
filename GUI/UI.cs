@@ -331,7 +331,7 @@ namespace PPR.GUI {
                     }
                 }
                 Renderer.instance.DrawText(bpmPos, "BPM: " + Game.currentBPM + "  " + Map.currentLevel.metadata.linesFrequency, ColorScheme.blue, Color.Transparent);
-                TimeSpan curTime = TimeSpan.FromMilliseconds(Game.music.PlayingOffset.AsMilliseconds());
+                TimeSpan curTime = TimeSpan.FromMilliseconds(Game.music.PlayingOffset.AsMilliseconds() - Map.currentLevel.metadata.initialOffsetMS);
                 Renderer.instance.DrawText(timePos, "TIME: " + (curTime < TimeSpan.Zero ? "'-'" : "") + curTime.ToString((curTime.Hours != 0 ? "h':'mm" : "m") + "':'ss"),
                                             ColorScheme.blue, Color.Transparent);
                 Renderer.instance.DrawText(offsetPos, "OFFSET: " + Game.roundedOffset, ColorScheme.blue, Color.Transparent);
@@ -350,8 +350,8 @@ namespace PPR.GUI {
                 DrawMiniScores(miniScoresPos, Game.scores);
                 DrawLevelName(levelNamePos, ColorScheme.black);
                 LevelMetadata metadata = Map.currentLevel.metadata;
-                if(metadata.skippable && Game.music.PlayingOffset.AsMilliseconds() < metadata.skipTime && skipButton.Draw()) {
-                    Game.music.PlayingOffset = Time.FromMilliseconds(metadata.skipTime);
+                if(metadata.skippable && Game.music.PlayingOffset.AsMilliseconds() - metadata.initialOffsetMS < metadata.skipTime && skipButton.Draw()) {
+                    Game.music.PlayingOffset = Time.FromMilliseconds(metadata.skipTime) + Time.FromMilliseconds(metadata.initialOffsetMS);
                 }
             }
         }
