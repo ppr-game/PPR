@@ -67,6 +67,8 @@ Now you can begin creating your level
 ### Editor controls
 - `Mouse Wheel Scroll` - scroll the time
 
+- `PageUp/PageDown` - faster scrolling
+
 - `Any English letter`, `any number` or `-`, `=`, `[`, `]`, `;`, `'`, `,`, `.`, `/` - place a corresponding note at the current time (on the line)
 
 - `Backspace` - remove all the notes at the current time (on the line)
