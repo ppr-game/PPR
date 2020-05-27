@@ -256,8 +256,6 @@ namespace PPR.GUI {
             }
 
             Settings.Default.musicVolume = musicVolumeSlider.Draw();
-
-            Game.music.Volume = Settings.Default.musicVolume;
         }
         public static string IncreaseFolderSwitchDirectory(string currentPath, string basePath, int at) {
             // Disassemble the path
@@ -324,7 +322,6 @@ namespace PPR.GUI {
                     if(button.Draw()) {
                         if(button.text == "►") {
                             Game.music.Play();
-                            Game.auto = true;
                         }
                         else if(button.text == "║") {
                             Game.music.Pause();
