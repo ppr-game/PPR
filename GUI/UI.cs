@@ -96,12 +96,13 @@ namespace PPR.GUI {
             };
             skipButton = new Button(new Vector2(78, 58), "SKIP", 4, ColorScheme.black, ColorScheme.orange, ColorScheme.lightDarkOrange, Renderer.TextAlignment.Right);
 
-            musicVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, "VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+            musicVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, "MUSIC VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+            soundsVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, "SOUNDS VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
 
-            bloomSwitch = new Button(new Vector2(4, 20), "BLOOM", 5, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
-            fullscreenSwitch = new Button(new Vector2(4, 22), "FULLSCREEN", 10, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+            bloomSwitch = new Button(new Vector2(4, 24), "BLOOM", 5, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+            fullscreenSwitch = new Button(new Vector2(4, 26), "FULLSCREEN", 10, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
 
-            showFpsSwitch = new Button(new Vector2(4, 31), "SHOW FPS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+            showFpsSwitch = new Button(new Vector2(4, 35), "SHOW FPS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
 
             UpdateAllFolderSwitchButtons();
         }
@@ -204,16 +205,19 @@ namespace PPR.GUI {
 
         static readonly Vector2 audioGroupTextPos = new Vector2(2, 13);
         public static Slider musicVolumeSlider;
+        public static Slider soundsVolumeSlider;
+        public static readonly Vector2 audioSwitchPos = new Vector2(4, 19);
+        public static readonly List<Button> audioSwitchButtonsList = new List<Button>();
 
-        static readonly Vector2 graphicsGroupTextPos = new Vector2(2, 18);
+        static readonly Vector2 graphicsGroupTextPos = new Vector2(2, 22);
         public static Button bloomSwitch;
         public static Button fullscreenSwitch;
-        public static readonly Vector2 fontSwitchPos = new Vector2(4, 24);
+        public static readonly Vector2 fontSwitchPos = new Vector2(4, 28);
         public static readonly List<Button> fontSwitchButtonsList = new List<Button>();
-        public static readonly Vector2 colorSchemeSwitchPos = new Vector2(4, 26);
+        public static readonly Vector2 colorSchemeSwitchPos = new Vector2(4, 30);
         public static readonly List<Button> colorSchemeSwitchButtonsList = new List<Button>();
 
-        static readonly Vector2 advancedGroupTextPos = new Vector2(2, 29);
+        static readonly Vector2 advancedGroupTextPos = new Vector2(2, 33);
         public static Button showFpsSwitch;
         static void DrawSettings() {
             Renderer.instance.DrawText(zero, settingsText, ColorScheme.white, ColorScheme.black);
@@ -222,9 +226,14 @@ namespace PPR.GUI {
         static void DrawSettingsList(bool pauseMenu = false) {
             if(pauseMenu) {
                 musicVolumeSlider.position.x = 78;
-                musicVolumeSlider.position.y = 57;
+                musicVolumeSlider.position.y = 55;
                 musicVolumeSlider.align = Renderer.TextAlignment.Right;
                 musicVolumeSlider.alignText = Slider.TextAlignment.Right;
+
+                soundsVolumeSlider.position.x = 78;
+                soundsVolumeSlider.position.y = 57;
+                soundsVolumeSlider.align = Renderer.TextAlignment.Right;
+                soundsVolumeSlider.alignText = Slider.TextAlignment.Right;
             }
             else {
                 Renderer.instance.DrawText(audioGroupTextPos, "[ AUDIO ]", ColorScheme.white, Color.Transparent);
@@ -232,6 +241,19 @@ namespace PPR.GUI {
                 musicVolumeSlider.position.y = 15;
                 musicVolumeSlider.align = Renderer.TextAlignment.Left;
                 musicVolumeSlider.alignText = Slider.TextAlignment.Left;
+
+                soundsVolumeSlider.position.x = 4;
+                soundsVolumeSlider.position.y = 17;
+                soundsVolumeSlider.align = Renderer.TextAlignment.Left;
+                soundsVolumeSlider.alignText = Slider.TextAlignment.Left;
+
+                Renderer.instance.DrawText(audioSwitchPos, "SOUNDS", ColorScheme.blue, Color.Transparent);
+                for(int i = audioSwitchButtonsList.Count - 1; i >= 0; i--) {
+                    if(audioSwitchButtonsList[i].Draw()) {
+                        Settings.Default.audio = IncreaseFolderSwitchDirectory(Settings.Default.audio, Path.Combine("resources", "audio"), i);
+                        UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.Default.audio, audioSwitchPos.x, audioSwitchPos.y, 7);
+                    }
+                }
 
                 Renderer.instance.DrawText(graphicsGroupTextPos, "[ GRAPHICS ]", ColorScheme.white, Color.Transparent);
                 if(bloomSwitch.Draw()) Settings.Default.bloom = bloomSwitch.selected = !bloomSwitch.selected;
@@ -256,6 +278,7 @@ namespace PPR.GUI {
             }
 
             Settings.Default.musicVolume = musicVolumeSlider.Draw();
+            Settings.Default.soundsVolume = soundsVolumeSlider.Draw();
         }
         public static string IncreaseFolderSwitchDirectory(string currentPath, string basePath, int at) {
             // Disassemble the path
@@ -283,6 +306,7 @@ namespace PPR.GUI {
             return newPath;
         }
         public static void UpdateAllFolderSwitchButtons() {
+            UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.Default.audio, audioSwitchPos.x, audioSwitchPos.y, 7);
             UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.Default.font, fontSwitchPos.x, fontSwitchPos.y, 5);
             UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.Default.colorScheme, colorSchemeSwitchPos.x, colorSchemeSwitchPos.y, 13);
         }

@@ -98,10 +98,10 @@ namespace PPR.Main {
         public static float prevOffset = 0f;
         public static int currentBPM = 1;
         public static Music music = new Music(Path.Combine("resources", "audio", "mainMenu.ogg"));
-        public static SoundBuffer hitsoundbuffer = File.Exists(Path.Combine("resources", "fonts", Settings.Default.font, "hitsound.wav")) ? new SoundBuffer(Path.Combine("resources", "fonts", Settings.Default.font, "hitsound.wav")) : new SoundBuffer(Path.Combine("resources", "audio", "hitsound.wav"));
-        public static Sound hitsound = new Sound(hitsoundbuffer);
-        public static SoundBuffer ticksoundbuffer = File.Exists(Path.Combine("resources", "fonts", Settings.Default.font, "ticksound.wav")) ? new SoundBuffer(Path.Combine("resources", "fonts", Settings.Default.font, "ticksound.wav")) : new SoundBuffer(Path.Combine("resources", "audio", "ticksound.wav"));
-        public static Sound ticksound = new Sound(ticksoundbuffer);
+        public static SoundBuffer hitsoundBuffer;
+        public static SoundBuffer ticksoundBuffer;
+        public static Sound hitsound;
+        public static Sound ticksound;
         public static int score = 0;
         static int _health = 80;
         public static int health {
@@ -121,6 +121,7 @@ namespace PPR.Main {
         public static bool usedAuto = false;
         public void Start() {
             ColorScheme.Reload();
+            ReloadSounds();
 
             // TODO: Automatic settings list generation
             logger.Info("Current settings:");
@@ -130,50 +131,16 @@ namespace PPR.Main {
 
             RPC.Initialize();
 
-            hitsound.Volume = Settings.Default.musicVolume;
-            ticksound.Volume = Settings.Default.musicVolume;
             music.Volume = Settings.Default.musicVolume;
             music.Loop = true;
             music.Play();
-        }
-        public void PropertyChanged(object caller, PropertyChangedEventArgs e) {
-            if(e.PropertyName == "font") {
-                string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.Default.font, "mappings.txt"));
-                string[] fontSizeStr = fontMappingsLines[0].Split(',');
-                //Vector2 oldFontSize = new Vector2(Core.renderer.fontSize);
-                Core.renderer.fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
-                //Vector2f fontSizeChange = new Vector2f((float)Core.renderer.fontSize.x / oldFontSize.x, (float)Core.renderer.fontSize.y / oldFontSize.y);
-                Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.x;
-                Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.y;
-                Core.renderer.UpdateWindow();
-
-                //Mouse.SetPosition(new Vector2i((int)(Mouse.GetPosition(Core.renderer.window).X * fontSizeChange.X),
-                //    (int)(Mouse.GetPosition(Core.renderer.window).Y * fontSizeChange.Y)), Core.renderer.window);
-
-                BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")), fontMappingsLines[1], Core.renderer.fontSize);
-                Core.renderer.text = new BitmapText(font, new Vector2(Core.renderer.width, Core.renderer.height)) {
-                    backgroundColors = Core.renderer.backgroundColors,
-                    foregroundColors = Core.renderer.foregroundColors,
-                    text = Core.renderer.displayString
-                };
-            }
-            else if(e.PropertyName == "colorScheme") {
-                ColorScheme.Reload();
-            }
-            else if(e.PropertyName == "fullscreen") {
-                Core.renderer.SetFullscreen(Settings.Default.fullscreen);
-            }
-            else if(e.PropertyName == "musicVolume") {
-                music.Volume = Settings.Default.musicVolume;
-                hitsound.Volume = Settings.Default.musicVolume;
-                ticksound.Volume = Settings.Default.musicVolume;
-            }
         }
         public void ReloadSettings() {
             Settings.Default.PropertyChanged -= PropertyChanged;
 
             Settings.Default.Reload();
             UI.musicVolumeSlider.value = Settings.Default.musicVolume;
+            UI.soundsVolumeSlider.value = Settings.Default.soundsVolume;
             UI.bloomSwitch.selected = Settings.Default.bloom;
             UI.showFpsSwitch.selected = Settings.Default.showFps;
             UI.fullscreenSwitch.selected = Settings.Default.fullscreen;
@@ -181,6 +148,14 @@ namespace PPR.Main {
             Core.renderer.SetFullscreen(Settings.Default.fullscreen);
 
             Settings.Default.PropertyChanged += PropertyChanged;
+        }
+        public void ReloadSounds() {
+            hitsoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", Settings.Default.audio, "hitsound.wav"));
+            ticksoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", Settings.Default.audio, "ticksound.wav"));
+            hitsound = new Sound(hitsoundBuffer);
+            ticksound = new Sound(ticksoundBuffer);
+            hitsound.Volume = Settings.Default.soundsVolume;
+            ticksound.Volume = Settings.Default.soundsVolume;
         }
         public void End() {
             logger.Info("Exiting");
@@ -245,6 +220,44 @@ namespace PPR.Main {
                 else break;
             }
             Map.StepAll();
+        }
+        public void PropertyChanged(object caller, PropertyChangedEventArgs e) {
+            if(e.PropertyName == "font") {
+                string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.Default.font, "mappings.txt"));
+                string[] fontSizeStr = fontMappingsLines[0].Split(',');
+                //Vector2 oldFontSize = new Vector2(Core.renderer.fontSize);
+                Core.renderer.fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
+                //Vector2f fontSizeChange = new Vector2f((float)Core.renderer.fontSize.x / oldFontSize.x, (float)Core.renderer.fontSize.y / oldFontSize.y);
+                Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.x;
+                Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.y;
+                Core.renderer.UpdateWindow();
+
+                //Mouse.SetPosition(new Vector2i((int)(Mouse.GetPosition(Core.renderer.window).X * fontSizeChange.X),
+                //    (int)(Mouse.GetPosition(Core.renderer.window).Y * fontSizeChange.Y)), Core.renderer.window);
+
+                BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")), fontMappingsLines[1], Core.renderer.fontSize);
+                Core.renderer.text = new BitmapText(font, new Vector2(Core.renderer.width, Core.renderer.height)) {
+                    backgroundColors = Core.renderer.backgroundColors,
+                    foregroundColors = Core.renderer.foregroundColors,
+                    text = Core.renderer.displayString
+                };
+            }
+            else if(e.PropertyName == "colorScheme") {
+                ColorScheme.Reload();
+            }
+            else if(e.PropertyName == "fullscreen") {
+                Core.renderer.SetFullscreen(Settings.Default.fullscreen);
+            }
+            else if(e.PropertyName == "musicVolume") {
+                music.Volume = Settings.Default.musicVolume;
+            }
+            else if(e.PropertyName == "soundsVolume") {
+                hitsound.Volume = Settings.Default.soundsVolume;
+                ticksound.Volume = Settings.Default.soundsVolume;
+            }
+            else if(e.PropertyName == "audio") {
+                ReloadSounds();
+            }
         }
         public static void GenerateLevelList() {
             string[] directories = Directory.GetDirectories("levels");
