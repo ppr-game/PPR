@@ -432,7 +432,7 @@ namespace PPR.Main {
                         else if(key.Code == Keyboard.Key.PageUp || key.Code == Keyboard.Key.PageDown) {
                             offset = roundedOffset;
                             offset += key.Code == Keyboard.Key.PageUp ? 10 : -10;
-                            RecalculateTime();
+                            UpdateTime();
                         }
                     }
                     else {
