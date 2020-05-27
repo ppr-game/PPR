@@ -298,6 +298,7 @@ namespace PPR.GUI {
                     if(button.Draw()) {
                         if(button.text == "►") {
                             Game.music.Play();
+                            Game.auto = true;
                         }
                         else if(button.text == "║") {
                             Game.music.Pause();
