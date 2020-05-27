@@ -119,7 +119,7 @@ namespace PPR.Main {
             UI.musicVolumeSlider.value = Settings.Default.musicVolume;
             UI.bloomSwitch.selected = Settings.Default.bloom;
             UI.showFpsSwitch.selected = Settings.Default.showFps;
-            UI.UpdateFontSwitchButtons();
+            UI.UpdateFolderSwitchButtons(UI.fontSwitchButtonsList, Settings.Default.font, UI.fontSwitchLabelPos.x, UI.fontSwitchLabelPos.y);
             UI.fullscreenSwitch.selected = Settings.Default.fullscreen;
 
             Core.renderer.SetFullscreen(Settings.Default.fullscreen, true);

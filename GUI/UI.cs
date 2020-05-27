@@ -191,7 +191,7 @@ namespace PPR.GUI {
 
         static readonly Vector2 graphicsGroupTextPos = new Vector2(2, 18);
         public static readonly Button bloomSwitch = new Button(new Vector2(4, 20), "BLOOM", 5, Color.Black, Color.Blue, new Color(0, 0, 64));
-        static readonly Vector2 fontSwitchLabelPos = new Vector2(4, 22);
+        public static readonly Vector2 fontSwitchLabelPos = new Vector2(4, 22);
         public static readonly List<Button> fontSwitchButtonsList = new List<Button>();
         public static readonly Button fullscreenSwitch = new Button(new Vector2(4, 24), "FULLSCREEN", 10, Color.Black, Color.Blue, new Color(0, 0, 64));
 
@@ -220,8 +220,8 @@ namespace PPR.GUI {
                 Renderer.instance.DrawText(fontSwitchLabelPos, "FONT", Color.Blue, Color.Transparent);
                 for(int i = fontSwitchButtonsList.Count - 1; i >= 0; i--) {
                     if(fontSwitchButtonsList[i].Draw()) {
-                        IncreaseFontSwitchDirectory(i);
-                        UpdateFontSwitchButtons();
+                        Settings.Default.font = IncreaseFolderSwitchDirectory(Settings.Default.font, Path.Combine("resources", "fonts"), i);
+                        UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.Default.font, fontSwitchLabelPos.x, fontSwitchLabelPos.y);
                     }
                 }
                 if(fullscreenSwitch.Draw()) {
@@ -237,15 +237,15 @@ namespace PPR.GUI {
 
             Game.music.Volume = Settings.Default.musicVolume;
         }
-        public static void IncreaseFontSwitchDirectory(int at) {
+        public static string IncreaseFolderSwitchDirectory(string currentPath, string basePath, int at) {
             // Disassemble the path
-            List<string> fullDirNames = Settings.Default.font.Split(Path.DirectorySeparatorChar).ToList();
+            List<string> fullDirNames = currentPath.Split(Path.DirectorySeparatorChar).ToList();
             while(fullDirNames.Count > at + 1) {
                 fullDirNames.RemoveAt(fullDirNames.Count - 1);
             }
             string fullDir = Path.Combine(fullDirNames.ToArray());
             string inDir = Path.GetDirectoryName(fullDir);
-            string[] inDirNames = Directory.GetDirectories(Path.Combine("resources", "fonts", inDir)).Select(dir => Path.GetFileName(dir)).ToArray();
+            string[] inDirNames = Directory.GetDirectories(Path.Combine(basePath, inDir)).Select(dir => Path.GetFileName(dir)).ToArray();
 
             // Move to the next folder
             int curPathIndex = Array.IndexOf(inDirNames, fullDirNames.Last());
@@ -255,26 +255,26 @@ namespace PPR.GUI {
 
             // Assemble the path back
             string newPath = Path.Combine(fullDirNames.ToArray());
-            string[] newPathDirs = Directory.GetDirectories(Path.Combine("resources", "fonts", newPath));
+            string[] newPathDirs = Directory.GetDirectories(Path.Combine(basePath, newPath));
             while(newPathDirs.Length > 0) {
                 newPath = Path.Combine(newPath, Path.GetFileName(newPathDirs[0]));
-                newPathDirs = Directory.GetDirectories(Path.Combine("resources", "fonts", newPath));
+                newPathDirs = Directory.GetDirectories(Path.Combine(basePath, newPath));
             }
-            Settings.Default.font = newPath;
+            return newPath;
         }
-        public static void UpdateFontSwitchButtons() {
-            fontSwitchButtonsList.Clear();
-            UpdateFontSwitchButton(Settings.Default.font);
+        public static void UpdateFolderSwitchButtons(List<Button> buttonsList, string path, int baseX, int baseY) {
+            buttonsList.Clear();
+            UpdateFolderSwitchButton(buttonsList, path, baseX, baseY);
         }
-        static void UpdateFontSwitchButton(string path) {
+        static void UpdateFolderSwitchButton(List<Button> buttonsList, string path, int baseX, int baseY) {
             string[] names = path.Split(Path.DirectorySeparatorChar);
 
-            Vector2 position = new Vector2(fontSwitchLabelPos.x + 5 + (names.Length > 1 ? 1 : 0) + Path.GetDirectoryName(path).Length, fontSwitchLabelPos.y);
+            Vector2 position = new Vector2(baseX + 5 + (names.Length > 1 ? 1 : 0) + Path.GetDirectoryName(path).Length, baseY);
             string text = names[^1];
-            fontSwitchButtonsList.Insert(0, new Button(position, text, text.Length, Color.Black, Color.Blue, new Color(0, 0, 64)));
+            buttonsList.Insert(0, new Button(position, text, text.Length, Color.Black, Color.Blue, new Color(0, 0, 64)));
 
             string nextPath = Path.GetDirectoryName(path);
-            if(nextPath != "") UpdateFontSwitchButton(nextPath);
+            if(nextPath != "") UpdateFolderSwitchButton(buttonsList, nextPath, baseX, baseY);
         }
 
         static readonly Vector2 levelNamePos = new Vector2(0, 0);
