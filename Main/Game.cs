@@ -156,6 +156,7 @@ namespace PPR.Main {
             RPC.Initialize();
 
             music.Volume = Settings.Default.musicVolume;
+            music.Loop = true;
             music.Play();
         }
         public void End() {
