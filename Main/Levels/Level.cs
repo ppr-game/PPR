@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using PPR.GUI;
 using PPR.Rendering;
 
 using SFML.Graphics;
@@ -261,7 +263,7 @@ namespace PPR.Main.Levels {
                     removed = true;
                 }
                 else if(Game.auto && position.y >= Map.linePos.y) {
-                    Hit(character);
+                    Hit();
                     Game.RecalculateAccuracy();
                     removed = true;
                 }
@@ -274,7 +276,7 @@ namespace PPR.Main.Levels {
             if(removed || ignore) return;
             if(Keyboard.IsKeyPressed(key) && (character != holdChar || position.y == Map.linePos.y)) {
                 if(character == holdChar || position.y >= Map.linePos.y - 1) {
-                    Hit(character);
+                    Hit();
                 }
                 else {
                     Miss();
@@ -288,7 +290,7 @@ namespace PPR.Main.Levels {
                 removed = true;
             }
         }
-        void Hit(char character) {
+        void Hit() {
             Game.health += Map.currentLevel.metadata.hpRestorage;
             int score = position.y == Map.linePos.y || character == holdChar || Game.auto ? 10 : 5;
             Game.combo++;
@@ -296,12 +298,8 @@ namespace PPR.Main.Levels {
             Game.score += score * Game.combo;
             Game.scores[score / 5]++;
 
-            if(character == holdChar) {
-                Game.ticksound.Play();
-            }
-            else {
-                Game.hitsound.Play();
-            }
+            if(character == holdChar) Game.ticksound.Play();
+            else Game.hitsound.Play();
         }
         void Miss() {
             Game.health -= Map.currentLevel.metadata.hpDrain;
