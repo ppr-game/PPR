@@ -333,9 +333,9 @@ namespace PPR.GUI {
         static readonly Vector2 bpmPos = new Vector2(0, 57);
         static readonly Vector2 timePos = new Vector2(0, 58);
         static readonly Vector2 offsetPos = new Vector2(0, 59);
-        static readonly Vector2 hpDrainPos = new Vector2(20, 58);
-        static readonly Vector2 hpRestoragePos = new Vector2(20, 59);
-        static readonly Vector2 musicOffsetPos = new Vector2(40, 59);
+        static readonly Vector2 hpDrainPos = new Vector2(20, 57);
+        static readonly Vector2 hpRestoragePos = new Vector2(20, 58);
+        static readonly Vector2 musicOffsetPos = new Vector2(20, 59);
         static void DrawGame() {
             if(Game.editing) {
                 foreach(Button button in levelEditorButtons) {
@@ -364,7 +364,7 @@ namespace PPR.GUI {
                 Renderer.instance.DrawText(hpDrainPos, "HP DRAIN: " + Map.currentLevel.metadata.hpDrain, ColorScheme.red, Color.Transparent);
                 Renderer.instance.DrawText(hpRestoragePos, "HP RESTORAGE: " + Map.currentLevel.metadata.hpRestorage, ColorScheme.red, Color.Transparent);
 
-                Renderer.instance.DrawText(musicOffsetPos, "MUSIC OFFSET: " + Map.currentLevel.metadata.initialOffsetMS + " MS", ColorScheme.darkGray, Color.Transparent);
+                Renderer.instance.DrawText(musicOffsetPos, "MUSIC OFFSET: " + Map.currentLevel.metadata.initialOffsetMS + " MS", ColorScheme.gray, Color.Transparent);
                 DrawProgress();
                 DrawLevelName(levelNamePos, ColorScheme.black);
             }
@@ -378,8 +378,10 @@ namespace PPR.GUI {
                 DrawLevelName(levelNamePos, ColorScheme.black);
                 LevelMetadata metadata = Map.currentLevel.metadata;
 
-                if(metadata.skippable && Game.music.PlayingOffset.AsMilliseconds() - metadata.initialOffsetMS < metadata.skipTime && skipButton.Draw()) {
-                    Game.music.PlayingOffset = Time.FromMilliseconds(metadata.skipTime) + Time.FromMilliseconds(metadata.initialOffsetMS);
+                int skipTime = metadata.initialOffsetMS + metadata.skipTime;
+
+                if(metadata.skippable && Game.music.PlayingOffset.AsMilliseconds() < skipTime && skipButton.Draw()) {
+                    Game.music.PlayingOffset = Time.FromMilliseconds(skipTime);
                 }
             }
         }
