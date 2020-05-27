@@ -429,6 +429,11 @@ namespace PPR.Main {
                             }
                             UpdateTime();
                         }
+                        else if(key.Code == Keyboard.Key.PageUp || key.Code == Keyboard.Key.PageDown) {
+                            offset = roundedOffset;
+                            offset += key.Code == Keyboard.Key.PageUp ? 10 : -10;
+                            UpdateTime();
+                        }
                     }
                     else {
                         if(Map.currentLevel.objects.FindAll(obj => obj.character == character && obj.offset == roundedOffset).Count <= 0) {
@@ -470,6 +475,7 @@ namespace PPR.Main {
             }
             return false;
         }
+
         public void MouseWheelScrolled(object caller, MouseWheelScrollEventArgs scroll) {
             if(currentMenu == Menu.LevelSelect) {
                 Vector2 mousePos = Core.renderer.mousePosition;
