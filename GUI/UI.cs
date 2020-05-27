@@ -75,28 +75,28 @@ namespace PPR.GUI {
         static readonly Vector2 zero = Vector2.zero;
         public static void RecreateButtons() {
             mainMenuButtons = new List<Button>() {
-                new Button(new Vector2(40, 25), "PLAY", 4, ColorScheme.black, ColorScheme.green, ColorScheme.green, Renderer.TextAlignment.Center),
-                new Button(new Vector2(40, 27), "EDIT", 4, ColorScheme.black, ColorScheme.yellow, ColorScheme.yellow, Renderer.TextAlignment.Center),
-                new Button(new Vector2(40, 29), "SETTINGS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.blue, Renderer.TextAlignment.Center),
-                new Button(new Vector2(40, 31), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.red, Renderer.TextAlignment.Center),
+                new Button(new Vector2(40, 25), "PLAY", 4, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, Renderer.TextAlignment.Center),
+                new Button(new Vector2(40, 27), "EDIT", 4, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow, Renderer.TextAlignment.Center),
+                new Button(new Vector2(40, 29), "SETTINGS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, Renderer.TextAlignment.Center),
+                new Button(new Vector2(40, 31), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, Renderer.TextAlignment.Center),
             };
             levelSelectButtons = new List<Button>() {
                 new Button(new Vector2(25, 10), "AUTO", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue),
-                new Button(new Vector2(25, 10), "NEW", 3, ColorScheme.black, ColorScheme.green, ColorScheme.green),
+                new Button(new Vector2(25, 10), "NEW", 3, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen),
             };
             lastStatsButtons = new List<Button>() {
-                new Button(new Vector2(2, 53), "CONTINUE", 8, ColorScheme.black, ColorScheme.cyan, ColorScheme.cyan),
-                new Button(new Vector2(2, 55), "RESTART", 7, ColorScheme.black, ColorScheme.yellow, ColorScheme.yellow),
+                new Button(new Vector2(2, 53), "CONTINUE", 8, ColorScheme.black, ColorScheme.cyan, ColorScheme.lightDarkCyan),
+                new Button(new Vector2(2, 55), "RESTART", 7, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow),
                 new Button(new Vector2(10, 55), "AUTO", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue),
                 new Button(new Vector2(2, 55), "SAVE", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue),
-                new Button(new Vector2(2, 57), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.red),
+                new Button(new Vector2(2, 57), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed),
             };
             levelEditorButtons = new List<Button>() {
                 new Button(new Vector2(78, 58), "►", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen),
             };
-            skipButton = new Button(new Vector2(78, 58), "SKIP", 4, ColorScheme.black, ColorScheme.orange, ColorScheme.orange, Renderer.TextAlignment.Right);
+            skipButton = new Button(new Vector2(78, 58), "SKIP", 4, ColorScheme.black, ColorScheme.orange, ColorScheme.lightDarkOrange, Renderer.TextAlignment.Right);
 
-            musicVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, "VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.blue);
+            musicVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, "VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
 
             bloomSwitch = new Button(new Vector2(4, 20), "BLOOM", 5, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
             fullscreenSwitch = new Button(new Vector2(4, 22), "FULLSCREEN", 10, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
