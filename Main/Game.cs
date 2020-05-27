@@ -120,45 +120,7 @@ namespace PPR.Main {
         public static bool auto = false;
         public static bool usedAuto = false;
         public void Start() {
-            Settings.Default.Reload();
-            UI.musicVolumeSlider.value = Settings.Default.musicVolume;
-            UI.bloomSwitch.selected = Settings.Default.bloom;
-            UI.showFpsSwitch.selected = Settings.Default.showFps;
-            UI.UpdateFontSwitchButtons();
-            UI.fullscreenSwitch.selected = Settings.Default.fullscreen;
-
-            Core.renderer.SetFullscreen(Settings.Default.fullscreen, true);
-
-            Settings.Default.PropertyChanged += (_, e) => {
-                if(e.PropertyName == "font") {
-                    string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.Default.font, "mappings.txt"));
-                    string[] fontSizeStr = fontMappingsLines[0].Split(',');
-                    //Vector2 oldFontSize = new Vector2(Core.renderer.fontSize);
-                    Core.renderer.fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
-                    //Vector2f fontSizeChange = new Vector2f((float)Core.renderer.fontSize.x / oldFontSize.x, (float)Core.renderer.fontSize.y / oldFontSize.y);
-                    Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.x;
-                    Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.y;
-                    Core.renderer.UpdateWindow();
-
-                    //Mouse.SetPosition(new Vector2i((int)(Mouse.GetPosition(Core.renderer.window).X * fontSizeChange.X),
-                    //    (int)(Mouse.GetPosition(Core.renderer.window).Y * fontSizeChange.Y)), Core.renderer.window);
-
-                    BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")), fontMappingsLines[1], Core.renderer.fontSize);
-                    Core.renderer.text = new BitmapText(font, new Vector2(Core.renderer.width, Core.renderer.height)) {
-                        backgroundColors = Core.renderer.backgroundColors,
-                        foregroundColors = Core.renderer.foregroundColors,
-                        text = Core.renderer.displayString
-                    };
-                }
-
-                if (e.PropertyName == "musicVolume") {
-                    hitsound.Volume = Settings.Default.musicVolume;
-                    ticksound.Volume = Settings.Default.musicVolume;
-                }
-            };
-
             ColorScheme.Reload();
-
 
             // TODO: Automatic settings list generation
             logger.Info("Current settings:");
@@ -170,7 +132,6 @@ namespace PPR.Main {
 
             hitsound.Volume = Settings.Default.musicVolume;
             ticksound.Volume = Settings.Default.musicVolume;
-
             music.Volume = Settings.Default.musicVolume;
             music.Loop = true;
             music.Play();
@@ -201,6 +162,11 @@ namespace PPR.Main {
             }
             else if(e.PropertyName == "fullscreen") {
                 Core.renderer.SetFullscreen(Settings.Default.fullscreen);
+            }
+            else if(e.PropertyName == "musicVolume") {
+                music.Volume = Settings.Default.musicVolume;
+                hitsound.Volume = Settings.Default.musicVolume;
+                ticksound.Volume = Settings.Default.musicVolume;
             }
         }
         public void ReloadSettings() {
