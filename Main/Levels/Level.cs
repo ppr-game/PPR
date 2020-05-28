@@ -76,7 +76,8 @@ namespace PPR.Main.Levels {
             initialOffsetMS = meta.Length > 5 ? int.Parse(meta[5]) : 0;
             logger.Info("Initial offset of this level: {0} ms", initialOffsetMS);
 
-            speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
+            speeds = Game.SortLevelSpeeds(speeds);
+            //speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
 
             maxOffset = offsets.Count > 0 ? offsets.Max() : 0;
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.OffsetToMilliseconds(maxOffset, speeds) - initialOffsetMS);
@@ -106,6 +107,7 @@ namespace PPR.Main.Levels {
             for(int i = 0; i < speedsOffsets.Count; i++) {
                 combinedSpeeds.Add(new LevelSpeed(speeds[i], speedsOffsets[i]));
             }
+            combinedSpeeds = Game.SortLevelSpeeds(combinedSpeeds);
             combinedSpeeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
             return combinedSpeeds;
         }
@@ -132,7 +134,8 @@ namespace PPR.Main.Levels {
                 this.speeds.Add(new LevelSpeed(speeds[i], speedsStarts[i]));
                 objects.Add(new LevelObject(LevelObject.speedChar, speedsStarts[i]));
             }
-            this.speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
+            this.speeds = Game.SortLevelSpeeds(this.speeds);
+            //this.speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
             string[] meta = lines[4].Split(':');
             metadata = new LevelMetadata(this, meta, name);
         }

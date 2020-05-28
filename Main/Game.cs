@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -129,6 +130,8 @@ namespace PPR.Main {
         public static bool auto = false;
         public static bool usedAuto = false;
         public void Start() {
+            TestAlgorithms();
+
             ColorScheme.Reload();
             ReloadSounds();
 
@@ -470,7 +473,8 @@ namespace PPR.Main {
                                         if(Map.currentLevel.speeds[i].offset <= roundedOffset) speedIndex = i;
                                     }
                                     Map.currentLevel.speeds.Add(new LevelSpeed(Map.currentLevel.speeds[speedIndex].speed, roundedOffset));
-                                    Map.currentLevel.speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
+                                    //Map.currentLevel.speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
+                                    Map.currentLevel.speeds = SortLevelSpeeds(Map.currentLevel.speeds);
                                 }
 
                                 int index = Map.currentLevel.speeds.Select(speed => speed.offset).ToList().IndexOf(roundedOffset);
@@ -626,6 +630,39 @@ namespace PPR.Main {
                 else offset += useTime / (60000f / sortedSpeeds[i].speed);
             }
             return offset;
+        }
+        public static List<LevelSpeed> SortLevelSpeeds(List<LevelSpeed> list) {
+            List<LevelSpeed> unsorted = new List<LevelSpeed>(list);
+            List<LevelSpeed> sorted = new List<LevelSpeed>();
+            unsorted.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
+
+            int direction = 0;
+            int index = 0;
+            for(int i = 0; i < unsorted.Count; i++) {
+                if(unsorted[i].offset == 0) {
+                    direction = Math.Sign(unsorted[i].speed);
+                    index = i;
+                    sorted.Add(unsorted[index]);
+                    unsorted.RemoveAt(index);
+                    break;
+                }
+            }
+            while(unsorted.Count > 0) {
+                if(direction == 0) break;
+                if(direction == 1) direction = 0;
+                if(direction >= unsorted.Count) break;
+
+                index += direction;
+
+                if(index < 0 || index >= unsorted.Count) break;
+
+                int newDirection = Math.Sign(unsorted.ElementAt(index).speed);
+                sorted.Add(unsorted.ElementAt(index));
+                unsorted.RemoveAt(index);
+                direction = newDirection;
+            }
+
+            return sorted;
         }
     }
 }
