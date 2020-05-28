@@ -98,7 +98,7 @@ namespace PPR.Main {
         static int prevRoundedOffset = 0;
         public static float prevOffset = 0f;
         public static int currentBPM = 1;
-        public static Music music = new Music(Path.Combine("resources", "audio", "mainMenu.ogg"));
+        public static Music music;
         public static SoundBuffer hitsoundBuffer;
         public static SoundBuffer ticksoundBuffer;
         public static SoundBuffer failsoundBuffer;
@@ -140,6 +140,12 @@ namespace PPR.Main {
 
             RPC.Initialize();
 
+            try {
+                music = new Music(GetSoundFile(Path.Combine("resources", "audio", Settings.Default.audio, "mainMenu")));
+            } catch(SFML.LoadingFailedException) {
+                music = new Music(GetSoundFile(Path.Combine("resources", "audio", "Default", "mainMenu")));
+            }
+
             music.Volume = Settings.Default.musicVolume;
             music.Loop = true;
             music.Play();
@@ -159,7 +165,7 @@ namespace PPR.Main {
             Settings.Default.PropertyChanged += PropertyChanged;
         }
 
-        public string GetSoundFile(string pathWithoutExtension) {
+        public static string GetSoundFile(string pathWithoutExtension) {
             string[] extensions = { ".ogg", ".wav", ".flac" };
 
             foreach (string extension in extensions) {
@@ -169,7 +175,6 @@ namespace PPR.Main {
                 }
             }
 
-            logger.Error("Could not find a supported file: {0}", pathWithoutExtension);
             return "";
         }
 

@@ -134,13 +134,13 @@ namespace PPR.GUI {
                 if(button.Draw()) {
                     lastLevel = button.text;
                     string path = Path.Combine("levels", lastLevel);
-                    Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine(path, "level.txt")), lastLevel, Path.Combine(path, "music.ogg"));
+                    Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine(path, "level.txt")), lastLevel, Game.GetSoundFile(Path.Combine(path, "music")));
                     Game.currentMenu = Menu.Game;
                     Game.RecalculatePosition();
                 }
                 if(button.currentState == Button.State.Hovered && button.prevFrameState != Button.State.Hovered && button.prevFrameState != Button.State.Clicked) {
                     string levelPath = Path.Combine("levels", button.text);
-                    string musicPath = Path.Combine(levelPath, "music.ogg");
+                    string musicPath = Game.GetSoundFile(Path.Combine(levelPath, "music"));
                     if(File.Exists(musicPath)) {
                         Game.music.Stop();
                         Game.music = new Music(musicPath) {
@@ -489,7 +489,7 @@ namespace PPR.GUI {
                     if(!Game.editing && button.Draw()) {
                         Game.currentMenu = Menu.Game;
                         string path = Path.Combine("levels", lastLevel);
-                        Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine(path, "level.txt")), lastLevel, Path.Combine(path, "music.ogg"));
+                        Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine(path, "level.txt")), lastLevel, Game.GetSoundFile(Path.Combine(path, "music")));
                     }
                 }
                 else if(button.text == "AUTO") {
