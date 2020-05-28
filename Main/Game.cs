@@ -104,11 +104,13 @@ namespace PPR.Main {
         public static SoundBuffer failsoundBuffer;
         public static SoundBuffer passsoundBuffer;
         public static SoundBuffer buttonclicksoundBuffer;
+        public static SoundBuffer slidersoundBuffer;
         public static Sound hitsound;
         public static Sound ticksound;
         public static Sound failsound;
         public static Sound passsound;
         public static Sound buttonclicksound;
+        public static Sound slidersound;
         public static int score = 0;
         static int _health = 80;
         public static int health {
@@ -156,42 +158,65 @@ namespace PPR.Main {
 
             Settings.Default.PropertyChanged += PropertyChanged;
         }
+
+        public string GetSoundFile(string pathWithoutExtension) {
+            string[] extensions = { ".ogg", ".wav", ".flac" };
+
+            foreach (string extension in extensions) {
+                string path = pathWithoutExtension + extension;
+                if (File.Exists(path)) {
+                    return path;
+                }
+            }
+
+            logger.Error("Could not find a supported file: {0}", pathWithoutExtension);
+            return "";
+        }
+
         public void ReloadSounds() {
             try {
-                hitsoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", Settings.Default.audio, "hitsound.wav"));
+                hitsoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", Settings.Default.audio, "hitsound")));
             } catch(SFML.LoadingFailedException) {
-                hitsoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", "Default", "hitsound.wav"));
+                hitsoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", "Default", "hitsound")));
             }
             try {
-                ticksoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", Settings.Default.audio, "ticksound.wav"));
+                ticksoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", Settings.Default.audio, "ticksound")));
             } catch(SFML.LoadingFailedException) {
-                ticksoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", "Default", "ticksound.wav"));
+                ticksoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", "Default", "ticksound")));
             }
             try {
-                failsoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", Settings.Default.audio, "failsound.wav"));
+                failsoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", Settings.Default.audio, "failsound")));
             } catch(SFML.LoadingFailedException) {
-                failsoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", "Default", "failsound.wav"));
+                failsoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", "Default", "failsound")));
             }
             try {
-                passsoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", Settings.Default.audio, "passsound.wav"));
+                passsoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", Settings.Default.audio, "passsound")));
             } catch(SFML.LoadingFailedException) {
-                passsoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", "Default", "passsound.wav"));
+                passsoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", "Default", "passsound")));
             }
             try {
-                buttonclicksoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", Settings.Default.audio, "buttonclicksound.wav"));
+                buttonclicksoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", Settings.Default.audio, "buttonclicksound")));
             } catch(SFML.LoadingFailedException) {
-                buttonclicksoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", "Default", "buttonclicksound.wav"));
+                buttonclicksoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", "Default", "buttonclicksound")));
+            }
+            try {
+                slidersoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", Settings.Default.audio, "slidersound")));
+            }
+            catch(SFML.LoadingFailedException) {
+                slidersoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", "Default", "slidersound")));
             }
             hitsound = new Sound(hitsoundBuffer);
             ticksound = new Sound(ticksoundBuffer);
             failsound = new Sound(failsoundBuffer);
             passsound = new Sound(passsoundBuffer);
             buttonclicksound = new Sound(buttonclicksoundBuffer);
+            slidersound = new Sound(slidersoundBuffer);
             hitsound.Volume = Settings.Default.soundsVolume;
             ticksound.Volume = Settings.Default.soundsVolume;
             failsound.Volume = Settings.Default.soundsVolume;
             passsound.Volume = Settings.Default.soundsVolume;
             buttonclicksound.Volume = Settings.Default.soundsVolume;
+            slidersound.Volume = Settings.Default.soundsVolume;
         }
         public void End() {
             logger.Info("Exiting");
@@ -309,6 +334,7 @@ namespace PPR.Main {
                 failsound.Volume = Settings.Default.soundsVolume;
                 passsound.Volume = Settings.Default.soundsVolume;
                 buttonclicksound.Volume = Settings.Default.soundsVolume;
+                slidersound.Volume = Settings.Default.soundsVolume;
             }
             else if(e.PropertyName == "audio") {
                 ReloadSounds();
