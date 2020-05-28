@@ -89,7 +89,13 @@ namespace PPR.GUI.Elements {
                                                                     Renderer.AnimateColor(animTimes[x], prevColor, currentColor, 4f + animRateOffsets[x]));
                 animTimes[x] += Core.deltaTime;
             }
-            return Renderer.instance.window.HasFocus() && currentState == State.Hovered && prevFrameState == State.Clicked;
+
+            if(Renderer.instance.window.HasFocus() && currentState == State.Hovered && prevFrameState == State.Clicked) {
+                Game.buttonclicksound.Play();
+                return true;
+            }
+
+            return false;
         }
     }
 }

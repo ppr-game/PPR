@@ -14,7 +14,7 @@ using PPR.GUI.Elements;
 using PPR.Main.Levels;
 using PPR.Properties;
 using PPR.Rendering;
-
+using SFML;
 using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
@@ -101,8 +101,14 @@ namespace PPR.Main {
         public static Music music = new Music(Path.Combine("resources", "audio", "mainMenu.ogg"));
         public static SoundBuffer hitsoundBuffer;
         public static SoundBuffer ticksoundBuffer;
+        public static SoundBuffer failsoundBuffer;
+        public static SoundBuffer passsoundBuffer;
+        public static SoundBuffer buttonclicksoundBuffer;
         public static Sound hitsound;
         public static Sound ticksound;
+        public static Sound failsound;
+        public static Sound passsound;
+        public static Sound buttonclicksound;
         public static int score = 0;
         static int _health = 80;
         public static int health {
@@ -151,12 +157,41 @@ namespace PPR.Main {
             Settings.Default.PropertyChanged += PropertyChanged;
         }
         public void ReloadSounds() {
-            hitsoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", Settings.Default.audio, "hitsound.wav"));
-            ticksoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", Settings.Default.audio, "ticksound.wav"));
+            try {
+                hitsoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", Settings.Default.audio, "hitsound.wav"));
+            } catch(SFML.LoadingFailedException) {
+                hitsoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", "Default", "hitsound.wav"));
+            }
+            try {
+                ticksoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", Settings.Default.audio, "ticksound.wav"));
+            } catch(SFML.LoadingFailedException) {
+                ticksoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", "Default", "ticksound.wav"));
+            }
+            try {
+                failsoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", Settings.Default.audio, "failsound.wav"));
+            } catch(SFML.LoadingFailedException) {
+                failsoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", "Default", "failsound.wav"));
+            }
+            try {
+                passsoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", Settings.Default.audio, "passsound.wav"));
+            } catch(SFML.LoadingFailedException) {
+                passsoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", "Default", "passsound.wav"));
+            }
+            try {
+                buttonclicksoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", Settings.Default.audio, "buttonclicksound.wav"));
+            } catch(SFML.LoadingFailedException) {
+                buttonclicksoundBuffer = new SoundBuffer(Path.Combine("resources", "audio", "Default", "buttonclicksound.wav"));
+            }
             hitsound = new Sound(hitsoundBuffer);
             ticksound = new Sound(ticksoundBuffer);
+            failsound = new Sound(failsoundBuffer);
+            passsound = new Sound(passsoundBuffer);
+            buttonclicksound = new Sound(buttonclicksoundBuffer);
             hitsound.Volume = Settings.Default.soundsVolume;
             ticksound.Volume = Settings.Default.soundsVolume;
+            failsound.Volume = Settings.Default.soundsVolume;
+            passsound.Volume = Settings.Default.soundsVolume;
+            buttonclicksound.Volume = Settings.Default.soundsVolume;
         }
         public void End() {
             logger.Info("Exiting");
@@ -271,6 +306,9 @@ namespace PPR.Main {
             else if(e.PropertyName == "soundsVolume") {
                 hitsound.Volume = Settings.Default.soundsVolume;
                 ticksound.Volume = Settings.Default.soundsVolume;
+                failsound.Volume = Settings.Default.soundsVolume;
+                passsound.Volume = Settings.Default.soundsVolume;
+                buttonclicksound.Volume = Settings.Default.soundsVolume;
             }
             else if(e.PropertyName == "audio") {
                 ReloadSounds();

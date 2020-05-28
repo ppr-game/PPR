@@ -80,7 +80,9 @@ namespace PPR.Rendering {
             window.Closed += (_, __) => Core.game.End();
             window.MouseMoved += UpdateMousePosition;
             window.MouseButtonPressed += (_, e) => {
-                if(e.Button == Mouse.Button.Left) leftButtonPressed = true;
+                if(e.Button == Mouse.Button.Left) {
+                    leftButtonPressed = true;
+                }
             };
             window.MouseButtonReleased += (_, e) => {
                 if(e.Button == Mouse.Button.Left) leftButtonPressed = false;
