@@ -456,8 +456,9 @@ namespace PPR.Main {
 
                     RecalculatePosition();
                 }
-                else {
-                    for(int y = Map.linePos.y + 2; y >= Map.linePos.y - 2; y--) {
+                else if(!auto) {
+                    int speedSign = Math.Sign(currentBPM);
+                    for(int y = Map.linePos.y + LevelObject.missRange * speedSign; LevelObject.CheckWentTroughLine(y, -LevelObject.missRange); y -= speedSign) {
                         if(CheckLine(y)) break;
                     }
                 }

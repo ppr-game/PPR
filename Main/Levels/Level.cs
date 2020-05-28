@@ -154,6 +154,8 @@ namespace PPR.Main.Levels {
         };
         public const char speedChar = '>';
         public const char holdChar = '│';
+        public const int hitRange = 1;
+        public const int missRange = 2;
         public Vector2 position;
         readonly Vector2 startPosition;
         public char character;
@@ -252,8 +254,8 @@ namespace PPR.Main.Levels {
                     }
                 }
                 Color startColor = ColorScheme.green;
-                if(!Game.auto) startColor = position.y >= Map.linePos.y - 1 && position.y <= Map.linePos.y + 1 ?
-                                                                                  position.y == Map.linePos.y ? ColorScheme.green : character == holdChar ? ColorScheme.red : ColorScheme.yellow : ColorScheme.red;
+                startColor = position.y >= Map.linePos.y - 1 && position.y <= Map.linePos.y + 1 ?
+                                               position.y == Map.linePos.y ? ColorScheme.green : character == holdChar ? ColorScheme.red : ColorScheme.yellow : ColorScheme.red;
                 Renderer.instance.SetCellColor(position, Renderer.AnimateColor(removeAnimationTime, startColor, ColorScheme.white, 3f),
                                                                                                                      Renderer.AnimateColor(removeAnimationTime, startColor, Color.Transparent, 3f));
                 if(removeAnimationTime >= 1f) _ = Map.currentLevel.objects.Remove(this);
@@ -261,43 +263,51 @@ namespace PPR.Main.Levels {
                 return;
             }
             if(!ignore) Renderer.instance.SetCharacter(position, character, character == speedChar ? speedColor : color, Color.Transparent);
-            if(!Game.editing) {
-                if(position.y >= Map.linePos.y && (character == speedChar || ignore)) {
+            if(!Game.editing && CheckWentTroughLine()) {
+                if(character == speedChar || ignore) {
                     _ = Map.currentLevel.objects.Remove(this);
                 }
-                else if(!Game.auto && position.y >= Map.linePos.y + 2) {
+                else if(CheckWentTroughLine(character == holdChar ? 1 : missRange)) {
                     Miss();
                     Game.RecalculateAccuracy();
                     removed = true;
                 }
-                else if(Game.auto && position.y >= Map.linePos.y) {
-                    Hit();
-                    PlayHitsound();
-                    Game.RecalculateAccuracy();
-                    removed = true;
-                }
-                if(character == holdChar && (position.y == Map.linePos.y || position.y == Map.linePos.y + 1)) {
+                else if(Game.auto || character == holdChar) {
                     CheckPress();
                 }
             }
         }
+        public bool CheckWentTroughLine(int lineOffset = 0) {
+            return CheckWentTroughLine(position.y, lineOffset);
+        }
+        public static bool CheckWentTroughLine(int y, int lineOffset = 0) {
+            int speedSign = Math.Sign(Game.currentBPM);
+
+            int thisY = y;
+            int lineY = Map.linePos.y + lineOffset * speedSign;
+
+            return speedSign switch
+            {
+                1 => thisY >= lineY,
+                -1 => thisY <= lineY,
+                _ => thisY == lineY
+            };
+        }
+        public void CheckHit() {
+            if(character == holdChar ? position.y == Map.linePos.y : CheckWentTroughLine(-hitRange)) {
+                Hit();
+            }
+            else {
+                Miss();
+            }
+            PlayHitsound();
+            Game.RecalculateAccuracy();
+            removed = true;
+        }
         public void CheckPress() {
             if(removed || ignore) return;
-            if(Keyboard.IsKeyPressed(key) && (character != holdChar || position.y == Map.linePos.y)) {
-                if(character == holdChar || position.y >= Map.linePos.y - 1) {
-                    Hit();
-                }
-                else {
-                    Miss();
-                }
-                PlayHitsound();
-                Game.RecalculateAccuracy();
-                removed = true;
-            }
-            else if(character == holdChar && position.y > Map.linePos.y) {
-                Miss();
-                Game.RecalculateAccuracy();
-                removed = true;
+            if(Game.auto || Keyboard.IsKeyPressed(key)) {
+                CheckHit();
             }
         }
         void PlayHitsound() {
@@ -307,7 +317,7 @@ namespace PPR.Main.Levels {
         }
         void Hit() {
             Game.health += Map.currentLevel.metadata.hpRestorage;
-            int score = position.y == Map.linePos.y || character == holdChar || Game.auto ? 10 : 5;
+            int score = position.y == Map.linePos.y || character == holdChar ? 10 : 5;
             Game.combo++;
             Game.maxCombo = Math.Max(Game.combo, Game.maxCombo);
             Game.score += score * Game.combo;
