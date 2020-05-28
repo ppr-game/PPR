@@ -510,6 +510,11 @@ namespace PPR.GUI {
                 }
             }
         }
+        static void DrawCursor() {
+            Color cellColor = Core.renderer.GetCellBackgroundColor(Core.renderer.mousePosition);
+            if(cellColor == Color.Black || cellColor == ColorScheme.black)
+            Core.renderer.SetCellColor(Core.renderer.mousePosition, ColorScheme.white, ColorScheme.darkGray);
+        }
         public static void Draw() {
             switch(Game.currentMenu) {
                 case Menu.Main:
@@ -528,6 +533,7 @@ namespace PPR.GUI {
                     DrawLastStats();
                     break;
             }
+            DrawCursor();
             if(Settings.Default.showFps)
                 Renderer.instance.DrawText(zero, fps + " FPS", fps >= 60 ? ColorScheme.green : fps > 20 ? ColorScheme.yellow : ColorScheme.red, Color.Transparent);
         }
