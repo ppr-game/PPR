@@ -42,6 +42,11 @@ namespace PPR.Main.Levels {
             }
             if(Game.health <= 0 || currentLevel.objects.Count == 0) {
                 Game.currentMenu = Menu.LastStats;
+                if (Game.health <= 0) {
+                    Game.failsound.Play();
+                } else {
+                    Game.passsound.Play();
+                }
             }
         }
         public static void LoadLevelFromLines(string[] lines, string name, string musicPath) {

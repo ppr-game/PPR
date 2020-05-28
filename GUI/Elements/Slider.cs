@@ -87,7 +87,11 @@ namespace PPR.GUI.Elements {
             prevState = currentState;
 
             if(Renderer.instance.window.HasFocus() && currentState == State.Clicked) {
+                int previous_value = value;
                 value = Math.Clamp((Renderer.instance.mousePosition.x - posX) * step, minValue, maxValue);
+                if (value != previous_value) {
+                    Game.slidersound.Play();
+                }
             }
 
             for(int x = 0; x < size; x++) {
