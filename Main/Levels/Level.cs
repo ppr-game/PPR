@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using NLog;
+
 using PPR.GUI;
 using PPR.Rendering;
 
@@ -52,7 +52,7 @@ namespace PPR.Main.Levels {
         public string difficulty;
         public string author;
         public string length;
-        public int maxOffset;
+        public int maxTime;
         public int minBPM;
         public int maxBPM;
         public int avgBPM;
@@ -64,9 +64,7 @@ namespace PPR.Main.Levels {
         public readonly int objectCount;
         public readonly int speedsCount;
 
-        static readonly Logger logger = LogManager.GetCurrentClassLogger();
-
-        public LevelMetadata(string name, string[] meta, int objectCount, List<int> offsets, List<LevelSpeed> speeds) {
+        public LevelMetadata(string name, string[] meta, int objectCount, List<int> times, List<LevelSpeed> speeds) {
             this.name = name;
             hpDrain = int.Parse(meta[0]);
             hpRestorage = int.Parse(meta[1]);
@@ -74,17 +72,15 @@ namespace PPR.Main.Levels {
             author = meta[3];
             linesFrequency = meta.Length > 4 ? int.Parse(meta[4]) : 4;
             initialOffsetMS = meta.Length > 5 ? int.Parse(meta[5]) : 0;
-            logger.Info("Initial offset of this level: {0} ms", initialOffsetMS);
 
-            speeds = Game.SortLevelSpeeds(speeds);
-            //speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
+            //speeds = Game.SortLevelSpeeds(speeds);
+            speeds.Sort((speed1, speed2) => speed1.time.CompareTo(speed2.time));
 
-            maxOffset = offsets.Count > 0 ? offsets.Max() : 0;
-            TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.OffsetToMilliseconds(maxOffset, speeds) - initialOffsetMS);
+            maxTime = times.Count > 0 ? times.Max() : 0;
+            TimeSpan timeSpan = TimeSpan.FromMilliseconds(maxTime - initialOffsetMS);
             length = (timeSpan < TimeSpan.Zero ? "-" : "") + timeSpan.ToString((timeSpan.Hours != 0 ? "h':'mm" : "m") + "':'ss");
 
-            int minOffset = offsets.Count > 0 ? offsets.Min() : 0;
-            int minTime = (int)Game.OffsetToMilliseconds(minOffset, speeds) + initialOffsetMS;
+            int minTime = (times.Count > 0 ? times.Min() : 0) + initialOffsetMS;
             skipTime = minTime - 5000;
             skippable = skipTime > 5000;
 
@@ -101,14 +97,13 @@ namespace PPR.Main.Levels {
         }
         public LevelMetadata(Level level, string[] meta, string name) : this(name, meta,
             level.objects.FindAll(obj => obj.character != LevelObject.holdChar).Count,
-            level.objects.FindAll(obj => obj.character != LevelObject.speedChar).Select(obj => obj.offset).ToList(), level.speeds) { }
-        static List<LevelSpeed> SpeedsFromLists(List<int> speeds, List<int> speedsOffsets) {
+            level.objects.FindAll(obj => obj.character != LevelObject.speedChar).Select(obj => obj.time).ToList(), level.speeds) { }
+        static List<LevelSpeed> SpeedsFromLists(List<int> speeds, List<int> speedsTimes) {
             List<LevelSpeed> combinedSpeeds = new List<LevelSpeed>();
-            for(int i = 0; i < speedsOffsets.Count; i++) {
-                combinedSpeeds.Add(new LevelSpeed(speeds[i], speedsOffsets[i]));
+            for(int i = 0; i < speedsTimes.Count; i++) {
+                combinedSpeeds.Add(new LevelSpeed(speeds[i], speedsTimes[i]));
             }
-            combinedSpeeds = Game.SortLevelSpeeds(combinedSpeeds);
-            combinedSpeeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
+            combinedSpeeds.Sort((speed1, speed2) => speed1.time.CompareTo(speed2.time));
             return combinedSpeeds;
         }
         public LevelMetadata(string[] lines, string name) : this(name, lines[4].Split(':'),
@@ -123,29 +118,29 @@ namespace PPR.Main.Levels {
         public List<LevelSpeed> speeds = new List<LevelSpeed>();
 
         public Level(string[] lines, string name) {
-            int[] objectsOffsets = lines[1].Length > 0 ? lines[1].Split(':').Select(str => int.Parse(str)).ToArray() : new int[0];
+            int[] objectsTimes = lines[1].Length > 0 ? lines[1].Split(':').Select(str => int.Parse(str)).ToArray() : new int[0];
             int[] speeds = lines[2].Length > 0 ? lines[2].Split(':').Select(str => int.Parse(str)).ToArray() : new int[0];
             int[] speedsStarts = lines[3].Length > 0 ? lines[3].Split(':').Select(str => int.Parse(str)).ToArray() : new int[0];
-            for(int i = 0; i < objectsOffsets.Length; i++) {
-                int offset = objectsOffsets[i];
-                objects.Add(new LevelObject(lines[0][i], offset, objects));
-            }
             for(int i = 0; i < speedsStarts.Length; i++) {
                 this.speeds.Add(new LevelSpeed(speeds[i], speedsStarts[i]));
-                objects.Add(new LevelObject(LevelObject.speedChar, speedsStarts[i]));
+                objects.Add(new LevelObject(LevelObject.speedChar, speedsStarts[i], this.speeds));
             }
-            this.speeds = Game.SortLevelSpeeds(this.speeds);
-            //this.speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
+            for(int i = 0; i < objectsTimes.Length; i++) {
+                int time = objectsTimes[i];
+                objects.Add(new LevelObject(lines[0][i], time, this.speeds, objects));
+            }
+            //this.speeds = Game.SortLevelSpeeds(this.speeds);
+            this.speeds.Sort((speed1, speed2) => speed1.time.CompareTo(speed2.time));
             string[] meta = lines[4].Split(':');
             metadata = new LevelMetadata(this, meta, name);
         }
     }
     public class LevelSpeed {
         public int speed;
-        public int offset;
-        public LevelSpeed(int speed, int offset) {
+        public int time;
+        public LevelSpeed(int speed, int time) {
             this.speed = speed;
-            this.offset = offset;
+            this.time = time;
         }
     }
     public class LevelObject {
@@ -160,10 +155,10 @@ namespace PPR.Main.Levels {
         public const int hitRange = 1;
         public const int missRange = 2;
         public Vector2 position;
-        readonly Vector2 startPosition;
+        public Vector2 startPosition;
         public char character;
         public Keyboard.Key key;
-        public int offset;
+        public int time;
         static readonly Color color = ColorScheme.white;
         static readonly Color speedColor = ColorScheme.blue;
 
@@ -172,7 +167,7 @@ namespace PPR.Main.Levels {
 
         public bool ignore = false;
 
-        public LevelObject(char character, int offset, List<LevelObject> objects = null) {
+        public LevelObject(char character, int time, List<LevelSpeed> speeds, List<LevelObject> objects = null) {
             int x = 0;
             int xLineOffset = 0;
             int mul = 90 / lines.Select(line => line.Length).Max();
@@ -185,9 +180,9 @@ namespace PPR.Main.Levels {
             }
             if(character == holdChar && objects != null) {
                 List<LevelObject> existingObjects = new List<LevelObject>(objects);
-                existingObjects.Sort((LevelObject obj1, LevelObject obj2) => -obj1.offset.CompareTo(obj2.offset));
+                existingObjects.Sort((obj1, obj2) => -obj1.time.CompareTo(obj2.time));
                 foreach(LevelObject obj in existingObjects) {
-                    if(obj.offset <= offset && obj.character != speedChar && obj.character != holdChar) {
+                    if(obj.time <= time && obj.character != speedChar && obj.character != holdChar) {
                         x = obj.position.x;
                         key = obj.key;
                         obj.ignore = true;
@@ -195,10 +190,12 @@ namespace PPR.Main.Levels {
                     }
                 }
             }
-            startPosition = new Vector2(x, -offset + Map.linePos.y);
+            List<LevelSpeed> existingSpeeds = new List<LevelSpeed>(speeds);
+            existingSpeeds.Sort((spd1, spd2) => spd1.time.CompareTo(spd2.time));
+            startPosition = new Vector2(x, (int)MathF.Round(Game.MillisecondsToOffset(-time, existingSpeeds) + Map.linePos.y));
             position = new Vector2(startPosition);
             this.character = character;
-            this.offset = offset;
+            this.time = time;
             switch(char.ToUpper(character)) {
                 case '1': key = Keyboard.Key.Num1; break;
                 case '2': key = Keyboard.Key.Num2; break;
@@ -281,9 +278,11 @@ namespace PPR.Main.Levels {
             }
         }
         public bool CheckWentTroughLine(int lineOffset = 0) {
-            return CheckWentTroughLine(position.y, lineOffset);
+            //return CheckWentTroughLine(position.y, lineOffset);
+            return Game.WentThroughLine(position.y, lineOffset, Map.currentLevel.speeds);
+            //return false;
         }
-        public static bool CheckWentTroughLine(int y, int lineOffset = 0) {
+        /*public static bool CheckWentTroughLine(int y, int lineOffset = 0) {
             int speedSign = Math.Sign(Game.currentBPM);
 
             int thisY = y;
@@ -295,7 +294,7 @@ namespace PPR.Main.Levels {
                 -1 => thisY <= lineY,
                 _ => thisY == lineY
             };
-        }
+        }*/
         public void CheckHit() {
             if(character == holdChar ? position.y == Map.linePos.y : CheckWentTroughLine(-hitRange)) {
                 Hit();
@@ -343,10 +342,10 @@ namespace PPR.Main.Levels {
             return obj is LevelObject @object &&
                    EqualityComparer<Vector2>.Default.Equals(position, @object.position) &&
                    character == @object.character &&
-                   offset == @object.offset;
+                   time == @object.time;
         }
         public override int GetHashCode() {
-            return HashCode.Combine(position, character, offset);
+            return HashCode.Combine(position, character, time);
         }
         public static bool operator ==(LevelObject left, LevelObject right) {
             return left is null ? right is null : left.Equals(right);

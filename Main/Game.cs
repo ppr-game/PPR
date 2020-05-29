@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Configuration;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -15,7 +15,7 @@ using PPR.GUI.Elements;
 using PPR.Main.Levels;
 using PPR.Properties;
 using PPR.Rendering;
-using SFML;
+
 using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
@@ -91,7 +91,7 @@ namespace PPR.Main {
         public static float offset {
             set {
                 _offset = value;
-                if(!editing) UI.progress = (int)(value / Map.currentLevel.metadata.maxOffset * 80f);
+                if(!editing) UI.progress = (int)(timeFromStart.AsMilliseconds() / (float)Map.currentLevel.metadata.maxTime * 80f);
             }
             get => _offset;
         }
@@ -130,8 +130,6 @@ namespace PPR.Main {
         public static bool auto = false;
         public static bool usedAuto = false;
         public void Start() {
-            TestAlgorithms();
-
             ColorScheme.Reload();
             ReloadSounds();
 
@@ -145,7 +143,8 @@ namespace PPR.Main {
 
             try {
                 music = new Music(GetSoundFile(Path.Combine("resources", "audio", Settings.Default.audio, "mainMenu")));
-            } catch(SFML.LoadingFailedException) {
+            }
+            catch(SFML.LoadingFailedException) {
                 music = new Music(GetSoundFile(Path.Combine("resources", "audio", "Default", "mainMenu")));
             }
 
@@ -171,9 +170,9 @@ namespace PPR.Main {
         public static string GetSoundFile(string pathWithoutExtension) {
             string[] extensions = { ".ogg", ".wav", ".flac" };
 
-            foreach (string extension in extensions) {
+            foreach(string extension in extensions) {
                 string path = pathWithoutExtension + extension;
-                if (File.Exists(path)) {
+                if(File.Exists(path)) {
                     return path;
                 }
             }
@@ -184,27 +183,32 @@ namespace PPR.Main {
         public void ReloadSounds() {
             try {
                 hitsoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", Settings.Default.audio, "hitsound")));
-            } catch(SFML.LoadingFailedException) {
+            }
+            catch(SFML.LoadingFailedException) {
                 hitsoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", "Default", "hitsound")));
             }
             try {
                 ticksoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", Settings.Default.audio, "ticksound")));
-            } catch(SFML.LoadingFailedException) {
+            }
+            catch(SFML.LoadingFailedException) {
                 ticksoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", "Default", "ticksound")));
             }
             try {
                 failsoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", Settings.Default.audio, "failsound")));
-            } catch(SFML.LoadingFailedException) {
+            }
+            catch(SFML.LoadingFailedException) {
                 failsoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", "Default", "failsound")));
             }
             try {
                 passsoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", Settings.Default.audio, "passsound")));
-            } catch(SFML.LoadingFailedException) {
+            }
+            catch(SFML.LoadingFailedException) {
                 passsoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", "Default", "passsound")));
             }
             try {
                 buttonclicksoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", Settings.Default.audio, "buttonclicksound")));
-            } catch(SFML.LoadingFailedException) {
+            }
+            catch(SFML.LoadingFailedException) {
                 buttonclicksoundBuffer = new SoundBuffer(GetSoundFile(Path.Combine("resources", "audio", "Default", "buttonclicksound")));
             }
             try {
@@ -251,20 +255,19 @@ namespace PPR.Main {
 
             if(music.PlayingOffset != prevPlayingOffset) {
                 RecalculateTimeFromStart();
-            }
-            prevPlayingOffset = music.PlayingOffset;
-
-            if(music.Status == SoundStatus.Playing) {
                 offset = MillisecondsToOffset(timeFromStart.AsMilliseconds(), Map.currentLevel.speeds);
                 if(roundedOffset - prevRoundedOffset > 1)
                     logger.Warn("Lag detected: the offset changed too quickly ({0}), current speed: {1} BPM, {2} ms",
                         roundedOffset - prevRoundedOffset, currentBPM, 60000f / currentBPM);
             }
+
+            prevPlayingOffset = music.PlayingOffset;
+
             if(editing) {
                 float initialOffset = Map.currentLevel.metadata.initialOffsetMS / 1000f;
                 float duration = music.Duration.AsSeconds() - initialOffset;
                 if(Core.renderer.mousePosition.y == 0 && Core.renderer.leftButtonPressed) {
-                    float mouseProgress = Core.renderer.mousePositionF.X / 80f;
+                    float mouseProgress = Math.Clamp(Core.renderer.mousePositionF.X / 80f, 0f, 1f);
                     music.PlayingOffset = Time.FromSeconds(duration * mouseProgress + initialOffset);
                     offset = MillisecondsToOffset(timeFromStart.AsMilliseconds(), Map.currentLevel.speeds);
                 }
@@ -277,6 +280,7 @@ namespace PPR.Main {
             offset = 0;
             roundedOffset = 0;
             prevOffset = 0;
+            currentBPM = Map.currentLevel.speeds[0].speed;
             UI.health = 0;
             health = 80;
             score = 0;
@@ -298,13 +302,13 @@ namespace PPR.Main {
             logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
         }
         public static void RecalculatePosition() {
+            Map.StepAll();
             for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
-                if(Map.currentLevel.speeds[i].offset <= offset) {
+                if(Map.currentLevel.speeds[i].time <= timeFromStart.AsMilliseconds()) {
                     currentBPM = Map.currentLevel.speeds[i].speed;
                 }
                 else break;
             }
-            Map.StepAll();
         }
         public void PropertyChanged(object caller, PropertyChangedEventArgs e) {
             if(e.PropertyName == "font") {
@@ -455,7 +459,7 @@ namespace PPR.Main {
                     };
                     if(character == '\0') {
                         if(key.Code == Keyboard.Key.Backspace) {
-                            List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.offset == roundedOffset &&
+                            List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => MillisecondsToOffset(obj.time) == roundedOffset &&
                                                                                                                                                                                                        obj.character != LevelObject.speedChar);
                             foreach(LevelObject obj in objects) {
                                 _ = Map.currentLevel.objects.Remove(obj);
@@ -467,19 +471,19 @@ namespace PPR.Main {
                                 Map.currentLevel.metadata.linesFrequency += delta;
                             }
                             else {
-                                if(!Map.currentLevel.speeds.Select(speed => speed.offset).Contains(roundedOffset)) {
+                                if(!Map.currentLevel.speeds.Select(speed => (int)MathF.Round(MillisecondsToOffset(speed.time))).Contains(roundedOffset)) {
                                     int speedIndex = 0;
                                     for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
-                                        if(Map.currentLevel.speeds[i].offset <= roundedOffset) speedIndex = i;
+                                        if(Map.currentLevel.speeds[i].time <= timeFromStart.AsMilliseconds()) speedIndex = i;
                                     }
-                                    Map.currentLevel.speeds.Add(new LevelSpeed(Map.currentLevel.speeds[speedIndex].speed, roundedOffset));
-                                    //Map.currentLevel.speeds.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
-                                    Map.currentLevel.speeds = SortLevelSpeeds(Map.currentLevel.speeds);
+                                    Map.currentLevel.speeds.Add(new LevelSpeed(Map.currentLevel.speeds[speedIndex].speed, timeFromStart.AsMilliseconds()));
+                                    Map.currentLevel.speeds.Sort((speed1, speed2) => speed1.time.CompareTo(speed2.time));
+                                    //Map.currentLevel.speeds = SortLevelSpeeds(Map.currentLevel.speeds);
                                 }
 
-                                int index = Map.currentLevel.speeds.Select(speed => speed.offset).ToList().IndexOf(roundedOffset);
+                                int index = Map.currentLevel.speeds.Select(speed => (int)MathF.Round(MillisecondsToOffset(speed.time))).ToList().IndexOf(roundedOffset);
 
-                                Map.currentLevel.speeds[index].speed += (key.Shift ? 1 : 10) * delta;
+                                Map.currentLevel.speeds[index].speed += delta * (key.Shift ? 1 : 10);
 
                                 if(index >= 1 && Map.currentLevel.speeds[index].speed == Map.currentLevel.speeds[index - 1].speed) {
                                     Map.currentLevel.speeds.RemoveAt(index);
@@ -490,39 +494,47 @@ namespace PPR.Main {
                                     _ = Map.currentLevel.objects.Remove(obj);
                                 }
                                 for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
-                                    Map.currentLevel.objects.Add(new LevelObject(LevelObject.speedChar, Map.currentLevel.speeds[i].offset));
+                                    Map.currentLevel.objects.Add(new LevelObject(LevelObject.speedChar, Map.currentLevel.speeds[i].time, Map.currentLevel.speeds));
+                                }
+
+                                foreach(LevelObject obj in Map.currentLevel.objects) {
+                                    obj.startPosition.y = (int)MathF.Round(MillisecondsToOffset(-obj.time, Map.currentLevel.speeds) + Map.linePos.y);
+                                    obj.position = new Vector2(obj.startPosition);
                                 }
                             }
                         }
                         else if(key.Code == Keyboard.Key.Left || key.Code == Keyboard.Key.Right) {
+                            int delta = key.Code == Keyboard.Key.Right ? 1 : -1;
                             if(key.Shift) {
-                                Map.currentLevel.metadata.hpRestorage += key.Code == Keyboard.Key.Right ? 1 : -1;
+                                Map.currentLevel.metadata.hpRestorage += delta;
                             }
                             else {
-                                Map.currentLevel.metadata.hpDrain += key.Code == Keyboard.Key.Right ? 1 : -1;
+                                Map.currentLevel.metadata.hpDrain += delta;
                             }
                         }
                         else if(key.Code == Keyboard.Key.F1 || key.Code == Keyboard.Key.F2) {
+                            int delta = key.Code == Keyboard.Key.F2 ? 1 : -1;
                             if(key.Shift) {
-                                Map.currentLevel.metadata.initialOffsetMS += key.Code == Keyboard.Key.F2 ? 10 : -10;
+                                Map.currentLevel.metadata.initialOffsetMS += delta * 10;
                             }
                             else {
-                                Map.currentLevel.metadata.initialOffsetMS += key.Code == Keyboard.Key.F2 ? 1 : -1;
+                                Map.currentLevel.metadata.initialOffsetMS += delta;
                             }
-                            UpdateTime();
                         }
                         else if(key.Code == Keyboard.Key.PageUp || key.Code == Keyboard.Key.PageDown) {
-                            offset = roundedOffset;
-                            offset += key.Code == Keyboard.Key.PageUp ? 10 : -10;
-                            UpdateTime();
+                            int delta = key.Code == Keyboard.Key.PageUp ? 1 : -1;
+                            /*offset = roundedOffset;
+                            offset += delta * 10;*/
+                            Time newTime = music.PlayingOffset + Time.FromSeconds(60f / currentBPM * delta * 10f);
+                            music.PlayingOffset = newTime < Time.Zero ? Time.Zero : newTime > music.Duration ? music.Duration : newTime;
                         }
                     }
                     else {
-                        if(Map.currentLevel.objects.FindAll(obj => obj.character == character && obj.offset == roundedOffset).Count <= 0) {
-                            Map.currentLevel.objects.Add(new LevelObject(character, roundedOffset));
+                        if(Map.currentLevel.objects.FindAll(obj => obj.character == character && MillisecondsToOffset(obj.time) == roundedOffset).Count <= 0) {
+                            Map.currentLevel.objects.Add(new LevelObject(character, timeFromStart.AsMilliseconds(), Map.currentLevel.speeds));
                             if(key.Shift) {
                                 character = LevelObject.holdChar;
-                                Map.currentLevel.objects.Add(new LevelObject(character, roundedOffset, Map.currentLevel.objects));
+                                Map.currentLevel.objects.Add(new LevelObject(character, timeFromStart.AsMilliseconds(), Map.currentLevel.speeds, Map.currentLevel.objects));
                             }
                         }
                     }
@@ -531,7 +543,7 @@ namespace PPR.Main {
                 }
                 else if(!auto) {
                     int speedSign = Math.Sign(currentBPM);
-                    for(int y = Map.linePos.y + LevelObject.missRange * speedSign; LevelObject.CheckWentTroughLine(y, -LevelObject.missRange); y -= speedSign) {
+                    for(int y = Map.linePos.y + LevelObject.missRange * speedSign; WentThroughLine(y, -LevelObject.missRange, Map.currentLevel.speeds); y -= speedSign) {
                         if(CheckLine(y)) break;
                     }
                 }
@@ -586,15 +598,17 @@ namespace PPR.Main {
                 }
             }
             else if(currentMenu == Menu.Game && editing) {
-                offset = roundedOffset;
-                offset += scroll.Delta;
-                UpdateTime();
+                /*offset = roundedOffset;
+                offset += scroll.Delta;*/
+                Time newTime = music.PlayingOffset + Time.FromSeconds(60f / currentBPM * scroll.Delta);
+                music.PlayingOffset = newTime < Time.Zero ? Time.Zero : newTime > music.Duration ? music.Duration : newTime;
+                //UpdateTime();
             }
         }
         public static void RecalculateTimeFromStart() {
             timeFromStart = music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
         }
-        public static void UpdateTime() {
+        /*public static void UpdateTime() {
             long useMicrosecs = (long)(Math.Abs(OffsetToMilliseconds(offset, Map.currentLevel.speeds)) * 1000f);
             music.PlayingOffset = Time.FromMicroseconds(useMicrosecs) + Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
         }
@@ -611,27 +625,49 @@ namespace PPR.Main {
                 else time += (useOffset - sortedSpeeds[i].offset) * (60000f / sortedSpeeds[speedIndex].speed);
             }
             return time;
+        }*/
+        public static float MillisecondsToOffset(float time) {
+            return MillisecondsToOffset(time, Map.currentLevel.speeds);
         }
         public static float MillisecondsToOffset(float time, List<LevelSpeed> sortedSpeeds) {
             float useTime = time;
 
             int speedIndex = 0;
             for(int i = 0; i < sortedSpeeds.Count; i++) {
-                if(OffsetToMilliseconds(sortedSpeeds[i].offset, sortedSpeeds) <= useTime) speedIndex = i;
+                if(sortedSpeeds[i].time <= useTime) speedIndex = i;
                 else break;
             }
             float offset = 0;
             for(int i = 0; i <= speedIndex; i++) {
                 if(i != speedIndex) {
-                    int increment = sortedSpeeds[i + 1].offset - sortedSpeeds[i].offset;
-                    offset += increment;
-                    useTime -= increment * (60000f / sortedSpeeds[i].speed);
+                    int increment = sortedSpeeds[i + 1].time - sortedSpeeds[i].time;
+                    offset += increment * (60f / sortedSpeeds[i].speed);
+                    useTime -= increment;
                 }
                 else offset += useTime / (60000f / sortedSpeeds[i].speed);
             }
             return offset;
         }
-        public static List<LevelSpeed> SortLevelSpeeds(List<LevelSpeed> list) {
+        public static bool WentThroughLine(float offset, int lineOffset, List<LevelSpeed> sortedSpeeds) {
+            /*for(int i = 0; i < sortedSpeeds.Count - 1; i++) {
+                LevelSpeed currSpeed = sortedSpeeds[i];
+                LevelSpeed nextSpeed = sortedSpeeds[i + 1];
+                int speedSign = Math.Sign(currSpeed.speed);
+                int line = Map.linePos.y + lineOffset * speedSign;
+
+                if(speedSign == 0) break;
+                else if(speedSign < 0) {
+                    if(offset >= line && line >= nextSpeed.offset)
+                        return true;
+                }
+                else {
+                    if(offset <= line && line <= nextSpeed.offset)
+                        return true;
+                }
+            }*/
+            return false;
+        }
+        /*public static List<LevelSpeed> SortLevelSpeeds(List<LevelSpeed> list) {
             List<LevelSpeed> unsorted = new List<LevelSpeed>(list);
             List<LevelSpeed> sorted = new List<LevelSpeed>();
             unsorted.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
@@ -656,13 +692,13 @@ namespace PPR.Main {
 
                 if(index < 0 || index >= unsorted.Count) break;
 
-                int newDirection = Math.Sign(unsorted.ElementAt(index).speed);
-                sorted.Add(unsorted.ElementAt(index));
+                int newDirection = Math.Sign(unsorted[index].speed);
+                sorted.Add(unsorted[index]);
                 unsorted.RemoveAt(index);
                 direction = newDirection;
             }
 
             return sorted;
-        }
+        }*/
     }
 }

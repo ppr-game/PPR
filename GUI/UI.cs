@@ -350,8 +350,8 @@ namespace PPR.GUI {
                         }
                         else if(button.text == "║") {
                             Game.music.Pause();
-                            Game.offset = Game.roundedOffset;
-                            Game.UpdateTime();
+                            //Game.offset = Game.roundedOffset;
+                            //Game.UpdateTime();
                         }
                     }
                 }
