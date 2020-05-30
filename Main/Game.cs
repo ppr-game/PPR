@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Configuration;
 using System.IO;
 using System.Linq;
@@ -86,6 +85,7 @@ namespace PPR.Main {
             }
         }
         public static Time timeFromStart;
+        public static Time flooredTimeFromStart;
         static Time prevPlayingOffset;
         static float _offset = 0f;
         public static float offset {
@@ -96,9 +96,15 @@ namespace PPR.Main {
             get => _offset;
         }
         public static int roundedOffset = 0;
-        static int prevRoundedOffset = 0;
         public static float prevOffset = 0f;
         public static int currentBPM = 1;
+        public static long currentSpeedMicS = 60000000;
+        public static float currentSpeedMS = 60000f;
+        public static float currentSpeedSec = 60f;
+        public static int previousBPM = 1;
+        public static long previousSpeedMicS = 60000000;
+        public static float previousSpeedMS = 60000f;
+        public static float previousSpeedSec = 60f;
         public static Music music;
         public static SoundBuffer hitsoundBuffer;
         public static SoundBuffer ticksoundBuffer;
@@ -242,74 +248,6 @@ namespace PPR.Main {
 
             Core.renderer.window.Close();
         }
-        public void Update() {
-            if(currentMenu != Menu.Game) return;
-
-            if(MathF.Floor(prevOffset) != MathF.Floor(offset)) {
-                prevRoundedOffset = roundedOffset;
-                roundedOffset = (int)MathF.Round(offset);
-                RecalculatePosition();
-            }
-
-            prevOffset = offset;
-
-            if(music.PlayingOffset != prevPlayingOffset) {
-                RecalculateTimeFromStart();
-                offset = MillisecondsToOffset(timeFromStart.AsMilliseconds(), Map.currentLevel.speeds);
-                if(roundedOffset - prevRoundedOffset > 1)
-                    logger.Warn("Lag detected: the offset changed too quickly ({0}), current speed: {1} BPM, {2} ms",
-                        roundedOffset - prevRoundedOffset, currentBPM, 60000f / currentBPM);
-            }
-
-            prevPlayingOffset = music.PlayingOffset;
-
-            if(editing) {
-                float initialOffset = Map.currentLevel.metadata.initialOffsetMS / 1000f;
-                float duration = music.Duration.AsSeconds() - initialOffset;
-                if(Core.renderer.mousePosition.y == 0 && Core.renderer.leftButtonPressed) {
-                    float mouseProgress = Math.Clamp(Core.renderer.mousePositionF.X / 80f, 0f, 1f);
-                    music.PlayingOffset = Time.FromSeconds(duration * mouseProgress + initialOffset);
-                    offset = MillisecondsToOffset(timeFromStart.AsMilliseconds(), Map.currentLevel.speeds);
-                }
-                UI.progress = (int)(music.PlayingOffset.AsSeconds() / duration * 80f);
-            }
-        }
-        public static void GameStart(string musicPath) {
-            usedAuto = auto;
-            UI.progress = 80;
-            offset = 0;
-            roundedOffset = 0;
-            prevOffset = 0;
-            currentBPM = Map.currentLevel.speeds[0].speed;
-            UI.health = 0;
-            health = 80;
-            score = 0;
-            UI.prevScore = 0;
-            scores = new int[3];
-            accuracy = 100;
-            combo = 0;
-            maxCombo = 0;
-            music.Stop();
-
-            if(File.Exists(musicPath)) {
-                music = new Music(musicPath) {
-                    Volume = Settings.Default.musicVolume
-                };
-                music.PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
-                if(!editing) music.Play();
-            }
-
-            logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
-        }
-        public static void RecalculatePosition() {
-            Map.StepAll();
-            for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
-                if(Map.currentLevel.speeds[i].time <= timeFromStart.AsMilliseconds()) {
-                    currentBPM = Map.currentLevel.speeds[i].speed;
-                }
-                else break;
-            }
-        }
         public void PropertyChanged(object caller, PropertyChangedEventArgs e) {
             if(e.PropertyName == "font") {
                 string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.Default.font, "mappings.txt"));
@@ -352,52 +290,107 @@ namespace PPR.Main {
                 ReloadSounds();
             }
         }
-        public static void GenerateLevelList() {
-            string[] directories = Directory.GetDirectories("levels");
-            List<Button> buttons = new List<Button>();
-            List<LevelMetadata?> metadatas = new List<LevelMetadata?>();
-            for(int i = 0; i < directories.Length; i++) {
-                string name = Path.GetFileName(directories[i]);
-                if(name == "_template") continue;
-                buttons.Add(new Button(new Vector2(25, 12 + i), name, 30, ColorScheme.black, ColorScheme.white, ColorScheme.white));
-                metadatas.Add(new LevelMetadata(File.ReadAllLines(Path.Combine(directories[i], "level.txt")), name));
-                logger.Info("Loaded metadata for level {0}", name);
+        public void LostFocus(object caller, EventArgs args) {
+            if(currentMenu == Menu.Game) {
+                currentMenu = Menu.LastStats;
             }
-            UI.levelSelectLevels = buttons;
-            UI.levelSelectMetadatas = metadatas;
+            music.Volume = 0;
+        }
+        public void GainedFocus(object caller, EventArgs args) {
+            music.Volume = Settings.Default.musicVolume;
+        }
+        public static void GameStart(string musicPath) {
+            usedAuto = auto;
+            UI.progress = 80;
+            offset = 0;
+            roundedOffset = 0;
+            prevOffset = 0;
+            SetCurrentBPM(Map.currentLevel.speeds[0].speed);
+            timeFromStart = Time.Zero;
+            flooredTimeFromStart = Time.Zero;
+            UI.health = 0;
+            health = 80;
+            score = 0;
+            UI.prevScore = 0;
+            scores = new int[3];
+            accuracy = 100;
+            combo = 0;
+            maxCombo = 0;
+            music.Stop();
 
-            List<List<LevelScore>> scores = new List<List<LevelScore>> {
-                Capacity = buttons.Count
-            };
-            if(Directory.Exists("scores")) {
-                for(int i = 0; i < directories.Length; i++) {
-                    string name = Path.GetFileName(directories[i]);
-                    if(name == "_template") continue;
-                    string scoresPath = Path.Combine("scores", name + ".txt");
-                    if(File.Exists(scoresPath)) {
-                        scores.Add(Map.ScoresFromLines(File.ReadAllLines(scoresPath), UI.scoresPos));
-                        logger.Info("Loaded scores for level {0}, total scores count: {1}", name, scores[i].Count);
-                    }
-                    else {
-                        scores.Add(null);
-                    }
+            if(File.Exists(musicPath)) {
+                music = new Music(musicPath) {
+                    Volume = Settings.Default.musicVolume
+                };
+                music.PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
+                if(!editing) music.Play();
+            }
+
+            logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
+        }
+        public void Update() {
+            if(currentMenu != Menu.Game) return;
+
+            if(MathF.Floor(prevOffset) != MathF.Floor(offset)) {
+                roundedOffset = (int)MathF.Round(offset);
+                RecalculatePosition();
+            }
+            prevOffset = offset;
+
+            if(music.PlayingOffset != prevPlayingOffset) {
+                timeFromStart = music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
+                offset = MillisecondsToOffset(timeFromStart.AsMilliseconds(), Map.currentLevel.speeds);
+                UpdateFlooredTime();
+                /*if(roundedOffset - prevRoundedOffset > 1)
+                    logger.Warn("Lag detected: the offset changed too quickly ({0}), current speed: {1} BPM, {2} ms",
+                        roundedOffset - prevRoundedOffset, currentBPM, 60000f / currentBPM);*/
+            }
+            prevPlayingOffset = music.PlayingOffset;
+
+            if(editing) {
+                float initialOffset = Map.currentLevel.metadata.initialOffsetMS / 1000f;
+                float duration = music.Duration.AsSeconds() - initialOffset;
+                if(Core.renderer.mousePosition.y == 0 && Core.renderer.leftButtonPressed) {
+                    float mouseProgress = Math.Clamp(Core.renderer.mousePositionF.X / 80f, 0f, 1f);
+                    music.PlayingOffset = Time.FromSeconds(duration * mouseProgress + initialOffset);
+                    offset = MillisecondsToOffset(timeFromStart.AsMilliseconds(), Map.currentLevel.speeds);
                 }
+                UI.progress = (int)(music.PlayingOffset.AsSeconds() / duration * 80f);
             }
-            UI.levelSelectScores = scores;
-
-            logger.Info("Loaded levels, total level count: {0}", buttons.Count);
         }
-        public static void RecalculateAccuracy() {
-            float sum = scores[0] + scores[1] + scores[2];
-            float mulSum = scores[1] * 0.5f + scores[2];
-            accuracy = (int)MathF.Floor(mulSum / sum * 100f);
+        public static void RecalculatePosition() {
+            for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
+                if(Map.currentLevel.speeds[i].time <= timeFromStart.AsMilliseconds()) {
+                    SetCurrentBPM(Map.currentLevel.speeds[i].speed);
+                }
+                else break;
+            }
+            for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
+                if(Map.currentLevel.speeds[i].time + 60000f / Map.currentLevel.speeds[i].speed <= timeFromStart.AsMilliseconds()) {
+                    SetPreviousBPM(Map.currentLevel.speeds[i].speed);
+                }
+                else break;
+            }
+            logger.Debug(previousSpeedMS + " , " + currentSpeedMS);
+            Map.StepAll();
         }
-        public static Color GetAccuracyColor(int accuracy) {
-            return accuracy >= 100 ? ColorScheme.green : accuracy >= 70 ? ColorScheme.yellow : ColorScheme.red;
+        static void SetCurrentBPM(int bpm) {
+            currentBPM = bpm;
+            currentSpeedMicS = currentBPM == 0 ? 0 : 60000000 / currentBPM;
+            currentSpeedMS = currentSpeedMicS / 1000f;
+            currentSpeedSec = currentSpeedMS / 1000f;
         }
-        public static Color GetComboColor(int accuracy, int misses) {
-            return accuracy >= 100 ? ColorScheme.green : misses <= 0 ? ColorScheme.yellow : ColorScheme.blue;
+        static void SetPreviousBPM(int bpm) {
+            previousBPM = bpm;
+            previousSpeedMicS = previousBPM == 0 ? 0 : 60000000 / previousBPM;
+            previousSpeedMS = previousSpeedMicS / 1000f;
+            previousSpeedSec = previousSpeedMS / 1000f;
         }
+        public static void UpdateFlooredTime() {
+            flooredTimeFromStart = Time.FromMicroseconds((long)(currentSpeedMicS * MathF.Floor(timeFromStart.AsMicroseconds() / currentSpeedMicS)));
+        }
+        
+        
         public void KeyPressed(object caller, KeyEventArgs key) {
             if(key.Code == Keyboard.Key.Escape) {
                 if(currentMenu == Menu.Game) currentMenu = Menu.LastStats;
@@ -471,7 +464,8 @@ namespace PPR.Main {
                                 Map.currentLevel.metadata.linesFrequency += delta;
                             }
                             else {
-                                if(!Map.currentLevel.speeds.Select(speed => (int)MathF.Round(MillisecondsToOffset(speed.time))).Contains(roundedOffset)) {
+                                List<Time> flooredSpeedsTimes = Map.currentLevel.speeds.Select(speed => Time.FromMicroseconds((long)(currentSpeedMicS * MathF.Floor(speed.time / currentSpeedMS)))).ToList();
+                                if(!flooredSpeedsTimes.Contains(flooredTimeFromStart)) {
                                     int speedIndex = 0;
                                     for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
                                         if(Map.currentLevel.speeds[i].time <= timeFromStart.AsMilliseconds()) speedIndex = i;
@@ -481,9 +475,13 @@ namespace PPR.Main {
                                     //Map.currentLevel.speeds = SortLevelSpeeds(Map.currentLevel.speeds);
                                 }
 
-                                int index = Map.currentLevel.speeds.Select(speed => (int)MathF.Round(MillisecondsToOffset(speed.time))).ToList().IndexOf(roundedOffset);
+                                flooredSpeedsTimes = Map.currentLevel.speeds.Select(speed => Time.FromMicroseconds((long)(currentSpeedMicS * MathF.Floor(speed.time / currentSpeedMS)))).ToList();
+                                int index = flooredSpeedsTimes.IndexOf(flooredTimeFromStart);
 
                                 Map.currentLevel.speeds[index].speed += delta * (key.Shift ? 1 : 10);
+
+                                SetCurrentBPM(Map.currentLevel.speeds[index].speed);
+                                UpdateFlooredTime();
 
                                 if(index >= 1 && Map.currentLevel.speeds[index].speed == Map.currentLevel.speeds[index - 1].speed) {
                                     Map.currentLevel.speeds.RemoveAt(index);
@@ -525,8 +523,7 @@ namespace PPR.Main {
                             int delta = key.Code == Keyboard.Key.PageUp ? 1 : -1;
                             /*offset = roundedOffset;
                             offset += delta * 10;*/
-                            Time newTime = music.PlayingOffset + Time.FromSeconds(60f / currentBPM * delta * 10f);
-                            music.PlayingOffset = newTime < Time.Zero ? Time.Zero : newTime > music.Duration ? music.Duration : newTime;
+                            ScrollTime(delta * 10);
                         }
                     }
                     else {
@@ -548,15 +545,6 @@ namespace PPR.Main {
                     }
                 }
             }
-        }
-        public void LostFocus(object caller, EventArgs args) {
-            if(currentMenu == Menu.Game) {
-                currentMenu = Menu.LastStats;
-            }
-            music.Volume = 0;
-        }
-        public void GainedFocus(object caller, EventArgs args) {
-            music.Volume = Settings.Default.musicVolume;
         }
         bool CheckLine(int y) {
             List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != LevelObject.speedChar &&
@@ -598,34 +586,14 @@ namespace PPR.Main {
                 }
             }
             else if(currentMenu == Menu.Game && editing) {
-                /*offset = roundedOffset;
-                offset += scroll.Delta;*/
-                Time newTime = music.PlayingOffset + Time.FromSeconds(60f / currentBPM * scroll.Delta);
-                music.PlayingOffset = newTime < Time.Zero ? Time.Zero : newTime > music.Duration ? music.Duration : newTime;
-                //UpdateTime();
+                ScrollTime((int)scroll.Delta);
             }
         }
-        public static void RecalculateTimeFromStart() {
-            timeFromStart = music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
+        public static void ScrollTime(int delta) {
+            long useSpeed = delta < 0 ? previousSpeedMicS : currentSpeedMicS;
+            Time newTime = music.PlayingOffset + Time.FromMicroseconds(useSpeed * delta);
+            music.PlayingOffset = newTime < Time.Zero ? Time.Zero : newTime > music.Duration ? music.Duration : newTime;
         }
-        /*public static void UpdateTime() {
-            long useMicrosecs = (long)(Math.Abs(OffsetToMilliseconds(offset, Map.currentLevel.speeds)) * 1000f);
-            music.PlayingOffset = Time.FromMicroseconds(useMicrosecs) + Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
-        }
-        public static float OffsetToMilliseconds(float offset, List<LevelSpeed> sortedSpeeds) {
-            float useOffset = offset;
-
-            int speedIndex = 0;
-            for(int i = 0; i < sortedSpeeds.Count; i++) {
-                if(sortedSpeeds[i].offset <= useOffset) speedIndex = i;
-            }
-            float time = 0;
-            for(int i = 0; i <= speedIndex; i++) {
-                if(i != speedIndex) time += (sortedSpeeds[i + 1].offset - sortedSpeeds[i].offset) * (60000f / sortedSpeeds[i].speed);
-                else time += (useOffset - sortedSpeeds[i].offset) * (60000f / sortedSpeeds[speedIndex].speed);
-            }
-            return time;
-        }*/
         public static float MillisecondsToOffset(float time) {
             return MillisecondsToOffset(time, Map.currentLevel.speeds);
         }
@@ -641,7 +609,7 @@ namespace PPR.Main {
             for(int i = 0; i <= speedIndex; i++) {
                 if(i != speedIndex) {
                     int increment = sortedSpeeds[i + 1].time - sortedSpeeds[i].time;
-                    offset += increment * (60f / sortedSpeeds[i].speed);
+                    offset += increment / (60000f / sortedSpeeds[i].speed);
                     useTime -= increment;
                 }
                 else offset += useTime / (60000f / sortedSpeeds[i].speed);
@@ -700,5 +668,51 @@ namespace PPR.Main {
 
             return sorted;
         }*/
+        public static void GenerateLevelList() {
+            string[] directories = Directory.GetDirectories("levels");
+            List<Button> buttons = new List<Button>();
+            List<LevelMetadata?> metadatas = new List<LevelMetadata?>();
+            for(int i = 0; i < directories.Length; i++) {
+                string name = Path.GetFileName(directories[i]);
+                if(name == "_template") continue;
+                buttons.Add(new Button(new Vector2(25, 12 + i), name, 30, ColorScheme.black, ColorScheme.white, ColorScheme.white));
+                metadatas.Add(new LevelMetadata(File.ReadAllLines(Path.Combine(directories[i], "level.txt")), name));
+                logger.Info("Loaded metadata for level {0}", name);
+            }
+            UI.levelSelectLevels = buttons;
+            UI.levelSelectMetadatas = metadatas;
+
+            List<List<LevelScore>> scores = new List<List<LevelScore>> {
+                Capacity = buttons.Count
+            };
+            if(Directory.Exists("scores")) {
+                for(int i = 0; i < directories.Length; i++) {
+                    string name = Path.GetFileName(directories[i]);
+                    if(name == "_template") continue;
+                    string scoresPath = Path.Combine("scores", name + ".txt");
+                    if(File.Exists(scoresPath)) {
+                        scores.Add(Map.ScoresFromLines(File.ReadAllLines(scoresPath), UI.scoresPos));
+                        logger.Info("Loaded scores for level {0}, total scores count: {1}", name, scores[i].Count);
+                    }
+                    else {
+                        scores.Add(null);
+                    }
+                }
+            }
+            UI.levelSelectScores = scores;
+
+            logger.Info("Loaded levels, total level count: {0}", buttons.Count);
+        }
+        public static void RecalculateAccuracy() {
+            float sum = scores[0] + scores[1] + scores[2];
+            float mulSum = scores[1] * 0.5f + scores[2];
+            accuracy = (int)MathF.Floor(mulSum / sum * 100f);
+        }
+        public static Color GetAccuracyColor(int accuracy) {
+            return accuracy >= 100 ? ColorScheme.green : accuracy >= 70 ? ColorScheme.yellow : ColorScheme.red;
+        }
+        public static Color GetComboColor(int accuracy, int misses) {
+            return accuracy >= 100 ? ColorScheme.green : misses <= 0 ? ColorScheme.yellow : ColorScheme.blue;
+        }
     }
 }
