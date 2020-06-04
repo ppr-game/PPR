@@ -33,7 +33,7 @@ public static class Core {
 
             deltaTime = fpsClock.Restart().AsSeconds();
             UI.fps = (int)MathF.Round(1f / deltaTime);
-            if(UI.fps < 30 && renderer.window.HasFocus()) logger.Warn("Lag detected: too low fps ({0})", UI.fps);
+            //if(UI.fps < 30 && renderer.window.HasFocus()) logger.Warn("Lag detected: too low fps ({0})", UI.fps);
         }
     }
 }

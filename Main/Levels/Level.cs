@@ -158,7 +158,8 @@ namespace PPR.Main.Levels {
         public Vector2 startPosition;
         public char character;
         public Keyboard.Key key;
-        public int time;
+        public readonly int time;
+        public int steps;
         static readonly Color color = ColorScheme.white;
         static readonly Color speedColor = ColorScheme.blue;
 
@@ -192,10 +193,11 @@ namespace PPR.Main.Levels {
             }
             List<LevelSpeed> existingSpeeds = new List<LevelSpeed>(speeds);
             existingSpeeds.Sort((spd1, spd2) => spd1.time.CompareTo(spd2.time));
-            startPosition = new Vector2(x, (int)MathF.Round(Game.MillisecondsToOffset(-time, existingSpeeds) + Map.linePos.y));
+            startPosition = new Vector2(x, (int)MathF.Round(Map.linePos.y - Game.MillisecondsToOffset(time, existingSpeeds)));
             position = new Vector2(startPosition);
             this.character = character;
             this.time = time;
+            steps = (int)MathF.Round(Game.MillisecondsToSteps(time, existingSpeeds));
             switch(char.ToUpper(character)) {
                 case '1': key = Keyboard.Key.Num1; break;
                 case '2': key = Keyboard.Key.Num2; break;
@@ -245,6 +247,12 @@ namespace PPR.Main.Levels {
             }
         }
 
+        static Color HitColor(int step, bool hold) {
+            int distance = Math.Abs(step - Game.roundedSteps);
+            bool hit = distance >= hitRange;
+            bool miss = distance >= missRange || (hit && hold);
+            return miss ? ColorScheme.red : hit ? ColorScheme.yellow : ColorScheme.green;
+        }
         public void Draw() {
             if(removed && !ignore) {
                 if(removeAnimationTime <= 0f) {
@@ -254,20 +262,20 @@ namespace PPR.Main.Levels {
                     }
                 }
                 Color startColor = ColorScheme.green;
-                startColor = position.y >= Map.linePos.y - 1 && position.y <= Map.linePos.y + 1 ?
-                                               position.y == Map.linePos.y ? ColorScheme.green : character == holdChar ? ColorScheme.red : ColorScheme.yellow : ColorScheme.red;
+                startColor = HitColor(steps, character == holdChar);
                 Renderer.instance.SetCellColor(position, Renderer.AnimateColor(removeAnimationTime, startColor, ColorScheme.white, 3f),
                                                                                                                      Renderer.AnimateColor(removeAnimationTime, startColor, Color.Transparent, 3f));
                 if(removeAnimationTime >= 1f) _ = Map.currentLevel.objects.Remove(this);
                 removeAnimationTime += Core.deltaTime;
                 return;
             }
-            if(!ignore) Renderer.instance.SetCharacter(position, character, character == speedChar ? speedColor : color, Color.Transparent);
-            if(!Game.editing && CheckWentTroughLine()) {
+            if(!ignore && (!Game.editing || !Game.StepPassedLine(steps, 1)))
+                Renderer.instance.SetCharacter(position, character, character == speedChar ? speedColor : color, Color.Transparent);
+            if(!Game.editing && Game.StepPassedLine(steps)) {
                 if(character == speedChar || ignore) {
                     _ = Map.currentLevel.objects.Remove(this);
                 }
-                else if(CheckWentTroughLine(character == holdChar ? 1 : missRange)) {
+                else if(Game.StepPassedLine(steps, character == holdChar ? 1 : missRange)) {
                     Miss();
                     Game.RecalculateAccuracy();
                     removed = true;
@@ -277,26 +285,8 @@ namespace PPR.Main.Levels {
                 }
             }
         }
-        public bool CheckWentTroughLine(int lineOffset = 0) {
-            //return CheckWentTroughLine(position.y, lineOffset);
-            return Game.WentThroughLine(position.y, lineOffset, Map.currentLevel.speeds);
-            //return false;
-        }
-        /*public static bool CheckWentTroughLine(int y, int lineOffset = 0) {
-            int speedSign = Math.Sign(Game.currentBPM);
-
-            int thisY = y;
-            int lineY = Map.linePos.y + lineOffset * speedSign;
-
-            return speedSign switch
-            {
-                1 => thisY >= lineY,
-                -1 => thisY <= lineY,
-                _ => thisY == lineY
-            };
-        }*/
         public void CheckHit() {
-            if(character == holdChar ? position.y == Map.linePos.y : CheckWentTroughLine(-hitRange)) {
+            if(character == holdChar ? steps == Game.roundedSteps : Game.StepPassedLine(steps, -hitRange)) {
                 Hit();
             }
             else {
@@ -319,7 +309,7 @@ namespace PPR.Main.Levels {
         }
         void Hit() {
             Game.health += Map.currentLevel.metadata.hpRestorage;
-            int score = position.y == Map.linePos.y || character == holdChar ? 10 : 5;
+            int score = steps == (int)Game.steps || character == holdChar ? 10 : 5;
             Game.combo++;
             Game.maxCombo = Math.Max(Game.combo, Game.maxCombo);
             Game.score += score * Game.combo;
@@ -333,7 +323,7 @@ namespace PPR.Main.Levels {
         public void Step() {
             if(removed) return;
             position.y = startPosition.y + Game.roundedOffset;
-            if(Game.editing && Game.music.Status == SoundStatus.Playing && position.y == Map.linePos.y)
+            if(Game.editing && Game.music.Status == SoundStatus.Playing && steps == (int)Game.steps)
                 PlayHitsound();
         }
 

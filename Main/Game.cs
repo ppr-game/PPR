@@ -85,7 +85,6 @@ namespace PPR.Main {
             }
         }
         public static Time timeFromStart;
-        public static Time flooredTimeFromStart;
         static Time prevPlayingOffset;
         static float _offset = 0f;
         public static float offset {
@@ -96,15 +95,10 @@ namespace PPR.Main {
             get => _offset;
         }
         public static int roundedOffset = 0;
-        public static float prevOffset = 0f;
+        public static float steps = 0f;
+        public static int roundedSteps = 0;
+        public static float prevSteps = 0f;
         public static int currentBPM = 1;
-        public static long currentSpeedMicS = 60000000;
-        public static float currentSpeedMS = 60000f;
-        public static float currentSpeedSec = 60f;
-        public static int previousBPM = 1;
-        public static long previousSpeedMicS = 60000000;
-        public static float previousSpeedMS = 60000f;
-        public static float previousSpeedSec = 60f;
         public static Music music;
         public static SoundBuffer hitsoundBuffer;
         public static SoundBuffer ticksoundBuffer;
@@ -304,10 +298,11 @@ namespace PPR.Main {
             UI.progress = 80;
             offset = 0;
             roundedOffset = 0;
-            prevOffset = 0;
-            SetCurrentBPM(Map.currentLevel.speeds[0].speed);
+            steps = 0;
+            roundedSteps = 0;
+            prevSteps = 0;
+            currentBPM = Map.currentLevel.speeds[0].speed;
             timeFromStart = Time.Zero;
-            flooredTimeFromStart = Time.Zero;
             UI.health = 0;
             health = 80;
             score = 0;
@@ -331,21 +326,19 @@ namespace PPR.Main {
         public void Update() {
             if(currentMenu != Menu.Game) return;
 
-            if(MathF.Floor(prevOffset) != MathF.Floor(offset)) {
+            if(music.PlayingOffset != prevPlayingOffset) {
+                timeFromStart = music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
+                offset = MillisecondsToOffset(timeFromStart.AsMicroseconds() / 1000f);
+                steps = MillisecondsToSteps(timeFromStart.AsMicroseconds() / 1000f);
+            }
+            prevPlayingOffset = music.PlayingOffset;
+
+            if(MathF.Floor(prevSteps) != MathF.Floor(steps)) {
+                roundedSteps = (int)MathF.Round(steps);
                 roundedOffset = (int)MathF.Round(offset);
                 RecalculatePosition();
             }
-            prevOffset = offset;
-
-            if(music.PlayingOffset != prevPlayingOffset) {
-                timeFromStart = music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
-                offset = MillisecondsToOffset(timeFromStart.AsMilliseconds(), Map.currentLevel.speeds);
-                UpdateFlooredTime();
-                /*if(roundedOffset - prevRoundedOffset > 1)
-                    logger.Warn("Lag detected: the offset changed too quickly ({0}), current speed: {1} BPM, {2} ms",
-                        roundedOffset - prevRoundedOffset, currentBPM, 60000f / currentBPM);*/
-            }
-            prevPlayingOffset = music.PlayingOffset;
+            prevSteps = steps;
 
             if(editing) {
                 float initialOffset = Map.currentLevel.metadata.initialOffsetMS / 1000f;
@@ -353,44 +346,31 @@ namespace PPR.Main {
                 if(Core.renderer.mousePosition.y == 0 && Core.renderer.leftButtonPressed) {
                     float mouseProgress = Math.Clamp(Core.renderer.mousePositionF.X / 80f, 0f, 1f);
                     music.PlayingOffset = Time.FromSeconds(duration * mouseProgress + initialOffset);
-                    offset = MillisecondsToOffset(timeFromStart.AsMilliseconds(), Map.currentLevel.speeds);
+                    timeFromStart = music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
+                    offset = MillisecondsToOffset(timeFromStart.AsMilliseconds());
+                    steps = MillisecondsToSteps(timeFromStart.AsMilliseconds());
                 }
                 UI.progress = (int)(music.PlayingOffset.AsSeconds() / duration * 80f);
             }
         }
-        public static void RecalculatePosition() {
+        public static void UpdateTime() {
+            long useMicrosecs = (long)((MathF.Round(StepsToMilliseconds(steps)) + Map.currentLevel.metadata.initialOffsetMS) * 1000f);
+            music.PlayingOffset = Time.FromMicroseconds(useMicrosecs);
+        }
+        public static void UpdateSpeeds() {
             for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
                 if(Map.currentLevel.speeds[i].time <= timeFromStart.AsMilliseconds()) {
-                    SetCurrentBPM(Map.currentLevel.speeds[i].speed);
+                    currentBPM = Map.currentLevel.speeds[i].speed;
                 }
                 else break;
             }
-            for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
-                if(Map.currentLevel.speeds[i].time + 60000f / Map.currentLevel.speeds[i].speed <= timeFromStart.AsMilliseconds()) {
-                    SetPreviousBPM(Map.currentLevel.speeds[i].speed);
-                }
-                else break;
-            }
-            logger.Debug(previousSpeedMS + " , " + currentSpeedMS);
+        }
+        public static void RecalculatePosition() {
+            UpdateSpeeds();
             Map.StepAll();
+            //logger.Debug(previousSpeedMS + " , " + currentSpeedMS);
         }
-        static void SetCurrentBPM(int bpm) {
-            currentBPM = bpm;
-            currentSpeedMicS = currentBPM == 0 ? 0 : 60000000 / currentBPM;
-            currentSpeedMS = currentSpeedMicS / 1000f;
-            currentSpeedSec = currentSpeedMS / 1000f;
-        }
-        static void SetPreviousBPM(int bpm) {
-            previousBPM = bpm;
-            previousSpeedMicS = previousBPM == 0 ? 0 : 60000000 / previousBPM;
-            previousSpeedMS = previousSpeedMicS / 1000f;
-            previousSpeedSec = previousSpeedMS / 1000f;
-        }
-        public static void UpdateFlooredTime() {
-            flooredTimeFromStart = Time.FromMicroseconds((long)(currentSpeedMicS * MathF.Floor(timeFromStart.AsMicroseconds() / currentSpeedMicS)));
-        }
-        
-        
+
         public void KeyPressed(object caller, KeyEventArgs key) {
             if(key.Code == Keyboard.Key.Escape) {
                 if(currentMenu == Menu.Game) currentMenu = Menu.LastStats;
@@ -452,7 +432,7 @@ namespace PPR.Main {
                     };
                     if(character == '\0') {
                         if(key.Code == Keyboard.Key.Backspace) {
-                            List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => MillisecondsToOffset(obj.time) == roundedOffset &&
+                            List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => (int)MillisecondsToSteps(obj.time) == (int)steps &&
                                                                                                                                                                                                        obj.character != LevelObject.speedChar);
                             foreach(LevelObject obj in objects) {
                                 _ = Map.currentLevel.objects.Remove(obj);
@@ -464,8 +444,8 @@ namespace PPR.Main {
                                 Map.currentLevel.metadata.linesFrequency += delta;
                             }
                             else {
-                                List<Time> flooredSpeedsTimes = Map.currentLevel.speeds.Select(speed => Time.FromMicroseconds((long)(currentSpeedMicS * MathF.Floor(speed.time / currentSpeedMS)))).ToList();
-                                if(!flooredSpeedsTimes.Contains(flooredTimeFromStart)) {
+                                List<int> flooredSpeedsSteps = Map.currentLevel.speeds.Select(speed => (int)MillisecondsToSteps(speed.time)).ToList();
+                                if(!flooredSpeedsSteps.Contains((int)steps)) {
                                     int speedIndex = 0;
                                     for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
                                         if(Map.currentLevel.speeds[i].time <= timeFromStart.AsMilliseconds()) speedIndex = i;
@@ -475,13 +455,10 @@ namespace PPR.Main {
                                     //Map.currentLevel.speeds = SortLevelSpeeds(Map.currentLevel.speeds);
                                 }
 
-                                flooredSpeedsTimes = Map.currentLevel.speeds.Select(speed => Time.FromMicroseconds((long)(currentSpeedMicS * MathF.Floor(speed.time / currentSpeedMS)))).ToList();
-                                int index = flooredSpeedsTimes.IndexOf(flooredTimeFromStart);
+                                flooredSpeedsSteps = Map.currentLevel.speeds.Select(speed => (int)MillisecondsToSteps(speed.time)).ToList();
+                                int index = flooredSpeedsSteps.IndexOf((int)steps);
 
                                 Map.currentLevel.speeds[index].speed += delta * (key.Shift ? 1 : 10);
-
-                                SetCurrentBPM(Map.currentLevel.speeds[index].speed);
-                                UpdateFlooredTime();
 
                                 if(index >= 1 && Map.currentLevel.speeds[index].speed == Map.currentLevel.speeds[index - 1].speed) {
                                     Map.currentLevel.speeds.RemoveAt(index);
@@ -496,8 +473,9 @@ namespace PPR.Main {
                                 }
 
                                 foreach(LevelObject obj in Map.currentLevel.objects) {
-                                    obj.startPosition.y = (int)MathF.Round(MillisecondsToOffset(-obj.time, Map.currentLevel.speeds) + Map.linePos.y);
-                                    obj.position = new Vector2(obj.startPosition);
+                                    obj.startPosition.y = (int)MathF.Round(Map.linePos.y - MillisecondsToOffset(obj.time, Map.currentLevel.speeds));
+                                    obj.position.y = obj.startPosition.y;
+                                    obj.steps = (int)MillisecondsToSteps(obj.time, Map.currentLevel.speeds);
                                 }
                             }
                         }
@@ -527,7 +505,7 @@ namespace PPR.Main {
                         }
                     }
                     else {
-                        if(Map.currentLevel.objects.FindAll(obj => obj.character == character && MillisecondsToOffset(obj.time) == roundedOffset).Count <= 0) {
+                        if(Map.currentLevel.objects.FindAll(obj => obj.character == character && MillisecondsToSteps(obj.time) == (int)steps).Count <= 0) {
                             Map.currentLevel.objects.Add(new LevelObject(character, timeFromStart.AsMilliseconds(), Map.currentLevel.speeds));
                             if(key.Shift) {
                                 character = LevelObject.holdChar;
@@ -539,19 +517,18 @@ namespace PPR.Main {
                     RecalculatePosition();
                 }
                 else if(!auto) {
-                    int speedSign = Math.Sign(currentBPM);
-                    for(int y = Map.linePos.y + LevelObject.missRange * speedSign; WentThroughLine(y, -LevelObject.missRange, Map.currentLevel.speeds); y -= speedSign) {
-                        if(CheckLine(y)) break;
+                    for(int step = roundedSteps - LevelObject.missRange; StepPassedLine(step, -LevelObject.missRange); step++) {
+                        if(CheckLine(step)) break;
                     }
                 }
             }
         }
-        bool CheckLine(int y) {
+        bool CheckLine(int step) {
             List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != LevelObject.speedChar &&
                                                                                                                                                                                        obj.character != LevelObject.holdChar &&
                                                                                                                                                                                        !obj.removed &&
                                                                                                                                                                                        !obj.ignore &&
-                                                                                                                                                                                       obj.position.y == y);
+                                                                                                                                                                                       obj.steps == step);
             for(int i = 0; i < objects.Count; i++) {
                 objects[i].CheckPress();
                 if(objects[i].removed) return true;
@@ -590,9 +567,52 @@ namespace PPR.Main {
             }
         }
         public static void ScrollTime(int delta) {
-            long useSpeed = delta < 0 ? previousSpeedMicS : currentSpeedMicS;
-            Time newTime = music.PlayingOffset + Time.FromMicroseconds(useSpeed * delta);
+            /*int steps = (int)MathF.Round(MillisecondsToSteps(music.PlayingOffset.AsMilliseconds()));
+            Time newTime = Time.FromSeconds(StepsToMilliseconds(steps + delta) / 1000f);
             music.PlayingOffset = newTime < Time.Zero ? Time.Zero : newTime > music.Duration ? music.Duration : newTime;
+            timeFromStart = music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
+            logger.Debug("{0} , {1} , {2}", music.PlayingOffset.AsMilliseconds(), steps + delta, StepsToMilliseconds(steps + delta));*/
+            steps = Math.Clamp(steps + delta, 0, MillisecondsToSteps(music.Duration.AsMicroseconds() / 1000f));
+            UpdateTime();
+        }
+        public static float StepsToMilliseconds(float steps) {
+            return StepsToMilliseconds(steps, Map.currentLevel.speeds);
+        }
+        public static float StepsToMilliseconds(float steps, List<LevelSpeed> sortedSpeeds) {
+            float useSteps = steps;
+
+            int speedIndex = 0;
+            for(int i = 0; i < sortedSpeeds.Count; i++) {
+                if(MillisecondsToSteps(sortedSpeeds[i].time, sortedSpeeds) <= useSteps) speedIndex = i;
+            }
+            float time = 0;
+            for(int i = 0; i <= speedIndex; i++) {
+                if(i != speedIndex) time += sortedSpeeds[i + 1].time - sortedSpeeds[i].time;
+                else time += (useSteps - MillisecondsToSteps(sortedSpeeds[i].time)) * (60000f / Math.Abs(sortedSpeeds[i].speed));
+            }
+            return time;
+        }
+        public static float MillisecondsToSteps(float time) {
+            return MillisecondsToSteps(time, Map.currentLevel.speeds);
+        }
+        public static float MillisecondsToSteps(float time, List<LevelSpeed> sortedSpeeds) {
+            float useTime = time;
+
+            int speedIndex = 0;
+            for(int i = 0; i < sortedSpeeds.Count; i++) {
+                if(sortedSpeeds[i].time <= useTime) speedIndex = i;
+                else break;
+            }
+            float steps = 0;
+            for(int i = 0; i <= speedIndex; i++) {
+                if(i != speedIndex) {
+                    int timeDecrement = sortedSpeeds[i + 1].time - sortedSpeeds[i].time;
+                    steps += timeDecrement / (60000f / Math.Abs(sortedSpeeds[i].speed));
+                    useTime -= timeDecrement;
+                }
+                else steps += useTime / (60000f / Math.Abs(sortedSpeeds[i].speed));
+            }
+            return steps;
         }
         public static float MillisecondsToOffset(float time) {
             return MillisecondsToOffset(time, Map.currentLevel.speeds);
@@ -608,32 +628,16 @@ namespace PPR.Main {
             float offset = 0;
             for(int i = 0; i <= speedIndex; i++) {
                 if(i != speedIndex) {
-                    int increment = sortedSpeeds[i + 1].time - sortedSpeeds[i].time;
-                    offset += increment / (60000f / sortedSpeeds[i].speed);
-                    useTime -= increment;
+                    int timeDecrement = sortedSpeeds[i + 1].time - sortedSpeeds[i].time;
+                    offset += timeDecrement / (60000f / sortedSpeeds[i].speed);
+                    useTime -= timeDecrement;
                 }
                 else offset += useTime / (60000f / sortedSpeeds[i].speed);
             }
             return offset;
         }
-        public static bool WentThroughLine(float offset, int lineOffset, List<LevelSpeed> sortedSpeeds) {
-            /*for(int i = 0; i < sortedSpeeds.Count - 1; i++) {
-                LevelSpeed currSpeed = sortedSpeeds[i];
-                LevelSpeed nextSpeed = sortedSpeeds[i + 1];
-                int speedSign = Math.Sign(currSpeed.speed);
-                int line = Map.linePos.y + lineOffset * speedSign;
-
-                if(speedSign == 0) break;
-                else if(speedSign < 0) {
-                    if(offset >= line && line >= nextSpeed.offset)
-                        return true;
-                }
-                else {
-                    if(offset <= line && line <= nextSpeed.offset)
-                        return true;
-                }
-            }*/
-            return false;
+        public static bool StepPassedLine(int step, int lineOffset = 0) {
+            return roundedSteps >= step + lineOffset;
         }
         /*public static List<LevelSpeed> SortLevelSpeeds(List<LevelSpeed> list) {
             List<LevelSpeed> unsorted = new List<LevelSpeed>(list);

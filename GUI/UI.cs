@@ -352,6 +352,8 @@ namespace PPR.GUI {
                             Game.music.Pause();
                             //Game.offset = Game.roundedOffset;
                             //Game.UpdateTime();
+                            Game.steps = Game.roundedSteps;
+                            Game.UpdateTime();
                         }
                     }
                 }
@@ -359,7 +361,7 @@ namespace PPR.GUI {
                 TimeSpan curTime = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
                 Renderer.instance.DrawText(timePos, "TIME: " + (curTime < TimeSpan.Zero ? "'-'" : "") + curTime.ToString((curTime.Hours != 0 ? "h':'mm" : "m") + "':'ss"),
                                             ColorScheme.blue, Color.Transparent);
-                Renderer.instance.DrawText(offsetPos, "OFFSET: " + Game.roundedOffset, ColorScheme.blue, Color.Transparent);
+                Renderer.instance.DrawText(offsetPos, "OFFSET: " + Game.roundedOffset + " (" + Game.roundedSteps + ")", ColorScheme.blue, Color.Transparent);
 
                 Renderer.instance.DrawText(hpDrainPos, "HP DRAIN: " + Map.currentLevel.metadata.hpDrain, ColorScheme.red, Color.Transparent);
                 Renderer.instance.DrawText(hpRestoragePos, "HP RESTORAGE: " + Map.currentLevel.metadata.hpRestorage, ColorScheme.red, Color.Transparent);
@@ -510,11 +512,11 @@ namespace PPR.GUI {
                 }
             }
         }
-        static void DrawCursor() {
+        /*static void DrawCursor() {
             Color cellColor = Core.renderer.GetCellBackgroundColor(Core.renderer.mousePosition);
             if(cellColor == Color.Black || cellColor == ColorScheme.black)
             Core.renderer.SetCellColor(Core.renderer.mousePosition, ColorScheme.white, ColorScheme.darkGray);
-        }
+        }*/
         public static void Draw() {
             switch(Game.currentMenu) {
                 case Menu.Main:
@@ -533,7 +535,7 @@ namespace PPR.GUI {
                     DrawLastStats();
                     break;
             }
-            DrawCursor();
+            //DrawCursor();
             if(Settings.Default.showFps)
                 Renderer.instance.DrawText(zero, fps + " FPS", fps >= 60 ? ColorScheme.green : fps > 20 ? ColorScheme.yellow : ColorScheme.red, Color.Transparent);
         }
