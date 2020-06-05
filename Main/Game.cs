@@ -371,8 +371,95 @@ namespace PPR.Main {
             //logger.Debug(previousSpeedMS + " , " + currentSpeedMS);
         }
 
+        public static char GetNoteBinding(Keyboard.Key key) {
+            return key switch
+            {
+                Keyboard.Key.Num1 => '1',
+                Keyboard.Key.Num2 => '2',
+                Keyboard.Key.Num3 => '3',
+                Keyboard.Key.Num4 => '4',
+                Keyboard.Key.Num5 => '5',
+                Keyboard.Key.Num6 => '6',
+                Keyboard.Key.Num7 => '7',
+                Keyboard.Key.Num8 => '8',
+                Keyboard.Key.Num9 => '9',
+                Keyboard.Key.Num0 => '0',
+                Keyboard.Key.Hyphen => '-',
+                Keyboard.Key.Equal => '=',
+                Keyboard.Key.Q => 'q',
+                Keyboard.Key.W => 'w',
+                Keyboard.Key.E => 'e',
+                Keyboard.Key.R => 'r',
+                Keyboard.Key.T => 't',
+                Keyboard.Key.Y => 'y',
+                Keyboard.Key.U => 'u',
+                Keyboard.Key.I => 'i',
+                Keyboard.Key.O => 'o',
+                Keyboard.Key.P => 'p',
+                Keyboard.Key.LBracket => '[',
+                Keyboard.Key.RBracket => ']',
+                Keyboard.Key.A => 'a',
+                Keyboard.Key.S => 's',
+                Keyboard.Key.D => 'd',
+                Keyboard.Key.F => 'f',
+                Keyboard.Key.G => 'g',
+                Keyboard.Key.H => 'h',
+                Keyboard.Key.J => 'j',
+                Keyboard.Key.K => 'k',
+                Keyboard.Key.L => 'l',
+                Keyboard.Key.Semicolon => ';',
+                Keyboard.Key.Quote => '\'',
+                Keyboard.Key.Z => 'z',
+                Keyboard.Key.X => 'x',
+                Keyboard.Key.C => 'c',
+                Keyboard.Key.V => 'v',
+                Keyboard.Key.B => 'b',
+                Keyboard.Key.N => 'n',
+                Keyboard.Key.M => 'm',
+                Keyboard.Key.Comma => ',',
+                Keyboard.Key.Period => '.',
+                Keyboard.Key.Slash => '/',
+                _ => '\0'
+            };
+        }
+        public static void ChangeSpeed(int delta) {
+            List<int> flooredSpeedsSteps = Map.currentLevel.speeds.Select(speed => (int)MillisecondsToSteps(speed.time)).ToList();
+            if(!flooredSpeedsSteps.Contains((int)steps)) {
+                int speedIndex = 0;
+                for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
+                    if(Map.currentLevel.speeds[i].time <= timeFromStart.AsMilliseconds()) speedIndex = i;
+                }
+                Map.currentLevel.speeds.Add(new LevelSpeed(Map.currentLevel.speeds[speedIndex].speed, timeFromStart.AsMilliseconds()));
+                Map.currentLevel.speeds.Sort((speed1, speed2) => speed1.time.CompareTo(speed2.time));
+                //Map.currentLevel.speeds = SortLevelSpeeds(Map.currentLevel.speeds);
+            }
+
+            flooredSpeedsSteps = Map.currentLevel.speeds.Select(speed => (int)MillisecondsToSteps(speed.time)).ToList();
+            int index = flooredSpeedsSteps.IndexOf((int)steps);
+
+            Map.currentLevel.speeds[index].speed += delta;
+
+            if(index >= 1 && Map.currentLevel.speeds[index].speed == Map.currentLevel.speeds[index - 1].speed) {
+                Map.currentLevel.speeds.RemoveAt(index);
+            }
+
+            List<LevelObject> speedObjects = Map.currentLevel.objects.FindAll(obj => obj.character == LevelObject.speedChar);
+            foreach(LevelObject obj in speedObjects) {
+                _ = Map.currentLevel.objects.Remove(obj);
+            }
+            for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
+                Map.currentLevel.objects.Add(new LevelObject(LevelObject.speedChar, Map.currentLevel.speeds[i].time, Map.currentLevel.speeds));
+            }
+
+            foreach(LevelObject obj in Map.currentLevel.objects) {
+                obj.startPosition.y = (int)MathF.Round(Map.linePos.y - MillisecondsToOffset(obj.time, Map.currentLevel.speeds));
+                obj.position.y = obj.startPosition.y;
+                obj.steps = (int)MillisecondsToSteps(obj.time, Map.currentLevel.speeds);
+            }
+        }
         public void KeyPressed(object caller, KeyEventArgs key) {
-            if(key.Code == Keyboard.Key.Escape) {
+            // Back
+            if(Bindings.Default.back.IsPressed(key)) {
                 if(currentMenu == Menu.Game) currentMenu = Menu.LastStats;
                 else if(currentMenu == Menu.LastStats) {
                     currentMenu = Map.currentLevel.objects.Count > 0 ? Menu.Game : Menu.LevelSelect;
@@ -381,128 +468,52 @@ namespace PPR.Main {
             }
             if(currentMenu == Menu.Game) {
                 if(editing) {
-                    char character = key.Code switch
-                    {
-                        Keyboard.Key.Num1 => '1',
-                        Keyboard.Key.Num2 => '2',
-                        Keyboard.Key.Num3 => '3',
-                        Keyboard.Key.Num4 => '4',
-                        Keyboard.Key.Num5 => '5',
-                        Keyboard.Key.Num6 => '6',
-                        Keyboard.Key.Num7 => '7',
-                        Keyboard.Key.Num8 => '8',
-                        Keyboard.Key.Num9 => '9',
-                        Keyboard.Key.Num0 => '0',
-                        Keyboard.Key.Hyphen => '-',
-                        Keyboard.Key.Equal => '=',
-                        Keyboard.Key.Q => 'q',
-                        Keyboard.Key.W => 'w',
-                        Keyboard.Key.E => 'e',
-                        Keyboard.Key.R => 'r',
-                        Keyboard.Key.T => 't',
-                        Keyboard.Key.Y => 'y',
-                        Keyboard.Key.U => 'u',
-                        Keyboard.Key.I => 'i',
-                        Keyboard.Key.O => 'o',
-                        Keyboard.Key.P => 'p',
-                        Keyboard.Key.LBracket => '[',
-                        Keyboard.Key.RBracket => ']',
-                        Keyboard.Key.A => 'a',
-                        Keyboard.Key.S => 's',
-                        Keyboard.Key.D => 'd',
-                        Keyboard.Key.F => 'f',
-                        Keyboard.Key.G => 'g',
-                        Keyboard.Key.H => 'h',
-                        Keyboard.Key.J => 'j',
-                        Keyboard.Key.K => 'k',
-                        Keyboard.Key.L => 'l',
-                        Keyboard.Key.Semicolon => ';',
-                        Keyboard.Key.Quote => '\'',
-                        Keyboard.Key.Z => 'z',
-                        Keyboard.Key.X => 'x',
-                        Keyboard.Key.C => 'c',
-                        Keyboard.Key.V => 'v',
-                        Keyboard.Key.B => 'b',
-                        Keyboard.Key.N => 'n',
-                        Keyboard.Key.M => 'm',
-                        Keyboard.Key.Comma => ',',
-                        Keyboard.Key.Period => '.',
-                        Keyboard.Key.Slash => '/',
-                        _ => '\0'
-                    };
+                    char character = GetNoteBinding(key.Code);
                     if(character == '\0') {
-                        if(key.Code == Keyboard.Key.Backspace) {
+                        // Erase
+                        if(Bindings.Default.erase.IsPressed(key)) {
                             List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => (int)MillisecondsToSteps(obj.time) == (int)steps &&
                                                                                                                                                                                                        obj.character != LevelObject.speedChar);
                             foreach(LevelObject obj in objects) {
                                 _ = Map.currentLevel.objects.Remove(obj);
                             }
                         }
-                        else if(key.Code == Keyboard.Key.Up || key.Code == Keyboard.Key.Down) {
-                            int delta = key.Code == Keyboard.Key.Up ? 1 : -1;
-                            if(key.Alt) {
-                                Map.currentLevel.metadata.linesFrequency += delta;
-                            }
-                            else {
-                                List<int> flooredSpeedsSteps = Map.currentLevel.speeds.Select(speed => (int)MillisecondsToSteps(speed.time)).ToList();
-                                if(!flooredSpeedsSteps.Contains((int)steps)) {
-                                    int speedIndex = 0;
-                                    for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
-                                        if(Map.currentLevel.speeds[i].time <= timeFromStart.AsMilliseconds()) speedIndex = i;
-                                    }
-                                    Map.currentLevel.speeds.Add(new LevelSpeed(Map.currentLevel.speeds[speedIndex].speed, timeFromStart.AsMilliseconds()));
-                                    Map.currentLevel.speeds.Sort((speed1, speed2) => speed1.time.CompareTo(speed2.time));
-                                    //Map.currentLevel.speeds = SortLevelSpeeds(Map.currentLevel.speeds);
-                                }
 
-                                flooredSpeedsSteps = Map.currentLevel.speeds.Select(speed => (int)MillisecondsToSteps(speed.time)).ToList();
-                                int index = flooredSpeedsSteps.IndexOf((int)steps);
+                        // Speed
+                        else if(Bindings.Default.speedUpSlow.IsPressed(key)) ChangeSpeed(1);
+                        else if(Bindings.Default.speedDownSlow.IsPressed(key)) ChangeSpeed(-1);
+                        else if(Bindings.Default.speedUp.IsPressed(key)) ChangeSpeed(10);
+                        else if(Bindings.Default.speedDown.IsPressed(key)) ChangeSpeed(-10);
 
-                                Map.currentLevel.speeds[index].speed += delta * (key.Shift ? 1 : 10);
+                        // Lines
+                        else if(Bindings.Default.linesFrequencyUp.IsPressed(key))
+                            Map.currentLevel.metadata.linesFrequency++;
+                        else if(Bindings.Default.linesFrequencyDown.IsPressed(key))
+                            Map.currentLevel.metadata.linesFrequency--;
 
-                                if(index >= 1 && Map.currentLevel.speeds[index].speed == Map.currentLevel.speeds[index - 1].speed) {
-                                    Map.currentLevel.speeds.RemoveAt(index);
-                                }
+                        // HP Drain/Restorage
+                        else if(Bindings.Default.hpRestorageUp.IsPressed(key))
+                            Map.currentLevel.metadata.hpRestorage++;
+                        else if(Bindings.Default.hpRestorageDown.IsPressed(key))
+                            Map.currentLevel.metadata.hpRestorage--;
+                        else if(Bindings.Default.hpDrainUp.IsPressed(key))
+                            Map.currentLevel.metadata.hpDrain++;
+                        else if(Bindings.Default.hpDrainDown.IsPressed(key))
+                            Map.currentLevel.metadata.hpDrain--;
 
-                                List<LevelObject> speedObjects = Map.currentLevel.objects.FindAll(obj => obj.character == LevelObject.speedChar);
-                                foreach(LevelObject obj in speedObjects) {
-                                    _ = Map.currentLevel.objects.Remove(obj);
-                                }
-                                for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
-                                    Map.currentLevel.objects.Add(new LevelObject(LevelObject.speedChar, Map.currentLevel.speeds[i].time, Map.currentLevel.speeds));
-                                }
+                        // Initial offset
+                        else if(Bindings.Default.initialOffsetUpBoost.IsPressed(key))
+                            Map.currentLevel.metadata.initialOffsetMS += 10;
+                        else if(Bindings.Default.initialOffsetDownBoost.IsPressed(key))
+                            Map.currentLevel.metadata.initialOffsetMS -= 10;
+                        else if(Bindings.Default.initialOffsetUp.IsPressed(key))
+                            Map.currentLevel.metadata.initialOffsetMS++;
+                        else if(Bindings.Default.initialOffsetDown.IsPressed(key))
+                            Map.currentLevel.metadata.initialOffsetMS--;
 
-                                foreach(LevelObject obj in Map.currentLevel.objects) {
-                                    obj.startPosition.y = (int)MathF.Round(Map.linePos.y - MillisecondsToOffset(obj.time, Map.currentLevel.speeds));
-                                    obj.position.y = obj.startPosition.y;
-                                    obj.steps = (int)MillisecondsToSteps(obj.time, Map.currentLevel.speeds);
-                                }
-                            }
-                        }
-                        else if(key.Code == Keyboard.Key.Left || key.Code == Keyboard.Key.Right) {
-                            int delta = key.Code == Keyboard.Key.Right ? 1 : -1;
-                            if(key.Shift) {
-                                Map.currentLevel.metadata.hpRestorage += delta;
-                            }
-                            else {
-                                Map.currentLevel.metadata.hpDrain += delta;
-                            }
-                        }
-                        else if(key.Code == Keyboard.Key.F1 || key.Code == Keyboard.Key.F2) {
-                            int delta = key.Code == Keyboard.Key.F2 ? 1 : -1;
-                            if(key.Shift) {
-                                Map.currentLevel.metadata.initialOffsetMS += delta * 10;
-                            }
-                            else {
-                                Map.currentLevel.metadata.initialOffsetMS += delta;
-                            }
-                        }
-                        else if(key.Code == Keyboard.Key.PageUp || key.Code == Keyboard.Key.PageDown) {
-                            int delta = key.Code == Keyboard.Key.PageUp ? 1 : -1;
-                            /*offset = roundedOffset;
-                            offset += delta * 10;*/
-                            ScrollTime(delta * 10);
-                        }
+                        // Fast scroll
+                        else if(Bindings.Default.fastScrollUp.IsPressed(key)) ScrollTime(10);
+                        else if(Bindings.Default.fastScrollDown.IsPressed(key)) ScrollTime(-10);
                     }
                     else {
                         if(Map.currentLevel.objects.FindAll(obj => obj.character == character && MillisecondsToSteps(obj.time) == (int)steps).Count <= 0) {

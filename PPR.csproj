@@ -44,9 +44,17 @@
     <None Update="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Properties\Bindings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Bindings.Designer.cs</LastGenOutput>
+    </None>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Update="Properties\Settings1.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings1.Designer.cs</LastGenOutput>
     </None>
     <None Update="resources\colors\Default\Classic (Lighter Blue)\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -108,6 +116,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Properties\Bindings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Bindings.settings</DependentUpon>
+    </Compile>
     <Compile Update="Properties\Settings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
