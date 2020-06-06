@@ -156,13 +156,15 @@ namespace PPR.Main {
             Settings.Default.PropertyChanged -= PropertyChanged;
 
             Settings.Default.Reload();
+
+            Core.renderer.SetFullscreen(Settings.Default.fullscreen);
+
+            UI.RecreateButtons();
             UI.musicVolumeSlider.value = Settings.Default.musicVolume;
             UI.soundsVolumeSlider.value = Settings.Default.soundsVolume;
             UI.bloomSwitch.selected = Settings.Default.bloom;
             UI.showFpsSwitch.selected = Settings.Default.showFps;
             UI.fullscreenSwitch.selected = Settings.Default.fullscreen;
-
-            Core.renderer.SetFullscreen(Settings.Default.fullscreen);
 
             Settings.Default.PropertyChanged += PropertyChanged;
         }
@@ -631,7 +633,7 @@ namespace PPR.Main {
             for(int i = 0; i < directories.Length; i++) {
                 string name = Path.GetFileName(directories[i]);
                 if(name == "_template") continue;
-                buttons.Add(new Button(new Vector2(25, 12 + i), name, 30, ColorScheme.black, ColorScheme.white, ColorScheme.white));
+                buttons.Add(new Button(new Vector2(25, 12 + i), name, 30, ColorScheme.black, ColorScheme.white, ColorScheme.lightDarkGray));
                 metadatas.Add(new LevelMetadata(File.ReadAllLines(Path.Combine(directories[i], "level.txt")), name));
                 logger.Info("Loaded metadata for level {0}", name);
             }

@@ -14,6 +14,7 @@ using PPR.Rendering;
 using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
+using SFML.Window;
 
 namespace PPR.GUI {
     public static class UI {
@@ -77,27 +78,29 @@ namespace PPR.GUI {
 
         static readonly Vector2 zero = Vector2.zero;
         public static void RecreateButtons() {
+            Renderer.TextAlignment center = Renderer.TextAlignment.Center;
+            Renderer.TextAlignment right = Renderer.TextAlignment.Right;
             mainMenuButtons = new List<Button>() {
-                new Button(new Vector2(40, 25), "PLAY", 4, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, Renderer.TextAlignment.Center),
-                new Button(new Vector2(40, 27), "EDIT", 4, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow, Renderer.TextAlignment.Center),
-                new Button(new Vector2(40, 29), "SETTINGS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, Renderer.TextAlignment.Center),
-                new Button(new Vector2(40, 31), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, Renderer.TextAlignment.Center),
+                new Button(new Vector2(40, 25), "PLAY", 4, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Enter"), center),
+                new Button(new Vector2(40, 27), "EDIT", 4, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow, new InputKey("LShift,RShift"), center),
+                new Button(new Vector2(40, 29), "SETTINGS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab"), center),
+                new Button(new Vector2(40, 31), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, center),
             };
             levelSelectButtons = new List<Button>() {
-                new Button(new Vector2(25, 10), "AUTO", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue),
-                new Button(new Vector2(25, 10), "NEW", 3, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen),
+                new Button(new Vector2(25, 10), "AUTO", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab")),
+                new Button(new Vector2(25, 10), "NEW", 3, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("LControl+N,RControl+N")),
             };
             lastStatsButtons = new List<Button>() {
                 new Button(new Vector2(2, 53), "CONTINUE", 8, ColorScheme.black, ColorScheme.cyan, ColorScheme.lightDarkCyan),
-                new Button(new Vector2(2, 55), "RESTART", 7, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow),
-                new Button(new Vector2(10, 55), "AUTO", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue),
-                new Button(new Vector2(2, 55), "SAVE", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue),
-                new Button(new Vector2(2, 57), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed),
+                new Button(new Vector2(2, 55), "RESTART", 7, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow, new InputKey("LControl+R,RControl+R")),
+                new Button(new Vector2(10, 55), "AUTO", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab")),
+                new Button(new Vector2(2, 55), "SAVE", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("LControl+S,RControl+S")),
+                new Button(new Vector2(2, 57), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Backspace")),
             };
             levelEditorButtons = new List<Button>() {
-                new Button(new Vector2(78, 58), "►", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen),
+                new Button(new Vector2(78, 58), "►", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Enter")),
             };
-            skipButton = new Button(new Vector2(78, 58), "SKIP", 4, ColorScheme.black, ColorScheme.orange, ColorScheme.lightDarkOrange, Renderer.TextAlignment.Right);
+            skipButton = new Button(new Vector2(78, 58), "SKIP", 4, ColorScheme.black, ColorScheme.orange, ColorScheme.lightDarkOrange, new InputKey("Space"), right);
 
             musicVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, "MUSIC VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
             soundsVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, "SOUNDS VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);

@@ -73,7 +73,7 @@ namespace PPR.GUI {
                     case "light_dark_red":
                         lightDarkRed = color;
                         break;
-                    case "light_drak_green":
+                    case "light_dark_green":
                         lightDarkGreen = color;
                         break;
                     case "light_dark_blue":
@@ -112,7 +112,6 @@ namespace PPR.GUI {
                 }
             }
 
-            UI.RecreateButtons();
             Core.game.ReloadSettings();
         }
     }
