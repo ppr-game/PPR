@@ -91,7 +91,7 @@ namespace PPR.GUI.Elements {
             }
 
             if(Renderer.instance.window.HasFocus() && currentState == State.Hovered && prevFrameState == State.Clicked) {
-                Game.buttonclicksound.Play();
+                Game.buttonClickSound.Play();
                 return true;
             }
 

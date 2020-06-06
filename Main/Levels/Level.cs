@@ -304,8 +304,8 @@ namespace PPR.Main.Levels {
         }
         void PlayHitsound() {
             if(character == speedChar || ignore || removed) return;
-            if(character == holdChar) Game.ticksound.Play();
-            else Game.hitsound.Play();
+            if(character == holdChar) Game.tickSound.Play();
+            else Game.hitSound.Play();
         }
         void Hit() {
             Game.health += Map.currentLevel.metadata.hpRestorage;

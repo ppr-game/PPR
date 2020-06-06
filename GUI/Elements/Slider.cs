@@ -90,7 +90,7 @@ namespace PPR.GUI.Elements {
                 int previous_value = value;
                 value = Math.Clamp((Renderer.instance.mousePosition.x - posX) * step, minValue, maxValue);
                 if (value != previous_value) {
-                    Game.slidersound.Play();
+                    Game.sliderSound.Play();
                 }
             }
 
