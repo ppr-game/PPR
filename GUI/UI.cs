@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 
@@ -55,6 +57,7 @@ namespace PPR.GUI {
 
         static readonly string mainMenuText = File.ReadAllText(Path.Combine("resources", "ui", "mainMenu.txt"));
         static readonly string settingsText = File.ReadAllText(Path.Combine("resources", "ui", "settings.txt"));
+        static readonly string keybindsEditorText = File.ReadAllText(Path.Combine("resources", "ui", "keybinds.txt"));
         static readonly string levelSelectText = File.ReadAllText(Path.Combine("resources", "ui", "levelSelect.txt"));
         static readonly string lastStatsText = File.ReadAllText(Path.Combine("resources", "ui", "lastStats.txt"));
         static List<Button> mainMenuButtons;
@@ -66,9 +69,9 @@ namespace PPR.GUI {
         static List<Button> levelSelectButtons;
 
         static string lastLevel = "";
-        static List<Button> lastStatsButtons = new List<Button>();
+        static List<Button> lastStatsButtons;
 
-        static List<Button> levelEditorButtons = new List<Button>();
+        static List<Button> levelEditorButtons;
 
         static Button skipButton;
 
@@ -103,6 +106,8 @@ namespace PPR.GUI {
             fullscreenSwitch = new Button(new Vector2(4, 26), "FULLSCREEN", 10, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
 
             showFpsSwitch = new Button(new Vector2(4, 35), "SHOW FPS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+
+            keybindsButton = new Button(new Vector2(2, 57), "KEYBINDS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
 
             UpdateAllFolderSwitchButtons();
         }
@@ -201,128 +206,6 @@ namespace PPR.GUI {
                 if(score.linePosition.y >= 12 && score.linePosition.y <= 49)
                     Renderer.instance.DrawText(score.linePosition, "├───────────────────────┤", ColorScheme.white, Color.Transparent);
             }
-        }
-
-        static readonly Vector2 audioGroupTextPos = new Vector2(2, 13);
-        public static Slider musicVolumeSlider;
-        public static Slider soundsVolumeSlider;
-        public static readonly Vector2 audioSwitchPos = new Vector2(4, 19);
-        public static readonly List<Button> audioSwitchButtonsList = new List<Button>();
-
-        static readonly Vector2 graphicsGroupTextPos = new Vector2(2, 22);
-        public static Button bloomSwitch;
-        public static Button fullscreenSwitch;
-        public static readonly Vector2 fontSwitchPos = new Vector2(4, 28);
-        public static readonly List<Button> fontSwitchButtonsList = new List<Button>();
-        public static readonly Vector2 colorSchemeSwitchPos = new Vector2(4, 30);
-        public static readonly List<Button> colorSchemeSwitchButtonsList = new List<Button>();
-
-        static readonly Vector2 advancedGroupTextPos = new Vector2(2, 33);
-        public static Button showFpsSwitch;
-        static void DrawSettings() {
-            Renderer.instance.DrawText(zero, settingsText, ColorScheme.white, ColorScheme.black);
-            DrawSettingsList();
-        }
-        static void DrawSettingsList(bool pauseMenu = false) {
-            if(pauseMenu) {
-                musicVolumeSlider.position.x = 78;
-                musicVolumeSlider.position.y = 55;
-                musicVolumeSlider.align = Renderer.TextAlignment.Right;
-                musicVolumeSlider.alignText = Slider.TextAlignment.Right;
-
-                soundsVolumeSlider.position.x = 78;
-                soundsVolumeSlider.position.y = 57;
-                soundsVolumeSlider.align = Renderer.TextAlignment.Right;
-                soundsVolumeSlider.alignText = Slider.TextAlignment.Right;
-            }
-            else {
-                Renderer.instance.DrawText(audioGroupTextPos, "[ AUDIO ]", ColorScheme.white, Color.Transparent);
-                musicVolumeSlider.position.x = 4;
-                musicVolumeSlider.position.y = 15;
-                musicVolumeSlider.align = Renderer.TextAlignment.Left;
-                musicVolumeSlider.alignText = Slider.TextAlignment.Left;
-
-                soundsVolumeSlider.position.x = 4;
-                soundsVolumeSlider.position.y = 17;
-                soundsVolumeSlider.align = Renderer.TextAlignment.Left;
-                soundsVolumeSlider.alignText = Slider.TextAlignment.Left;
-
-                Renderer.instance.DrawText(audioSwitchPos, "SOUNDS", ColorScheme.blue, Color.Transparent);
-                for(int i = audioSwitchButtonsList.Count - 1; i >= 0; i--) {
-                    if(audioSwitchButtonsList[i].Draw()) {
-                        Settings.Default.audio = IncreaseFolderSwitchDirectory(Settings.Default.audio, Path.Combine("resources", "audio"), i);
-                        UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.Default.audio, audioSwitchPos.x, audioSwitchPos.y, 7);
-                    }
-                }
-
-                Renderer.instance.DrawText(graphicsGroupTextPos, "[ GRAPHICS ]", ColorScheme.white, Color.Transparent);
-                if(bloomSwitch.Draw()) Settings.Default.bloom = bloomSwitch.selected = !bloomSwitch.selected;
-                Renderer.instance.DrawText(fontSwitchPos, "FONT", ColorScheme.blue, Color.Transparent);
-                for(int i = fontSwitchButtonsList.Count - 1; i >= 0; i--) {
-                    if(fontSwitchButtonsList[i].Draw()) {
-                        Settings.Default.font = IncreaseFolderSwitchDirectory(Settings.Default.font, Path.Combine("resources", "fonts"), i);
-                        UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.Default.font, fontSwitchPos.x, fontSwitchPos.y, 5);
-                    }
-                }
-                Renderer.instance.DrawText(colorSchemeSwitchPos, "COLOR SCHEME", ColorScheme.blue, Color.Transparent);
-                for(int i = colorSchemeSwitchButtonsList.Count - 1; i >= 0; i--) {
-                    if(colorSchemeSwitchButtonsList[i].Draw()) {
-                        Settings.Default.colorScheme = IncreaseFolderSwitchDirectory(Settings.Default.colorScheme, Path.Combine("resources", "colors"), i);
-                        UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.Default.colorScheme, colorSchemeSwitchPos.x, colorSchemeSwitchPos.y, 13);
-                    }
-                }
-                if(fullscreenSwitch.Draw()) Settings.Default.fullscreen = fullscreenSwitch.selected = !fullscreenSwitch.selected;
-
-                Renderer.instance.DrawText(advancedGroupTextPos, "[ ADVANCED ]", ColorScheme.white, Color.Transparent);
-                if(showFpsSwitch.Draw()) Settings.Default.showFps = showFpsSwitch.selected = !showFpsSwitch.selected;
-            }
-
-            Settings.Default.musicVolume = musicVolumeSlider.Draw();
-            Settings.Default.soundsVolume = soundsVolumeSlider.Draw();
-        }
-        public static string IncreaseFolderSwitchDirectory(string currentPath, string basePath, int at) {
-            // Disassemble the path
-            List<string> fullDirNames = currentPath.Split(Path.DirectorySeparatorChar).ToList();
-            while(fullDirNames.Count > at + 1) {
-                fullDirNames.RemoveAt(fullDirNames.Count - 1);
-            }
-            string fullDir = Path.Combine(fullDirNames.ToArray());
-            string inDir = Path.GetDirectoryName(fullDir);
-            string[] inDirNames = Directory.GetDirectories(Path.Combine(basePath, inDir)).Select(dir => Path.GetFileName(dir)).ToArray();
-
-            // Move to the next folder
-            int curPathIndex = Array.IndexOf(inDirNames, fullDirNames.Last());
-            int nextIndex = curPathIndex + 1;
-            fullDirNames.RemoveAt(at);
-            fullDirNames.Add(inDirNames[nextIndex >= inDirNames.Length ? 0 : nextIndex]);
-
-            // Assemble the path back
-            string newPath = Path.Combine(fullDirNames.ToArray());
-            string[] newPathDirs = Directory.GetDirectories(Path.Combine(basePath, newPath));
-            while(newPathDirs.Length > 0) {
-                newPath = Path.Combine(newPath, Path.GetFileName(newPathDirs[0]));
-                newPathDirs = Directory.GetDirectories(Path.Combine(basePath, newPath));
-            }
-            return newPath;
-        }
-        public static void UpdateAllFolderSwitchButtons() {
-            UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.Default.audio, audioSwitchPos.x, audioSwitchPos.y, 7);
-            UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.Default.font, fontSwitchPos.x, fontSwitchPos.y, 5);
-            UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.Default.colorScheme, colorSchemeSwitchPos.x, colorSchemeSwitchPos.y, 13);
-        }
-        public static void UpdateFolderSwitchButtons(List<Button> buttonsList, string path, int baseX, int baseY, int xOffset) {
-            buttonsList.Clear();
-            UpdateFolderSwitchButton(buttonsList, path, baseX, baseY, xOffset);
-        }
-        static void UpdateFolderSwitchButton(List<Button> buttonsList, string path, int baseX, int baseY, int xOffset) {
-            string[] names = path.Split(Path.DirectorySeparatorChar);
-
-            Vector2 position = new Vector2(baseX + xOffset + (names.Length > 1 ? 1 : 0) + Path.GetDirectoryName(path).Length, baseY);
-            string text = names[^1];
-            buttonsList.Insert(0, new Button(position, text, text.Length, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue));
-
-            string nextPath = Path.GetDirectoryName(path);
-            if(nextPath != "") UpdateFolderSwitchButton(buttonsList, nextPath, baseX, baseY, xOffset);
         }
 
         static readonly Vector2 levelNamePos = new Vector2(0, 0);
@@ -512,11 +395,146 @@ namespace PPR.GUI {
                 }
             }
         }
-        /*static void DrawCursor() {
-            Color cellColor = Core.renderer.GetCellBackgroundColor(Core.renderer.mousePosition);
-            if(cellColor == Color.Black || cellColor == ColorScheme.black)
-            Core.renderer.SetCellColor(Core.renderer.mousePosition, ColorScheme.white, ColorScheme.darkGray);
-        }*/
+
+        static readonly Vector2 audioGroupTextPos = new Vector2(2, 13);
+        public static Slider musicVolumeSlider;
+        public static Slider soundsVolumeSlider;
+        public static readonly Vector2 audioSwitchPos = new Vector2(4, 19);
+        public static readonly List<Button> audioSwitchButtonsList = new List<Button>();
+
+        static readonly Vector2 graphicsGroupTextPos = new Vector2(2, 22);
+        public static Button bloomSwitch;
+        public static Button fullscreenSwitch;
+        public static readonly Vector2 fontSwitchPos = new Vector2(4, 28);
+        public static readonly List<Button> fontSwitchButtonsList = new List<Button>();
+        public static readonly Vector2 colorSchemeSwitchPos = new Vector2(4, 30);
+        public static readonly List<Button> colorSchemeSwitchButtonsList = new List<Button>();
+
+        static readonly Vector2 advancedGroupTextPos = new Vector2(2, 33);
+        public static Button showFpsSwitch;
+        public static string IncreaseFolderSwitchDirectory(string currentPath, string basePath, int at) {
+            // Disassemble the path
+            List<string> fullDirNames = currentPath.Split(Path.DirectorySeparatorChar).ToList();
+            while(fullDirNames.Count > at + 1) {
+                fullDirNames.RemoveAt(fullDirNames.Count - 1);
+            }
+            string fullDir = Path.Combine(fullDirNames.ToArray());
+            string inDir = Path.GetDirectoryName(fullDir);
+            string[] inDirNames = Directory.GetDirectories(Path.Combine(basePath, inDir)).Select(dir => Path.GetFileName(dir)).ToArray();
+
+            // Move to the next folder
+            int curPathIndex = Array.IndexOf(inDirNames, fullDirNames.Last());
+            int nextIndex = curPathIndex + 1;
+            fullDirNames.RemoveAt(at);
+            fullDirNames.Add(inDirNames[nextIndex >= inDirNames.Length ? 0 : nextIndex]);
+
+            // Assemble the path back
+            string newPath = Path.Combine(fullDirNames.ToArray());
+            string[] newPathDirs = Directory.GetDirectories(Path.Combine(basePath, newPath));
+            while(newPathDirs.Length > 0) {
+                newPath = Path.Combine(newPath, Path.GetFileName(newPathDirs[0]));
+                newPathDirs = Directory.GetDirectories(Path.Combine(basePath, newPath));
+            }
+            return newPath;
+        }
+        public static void UpdateAllFolderSwitchButtons() {
+            UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.Default.audio, audioSwitchPos.x, audioSwitchPos.y, 7);
+            UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.Default.font, fontSwitchPos.x, fontSwitchPos.y, 5);
+            UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.Default.colorScheme, colorSchemeSwitchPos.x, colorSchemeSwitchPos.y, 13);
+        }
+        public static void UpdateFolderSwitchButtons(List<Button> buttonsList, string path, int baseX, int baseY, int xOffset) {
+            buttonsList.Clear();
+            UpdateFolderSwitchButton(buttonsList, path, baseX, baseY, xOffset);
+        }
+        static void UpdateFolderSwitchButton(List<Button> buttonsList, string path, int baseX, int baseY, int xOffset) {
+            string[] names = path.Split(Path.DirectorySeparatorChar);
+
+            Vector2 position = new Vector2(baseX + xOffset + (names.Length > 1 ? 1 : 0) + Path.GetDirectoryName(path).Length, baseY);
+            string text = names[^1];
+            buttonsList.Insert(0, new Button(position, text, text.Length, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue));
+
+            string nextPath = Path.GetDirectoryName(path);
+            if(nextPath != "") UpdateFolderSwitchButton(buttonsList, nextPath, baseX, baseY, xOffset);
+        }
+        static void DrawSettingsList(bool pauseMenu = false) {
+            if(pauseMenu) {
+                musicVolumeSlider.position.x = 78;
+                musicVolumeSlider.position.y = 55;
+                musicVolumeSlider.align = Renderer.TextAlignment.Right;
+                musicVolumeSlider.alignText = Slider.TextAlignment.Right;
+
+                soundsVolumeSlider.position.x = 78;
+                soundsVolumeSlider.position.y = 57;
+                soundsVolumeSlider.align = Renderer.TextAlignment.Right;
+                soundsVolumeSlider.alignText = Slider.TextAlignment.Right;
+            }
+            else {
+                Renderer.instance.DrawText(audioGroupTextPos, "[ AUDIO ]", ColorScheme.white, Color.Transparent);
+                musicVolumeSlider.position.x = 4;
+                musicVolumeSlider.position.y = 15;
+                musicVolumeSlider.align = Renderer.TextAlignment.Left;
+                musicVolumeSlider.alignText = Slider.TextAlignment.Left;
+
+                soundsVolumeSlider.position.x = 4;
+                soundsVolumeSlider.position.y = 17;
+                soundsVolumeSlider.align = Renderer.TextAlignment.Left;
+                soundsVolumeSlider.alignText = Slider.TextAlignment.Left;
+
+                Renderer.instance.DrawText(audioSwitchPos, "SOUNDS", ColorScheme.blue, Color.Transparent);
+                for(int i = audioSwitchButtonsList.Count - 1; i >= 0; i--) {
+                    if(audioSwitchButtonsList[i].Draw()) {
+                        Settings.Default.audio = IncreaseFolderSwitchDirectory(Settings.Default.audio, Path.Combine("resources", "audio"), i);
+                        UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.Default.audio, audioSwitchPos.x, audioSwitchPos.y, 7);
+                    }
+                }
+
+                Renderer.instance.DrawText(graphicsGroupTextPos, "[ GRAPHICS ]", ColorScheme.white, Color.Transparent);
+                if(bloomSwitch.Draw()) Settings.Default.bloom = bloomSwitch.selected = !bloomSwitch.selected;
+                Renderer.instance.DrawText(fontSwitchPos, "FONT", ColorScheme.blue, Color.Transparent);
+                for(int i = fontSwitchButtonsList.Count - 1; i >= 0; i--) {
+                    if(fontSwitchButtonsList[i].Draw()) {
+                        Settings.Default.font = IncreaseFolderSwitchDirectory(Settings.Default.font, Path.Combine("resources", "fonts"), i);
+                        UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.Default.font, fontSwitchPos.x, fontSwitchPos.y, 5);
+                    }
+                }
+                Renderer.instance.DrawText(colorSchemeSwitchPos, "COLOR SCHEME", ColorScheme.blue, Color.Transparent);
+                for(int i = colorSchemeSwitchButtonsList.Count - 1; i >= 0; i--) {
+                    if(colorSchemeSwitchButtonsList[i].Draw()) {
+                        Settings.Default.colorScheme = IncreaseFolderSwitchDirectory(Settings.Default.colorScheme, Path.Combine("resources", "colors"), i);
+                        UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.Default.colorScheme, colorSchemeSwitchPos.x, colorSchemeSwitchPos.y, 13);
+                    }
+                }
+                if(fullscreenSwitch.Draw()) Settings.Default.fullscreen = fullscreenSwitch.selected = !fullscreenSwitch.selected;
+
+                Renderer.instance.DrawText(advancedGroupTextPos, "[ ADVANCED ]", ColorScheme.white, Color.Transparent);
+                if(showFpsSwitch.Draw()) Settings.Default.showFps = showFpsSwitch.selected = !showFpsSwitch.selected;
+            }
+
+            Settings.Default.musicVolume = musicVolumeSlider.Draw();
+            Settings.Default.soundsVolume = soundsVolumeSlider.Draw();
+        }
+        static Button keybindsButton;
+        static void DrawSettings() {
+            Renderer.instance.DrawText(zero, settingsText, ColorScheme.white, ColorScheme.black);
+            DrawSettingsList();
+            if(keybindsButton.Draw()) Game.currentMenu = Menu.KeybindsEditor;
+        }
+        static void DrawKeybindsEditor() {
+            Renderer.instance.DrawText(zero, keybindsEditorText, ColorScheme.white, ColorScheme.black);
+
+            IEnumerator enumerator = Bindings.Default.PropertyValues.GetEnumerator();
+            for(int y = 17; enumerator.MoveNext(); y += 2) {
+                SettingsPropertyValue value = (SettingsPropertyValue)enumerator.Current;
+                InputKey key = (InputKey)value.PropertyValue;
+                string name = value.Name.AddSpaces().ToUpper();
+                string[] primAndSec = key.asString.Split(',');
+                string primary = primAndSec[0];
+                string secondary = primAndSec.Length > 1 ? primAndSec[1] : "<NONE>";
+                Renderer.instance.DrawText(new Vector2(2, y), name, ColorScheme.blue, Color.Transparent);
+                Renderer.instance.DrawText(new Vector2(37, y), primary, ColorScheme.blue, Color.Transparent);
+                Renderer.instance.DrawText(new Vector2(59, y), secondary, ColorScheme.blue, Color.Transparent);
+            }
+        }
         public static void Draw() {
             switch(Game.currentMenu) {
                 case Menu.Main:
@@ -528,6 +546,9 @@ namespace PPR.GUI {
                 case Menu.Settings:
                     DrawSettings();
                     break;
+                case Menu.KeybindsEditor:
+                    DrawKeybindsEditor();
+                    break;
                 case Menu.Game:
                     DrawGame();
                     break;
@@ -535,9 +556,9 @@ namespace PPR.GUI {
                     DrawLastStats();
                     break;
             }
-            //DrawCursor();
             if(Settings.Default.showFps)
-                Renderer.instance.DrawText(zero, fps + " FPS", fps >= 60 ? ColorScheme.green : fps > 20 ? ColorScheme.yellow : ColorScheme.red, Color.Transparent);
+                Renderer.instance.DrawText(zero, fps + " FPS", fps >= 60 ? ColorScheme.green : fps > 20 ? ColorScheme.yellow : ColorScheme.red,
+                    Color.Transparent);
         }
     }
 }

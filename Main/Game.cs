@@ -21,7 +21,7 @@ using SFML.System;
 using SFML.Window;
 
 namespace PPR.Main {
-    public enum Menu { Main, LevelSelect, Settings, LastStats, Game }
+    public enum Menu { Main, LevelSelect, Settings, KeybindsEditor, LastStats, Game }
     public class Game {
         static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -138,6 +138,10 @@ namespace PPR.Main {
             foreach(SettingsPropertyValue value in Settings.Default.PropertyValues) {
                 logger.Info(value.Name + "=" + value.PropertyValue);
             }
+            logger.Info("Current keybinds:");
+            foreach(SettingsPropertyValue value in Bindings.Default.PropertyValues) {
+                logger.Info(value.Name + "=" + value.PropertyValue);
+            }
 
             RPC.Initialize();
 
@@ -153,6 +157,8 @@ namespace PPR.Main {
             music.Play();
         }
         public void ReloadSettings() {
+            Bindings.Default.Reload();
+
             Settings.Default.PropertyChanged -= PropertyChanged;
 
             Settings.Default.Reload();
@@ -246,17 +252,13 @@ namespace PPR.Main {
             if(e.PropertyName == "font") {
                 string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.Default.font, "mappings.txt"));
                 string[] fontSizeStr = fontMappingsLines[0].Split(',');
-                //Vector2 oldFontSize = new Vector2(Core.renderer.fontSize);
                 Core.renderer.fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
-                //Vector2f fontSizeChange = new Vector2f((float)Core.renderer.fontSize.x / oldFontSize.x, (float)Core.renderer.fontSize.y / oldFontSize.y);
                 Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.x;
                 Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.y;
                 Core.renderer.UpdateWindow();
 
-                //Mouse.SetPosition(new Vector2i((int)(Mouse.GetPosition(Core.renderer.window).X * fontSizeChange.X),
-                //    (int)(Mouse.GetPosition(Core.renderer.window).Y * fontSizeChange.Y)), Core.renderer.window);
-
-                BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")), fontMappingsLines[1], Core.renderer.fontSize);
+                BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")),
+                    fontMappingsLines[1], Core.renderer.fontSize);
                 Core.renderer.text = new BitmapText(font, new Vector2(Core.renderer.width, Core.renderer.height)) {
                     backgroundColors = Core.renderer.backgroundColors,
                     foregroundColors = Core.renderer.foregroundColors,
@@ -448,7 +450,8 @@ namespace PPR.Main {
                 _ = Map.currentLevel.objects.Remove(obj);
             }
             for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
-                Map.currentLevel.objects.Add(new LevelObject(LevelObject.speedChar, Map.currentLevel.speeds[i].time, Map.currentLevel.speeds));
+                Map.currentLevel.objects.Add(new LevelObject(LevelObject.speedChar, Map.currentLevel.speeds[i].time,
+                    Map.currentLevel.speeds));
             }
 
             foreach(LevelObject obj in Map.currentLevel.objects) {
@@ -460,11 +463,9 @@ namespace PPR.Main {
         public void KeyPressed(object caller, KeyEventArgs key) {
             // Back
             if(Bindings.Default.back.IsPressed(key)) {
-                if(currentMenu == Menu.Game) currentMenu = Menu.LastStats;
-                else if(currentMenu == Menu.LastStats) {
-                    currentMenu = Map.currentLevel.objects.Count > 0 ? Menu.Game : Menu.LevelSelect;
-                }
-                else if(currentMenu == Menu.LevelSelect || currentMenu == Menu.Settings) currentMenu = Menu.Main;
+                currentMenu = currentMenu == Menu.Game ? Menu.LastStats
+                    : currentMenu == Menu.LastStats ? Map.currentLevel.objects.Count > 0 ? Menu.Game : Menu.LevelSelect :
+                    currentMenu == Menu.KeybindsEditor ? Menu.Settings : Menu.Main;
             }
             if(currentMenu == Menu.Game) {
                 if(editing) {
@@ -520,7 +521,8 @@ namespace PPR.Main {
                             Map.currentLevel.objects.Add(new LevelObject(character, timeFromStart.AsMilliseconds(), Map.currentLevel.speeds));
                             if(key.Shift) {
                                 character = LevelObject.holdChar;
-                                Map.currentLevel.objects.Add(new LevelObject(character, timeFromStart.AsMilliseconds(), Map.currentLevel.speeds, Map.currentLevel.objects));
+                                Map.currentLevel.objects.Add(new LevelObject(character, timeFromStart.AsMilliseconds(),
+                                    Map.currentLevel.speeds, Map.currentLevel.objects));
                             }
                         }
                     }
@@ -578,11 +580,6 @@ namespace PPR.Main {
             }
         }
         public static void ScrollTime(int delta) {
-            /*int steps = (int)MathF.Round(MillisecondsToSteps(music.PlayingOffset.AsMilliseconds()));
-            Time newTime = Time.FromSeconds(StepsToMilliseconds(steps + delta) / 1000f);
-            music.PlayingOffset = newTime < Time.Zero ? Time.Zero : newTime > music.Duration ? music.Duration : newTime;
-            timeFromStart = music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
-            logger.Debug("{0} , {1} , {2}", music.PlayingOffset.AsMilliseconds(), steps + delta, StepsToMilliseconds(steps + delta));*/
             steps = Math.Clamp(steps + delta, 0, MillisecondsToSteps(music.Duration.AsMicroseconds() / 1000f));
             UpdateTime();
         }
@@ -650,39 +647,6 @@ namespace PPR.Main {
         public static bool StepPassedLine(int step, int lineOffset = 0) {
             return roundedSteps >= step + lineOffset;
         }
-        /*public static List<LevelSpeed> SortLevelSpeeds(List<LevelSpeed> list) {
-            List<LevelSpeed> unsorted = new List<LevelSpeed>(list);
-            List<LevelSpeed> sorted = new List<LevelSpeed>();
-            unsorted.Sort((speed1, speed2) => speed1.offset.CompareTo(speed2.offset));
-
-            int direction = 0;
-            int index = 0;
-            for(int i = 0; i < unsorted.Count; i++) {
-                if(unsorted[i].offset == 0) {
-                    direction = Math.Sign(unsorted[i].speed);
-                    index = i;
-                    sorted.Add(unsorted[index]);
-                    unsorted.RemoveAt(index);
-                    break;
-                }
-            }
-            while(unsorted.Count > 0) {
-                if(direction == 0) break;
-                if(direction == 1) direction = 0;
-                if(direction >= unsorted.Count) break;
-
-                index += direction;
-
-                if(index < 0 || index >= unsorted.Count) break;
-
-                int newDirection = Math.Sign(unsorted[index].speed);
-                sorted.Add(unsorted[index]);
-                unsorted.RemoveAt(index);
-                direction = newDirection;
-            }
-
-            return sorted;
-        }*/
         public static void GenerateLevelList() {
             string[] directories = Directory.GetDirectories("levels");
             List<Button> buttons = new List<Button>();
