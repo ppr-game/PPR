@@ -14,7 +14,6 @@ using PPR.Rendering;
 using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
-using SFML.Window;
 
 namespace PPR.GUI {
     public static class UI {
@@ -84,7 +83,7 @@ namespace PPR.GUI {
                 new Button(new Vector2(40, 25), "PLAY", 4, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Enter"), center),
                 new Button(new Vector2(40, 27), "EDIT", 4, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow, new InputKey("LShift,RShift"), center),
                 new Button(new Vector2(40, 29), "SETTINGS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab"), center),
-                new Button(new Vector2(40, 31), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, center),
+                new Button(new Vector2(40, 31), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, null, center),
             };
             levelSelectButtons = new List<Button>() {
                 new Button(new Vector2(25, 10), "AUTO", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab")),

@@ -52,7 +52,7 @@ namespace PPR.Main.Levels {
         public string difficulty;
         public string author;
         public string length;
-        public int maxTime;
+        public int maxStep;
         public int minBPM;
         public int maxBPM;
         public int avgBPM;
@@ -64,7 +64,7 @@ namespace PPR.Main.Levels {
         public readonly int objectCount;
         public readonly int speedsCount;
 
-        public LevelMetadata(string name, string[] meta, int objectCount, List<int> times, List<LevelSpeed> speeds) {
+        public LevelMetadata(string name, string[] meta, int objectCount, List<int> steps, List<LevelSpeed> speeds) {
             this.name = name;
             hpDrain = int.Parse(meta[0]);
             hpRestorage = int.Parse(meta[1]);
@@ -74,13 +74,14 @@ namespace PPR.Main.Levels {
             initialOffsetMS = meta.Length > 5 ? int.Parse(meta[5]) : 0;
 
             //speeds = Game.SortLevelSpeeds(speeds);
-            speeds.Sort((speed1, speed2) => speed1.time.CompareTo(speed2.time));
+            speeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
 
-            maxTime = times.Count > 0 ? times.Max() : 0;
-            TimeSpan timeSpan = TimeSpan.FromMilliseconds(maxTime - initialOffsetMS);
+            maxStep = steps.Count > 0 ? steps.Max() : 0;
+            TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.StepsToMilliseconds(maxStep, speeds) - initialOffsetMS);
             length = (timeSpan < TimeSpan.Zero ? "-" : "") + timeSpan.ToString((timeSpan.Hours != 0 ? "h':'mm" : "m") + "':'ss");
 
-            int minTime = (times.Count > 0 ? times.Min() : 0) + initialOffsetMS;
+            int minStep = steps.Count > 0 ? steps.Min() : 0;
+            int minTime = (int)Game.StepsToMilliseconds(minStep, speeds) + initialOffsetMS;
             skipTime = minTime - 5000;
             skippable = skipTime > 5000;
 
@@ -97,13 +98,13 @@ namespace PPR.Main.Levels {
         }
         public LevelMetadata(Level level, string[] meta, string name) : this(name, meta,
             level.objects.FindAll(obj => obj.character != LevelObject.holdChar).Count,
-            level.objects.FindAll(obj => obj.character != LevelObject.speedChar).Select(obj => obj.time).ToList(), level.speeds) { }
-        static List<LevelSpeed> SpeedsFromLists(List<int> speeds, List<int> speedsTimes) {
+            level.objects.FindAll(obj => obj.character != LevelObject.speedChar).Select(obj => obj.step).ToList(), level.speeds) { }
+        static List<LevelSpeed> SpeedsFromLists(List<int> speeds, List<int> speedsSteps) {
             List<LevelSpeed> combinedSpeeds = new List<LevelSpeed>();
-            for(int i = 0; i < speedsTimes.Count; i++) {
-                combinedSpeeds.Add(new LevelSpeed(speeds[i], speedsTimes[i]));
+            for(int i = 0; i < speedsSteps.Count; i++) {
+                combinedSpeeds.Add(new LevelSpeed(speeds[i], speedsSteps[i]));
             }
-            combinedSpeeds.Sort((speed1, speed2) => speed1.time.CompareTo(speed2.time));
+            combinedSpeeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
             return combinedSpeeds;
         }
         public LevelMetadata(string[] lines, string name) : this(name, lines[4].Split(':'),
@@ -118,29 +119,28 @@ namespace PPR.Main.Levels {
         public List<LevelSpeed> speeds = new List<LevelSpeed>();
 
         public Level(string[] lines, string name) {
-            int[] objectsTimes = lines[1].Length > 0 ? lines[1].Split(':').Select(str => int.Parse(str)).ToArray() : new int[0];
+            int[] objectsSteps = lines[1].Length > 0 ? lines[1].Split(':').Select(str => int.Parse(str)).ToArray() : new int[0];
             int[] speeds = lines[2].Length > 0 ? lines[2].Split(':').Select(str => int.Parse(str)).ToArray() : new int[0];
             int[] speedsStarts = lines[3].Length > 0 ? lines[3].Split(':').Select(str => int.Parse(str)).ToArray() : new int[0];
             for(int i = 0; i < speedsStarts.Length; i++) {
                 this.speeds.Add(new LevelSpeed(speeds[i], speedsStarts[i]));
                 objects.Add(new LevelObject(LevelObject.speedChar, speedsStarts[i], this.speeds));
             }
-            for(int i = 0; i < objectsTimes.Length; i++) {
-                int time = objectsTimes[i];
-                objects.Add(new LevelObject(lines[0][i], time, this.speeds, objects));
+            for(int i = 0; i < objectsSteps.Length; i++) {
+                int step = objectsSteps[i];
+                objects.Add(new LevelObject(lines[0][i], step, this.speeds, objects));
             }
-            //this.speeds = Game.SortLevelSpeeds(this.speeds);
-            this.speeds.Sort((speed1, speed2) => speed1.time.CompareTo(speed2.time));
+            this.speeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
             string[] meta = lines[4].Split(':');
             metadata = new LevelMetadata(this, meta, name);
         }
     }
     public class LevelSpeed {
         public int speed;
-        public int time;
-        public LevelSpeed(int speed, int time) {
+        public int step;
+        public LevelSpeed(int speed, int step) {
             this.speed = speed;
-            this.time = time;
+            this.step = step;
         }
     }
     public class LevelObject {
@@ -158,8 +158,8 @@ namespace PPR.Main.Levels {
         public Vector2 startPosition;
         public char character;
         public Keyboard.Key key;
-        public readonly int time;
-        public int steps;
+        public readonly int step;
+        Color hitColor;
         static readonly Color color = ColorScheme.white;
         static readonly Color speedColor = ColorScheme.blue;
 
@@ -168,7 +168,7 @@ namespace PPR.Main.Levels {
 
         public bool ignore = false;
 
-        public LevelObject(char character, int time, List<LevelSpeed> speeds, List<LevelObject> objects = null) {
+        public LevelObject(char character, int step, List<LevelSpeed> speeds, List<LevelObject> objects = null) {
             int x = 0;
             int xLineOffset = 0;
             int mul = 90 / lines.Select(line => line.Length).Max();
@@ -181,9 +181,9 @@ namespace PPR.Main.Levels {
             }
             if(character == holdChar && objects != null) {
                 List<LevelObject> existingObjects = new List<LevelObject>(objects);
-                existingObjects.Sort((obj1, obj2) => -obj1.time.CompareTo(obj2.time));
+                existingObjects.Sort((obj1, obj2) => -obj1.step.CompareTo(obj2.step));
                 foreach(LevelObject obj in existingObjects) {
-                    if(obj.time <= time && obj.character != speedChar && obj.character != holdChar) {
+                    if(obj.step <= step && obj.character != speedChar && obj.character != holdChar) {
                         x = obj.position.x;
                         key = obj.key;
                         obj.ignore = true;
@@ -192,12 +192,11 @@ namespace PPR.Main.Levels {
                 }
             }
             List<LevelSpeed> existingSpeeds = new List<LevelSpeed>(speeds);
-            existingSpeeds.Sort((spd1, spd2) => spd1.time.CompareTo(spd2.time));
-            startPosition = new Vector2(x, (int)MathF.Round(Map.linePos.y - Game.MillisecondsToOffset(time, existingSpeeds)));
+            existingSpeeds.Sort((spd1, spd2) => spd1.step.CompareTo(spd2.step));
+            startPosition = new Vector2(x, Map.linePos.y - (int)Game.StepsToOffset(step, existingSpeeds));
             position = new Vector2(startPosition);
             this.character = character;
-            this.time = time;
-            steps = (int)MathF.Round(Game.MillisecondsToSteps(time, existingSpeeds));
+            this.step = step;
             switch(char.ToUpper(character)) {
                 case '1': key = Keyboard.Key.Num1; break;
                 case '2': key = Keyboard.Key.Num2; break;
@@ -262,23 +261,24 @@ namespace PPR.Main.Levels {
                     }
                 }
                 Color startColor = ColorScheme.green;
-                startColor = HitColor(steps, character == holdChar);
+                startColor = hitColor;
                 Renderer.instance.SetCellColor(position, Renderer.AnimateColor(removeAnimationTime, startColor, ColorScheme.white, 3f),
                                                                                                                      Renderer.AnimateColor(removeAnimationTime, startColor, Color.Transparent, 3f));
                 if(removeAnimationTime >= 1f) _ = Map.currentLevel.objects.Remove(this);
                 removeAnimationTime += Core.deltaTime;
                 return;
             }
-            if(!ignore && (!Game.editing || !Game.StepPassedLine(steps, 1)))
+            if(!ignore && (!Game.editing || !Game.StepPassedLine(step, 1)))
                 Renderer.instance.SetCharacter(position, character, character == speedChar ? speedColor : color, Color.Transparent);
-            if(!Game.editing && Game.StepPassedLine(steps)) {
+            if(!Game.editing && Game.StepPassedLine(step)) {
                 if(character == speedChar || ignore) {
                     _ = Map.currentLevel.objects.Remove(this);
                 }
-                else if(Game.StepPassedLine(steps, character == holdChar ? 1 : missRange)) {
+                else if(Game.StepPassedLine(step, character == holdChar ? 1 : missRange)) {
                     Miss();
                     Game.RecalculateAccuracy();
                     removed = true;
+                    hitColor = HitColor(step, character == holdChar);
                 }
                 else if(Game.auto || character == holdChar) {
                     CheckPress();
@@ -286,7 +286,7 @@ namespace PPR.Main.Levels {
             }
         }
         public void CheckHit() {
-            if(character == holdChar ? steps == Game.roundedSteps : Game.StepPassedLine(steps, -hitRange)) {
+            if(character == holdChar ? step == Game.roundedSteps : Game.StepPassedLine(step, -hitRange)) {
                 Hit();
             }
             else {
@@ -295,6 +295,7 @@ namespace PPR.Main.Levels {
             PlayHitsound();
             Game.RecalculateAccuracy();
             removed = true;
+            hitColor = HitColor(step, character == holdChar);
         }
         public void CheckPress() {
             if(removed || ignore) return;
@@ -309,7 +310,7 @@ namespace PPR.Main.Levels {
         }
         void Hit() {
             Game.health += Map.currentLevel.metadata.hpRestorage;
-            int score = steps == (int)Game.steps || character == holdChar ? 10 : 5;
+            int score = step == (int)Game.steps || character == holdChar ? 10 : 5;
             Game.combo++;
             Game.maxCombo = Math.Max(Game.combo, Game.maxCombo);
             Game.score += score * Game.combo;
@@ -323,7 +324,7 @@ namespace PPR.Main.Levels {
         public void Step() {
             if(removed) return;
             position.y = startPosition.y + Game.roundedOffset;
-            if(Game.editing && Game.music.Status == SoundStatus.Playing && steps == (int)Game.steps)
+            if(Game.editing && Game.music.Status == SoundStatus.Playing && step == (int)Game.steps)
                 PlayHitsound();
         }
 
@@ -332,10 +333,10 @@ namespace PPR.Main.Levels {
             return obj is LevelObject @object &&
                    EqualityComparer<Vector2>.Default.Equals(position, @object.position) &&
                    character == @object.character &&
-                   time == @object.time;
+                   step == @object.step;
         }
         public override int GetHashCode() {
-            return HashCode.Combine(position, character, time);
+            return HashCode.Combine(position, character, step);
         }
         public static bool operator ==(LevelObject left, LevelObject right) {
             return left is null ? right is null : left.Equals(right);
