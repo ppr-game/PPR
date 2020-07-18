@@ -511,7 +511,6 @@ namespace PPR.Main {
             List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != LevelObject.speedChar &&
                         obj.character != LevelObject.holdChar &&
                         !obj.removed &&
-                        !obj.ignore &&
                         obj.step == step);
             for(int i = 0; i < objects.Count; i++) {
                 objects[i].CheckPress();
