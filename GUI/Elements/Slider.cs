@@ -30,12 +30,13 @@ namespace PPR.GUI.Elements {
         int posX;
         public enum State { Idle, Hovered, Clicked };
         public enum TextAlignment { Left, Right };
-        public Slider(Vector2 position, int minValue, int maxValue, int size, string text, Color idleColor, Color hoverColor, Color clickColor, bool showValue = true, Renderer.TextAlignment align = Renderer.TextAlignment.Left, TextAlignment alignText = TextAlignment.Left) {
+        public Slider(Vector2 position, int minValue, int maxValue, int size, int defaultValue, string text, Color idleColor, Color hoverColor, Color clickColor, bool showValue = true, Renderer.TextAlignment align = Renderer.TextAlignment.Left, TextAlignment alignText = TextAlignment.Left) {
             this.position = position;
             this.minValue = minValue;
             this.maxValue = maxValue;
             this.size = size;
-            step = (maxValue - minValue) / size + 1;
+            step = (maxValue - minValue) / (size - 1);
+            value = defaultValue;
             this.text = text;
             this.idleColor = idleColor;
             this.hoverColor = hoverColor;
@@ -87,16 +88,16 @@ namespace PPR.GUI.Elements {
             prevState = currentState;
 
             if(Renderer.instance.window.HasFocus() && currentState == State.Clicked) {
-                int previous_value = value;
-                value = Math.Clamp((Renderer.instance.mousePosition.x - posX) * step, minValue, maxValue);
-                if (value != previous_value) {
+                int previousValue = value;
+                value = Math.Clamp((Renderer.instance.mousePosition.x - posX) * step + minValue, minValue, maxValue);
+                if (value != previousValue) {
                     Game.sliderSound.Play();
                 }
             }
 
             for(int x = 0; x < size; x++) {
                 Vector2 pos = new Vector2(posX + x, position.y);
-                int drawValue = value / step;
+                int drawValue = (value - minValue) / step;
                 char curChar = '█';
                 if(x < drawValue) curChar = '─';
                 else if(x > drawValue) curChar = '-';

@@ -202,7 +202,7 @@ namespace PPR.Main {
         }
 
         public void ReloadSounds() {
-            if(TryLoadSound( GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "hit")), out hitSound))
+            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "hit")), out hitSound))
                 hitSound.Volume = Settings.Default.soundsVolume;
             if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "tick")), out tickSound))
                 tickSound.Volume = Settings.Default.soundsVolume;

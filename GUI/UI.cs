@@ -99,10 +99,12 @@ namespace PPR.GUI {
             levelEditorButtons = new List<Button>() {
                 new Button(new Vector2(78, 58), "►", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Enter")),
             };
+            musicSpeedSlider = new Slider(new Vector2(78, 58), 25, 100, 16, 100, "", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, true,
+                Renderer.TextAlignment.Right, Slider.TextAlignment.Right);
             skipButton = new Button(new Vector2(78, 58), "SKIP", 4, ColorScheme.black, ColorScheme.orange, ColorScheme.lightDarkOrange, new InputKey("Space"), right);
 
-            musicVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, "MUSIC VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
-            soundsVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, "SOUNDS VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+            musicVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, 15, "MUSIC VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+            soundsVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, 10, "SOUNDS VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
 
             bloomSwitch = new Button(new Vector2(4, 24), "BLOOM", 5, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
             fullscreenSwitch = new Button(new Vector2(4, 26), "FULLSCREEN", 10, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
@@ -221,6 +223,7 @@ namespace PPR.GUI {
         static readonly Vector2 hpDrainPos = new Vector2(20, 57);
         static readonly Vector2 hpRestoragePos = new Vector2(20, 58);
         static readonly Vector2 musicOffsetPos = new Vector2(20, 59);
+        static Slider musicSpeedSlider;
         static void DrawGame() {
             if(Game.editing) {
                 foreach(Button button in levelEditorButtons) {
@@ -235,8 +238,6 @@ namespace PPR.GUI {
                         }
                         else if(button.text == "║") {
                             Game.music.Pause();
-                            //Game.offset = Game.roundedOffset;
-                            //Game.UpdateTime();
                             Game.steps = Game.roundedSteps;
                             Game.UpdateTime();
                         }
@@ -252,6 +253,9 @@ namespace PPR.GUI {
                 Renderer.instance.DrawText(hpRestoragePos, "HP RESTORAGE: " + Map.currentLevel.metadata.hpRestorage, ColorScheme.red, Color.Transparent);
 
                 Renderer.instance.DrawText(musicOffsetPos, "MUSIC OFFSET: " + Map.currentLevel.metadata.initialOffsetMS + " MS", ColorScheme.gray, Color.Transparent);
+
+                Game.music.Pitch = musicSpeedSlider.Draw() / 100f;
+
                 DrawProgress();
                 DrawLevelName(levelNamePos, ColorScheme.black);
             }
@@ -393,6 +397,8 @@ namespace PPR.GUI {
                 else if(button.Draw()) {
                     if(button.text == "EXIT") {
                         Game.currentMenu = Menu.LevelSelect;
+                        Game.music.Pitch = 1f;
+                        musicSpeedSlider.value = 100;
                     }
                 }
             }
