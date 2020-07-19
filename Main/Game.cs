@@ -310,12 +310,13 @@ namespace PPR.Main {
             if(music.PlayingOffset != prevPlayingOffset) {
                 timeFromStart = music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
                 steps = MillisecondsToSteps(timeFromStart.AsMicroseconds() / 1000f);
+                if(music.Status != SoundStatus.Playing) steps = MathF.Round(steps);
                 offset = StepsToOffset(steps);
             }
             prevPlayingOffset = music.PlayingOffset;
 
             if(MathF.Floor(prevSteps) != MathF.Floor(steps)) {
-                roundedSteps = (int)MathF.Floor(steps);
+                roundedSteps = (int)MathF.Round(steps);
                 roundedOffset = (int)MathF.Round(offset);
                 RecalculatePosition();
             }
