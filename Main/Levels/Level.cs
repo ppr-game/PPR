@@ -166,6 +166,8 @@ namespace PPR.Main.Levels {
         public bool removed;
         float removeAnimationTime;
 
+        public bool ignore = false;
+
         public LevelObject(char character, int step, List<LevelSpeed> speeds, List<LevelObject> objects = null) {
             int x = 0;
             int xLineOffset = 0;
@@ -184,7 +186,7 @@ namespace PPR.Main.Levels {
                     if(obj.step <= step && obj.character != speedChar && obj.character != holdChar) {
                         x = obj.position.x;
                         key = obj.key;
-                        _ = objects.Remove(obj);
+                        obj.ignore = true;
                         break;
                     }
                 }
@@ -251,7 +253,13 @@ namespace PPR.Main.Levels {
             return miss ? ColorScheme.red : hit ? ColorScheme.yellow : ColorScheme.green;
         }
         public void Draw() {
-            if(removed) {
+            if(removed && !ignore) {
+                if(removeAnimationTime <= 0f) {
+                    List<LevelObject> samePosObjects = Map.currentLevel.objects.FindAll(obj => obj.position == position && obj.ignore && obj != this);
+                    if(samePosObjects.Count > 0) {
+                        samePosObjects.ForEach(obj => Map.currentLevel.objects.Remove(obj));
+                    }
+                }
                 Color startColor = hitColor;
                 Renderer.instance.SetCellColor(position, Renderer.AnimateColor(removeAnimationTime, startColor, ColorScheme.white, 3f),
                                                                                                                      Renderer.AnimateColor(removeAnimationTime, startColor, Color.Transparent, 3f));
@@ -259,10 +267,10 @@ namespace PPR.Main.Levels {
                 removeAnimationTime += Core.deltaTime;
                 return;
             }
-            if(!Game.editing || !Game.StepPassedLine(step, 1))
+            if(!ignore && (!Game.editing || !Game.StepPassedLine(step, 1)))
                 Renderer.instance.SetCharacter(position, character, character == speedChar ? speedColor : color, Color.Transparent);
             if(!Game.editing && Game.StepPassedLine(step)) {
-                if(character == speedChar) {
+                if(character == speedChar || ignore) {
                     _ = Map.currentLevel.objects.Remove(this);
                 }
                 else if(Game.StepPassedLine(step, character == holdChar ? 1 : missRange)) {
@@ -289,13 +297,13 @@ namespace PPR.Main.Levels {
             hitColor = HitColor(step, character == holdChar);
         }
         public void CheckPress() {
-            if(removed) return;
+            if(removed || ignore) return;
             if(Game.auto || Keyboard.IsKeyPressed(key)) {
                 CheckHit();
             }
         }
         void PlayHitsound() {
-            if(character == speedChar || removed) return;
+            if(character == speedChar || ignore || removed) return;
             if(character == holdChar) Game.tickSound.Play();
             else Game.hitSound.Play();
         }
