@@ -82,8 +82,8 @@ namespace PPR.Main.Levels {
 
             int minStep = steps.Count > 0 ? steps.Min() : 0;
             int minTime = (int)Game.StepsToMilliseconds(minStep, speeds) + initialOffsetMS;
-            skipTime = minTime - 5000;
-            skippable = skipTime > 5000;
+            skipTime = minTime - 3000;
+            skippable = skipTime > 3000;
 
             IEnumerable<int> onlySpeeds = speeds.Select(speed => speed.speed);
             minBPM = onlySpeeds.Min();
