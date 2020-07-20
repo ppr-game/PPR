@@ -265,7 +265,7 @@ namespace PPR.Main.Levels {
         public void Draw() {
             if(removed && !ignore) {
                 if(removeAnimationTime <= 0f) {
-                    List<LevelObject> samePosObjects = Map.currentLevel.objects.FindAll(obj => obj.position == position && obj.ignore && obj != this);
+                    List<LevelObject> samePosObjects = Map.currentLevel.objects.FindAll(obj => obj.position == position && obj.removed && obj != this);
                     if(samePosObjects.Count > 0) {
                         samePosObjects.ForEach(obj => Map.currentLevel.objects.Remove(obj));
                     }
