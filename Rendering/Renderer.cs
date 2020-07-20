@@ -152,27 +152,25 @@ namespace PPR.Rendering {
 
             Sprite defSprite = new Sprite(text.renderTexture.Texture);
 
+            bloomRT.Clear();
             finalRT.Clear();
-
-            finalRT.Draw(defSprite);
 
             if(Settings.Default.bloom) {
                 Shader.Bind(bloom);
 
-                bloom.SetUniform("image", finalRT.Texture);
+                bloom.SetUniform("image", defSprite.Texture);
                 bloom.SetUniform("horizontal", false);
+                bloomRT.Draw(new Sprite(defSprite), new RenderStates(bloom));
+                bloomRT.Display();
 
-                finalRT.Draw(new Sprite(finalRT.Texture));
-
-                bloom.SetUniform("image", finalRT.Texture);
+                bloom.SetUniform("image", bloomRT.Texture);
                 bloom.SetUniform("horizontal", true);
-
-                finalRT.Draw(new Sprite(finalRT.Texture));
+                finalRT.Draw(new Sprite(bloomRT.Texture), new RenderStates(bloom));
 
                 Shader.Bind(null);
-
-                finalRT.Draw(defSprite, new RenderStates(BlendMode.Add));
             }
+
+            finalRT.Draw(defSprite, new RenderStates(BlendMode.Add));
 
             finalRT.Display();
         }
