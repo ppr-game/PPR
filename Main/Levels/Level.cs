@@ -85,10 +85,10 @@ namespace PPR.Main.Levels {
             skipTime = minTime - 3000;
             skippable = skipTime > 3000;
 
-            IEnumerable<int> onlySpeeds = speeds.Select(speed => speed.speed);
-            minBPM = onlySpeeds.Min();
-            maxBPM = onlySpeeds.Max();
-            avgBPM = (int)Math.Floor(onlySpeeds.Average());
+            IEnumerable<int> onlyAbsoluteSpeeds = speeds.Select(speed => Math.Abs(speed.speed));
+            minBPM = onlyAbsoluteSpeeds.Min();
+            maxBPM = onlyAbsoluteSpeeds.Max();
+            avgBPM = (int)Math.Floor(onlyAbsoluteSpeeds.Average());
             string avgBPMstr = avgBPM.ToString();
             string minmaxBPMstr = minBPM + "-" + maxBPM;
             bpm = minBPM == maxBPM ? avgBPMstr : minmaxBPMstr + " (" + avgBPMstr + ")";
