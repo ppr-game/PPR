@@ -277,7 +277,7 @@ namespace PPR.Main.Levels {
                 removeAnimationTime += Core.deltaTime;
                 return;
             }
-            if(!ignore && (!Game.editing || !Game.StepPassedLine(step, 1)) && Renderer.instance.GetCharacter(position) == ' ')
+            if(!ignore && (!Game.editing || !Game.StepPassedLine(step, 1)) && Renderer.instance.GetCharacter(position) == '\0')
                 Renderer.instance.SetCharacter(position, character, character == speedChar ? speedColor : NormalColor(), Color.Transparent);
             if(!Game.editing && Game.StepPassedLine(step)) {
                 if(character == speedChar || ignore) {
