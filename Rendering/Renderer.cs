@@ -33,6 +33,8 @@ namespace PPR.Rendering {
         public RenderTexture bloomRT;
         public RenderTexture finalRT;
 
+        private bool rebuildTexture = false;
+
         public Vector2f mousePositionF = new Vector2f(-1f, -1f);
         public Vector2 mousePosition = new Vector2(-1, -1);
         public bool leftButtonPressed = false;
@@ -150,6 +152,11 @@ namespace PPR.Rendering {
             text.foregroundColors = foregroundColors;
             text.text = displayString;
 
+            if(rebuildTexture) {
+                text.RebuildRenderTexture();
+                rebuildTexture = false;
+            }
+
             Sprite defSprite = new Sprite(text.renderTexture.Texture);
 
             bloomRT.Clear();
@@ -215,6 +222,8 @@ namespace PPR.Rendering {
                 // If a character is a space or null, remove it from a dictionary
                 if(character == ' ' || character == '\0') _ = displayString.Remove(position);
                 else displayString[position] = character;
+
+                rebuildTexture = true;
             }
         }
         public void SetCharacter(Vector2 position, char character, Color foregroundColor, Color backgroundColor) {
@@ -231,6 +240,8 @@ namespace PPR.Rendering {
 
                 if(foregroundColor == Color.White) _ = foregroundColors.Remove(position);
                 else foregroundColors[position] = foregroundColor;
+
+                rebuildTexture = true;
             }
         }
         public static Color LerpColors(Color a, Color b, float t) {
