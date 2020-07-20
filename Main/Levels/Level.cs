@@ -159,8 +159,10 @@ namespace PPR.Main.Levels {
         public char character;
         public Keyboard.Key key;
         public readonly int step;
+        public readonly int directionLayer;
         Color hitColor;
         static readonly Color color = ColorScheme.white;
+        static readonly Color nextDirLayerColor = ColorScheme.lightDarkGray;
         static readonly Color speedColor = ColorScheme.blue;
 
         public bool removed;
@@ -197,6 +199,7 @@ namespace PPR.Main.Levels {
             position = new Vector2(startPosition);
             this.character = character;
             this.step = step;
+            directionLayer = Game.StepsToDirectionLayer(step, existingSpeeds);
             switch(char.ToUpper(character)) {
                 case '1': key = Keyboard.Key.Num1; break;
                 case '2': key = Keyboard.Key.Num2; break;
@@ -252,6 +255,13 @@ namespace PPR.Main.Levels {
             bool miss = distance >= missRange || (hit && hold);
             return miss ? ColorScheme.red : hit ? ColorScheme.yellow : ColorScheme.green;
         }
+        Color NormalColor() {
+            return NormalColor(directionLayer, Game.currentDirectionLayer);
+        }
+        static Color NormalColor(int noteDirLayer, int curDirLayer) {
+            int difference = Math.Abs(noteDirLayer - curDirLayer);
+            return difference == 0 ? color : difference == 1 ? nextDirLayerColor : Color.Transparent;
+        }
         public void Draw() {
             if(removed && !ignore) {
                 if(removeAnimationTime <= 0f) {
@@ -268,7 +278,7 @@ namespace PPR.Main.Levels {
                 return;
             }
             if(!ignore && (!Game.editing || !Game.StepPassedLine(step, 1)))
-                Renderer.instance.SetCharacter(position, character, character == speedChar ? speedColor : color, Color.Transparent);
+                Renderer.instance.SetCharacter(position, character, character == speedChar ? speedColor : NormalColor(), Color.Transparent);
             if(!Game.editing && Game.StepPassedLine(step)) {
                 if(character == speedChar || ignore) {
                     _ = Map.currentLevel.objects.Remove(this);

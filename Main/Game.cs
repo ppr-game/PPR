@@ -98,6 +98,7 @@ namespace PPR.Main {
         }
         public static int roundedSteps = 0;
         public static float prevSteps = 0f;
+        public static int currentDirectionLayer = 0;
         public static int currentBPM = 1;
         public static Music music;
         public static Sound hitSound;
@@ -282,6 +283,7 @@ namespace PPR.Main {
             steps = 0;
             roundedSteps = 0;
             prevSteps = 0;
+            currentDirectionLayer = 0;
             currentBPM = Map.currentLevel.speeds[0].speed;
             timeFromStart = Time.Zero;
             UI.health = 0;
@@ -342,6 +344,7 @@ namespace PPR.Main {
         public static void UpdateSpeeds() {
             for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
                 if(Map.currentLevel.speeds[i].step <= steps) {
+                    currentDirectionLayer = StepsToDirectionLayer(roundedSteps);
                     currentBPM = Map.currentLevel.speeds[i].speed;
                 }
                 else break;
@@ -615,6 +618,21 @@ namespace PPR.Main {
                 else offset += useSteps * MathF.Sign(sortedSpeeds[i].speed);
             }
             return offset;
+        }
+        public static int StepsToDirectionLayer(float steps) {
+            return StepsToDirectionLayer(steps, Map.currentLevel.speeds);
+        }
+        public static int StepsToDirectionLayer(float steps, List<LevelSpeed> sortedSpeeds) {
+            int speedIndex = 0;
+            for(int i = 0; i < sortedSpeeds.Count; i++) {
+                if(sortedSpeeds[i].step <= steps) speedIndex = i;
+                else break;
+            }
+            int directionLayer = 0;
+            for(int i = 1; i <= speedIndex; i++) {
+                if(MathF.Sign(sortedSpeeds[i].speed) != MathF.Sign(sortedSpeeds[i - 1].speed)) directionLayer++;
+            }
+            return directionLayer;
         }
         public static bool StepPassedLine(int step, int lineOffset = 0) {
             return roundedSteps >= step + lineOffset;
