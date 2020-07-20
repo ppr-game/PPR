@@ -161,9 +161,9 @@ namespace PPR.Main.Levels {
         public readonly int step;
         public readonly int directionLayer;
         Color hitColor;
-        static readonly Color color = ColorScheme.white;
-        static readonly Color nextDirLayerColor = ColorScheme.lightDarkGray;
-        static readonly Color speedColor = ColorScheme.blue;
+        public static Color color;
+        public static Color nextDirLayerColor;
+        public static Color speedColor;
 
         public bool removed;
         float removeAnimationTime;

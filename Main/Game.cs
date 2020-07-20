@@ -167,6 +167,10 @@ namespace PPR.Main {
             UI.showFpsSwitch.selected = Settings.Default.showFps;
             UI.fullscreenSwitch.selected = Settings.Default.fullscreen;
 
+            LevelObject.color = ColorScheme.white;
+            LevelObject.nextDirLayerColor = ColorScheme.lightDarkGray;
+            LevelObject.speedColor = ColorScheme.blue;
+
             Settings.Default.PropertyChanged += PropertyChanged;
         }
 
