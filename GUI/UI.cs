@@ -565,8 +565,9 @@ namespace PPR.GUI {
                     break;
             }
             if(Settings.Default.showFps)
-                Renderer.instance.DrawText(zero, fps + " FPS", fps >= 60 ? ColorScheme.green : fps > 20 ? ColorScheme.yellow : ColorScheme.red,
-                    Color.Transparent);
+                Renderer.instance.DrawText(fpsPos, fps + " FPS", fps >= 60 ? ColorScheme.green : fps > 20 ? ColorScheme.yellow : ColorScheme.red,
+                    ColorScheme.black, Renderer.TextAlignment.Right);
         }
+        static readonly Vector2 fpsPos = new Vector2(79, 59);
     }
 }
