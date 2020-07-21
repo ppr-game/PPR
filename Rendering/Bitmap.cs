@@ -97,8 +97,8 @@ namespace PPR.Rendering {
             charHeight = (byte)font.characterSize.y;
             textWidth = (uint)size.x;
             textHeight = (uint)size.y;
-            imageWidth = (textWidth + 1) * charWidth;
-            imageHeight = (textHeight + 1) * charHeight;
+            imageWidth = textWidth * charWidth;
+            imageHeight = textHeight * charHeight;
             renderTexture = new RenderTexture(imageWidth, imageHeight);
             backgroundQuads = new Vertex[4 * textWidth * textHeight];
             foregroundQuads = new Vertex[4 * textWidth * textHeight];

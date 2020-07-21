@@ -31,7 +31,6 @@ namespace PPR.Rendering {
         readonly Shader bloom = Shader.FromString(File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
                                                                                                                      File.ReadAllText(Path.Combine("resources", "bloom_frag.glsl")));
         public RenderTexture bloomRT;
-        public RenderTexture finalRT;
 
         private bool rebuildTexture = false;
 
@@ -60,7 +59,6 @@ namespace PPR.Rendering {
 
             window = new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "Press Press Revolution", Styles.Close);
             bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
-            finalRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
 
             SubscribeWindowEvents();
 
@@ -75,6 +73,8 @@ namespace PPR.Rendering {
             };
         }
         public void SubscribeWindowEvents() {
+            leftButtonPressed = false;
+
             window.KeyPressed += Core.game.KeyPressed;
             window.MouseWheelScrolled += Core.game.MouseWheelScrolled;
             window.LostFocus += Core.game.LostFocus;
@@ -102,27 +102,16 @@ namespace PPR.Rendering {
             UpdateWindow();
         }
         public void UpdateWindow() {
-            //FloatRect visibleArea = new FloatRect(0, 0, windowWidth, windowHeight);
             if(Settings.Default.fullscreen) {
                 VideoMode videoMode = VideoMode.FullscreenModes[0];
 
-                //Vector2 oldCenter = new Vector2(windowWidth / 2, windowHeight / 2);
-
                 windowWidth = (int)videoMode.Width;
                 windowHeight = (int)videoMode.Height;
-
-                /*Vector2 newCenter = new Vector2(windowWidth / 2, windowHeight / 2);
-
-                visibleArea = new FloatRect(oldCenter.x - newCenter.x, oldCenter.y - newCenter.y, windowWidth, windowHeight);*/
             }
             else {
                 window.Size = new Vector2u((uint)windowWidth, (uint)windowHeight);
             }
-            //window.SetView(new View(visibleArea));
             bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
-            finalRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
-            //bloomRT.SetView(new View(visibleArea));
-            //finalRT.SetView(new View(visibleArea));
 
             if(frameRate < 0) window.SetVerticalSyncEnabled(true);
             else if(frameRate != 0) window.SetFramerateLimit((uint)frameRate);
@@ -146,9 +135,8 @@ namespace PPR.Rendering {
             ClearText();
             Map.Draw();
             UI.Draw();
-            RenderImage();
         }
-        public void RenderImage() {
+        public void Draw() {
             text.backgroundColors = backgroundColors;
             text.foregroundColors = foregroundColors;
             text.text = displayString;
@@ -159,20 +147,22 @@ namespace PPR.Rendering {
             }
 
             Sprite defSprite = new Sprite(text.renderTexture.Texture) {
-                Origin = new Vector2f(text.imageWidth / 2f, text.imageHeight / 2f)
+                Origin = new Vector2f(text.imageWidth / 2f, text.imageHeight / 2f),
+                Position = new Vector2f(windowWidth / 2f, windowHeight / 2f)
             };
-            defSprite.Position = new Vector2f(windowWidth / 2f, windowHeight / 2f);
 
             bloomRT.Clear();
             window.Clear();
-            //finalRT.Clear();
 
             if(Settings.Default.bloom) {
+                bloomRT.Draw(defSprite);
+                bloomRT.Display();
+
                 Shader.Bind(bloom);
 
-                bloom.SetUniform("image", defSprite.Texture);
+                bloom.SetUniform("image", bloomRT.Texture);
                 bloom.SetUniform("horizontal", false);
-                Sprite vertical = new Sprite(defSprite);
+                Sprite vertical = new Sprite(bloomRT.Texture);
                 bloomRT.Draw(vertical, new RenderStates(bloom));
                 bloomRT.Display();
 
@@ -185,12 +175,6 @@ namespace PPR.Rendering {
             }
 
             window.Draw(defSprite, new RenderStates(BlendMode.Add));
-
-            //finalRT.Display();
-        }
-        public void Draw() {
-            /*window.Clear();
-            window.Draw(new Sprite(finalRT.Texture));*/
         }
         public enum TextAlignment { Left, Center, Right }
         public void DrawText(Vector2 position, string text, Color foregroundColor, Color backgroundColor, TextAlignment align = TextAlignment.Left, bool replacingSpaces = false) {
