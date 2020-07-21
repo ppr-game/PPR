@@ -295,6 +295,9 @@ namespace PPR.Main {
             currentBPM = Map.currentLevel.speeds[0].speed;
             currentSpeedSec = 60f / currentBPM;
             timeFromStart = Time.Zero;
+            interpolatedPlayingOffset = Time.Zero;
+            prevFramePlayingOffset = Time.Zero;
+            prevPlayingOffset = Time.Zero;
             UI.health = 0;
             health = 80;
             score = 0;
