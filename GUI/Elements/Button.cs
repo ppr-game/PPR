@@ -28,9 +28,9 @@ namespace PPR.GUI.Elements {
         bool prevFrameHotkeyPressed = false;
         Color currentColor;
         Color prevColor;
-        public State currentState = State.Clicked;
-        State prevState = State.Clicked;
-        public State prevFrameState = State.Clicked;
+        public State currentState = State.Hovered;
+        State prevState = State.Hovered;
+        public State prevFrameState = State.Hovered;
         float[] animTimes;
         float[] animRateOffsets;
         public bool selected = false;
