@@ -156,20 +156,19 @@ namespace PPR.Rendering {
 
             if(Settings.Default.bloom) {
                 bloomRT.Draw(defSprite);
-                bloomRT.Display();
 
                 Shader.Bind(bloom);
 
                 bloom.SetUniform("image", bloomRT.Texture);
                 bloom.SetUniform("horizontal", false);
                 Sprite vertical = new Sprite(bloomRT.Texture);
-                bloomRT.Draw(vertical, new RenderStates(bloom));
+                bloomRT.Draw(vertical);
                 bloomRT.Display();
 
                 bloom.SetUniform("image", bloomRT.Texture);
                 bloom.SetUniform("horizontal", true);
                 Sprite horizontal = new Sprite(bloomRT.Texture);
-                window.Draw(horizontal, new RenderStates(bloom));
+                window.Draw(horizontal);
 
                 Shader.Bind(null);
             }
