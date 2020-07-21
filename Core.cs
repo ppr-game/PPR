@@ -24,10 +24,10 @@ public static class Core {
         while(renderer.window.IsOpen) { // Executes every frame
             renderer.window.DispatchEvents();
 
+            game.Update();
+
             renderer.Update();
             renderer.Draw();
-
-            game.Update();
 
             renderer.window.Display();
 

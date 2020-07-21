@@ -40,13 +40,18 @@ namespace PPR.Main.Levels {
             for(int i = 0; i < currentLevel.objects.Count; i++) {
                 currentLevel.objects[i].Step();
             }
-            if(Game.health <= 0 || currentLevel.objects.Count == 0) {
+            if(Game.health <= 0 || currentLevel.objects.FindAll(obj => !obj.ignore).Count == 0) {
                 Game.currentMenu = Menu.LastStats;
                 if (Game.health <= 0) {
                     Game.failSound.Play();
                 } else {
                     Game.passSound.Play();
                 }
+            }
+        }
+        public static void SimulateAll() {
+            for(int i = 0; i < currentLevel.objects.Count; i++) {
+                currentLevel.objects[i].Simulate();
             }
         }
         public static void LoadLevelFromLines(string[] lines, string name, string musicPath) {

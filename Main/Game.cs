@@ -86,6 +86,8 @@ namespace PPR.Main {
         }
         public static Time timeFromStart;
         static Time prevPlayingOffset;
+        static Time prevFramePlayingOffset;
+        static Time interpolatedPlayingOffset;
         public static float offset = 0f;
         public static int roundedOffset = 0;
         static float _steps = 0f;
@@ -100,6 +102,8 @@ namespace PPR.Main {
         public static float prevSteps = 0f;
         public static int currentDirectionLayer = 0;
         public static int currentBPM = 1;
+        public static float currentSpeedSec = 60f;
+        public static float absoluteCurrentSpeedSec = 60f;
         public static Music music;
         public static Sound hitSound;
         public static Sound tickSound;
@@ -289,6 +293,7 @@ namespace PPR.Main {
             prevSteps = 0;
             currentDirectionLayer = 0;
             currentBPM = Map.currentLevel.speeds[0].speed;
+            currentSpeedSec = 60f / currentBPM;
             timeFromStart = Time.Zero;
             UI.health = 0;
             health = 80;
@@ -310,16 +315,34 @@ namespace PPR.Main {
 
             logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
         }
+        private float accumulator = 0f;
         public void Update() {
             if(currentMenu != Menu.Game) return;
 
-            if(music.PlayingOffset != prevPlayingOffset) {
-                timeFromStart = music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
+            float fixedDeltaTime = absoluteCurrentSpeedSec / 12f;
+
+            accumulator += Core.deltaTime;
+            float totalTimesToExec = 0f;
+            if(accumulator >= fixedDeltaTime) totalTimesToExec = MathF.Ceiling((accumulator - fixedDeltaTime) / fixedDeltaTime);
+            while(accumulator >= fixedDeltaTime) {
+                float interpT = 1f - MathF.Ceiling((accumulator - fixedDeltaTime) / fixedDeltaTime) / totalTimesToExec;
+                interpolatedPlayingOffset = music.PlayingOffset * interpT + prevFramePlayingOffset * (1f - interpT);
+                if(interpT > 0f) logger.Debug(interpT);
+                FixedUpdate();
+                accumulator -= fixedDeltaTime;
+            }
+            prevFramePlayingOffset = music.PlayingOffset;
+        }
+        public void FixedUpdate() {
+            if(interpolatedPlayingOffset != prevPlayingOffset) {
+                timeFromStart = interpolatedPlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
                 steps = MillisecondsToSteps(timeFromStart.AsMicroseconds() / 1000f);
                 if(music.Status != SoundStatus.Playing) steps = MathF.Round(steps);
                 offset = StepsToOffset(steps);
             }
-            prevPlayingOffset = music.PlayingOffset;
+            prevPlayingOffset = interpolatedPlayingOffset;
+
+            //if(steps - prevSteps > 1f) logger.Warn("Lag detected: steps increased too quickly ({0})", steps - prevSteps);
 
             if(MathF.Floor(prevSteps) != MathF.Floor(steps)) {
                 roundedSteps = (int)MathF.Round(steps);
@@ -335,11 +358,13 @@ namespace PPR.Main {
                     float mouseProgress = Math.Clamp(Core.renderer.mousePositionF.X / 80f, 0f, 1f);
                     music.PlayingOffset = Time.FromSeconds(duration * mouseProgress + initialOffset);
                     timeFromStart = music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMS);
-                    steps = MillisecondsToSteps(timeFromStart.AsMilliseconds());
+                    steps = MathF.Round(MillisecondsToSteps(timeFromStart.AsMilliseconds()));
                     offset = StepsToOffset(steps);
                 }
                 UI.progress = (int)(music.PlayingOffset.AsSeconds() / duration * 80f);
             }
+
+            Map.SimulateAll();
         }
         public static void UpdateTime() {
             long useMicrosecs = (long)((MathF.Round(StepsToMilliseconds(steps)) + Map.currentLevel.metadata.initialOffsetMS) * 1000f);
@@ -348,8 +373,10 @@ namespace PPR.Main {
         public static void UpdateSpeeds() {
             for(int i = 0; i < Map.currentLevel.speeds.Count; i++) {
                 if(Map.currentLevel.speeds[i].step <= steps) {
-                    currentDirectionLayer = StepsToDirectionLayer(roundedSteps);
                     currentBPM = Map.currentLevel.speeds[i].speed;
+                    currentSpeedSec = 60f / currentBPM;
+                    absoluteCurrentSpeedSec = Math.Abs(currentSpeedSec);
+                    currentDirectionLayer = StepsToDirectionLayer(roundedSteps);
                 }
                 else break;
             }

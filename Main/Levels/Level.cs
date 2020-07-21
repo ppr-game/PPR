@@ -280,19 +280,21 @@ namespace PPR.Main.Levels {
             if(!ignore && (!Game.editing || !Game.StepPassedLine(step, 1)) &&
                 (directionLayer == Game.currentDirectionLayer || Renderer.instance.GetCharacter(position) == '\0'))
                 Renderer.instance.SetCharacter(position, character, character == speedChar ? speedColor : NormalColor(), Color.Transparent);
-            if(!Game.editing && Game.StepPassedLine(step)) {
-                if(character == speedChar || ignore) {
-                    _ = Map.currentLevel.objects.Remove(this);
-                }
-                else if(Game.StepPassedLine(step, character == holdChar ? 1 : missRange)) {
-                    Miss();
-                    Game.RecalculateAccuracy();
-                    removed = true;
-                    hitColor = HitColor(step, character == holdChar);
-                }
-                else if(Game.auto || character == holdChar) {
-                    CheckPress();
-                }
+        }
+        public void Simulate() {
+            if(removed || Game.editing || !Game.StepPassedLine(step)) return;
+
+            if(character == speedChar || ignore) {
+                _ = Map.currentLevel.objects.Remove(this);
+            }
+            else if(Game.StepPassedLine(step, character == holdChar ? 1 : missRange)) {
+                Miss();
+                Game.RecalculateAccuracy();
+                removed = true;
+                hitColor = HitColor(step, character == holdChar);
+            }
+            else if(Game.auto || character == holdChar) {
+                CheckPress();
             }
         }
         public void CheckHit() {
