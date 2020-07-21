@@ -102,25 +102,27 @@ namespace PPR.Rendering {
             UpdateWindow();
         }
         public void UpdateWindow() {
-            FloatRect visibleArea = new FloatRect(0, 0, windowWidth, windowHeight);
+            //FloatRect visibleArea = new FloatRect(0, 0, windowWidth, windowHeight);
             if(Settings.Default.fullscreen) {
                 VideoMode videoMode = VideoMode.FullscreenModes[0];
 
-                Vector2 oldCenter = new Vector2(windowWidth / 2, windowHeight / 2);
+                //Vector2 oldCenter = new Vector2(windowWidth / 2, windowHeight / 2);
 
                 windowWidth = (int)videoMode.Width;
                 windowHeight = (int)videoMode.Height;
 
-                Vector2 newCenter = new Vector2(windowWidth / 2, windowHeight / 2);
+                /*Vector2 newCenter = new Vector2(windowWidth / 2, windowHeight / 2);
 
-                visibleArea = new FloatRect(oldCenter.x - newCenter.x, oldCenter.y - newCenter.y, windowWidth, windowHeight);
+                visibleArea = new FloatRect(oldCenter.x - newCenter.x, oldCenter.y - newCenter.y, windowWidth, windowHeight);*/
             }
             else {
                 window.Size = new Vector2u((uint)windowWidth, (uint)windowHeight);
             }
-            window.SetView(new View(visibleArea));
+            //window.SetView(new View(visibleArea));
             bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
             finalRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
+            //bloomRT.SetView(new View(visibleArea));
+            //finalRT.SetView(new View(visibleArea));
 
             if(frameRate < 0) window.SetVerticalSyncEnabled(true);
             else if(frameRate != 0) window.SetFramerateLimit((uint)frameRate);
@@ -136,9 +138,8 @@ namespace PPR.Rendering {
                 mousePosition = new Vector2(-1, -1);
                 return;
             }
-            View windowView = window.GetView();
-            mousePositionF = new Vector2f((mouse.X + windowView.Center.X - windowView.Size.X / 2f) / fontSize.x,
-                (mouse.Y + windowView.Center.Y - windowView.Size.Y / 2f) / fontSize.y);
+            mousePositionF = new Vector2f((mouse.X - windowWidth / 2f + text.imageWidth / 2f) / fontSize.x,
+                (mouse.Y - windowHeight / 2f + text.imageHeight / 2f) / fontSize.y);
             mousePosition = new Vector2((int)mousePositionF.X, (int)mousePositionF.Y);
         }
         public void Update() {
@@ -157,33 +158,39 @@ namespace PPR.Rendering {
                 rebuildTexture = false;
             }
 
-            Sprite defSprite = new Sprite(text.renderTexture.Texture);
+            Sprite defSprite = new Sprite(text.renderTexture.Texture) {
+                Origin = new Vector2f(text.imageWidth / 2f, text.imageHeight / 2f)
+            };
+            defSprite.Position = new Vector2f(windowWidth / 2f, windowHeight / 2f);
 
             bloomRT.Clear();
-            finalRT.Clear();
+            window.Clear();
+            //finalRT.Clear();
 
             if(Settings.Default.bloom) {
                 Shader.Bind(bloom);
 
                 bloom.SetUniform("image", defSprite.Texture);
                 bloom.SetUniform("horizontal", false);
-                bloomRT.Draw(new Sprite(defSprite), new RenderStates(bloom));
+                Sprite vertical = new Sprite(defSprite);
+                bloomRT.Draw(vertical, new RenderStates(bloom));
                 bloomRT.Display();
 
                 bloom.SetUniform("image", bloomRT.Texture);
                 bloom.SetUniform("horizontal", true);
-                finalRT.Draw(new Sprite(bloomRT.Texture), new RenderStates(bloom));
+                Sprite horizontal = new Sprite(bloomRT.Texture);
+                window.Draw(horizontal, new RenderStates(bloom));
 
                 Shader.Bind(null);
             }
 
-            finalRT.Draw(defSprite, new RenderStates(BlendMode.Add));
+            window.Draw(defSprite, new RenderStates(BlendMode.Add));
 
-            finalRT.Display();
+            //finalRT.Display();
         }
         public void Draw() {
-            window.Clear();
-            window.Draw(new Sprite(finalRT.Texture));
+            /*window.Clear();
+            window.Draw(new Sprite(finalRT.Texture));*/
         }
         public enum TextAlignment { Left, Center, Right }
         public void DrawText(Vector2 position, string text, Color foregroundColor, Color backgroundColor, TextAlignment align = TextAlignment.Left, bool replacingSpaces = false) {

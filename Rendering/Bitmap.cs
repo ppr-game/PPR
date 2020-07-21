@@ -86,8 +86,8 @@ namespace PPR.Rendering {
 
         readonly byte charWidth = 0;
         readonly byte charHeight = 0;
-        readonly uint imageWidth = 0;
-        readonly uint imageHeight = 0;
+        public readonly uint imageWidth = 0;
+        public readonly uint imageHeight = 0;
         readonly uint textWidth = 0;
         readonly uint textHeight = 0;
         public BitmapFont font;
