@@ -249,12 +249,6 @@ namespace PPR.Main.Levels {
             }
         }
 
-        static Color HitColor(int step, bool hold) {
-            int distance = Math.Abs(step - Game.roundedSteps);
-            bool hit = distance >= hitRange;
-            bool miss = distance >= missRange || (hit && hold);
-            return miss ? ColorScheme.red : hit ? ColorScheme.yellow : ColorScheme.green;
-        }
         Color NormalColor() {
             return NormalColor(directionLayer, Game.currentDirectionLayer);
         }
@@ -291,7 +285,6 @@ namespace PPR.Main.Levels {
                 Miss();
                 Game.RecalculateAccuracy();
                 removed = true;
-                hitColor = HitColor(step, character == holdChar);
             }
             else if(Game.auto || character == holdChar) {
                 CheckPress();
@@ -307,7 +300,6 @@ namespace PPR.Main.Levels {
             PlayHitsound();
             Game.RecalculateAccuracy();
             removed = true;
-            hitColor = HitColor(step, character == holdChar);
         }
         public void CheckPress() {
             if(removed || ignore) return;
@@ -322,16 +314,19 @@ namespace PPR.Main.Levels {
         }
         void Hit() {
             Game.health += Map.currentLevel.metadata.hpRestorage;
-            int score = step == (int)Game.steps || character == holdChar ? 10 : 5;
+            bool perfect = step == (int)Game.steps || character == holdChar;
+            int score = perfect ? 10 : 5;
             Game.combo++;
             Game.maxCombo = Math.Max(Game.combo, Game.maxCombo);
             Game.score += score * Game.combo;
             Game.scores[score / 5]++;
+            hitColor = perfect ? ColorScheme.green : ColorScheme.yellow;
         }
         void Miss() {
             Game.health -= Map.currentLevel.metadata.hpDrain;
             Game.combo = 0;
             Game.scores[0]++;
+            hitColor = ColorScheme.red;
         }
         public void Step() {
             if(removed) return;
