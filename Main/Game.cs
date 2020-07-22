@@ -330,7 +330,7 @@ namespace PPR.Main {
             while(accumulator >= fixedDeltaTime) {
                 float interpT = 1f - MathF.Ceiling((accumulator - fixedDeltaTime) / fixedDeltaTime) / totalTimesToExec;
                 interpolatedPlayingOffset = music.PlayingOffset * interpT + prevFramePlayingOffset * (1f - interpT);
-                if(interpT > 0f) logger.Debug(interpT);
+                //if(interpT > 0f) logger.Debug(interpT);
                 FixedUpdate();
                 accumulator -= fixedDeltaTime;
             }
