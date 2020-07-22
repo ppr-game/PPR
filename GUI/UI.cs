@@ -77,8 +77,8 @@ namespace PPR.GUI {
 
         static readonly Vector2 zero = Vector2.zero;
         public static void RecreateButtons() {
-            Renderer.TextAlignment center = Renderer.TextAlignment.Center;
-            Renderer.TextAlignment right = Renderer.TextAlignment.Right;
+            Renderer.Alignment center = Renderer.Alignment.Center;
+            Renderer.Alignment right = Renderer.Alignment.Right;
             mainMenuButtons = new List<Button>() {
                 new Button(new Vector2(40, 25), "PLAY", 4, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Enter"), center),
                 new Button(new Vector2(40, 27), "EDIT", 4, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow, new InputKey("LShift,RShift"), center),
@@ -100,7 +100,7 @@ namespace PPR.GUI {
                 new Button(new Vector2(78, 58), "►", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Enter")),
             };
             musicSpeedSlider = new Slider(new Vector2(78, 58), 25, 100, 16, 100, "", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, true,
-                Renderer.TextAlignment.Right, Slider.TextAlignment.Right);
+                Renderer.Alignment.Right, Slider.TextAlignment.Right);
             skipButton = new Button(new Vector2(78, 58), "SKIP", 4, ColorScheme.black, ColorScheme.orange, ColorScheme.lightDarkOrange, new InputKey("Space"), right);
 
             musicVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, 15, "MUSIC VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
@@ -363,7 +363,7 @@ namespace PPR.GUI {
                     color = ColorScheme.red;
                 }
             }
-            Renderer.instance.DrawText(passFailText, text, color, Color.Transparent, Renderer.TextAlignment.Center);
+            Renderer.instance.DrawText(passFailText, text, color, Color.Transparent, Renderer.Alignment.Center);
             DrawLevelName(lastLevelPos, ColorScheme.white);
             if(!Game.editing) {
                 DrawScore(lastScorePos, ColorScheme.blue);
@@ -468,24 +468,24 @@ namespace PPR.GUI {
             if(pauseMenu) {
                 musicVolumeSlider.position.x = 78;
                 musicVolumeSlider.position.y = 55;
-                musicVolumeSlider.align = Renderer.TextAlignment.Right;
+                musicVolumeSlider.align = Renderer.Alignment.Right;
                 musicVolumeSlider.alignText = Slider.TextAlignment.Right;
 
                 soundsVolumeSlider.position.x = 78;
                 soundsVolumeSlider.position.y = 57;
-                soundsVolumeSlider.align = Renderer.TextAlignment.Right;
+                soundsVolumeSlider.align = Renderer.Alignment.Right;
                 soundsVolumeSlider.alignText = Slider.TextAlignment.Right;
             }
             else {
                 Renderer.instance.DrawText(audioGroupTextPos, "[ AUDIO ]", ColorScheme.white, Color.Transparent);
                 musicVolumeSlider.position.x = 4;
                 musicVolumeSlider.position.y = 15;
-                musicVolumeSlider.align = Renderer.TextAlignment.Left;
+                musicVolumeSlider.align = Renderer.Alignment.Left;
                 musicVolumeSlider.alignText = Slider.TextAlignment.Left;
 
                 soundsVolumeSlider.position.x = 4;
                 soundsVolumeSlider.position.y = 17;
-                soundsVolumeSlider.align = Renderer.TextAlignment.Left;
+                soundsVolumeSlider.align = Renderer.Alignment.Left;
                 soundsVolumeSlider.alignText = Slider.TextAlignment.Left;
 
                 Renderer.instance.DrawText(audioSwitchPos, "SOUNDS", ColorScheme.blue, Color.Transparent);
@@ -566,7 +566,7 @@ namespace PPR.GUI {
             }
             if(Settings.Default.showFps)
                 Renderer.instance.DrawText(fpsPos, fps + " FPS", fps >= 60 ? ColorScheme.green : fps > 20 ? ColorScheme.yellow : ColorScheme.red,
-                    ColorScheme.black, Renderer.TextAlignment.Right);
+                    ColorScheme.black, Renderer.Alignment.Right);
         }
         static readonly Vector2 fpsPos = new Vector2(79, 59);
     }

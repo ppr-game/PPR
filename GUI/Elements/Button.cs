@@ -22,7 +22,7 @@ namespace PPR.GUI.Elements {
         public Color idleColor;
         public Color hoverColor;
         public Color clickColor;
-        public Renderer.TextAlignment align;
+        public Renderer.Alignment align;
         public InputKey hotkey;
         bool hotkeyPressed = false;
         bool prevFrameHotkeyPressed = false;
@@ -37,7 +37,7 @@ namespace PPR.GUI.Elements {
         int posX;
         public enum State { Idle, Hovered, Clicked, Selected };
         public Button(Vector2 position, string text, int width, Color idleColor, Color hoverColor, Color clickColor,
-                InputKey hotkey = null, Renderer.TextAlignment align = Renderer.TextAlignment.Left) {
+                InputKey hotkey = null, Renderer.Alignment align = Renderer.Alignment.Left) {
             this.position = position;
             this.text = text;
             this.width = width;
@@ -61,8 +61,8 @@ namespace PPR.GUI.Elements {
             Renderer.instance.DrawText(position, text.Substring(0, Math.Min(text.Length, width)), ColorScheme.white, Color.Transparent, align);
             posX = position.x - align switch
             {
-                Renderer.TextAlignment.Right => text.Length - 1,
-                Renderer.TextAlignment.Center => (int)MathF.Ceiling(text.Length / 2f),
+                Renderer.Alignment.Right => text.Length - 1,
+                Renderer.Alignment.Center => (int)MathF.Ceiling(text.Length / 2f),
                 _ => 0
             };
             return Renderer.instance.mousePosition.InBounds(posX, position.y, posX + width - 1, position.y) || prevFrameHotkeyPressed

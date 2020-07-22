@@ -27,12 +27,14 @@ namespace PPR.Rendering {
         public int windowHeight;
         public int frameRate;
         public BitmapText text;
+        readonly Sprite textSprite;
         public RenderWindow window;
-        readonly Shader bloom = Shader.FromString(File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
+        readonly Shader bloomFirstPass = Shader.FromString(File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
+                                                                                                                     File.ReadAllText(Path.Combine("resources", "bloom_frag.glsl")));
+        readonly Shader bloomSecondPass = Shader.FromString(File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
                                                                                                                      File.ReadAllText(Path.Combine("resources", "bloom_frag.glsl")));
         public RenderTexture bloomRT;
-
-        private bool rebuildTexture = false;
+        readonly RenderStates blendModeAddState = new RenderStates(BlendMode.Add);
 
         public Vector2f mousePositionF = new Vector2f(-1f, -1f);
         public Vector2 mousePosition = new Vector2(-1, -1);
@@ -71,6 +73,15 @@ namespace PPR.Rendering {
                 foregroundColors = foregroundColors,
                 text = displayString
             };
+
+            textSprite = new Sprite(text.renderTexture.Texture) {
+                Origin = new Vector2f(text.imageWidth / 2f, text.imageHeight / 2f),
+                Position = new Vector2f(windowWidth / 2f, windowHeight / 2f)
+            };
+
+            bloomFirstPass.SetUniform("image", textSprite.Texture);
+            bloomFirstPass.SetUniform("horizontal", true);
+            bloomSecondPass.SetUniform("horizontal", false);
         }
         public void SubscribeWindowEvents() {
             leftButtonPressed = false;
@@ -112,6 +123,7 @@ namespace PPR.Rendering {
                 window.Size = new Vector2u((uint)windowWidth, (uint)windowHeight);
             }
             bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
+            textSprite.Position = new Vector2f(windowWidth / 2f, windowHeight / 2f);
 
             if(frameRate < 0) window.SetVerticalSyncEnabled(true);
             else if(frameRate != 0) window.SetFramerateLimit((uint)frameRate);
@@ -141,51 +153,34 @@ namespace PPR.Rendering {
             text.foregroundColors = foregroundColors;
             text.text = displayString;
 
-            if(rebuildTexture) {
-                text.RebuildRenderTexture();
-                rebuildTexture = false;
-            }
+            text.RebuildRenderTexture();
 
-            Sprite defSprite = new Sprite(text.renderTexture.Texture) {
-                Origin = new Vector2f(text.imageWidth / 2f, text.imageHeight / 2f),
-                Position = new Vector2f(windowWidth / 2f, windowHeight / 2f)
-            };
-
-            bloomRT.Clear();
             window.Clear();
 
             if(Settings.Default.bloom) {
-                bloomRT.Draw(defSprite);
+                bloomRT.Clear();
 
-                Shader.Bind(bloom);
-
-                bloom.SetUniform("image", bloomRT.Texture);
-                bloom.SetUniform("horizontal", false);
-                Sprite vertical = new Sprite(bloomRT.Texture);
-                bloomRT.Draw(vertical);
+                bloomRT.Draw(textSprite, new RenderStates(bloomFirstPass));
                 bloomRT.Display();
 
-                bloom.SetUniform("image", bloomRT.Texture);
-                bloom.SetUniform("horizontal", true);
-                Sprite horizontal = new Sprite(bloomRT.Texture);
-                window.Draw(horizontal);
-
-                Shader.Bind(null);
+                bloomSecondPass.SetUniform("image", bloomRT.Texture);
+                window.Draw(new Sprite(bloomRT.Texture), new RenderStates(bloomSecondPass));
             }
 
-            window.Draw(defSprite, new RenderStates(BlendMode.Add));
+            window.Draw(textSprite, blendModeAddState);
         }
-        public enum TextAlignment { Left, Center, Right }
-        public void DrawText(Vector2 position, string text, Color foregroundColor, Color backgroundColor, TextAlignment align = TextAlignment.Left, bool replacingSpaces = false) {
+        public enum Alignment { Left, Center, Right }
+        public void DrawText(Vector2 position, string text, Color foregroundColor, Color backgroundColor, Alignment align = Alignment.Left,
+            bool replacingSpaces = false) {
             if(text.Length == 0) return; // Don't do anything, if the text is empty
             if(text.Length == 1) {
-                SetCharacter(position, text[0], foregroundColor, backgroundColor);
+                if(!replacingSpaces && text[0] == ' ') SetCharacter(position, text[0], foregroundColor, backgroundColor);
             }
 
             int posX = position.x - align switch
             {
-                TextAlignment.Right => text.Length - 1,
-                TextAlignment.Center => (int)MathF.Ceiling(text.Length / 2f),
+                Alignment.Right => text.Length - 1,
+                Alignment.Center => (int)MathF.Ceiling(text.Length / 2f),
                 _ => 0
             };
 
@@ -212,8 +207,6 @@ namespace PPR.Rendering {
                 // If a character is a space or null, remove it from a dictionary
                 if(character == ' ' || character == '\0') _ = displayString.Remove(position);
                 else displayString[position] = character;
-
-                rebuildTexture = true;
             }
         }
         public void SetCharacter(Vector2 position, char character, Color foregroundColor, Color backgroundColor) {
@@ -230,13 +223,14 @@ namespace PPR.Rendering {
 
                 if(foregroundColor == Color.White) _ = foregroundColors.Remove(position);
                 else foregroundColors[position] = foregroundColor;
-
-                rebuildTexture = true;
             }
         }
         public static Color LerpColors(Color a, Color b, float t) {
             return t <= 0f ? a : t >= 1f ? b :
-                new Color((byte)MathF.Floor(a.R + (b.R - a.R) * t), (byte)MathF.Floor(a.G + (b.G - a.G) * t), (byte)MathF.Floor(a.B + (b.B - a.B) * t), (byte)MathF.Floor(a.A + (b.A - a.A) * t));
+                new Color((byte)MathF.Floor(a.R + (b.R - a.R) * t),
+                    (byte)MathF.Floor(a.G + (b.G - a.G) * t),
+                    (byte)MathF.Floor(a.B + (b.B - a.B) * t),
+                    (byte)MathF.Floor(a.A + (b.A - a.A) * t));
         }
         public static Color AnimateColor(float time, Color start, Color end, float rate) {
             float t = Math.Clamp(time * rate, 0f, 1f);

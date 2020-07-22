@@ -18,7 +18,7 @@ namespace PPR.GUI.Elements {
         public Color hoverColor;
         public Color clickColor;
         public bool showValue;
-        public Renderer.TextAlignment align;
+        public Renderer.Alignment align;
         public TextAlignment alignText;
         Color currentColor;
         Color prevColor;
@@ -30,7 +30,7 @@ namespace PPR.GUI.Elements {
         int posX;
         public enum State { Idle, Hovered, Clicked };
         public enum TextAlignment { Left, Right };
-        public Slider(Vector2 position, int minValue, int maxValue, int size, int defaultValue, string text, Color idleColor, Color hoverColor, Color clickColor, bool showValue = true, Renderer.TextAlignment align = Renderer.TextAlignment.Left, TextAlignment alignText = TextAlignment.Left) {
+        public Slider(Vector2 position, int minValue, int maxValue, int size, int defaultValue, string text, Color idleColor, Color hoverColor, Color clickColor, bool showValue = true, Renderer.Alignment align = Renderer.Alignment.Left, TextAlignment alignText = TextAlignment.Left) {
             this.position = position;
             this.minValue = minValue;
             this.maxValue = maxValue;
@@ -54,8 +54,8 @@ namespace PPR.GUI.Elements {
             string rightText = left ? (showValue ? value.ToString() : "") : text;
             posX = position.x - align switch
             {
-                Renderer.TextAlignment.Right => size + rightText.Length + 1,
-                Renderer.TextAlignment.Center => (int)MathF.Ceiling(size / 2f),
+                Renderer.Alignment.Right => size + rightText.Length + 1,
+                Renderer.Alignment.Center => (int)MathF.Ceiling(size / 2f),
                 _ => -leftText.Length
             };
             if(leftText != "") Renderer.instance.DrawText(new Vector2(posX - leftText.Length, position.y), leftText, hoverColor, idleColor);
