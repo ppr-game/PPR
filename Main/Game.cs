@@ -129,7 +129,6 @@ namespace PPR.Main {
         public static bool auto = false;
         public static bool usedAuto = false;
         float accumulator = 0f;
-        public static bool useFixedStep = true;
         public void Start() {
             ColorScheme.Reload();
             ReloadSounds();
@@ -323,9 +322,11 @@ namespace PPR.Main {
         public void Update() {
             if(currentMenu != Menu.Game) return;
 
-            if(editing) useFixedStep = false;
-            else useFixedStep = true;
-            if(useFixedStep) {
+            if(!editing) {
+                interpolatedPlayingOffset = music.PlayingOffset;
+                FixedUpdate();
+            }
+            else {
                 float fixedDeltaTime = absoluteCurrentSpeedSec / 12f;
 
                 accumulator += Core.deltaTime;
@@ -338,10 +339,6 @@ namespace PPR.Main {
                     FixedUpdate();
                     accumulator -= fixedDeltaTime;
                 }
-            }
-            else {
-                interpolatedPlayingOffset = music.PlayingOffset;
-                FixedUpdate();
             }
             prevFramePlayingOffset = music.PlayingOffset;
         }
