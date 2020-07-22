@@ -322,7 +322,7 @@ namespace PPR.Main {
         public void Update() {
             if(currentMenu != Menu.Game) return;
 
-            if(!editing) {
+            if(editing) {
                 interpolatedPlayingOffset = music.PlayingOffset;
                 FixedUpdate();
             }
