@@ -128,6 +128,8 @@ namespace PPR.Main {
         public static bool editing = false;
         public static bool auto = false;
         public static bool usedAuto = false;
+        float accumulator = 0f;
+        public static bool useFixedStep = true;
         public void Start() {
             ColorScheme.Reload();
             ReloadSounds();
@@ -318,21 +320,28 @@ namespace PPR.Main {
 
             logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
         }
-        private float accumulator = 0f;
         public void Update() {
             if(currentMenu != Menu.Game) return;
 
-            float fixedDeltaTime = absoluteCurrentSpeedSec / 12f;
+            if(editing) useFixedStep = false;
+            else useFixedStep = true;
+            if(useFixedStep) {
+                float fixedDeltaTime = absoluteCurrentSpeedSec / 12f;
 
-            accumulator += Core.deltaTime;
-            float totalTimesToExec = 0f;
-            if(accumulator >= fixedDeltaTime) totalTimesToExec = MathF.Ceiling((accumulator - fixedDeltaTime) / fixedDeltaTime);
-            while(accumulator >= fixedDeltaTime) {
-                float interpT = 1f - MathF.Ceiling((accumulator - fixedDeltaTime) / fixedDeltaTime) / totalTimesToExec;
-                interpolatedPlayingOffset = music.PlayingOffset * interpT + prevFramePlayingOffset * (1f - interpT);
-                //if(interpT > 0f) logger.Debug(interpT);
+                accumulator += Core.deltaTime;
+                float totalTimesToExec = 0f;
+                if(accumulator >= fixedDeltaTime) totalTimesToExec = MathF.Ceiling((accumulator - fixedDeltaTime) / fixedDeltaTime);
+                while(accumulator >= fixedDeltaTime) {
+                    float interpT = 1f - MathF.Ceiling((accumulator - fixedDeltaTime) / fixedDeltaTime) / totalTimesToExec;
+                    interpolatedPlayingOffset = music.PlayingOffset * interpT + prevFramePlayingOffset * (1f - interpT);
+                    //if(interpT > 0f) logger.Debug(interpT);
+                    FixedUpdate();
+                    accumulator -= fixedDeltaTime;
+                }
+            }
+            else {
+                interpolatedPlayingOffset = music.PlayingOffset;
                 FixedUpdate();
-                accumulator -= fixedDeltaTime;
             }
             prevFramePlayingOffset = music.PlayingOffset;
         }
