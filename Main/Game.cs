@@ -327,7 +327,7 @@ namespace PPR.Main {
                 FixedUpdate();
             }
             else {
-                float fixedDeltaTime = absoluteCurrentSpeedSec / 12f;
+                float fixedDeltaTime = absoluteCurrentSpeedSec / 16f;
 
                 accumulator += Core.deltaTime;
                 float totalTimesToExec = 0f;
