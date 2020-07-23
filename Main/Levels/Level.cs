@@ -64,17 +64,19 @@ namespace PPR.Main.Levels {
         public readonly int objectCount;
         public readonly int speedsCount;
 
-        public LevelMetadata(string name, string[] meta, int objectCount, List<int> steps, List<LevelSpeed> speeds) {
+        public LevelMetadata(string name, string[] meta, int objectCount, List<char> chars, List<int> steps, List<LevelSpeed> speeds) {
             this.name = name;
             hpDrain = int.Parse(meta[0]);
             hpRestorage = int.Parse(meta[1]);
-            difficulty = meta[2];
+            //difficulty = meta[2];
             author = meta[3];
             linesFrequency = meta.Length > 4 ? int.Parse(meta[4]) : 4;
             initialOffsetMS = meta.Length > 5 ? int.Parse(meta[5]) : 0;
 
             //speeds = Game.SortLevelSpeeds(speeds);
             speeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
+
+            difficulty = GetDifficulty(chars, steps, speeds).ToString();
 
             maxStep = steps.Count > 0 ? steps.Max() : 0;
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.StepsToMilliseconds(maxStep, speeds) - initialOffsetMS);
@@ -98,6 +100,7 @@ namespace PPR.Main.Levels {
         }
         public LevelMetadata(Level level, string[] meta, string name) : this(name, meta,
             level.objects.FindAll(obj => obj.character != LevelObject.holdChar).Count,
+            level.objects.FindAll(obj => obj.character != LevelObject.speedChar).Select(obj => obj.character).ToList(),
             level.objects.FindAll(obj => obj.character != LevelObject.speedChar).Select(obj => obj.step).ToList(), level.speeds) { }
         static List<LevelSpeed> SpeedsFromLists(List<int> speeds, List<int> speedsSteps) {
             List<LevelSpeed> combinedSpeeds = new List<LevelSpeed>();
@@ -107,8 +110,55 @@ namespace PPR.Main.Levels {
             combinedSpeeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
             return combinedSpeeds;
         }
+        static int GetDifficulty(List<char> chars, List<int> steps, List<LevelSpeed> sortedSpeeds) {
+            List<LightLevelObject> sortedObjects = new List<LightLevelObject>();
+            for(int i = 0; i < Math.Min(chars.Count, steps.Count); i++) {
+                sortedObjects.Add(new LightLevelObject(chars[i], steps[i]));
+            }
+            sortedObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
+            for(int i = 1; i < sortedObjects.Count; i++) if(sortedObjects[i].character == LevelObject.holdChar) sortedObjects.RemoveAt(i - 1);
+            sortedObjects = sortedObjects.FindAll(obj => obj.character != LevelObject.holdChar);
+            //for(int i = 1; i < sortedObjects.Count; i++) if(sortedObjects[i].step == sortedObjects[i - 1].step) sortedObjects.RemoveAt(i);
+
+            List<float> diffFactors = new List<float>();
+
+            List<float> timeDifferences = new List<float>();
+            for(int i = 1; i < sortedObjects.Count; i++) {
+                LightLevelObject obj = sortedObjects[i];
+                LightLevelObject prevObj = sortedObjects[i - 1];
+                if(obj.step - prevObj.step == 0) continue;
+                timeDifferences.Add(Game.StepsToMilliseconds(obj.step, sortedSpeeds) / 1000f -
+                    Game.StepsToMilliseconds(prevObj.step, sortedSpeeds) / 1000f);
+            }
+            diffFactors.Add(timeDifferences.Count == 0? 0 : 1f / ((timeDifferences.Average() + timeDifferences.Min()) / 2f));
+
+            List<float> timeFrames = new List<float>();
+            foreach(LightLevelObject obj in sortedObjects) {
+                timeFrames.Add(60f / MathF.Abs(GetBPMAtStep(obj.step, sortedSpeeds)));
+            }
+            diffFactors.Add(timeFrames.Count == 0? 0 : 1f / ((timeFrames.Average() + timeFrames.Min()) / 2f));
+
+            List<float> keyDistances = new List<float>();
+            for(int i = 1; i < sortedObjects.Count; i++) {
+                LightLevelObject obj = sortedObjects[i];
+                LightLevelObject prevObj = sortedObjects[i - 1];
+                keyDistances.Add(LevelObject.GetKeyboardKeyDistance(obj.character, prevObj.character));
+            }
+            diffFactors.Add(keyDistances.Count == 0? 0 : (keyDistances.Average() + keyDistances.Max()) / 16f);
+
+            return (int)diffFactors.Average();
+        }
+        static int GetBPMAtStep(int step, List<LevelSpeed> sortedSpeeds) {
+            int bpm = 0;
+            foreach(LevelSpeed speed in sortedSpeeds) {
+                if(speed.step <= step) bpm = speed.speed;
+                else break;
+            }
+            return bpm;
+        }
         public LevelMetadata(string[] lines, string name) : this(name, lines[4].Split(':'),
                                                                                                                                   lines[0].ToList().FindAll(obj => obj != LevelObject.holdChar).Count,
+                                                                                                                                  lines[0].ToList(),
                                                                                                                                   lines[1].Length > 0 ? lines[1].Split(':').Select(str => int.Parse(str)).ToList() : new List<int>(),
                                                                                       SpeedsFromLists(lines[2].Length > 0 ? lines[2].Split(':').Select(str => int.Parse(str)).ToList() : new List<int>(),
                                                                                                                         lines[3].Length > 0 ? lines[3].Split(':').Select(str => int.Parse(str)).ToList() : new List<int>())) { }
@@ -143,6 +193,14 @@ namespace PPR.Main.Levels {
             this.step = step;
         }
     }
+    public class LightLevelObject {
+        public char character;
+        public int step;
+        public LightLevelObject(char character, int step) {
+            this.character = character;
+            this.step = step;
+        }
+    }
     public class LevelObject {
         static readonly string[] lines = new string[] {
             "1234567890-=",
@@ -170,7 +228,7 @@ namespace PPR.Main.Levels {
 
         public bool ignore = false;
 
-        public LevelObject(char character, int step, List<LevelSpeed> speeds, List<LevelObject> objects = null) {
+        public static int GetXPosForCharacter(char character) {
             int x = 0;
             int xLineOffset = 0;
             int mul = 90 / lines.Select(line => line.Length).Max();
@@ -181,6 +239,23 @@ namespace PPR.Main.Levels {
                 }
                 xLineOffset++;
             }
+            return x;
+        }
+        public static float GetKeyboardKeyDistance(char leftChar, char rightChar) {
+            int leftX = GetXPosForCharacter(leftChar);
+            int rightX = GetXPosForCharacter(rightChar);
+            int leftY = 0;
+            int rightY = 0;
+            int lineOffset = 0;
+            foreach(string line in lines) {
+                if(line.Contains(leftChar)) leftY = lineOffset;
+                if(line.Contains(rightChar)) leftY = lineOffset;
+                lineOffset++;
+            }
+            return MathF.Sqrt((leftX + rightX) * (leftX + rightX) + (leftY + rightY) * (leftY + rightY));
+        }
+        public LevelObject(char character, int step, List<LevelSpeed> speeds, List<LevelObject> objects = null) {
+            int x = GetXPosForCharacter(character);
             if(character == holdChar && objects != null) {
                 List<LevelObject> existingObjects = new List<LevelObject>(objects);
                 existingObjects.Sort((obj1, obj2) => -obj1.step.CompareTo(obj2.step));
