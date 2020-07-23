@@ -79,7 +79,6 @@ namespace PPR.Rendering {
                 Position = new Vector2f(windowWidth / 2f, windowHeight / 2f)
             };
 
-            bloomFirstPass.SetUniform("image", textSprite.Texture);
             bloomFirstPass.SetUniform("horizontal", true);
             bloomSecondPass.SetUniform("horizontal", false);
         }
@@ -159,12 +158,15 @@ namespace PPR.Rendering {
 
             if(Settings.Default.bloom) {
                 bloomRT.Clear();
+                bloomRT.Draw(textSprite);
+                Sprite sprite = new Sprite(bloomRT.Texture);
 
-                bloomRT.Draw(textSprite, new RenderStates(bloomFirstPass));
+                bloomFirstPass.SetUniform("image", bloomRT.Texture);
+                bloomRT.Draw(sprite, new RenderStates(bloomFirstPass));
                 bloomRT.Display();
 
                 bloomSecondPass.SetUniform("image", bloomRT.Texture);
-                window.Draw(new Sprite(bloomRT.Texture), new RenderStates(bloomSecondPass));
+                window.Draw(sprite, new RenderStates(bloomSecondPass));
             }
 
             window.Draw(textSprite, blendModeAddState);
