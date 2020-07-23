@@ -30,6 +30,12 @@ namespace PPR.GUI {
         public static Color darkBlue;
         public static Color darkYellow;
         public static Color darkOrange;
+        public static Color lightRed;
+        public static Color lightGreen;
+        public static Color lightBlue;
+        public static Color lightCyan;
+        public static Color lightYellow;
+        public static Color lightOrange;
         public static void Reload() {
             string filePath = Path.Combine("resources", "colors", Settings.Default.colorScheme, "colors.txt");
             string[] lines = File.ReadAllLines(filePath);
@@ -108,6 +114,24 @@ namespace PPR.GUI {
                         break;
                     case "dark_orange":
                         darkOrange = color;
+                        break;
+                    case "light_red":
+                        lightRed = color;
+                        break;
+                    case "light_green":
+                        lightGreen = color;
+                        break;
+                    case "light_blue":
+                        lightBlue = color;
+                        break;
+                    case "light_cyan":
+                        lightCyan = color;
+                        break;
+                    case "light_yellow":
+                        lightYellow = color;
+                        break;
+                    case "light_orange":
+                        lightOrange = color;
                         break;
                 }
             }

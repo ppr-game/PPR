@@ -172,8 +172,17 @@ namespace PPR.Main {
             UI.showFpsSwitch.selected = Settings.Default.showFps;
             UI.fullscreenSwitch.selected = Settings.Default.fullscreen;
 
-            LevelObject.color = ColorScheme.white;
-            LevelObject.nextDirLayerColor = ColorScheme.lightDarkGray;
+            LevelObject.linesColors = new Color[] { ColorScheme.lightOrange,
+                ColorScheme.lightRed,
+                ColorScheme.lightGreen,
+                ColorScheme.lightBlue
+            };
+            LevelObject.linesDarkColors = new Color[] { ColorScheme.lightDarkOrange,
+                ColorScheme.lightDarkRed,
+                ColorScheme.lightDarkGreen,
+                ColorScheme.lightDarkBlue
+            };
+            if(Map.currentLevel != null) foreach(LevelObject obj in Map.currentLevel.objects) obj.UpdateColors();
             LevelObject.speedColor = ColorScheme.blue;
 
             Settings.Default.PropertyChanged += PropertyChanged;

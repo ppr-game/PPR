@@ -208,6 +208,8 @@ namespace PPR.Main.Levels {
             "asdfghjkl;'",
             "zxcvbnm,./"
         };
+        public static Color[] linesColors;
+        public static Color[] linesDarkColors;
         public const char speedChar = '>';
         public const char holdChar = '│';
         public const int hitRange = 1;
@@ -219,8 +221,9 @@ namespace PPR.Main.Levels {
         public readonly int step;
         public readonly int directionLayer;
         Color hitColor;
-        public static Color color;
-        public static Color nextDirLayerColor;
+        public int line;
+        public Color color;
+        public Color nextDirLayerColor;
         public static Color speedColor;
 
         public bool removed;
@@ -273,6 +276,12 @@ namespace PPR.Main.Levels {
             startPosition = new Vector2(x, Map.linePos.y - (int)Game.StepsToOffset(step, existingSpeeds));
             position = new Vector2(startPosition);
             this.character = character;
+            char lineChar = character == holdChar ? Game.GetNoteBinding(key) : character;
+            foreach(string line in lines) {
+                if(line.Contains(lineChar)) break;
+                this.line++;
+            }
+            UpdateColors();
             this.step = step;
             directionLayer = Game.StepsToDirectionLayer(step, existingSpeeds);
             switch(char.ToUpper(character)) {
@@ -323,11 +332,16 @@ namespace PPR.Main.Levels {
                 case '/': key = Keyboard.Key.Slash; break;
             }
         }
+        public void UpdateColors() {
+            if(character == speedChar) return;
+            color = linesColors[line];
+            nextDirLayerColor = linesDarkColors[line];
+        }
 
         Color NormalColor() {
-            return NormalColor(directionLayer, Game.currentDirectionLayer);
+            return NormalColor(directionLayer, Game.currentDirectionLayer, color, nextDirLayerColor);
         }
-        static Color NormalColor(int noteDirLayer, int curDirLayer) {
+        static Color NormalColor(int noteDirLayer, int curDirLayer, Color color, Color nextDirLayerColor) {
             int difference = Math.Abs(noteDirLayer - curDirLayer);
             return difference == 0 ? color : difference == 1 ? nextDirLayerColor : Color.Transparent;
         }
