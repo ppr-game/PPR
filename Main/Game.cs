@@ -480,7 +480,7 @@ namespace PPR.Main {
             // Back
             if(Bindings.Default.back.IsPressed(key)) {
                 currentMenu = currentMenu == Menu.Game ? Menu.LastStats
-                    : currentMenu == Menu.LastStats ? Map.currentLevel.objects.Count > 0 ? Menu.Game : Menu.LevelSelect :
+                    : currentMenu == Menu.LastStats ? Map.currentLevel.objects.FindAll(obj => !obj.ignore).Count > 0 && health > 0 ? Menu.Game : Menu.LevelSelect :
                     currentMenu == Menu.KeybindsEditor ? Menu.Settings : Menu.Main;
             }
             if(currentMenu == Menu.Game) {
