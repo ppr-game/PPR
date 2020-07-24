@@ -171,6 +171,7 @@ namespace PPR.Main {
             UI.bloomSwitch.selected = Settings.Default.bloom;
             UI.showFpsSwitch.selected = Settings.Default.showFps;
             UI.fullscreenSwitch.selected = Settings.Default.fullscreen;
+            UI.uppercaseSwitch.selected = Settings.Default.uppercaseNotes;
 
             LevelObject.linesColors = new Color[] { ColorScheme.lightOrange,
                 ColorScheme.lightRed,
