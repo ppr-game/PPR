@@ -26,5 +26,8 @@
     <Setting Name="audio" Type="System.String" Scope="User">
       <Value Profile="(Default)">Default</Value>
     </Setting>
+    <Setting Name="uppercaseNotes" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

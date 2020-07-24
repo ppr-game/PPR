@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using PPR.GUI;
+using PPR.Properties;
 using PPR.Rendering;
 
 using SFML.Audio;
@@ -232,6 +233,7 @@ namespace PPR.Main.Levels {
         public bool ignore = false;
 
         public static int GetXPosForCharacter(char character) {
+            character = char.ToLower(character);
             int x = 0;
             int xLineOffset = 0;
             int mul = 90 / lines.Select(line => line.Length).Max();
@@ -258,6 +260,7 @@ namespace PPR.Main.Levels {
             return MathF.Sqrt((leftX + rightX) * (leftX + rightX) + (leftY + rightY) * (leftY + rightY));
         }
         public LevelObject(char character, int step, List<LevelSpeed> speeds, List<LevelObject> objects = null) {
+            character = Settings.Default.uppercaseNotes ? char.ToUpper(character) : char.ToLower(character);
             int x = GetXPosForCharacter(character);
             if(character == holdChar && objects != null) {
                 List<LevelObject> existingObjects = new List<LevelObject>(objects);
@@ -277,6 +280,7 @@ namespace PPR.Main.Levels {
             position = new Vector2(startPosition);
             this.character = character;
             char lineChar = character == holdChar ? Game.GetNoteBinding(key) : character;
+            lineChar = char.ToLower(lineChar);
             foreach(string line in lines) {
                 if(line.Contains(lineChar)) break;
                 this.line++;

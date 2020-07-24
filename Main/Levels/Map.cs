@@ -60,8 +60,9 @@ namespace PPR.Main.Levels {
         }
         public static string TextFromLevel(Level level) {
             string[] lines = new string[5];
-            lines[0] = string.Join("", level.objects.FindAll(obj => obj.character != LevelObject.speedChar).Select(obj => obj.character.ToString()));
-            lines[1] = string.Join(':', level.objects.FindAll(obj => obj.character != LevelObject.speedChar).Select(obj => obj.step.ToString()));
+            List<LevelObject> objects = level.objects.FindAll(obj => obj.character != LevelObject.speedChar);
+            lines[0] = string.Join("", objects.Select(obj => obj.character.ToString().ToLower()));
+            lines[1] = string.Join(':', objects.Select(obj => obj.step));
             lines[2] = string.Join(':', level.speeds.Select(speed => speed.speed));
             lines[3] = string.Join(':', level.speeds.Select(speed => speed.step));
             lines[4] = level.metadata.hpDrain + ":" +

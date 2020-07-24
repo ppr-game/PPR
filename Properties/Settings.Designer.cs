@@ -118,5 +118,17 @@ namespace PPR.Properties {
                 this["audio"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool uppercaseNotes {
+            get {
+                return ((bool)(this["uppercaseNotes"]));
+            }
+            set {
+                this["uppercaseNotes"] = value;
+            }
+        }
     }
 }

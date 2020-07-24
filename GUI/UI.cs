@@ -108,8 +108,9 @@ namespace PPR.GUI {
 
             bloomSwitch = new Button(new Vector2(4, 24), "BLOOM", 5, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
             fullscreenSwitch = new Button(new Vector2(4, 26), "FULLSCREEN", 10, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+            uppercaseSwitch = new Button(new Vector2(4, 28), "UPPERCASE NOTES", 15, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
 
-            showFpsSwitch = new Button(new Vector2(4, 35), "SHOW FPS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+            showFpsSwitch = new Button(new Vector2(4, 37), "SHOW FPS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
 
             keybindsButton = new Button(new Vector2(2, 57), "KEYBINDS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
 
@@ -413,12 +414,13 @@ namespace PPR.GUI {
         static readonly Vector2 graphicsGroupTextPos = new Vector2(2, 22);
         public static Button bloomSwitch;
         public static Button fullscreenSwitch;
-        public static readonly Vector2 fontSwitchPos = new Vector2(4, 28);
+        public static Button uppercaseSwitch;
+        public static readonly Vector2 fontSwitchPos = new Vector2(4, 30);
         public static readonly List<Button> fontSwitchButtonsList = new List<Button>();
-        public static readonly Vector2 colorSchemeSwitchPos = new Vector2(4, 30);
+        public static readonly Vector2 colorSchemeSwitchPos = new Vector2(4, 32);
         public static readonly List<Button> colorSchemeSwitchButtonsList = new List<Button>();
 
-        static readonly Vector2 advancedGroupTextPos = new Vector2(2, 33);
+        static readonly Vector2 advancedGroupTextPos = new Vector2(2, 35);
         public static Button showFpsSwitch;
         public static string IncreaseFolderSwitchDirectory(string currentPath, string basePath, int at) {
             // Disassemble the path
@@ -498,6 +500,8 @@ namespace PPR.GUI {
 
                 Renderer.instance.DrawText(graphicsGroupTextPos, "[ GRAPHICS ]", ColorScheme.white, Color.Transparent);
                 if(bloomSwitch.Draw()) Settings.Default.bloom = bloomSwitch.selected = !bloomSwitch.selected;
+                if(fullscreenSwitch.Draw()) Settings.Default.fullscreen = fullscreenSwitch.selected = !fullscreenSwitch.selected;
+                if(uppercaseSwitch.Draw()) Settings.Default.uppercaseNotes = uppercaseSwitch.selected = !uppercaseSwitch.selected;
                 Renderer.instance.DrawText(fontSwitchPos, "FONT", ColorScheme.blue, Color.Transparent);
                 for(int i = fontSwitchButtonsList.Count - 1; i >= 0; i--) {
                     if(fontSwitchButtonsList[i].Draw()) {
@@ -512,7 +516,6 @@ namespace PPR.GUI {
                         UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.Default.colorScheme, colorSchemeSwitchPos.x, colorSchemeSwitchPos.y, 13);
                     }
                 }
-                if(fullscreenSwitch.Draw()) Settings.Default.fullscreen = fullscreenSwitch.selected = !fullscreenSwitch.selected;
 
                 Renderer.instance.DrawText(advancedGroupTextPos, "[ ADVANCED ]", ColorScheme.white, Color.Transparent);
                 if(showFpsSwitch.Draw()) Settings.Default.showFps = showFpsSwitch.selected = !showFpsSwitch.selected;
