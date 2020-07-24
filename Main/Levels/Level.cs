@@ -135,7 +135,10 @@ namespace PPR.Main.Levels {
 
             List<float> timeFrames = new List<float>();
             foreach(LightLevelObject obj in sortedObjects) {
-                timeFrames.Add(60f / MathF.Abs(GetBPMAtStep(obj.step, sortedSpeeds)));
+                int bpm = Math.Abs(GetBPMAtStep(obj.step, sortedSpeeds));
+                int rangeModifier = (int)(bpm / 600f / 1.5f) + 1;
+                float feelBpm = bpm / rangeModifier;
+                timeFrames.Add(60f / feelBpm);
             }
             diffFactors.Add(timeFrames.Count == 0? 0 : 1f / ((timeFrames.Average() + timeFrames.Min()) / 2f));
 
@@ -213,8 +216,9 @@ namespace PPR.Main.Levels {
         public static Color[] linesDarkColors;
         public const char speedChar = '>';
         public const char holdChar = '│';
-        public const int hitRange = 1;
-        public const int missRange = 2;
+        public static int perfectRange;
+        public static int hitRange;
+        public static int missRange;
         public Vector2 position;
         public Vector2 startPosition;
         public char character;
@@ -407,7 +411,7 @@ namespace PPR.Main.Levels {
         }
         void Hit() {
             Game.health += Map.currentLevel.metadata.hpRestorage;
-            bool perfect = step == (int)Game.steps || character == holdChar;
+            bool perfect = Math.Abs(step - Game.roundedSteps) < perfectRange || character == holdChar;
             int score = perfect ? 10 : 5;
             Game.combo++;
             Game.maxCombo = Math.Max(Game.combo, Game.maxCombo);

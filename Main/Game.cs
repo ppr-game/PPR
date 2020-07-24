@@ -397,6 +397,11 @@ namespace PPR.Main {
                     currentSpeedSec = 60f / currentBPM;
                     absoluteCurrentSpeedSec = Math.Abs(currentSpeedSec);
                     currentDirectionLayer = StepsToDirectionLayer(roundedSteps);
+
+                    int rangeModifier = (int)(Math.Abs(currentBPM) / 600f);
+                    LevelObject.perfectRange = 1 + rangeModifier;
+                    LevelObject.hitRange = LevelObject.perfectRange + (int)(rangeModifier / 2f);
+                    LevelObject.missRange = LevelObject.hitRange + 1;
                 }
                 else break;
             }
