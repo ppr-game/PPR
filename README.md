@@ -1,4 +1,4 @@
-# ![Press Press Revolution](https://github.com/cgytrus/PPR/blob/master/banner.png)
+# ![Press Press Revolution](banner.png)
 A rhythm game where you need to use your whole keyboard to play
 
 Inspired by [osu!](https://osu.ppy.sh), [Beatmania](https://en.wikipedia.org/wiki/Beatmania) and [Dance Dance Revolution](https://en.wikipedia.org/wiki/Dance_Dance_Revolution)
