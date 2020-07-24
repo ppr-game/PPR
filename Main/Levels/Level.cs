@@ -410,8 +410,8 @@ namespace PPR.Main.Levels {
             else Game.hitSound.Play();
         }
         void Hit() {
-            Game.health += Map.currentLevel.metadata.hpRestorage;
             bool perfect = Math.Abs(step - Game.roundedSteps) < perfectRange || character == holdChar;
+            Game.health += Map.currentLevel.metadata.hpRestorage / (perfect ? 1 : 2);
             int score = perfect ? 10 : 5;
             Game.combo++;
             Game.maxCombo = Math.Max(Game.combo, Game.maxCombo);
