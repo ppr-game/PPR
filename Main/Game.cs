@@ -254,7 +254,6 @@ namespace PPR.Main {
                 Core.renderer.fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
                 Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.x;
                 Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.y;
-                Core.renderer.UpdateWindow();
 
                 BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")),
                     fontMappingsLines[1], Core.renderer.fontSize);
@@ -263,6 +262,8 @@ namespace PPR.Main {
                     foregroundColors = Core.renderer.foregroundColors,
                     text = Core.renderer.displayString
                 };
+
+                Core.renderer.UpdateWindow();
             }
             else if(e.PropertyName == "colorScheme") {
                 ColorScheme.Reload();

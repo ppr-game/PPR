@@ -27,7 +27,7 @@ namespace PPR.Rendering {
         public int windowHeight;
         public int frameRate;
         public BitmapText text;
-        readonly Sprite textSprite;
+        Sprite textSprite;
         public RenderWindow window;
         readonly Shader bloomFirstPass = Shader.FromString(File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
                                                                                                                      File.ReadAllText(Path.Combine("resources", "bloom_frag.glsl")));
@@ -120,9 +120,13 @@ namespace PPR.Rendering {
             }
             else {
                 window.Size = new Vector2u((uint)windowWidth, (uint)windowHeight);
+                window.SetView(new View(new Vector2f(windowWidth / 2f, windowHeight / 2f), new Vector2f(windowWidth, windowHeight)));
             }
             bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
-            textSprite.Position = new Vector2f(windowWidth / 2f, windowHeight / 2f);
+            textSprite = new Sprite(text.renderTexture.Texture) {
+                Origin = new Vector2f(text.imageWidth / 2f, text.imageHeight / 2f),
+                Position = new Vector2f(windowWidth / 2f, windowHeight / 2f)
+            };
 
             if(frameRate < 0) window.SetVerticalSyncEnabled(true);
             else if(frameRate != 0) window.SetFramerateLimit((uint)frameRate);
