@@ -1,4 +1,4 @@
-# Press Press Revolution
+# ![Press Press Revolution](banner.png)
 A rhythm game where you need to use your whole keyboard to play
 
 Inspired by [osu!](https://osu.ppy.sh), [Beatmania](https://en.wikipedia.org/wiki/Beatmania) and [Dance Dance Revolution](https://en.wikipedia.org/wiki/Dance_Dance_Revolution)
@@ -56,8 +56,7 @@ To begin creating a level, press "EDIT" in the main menu, then press "NEW" at th
 pause the game by pressing `Escape` on your keayboard, press "SAVE" and "EXIT",
 then go to the folder, where your game is located at, go to the `levels` folder,
 rename the `unnamed` folder to whatever you'd like your new level to be named,
-go to the folder itself, open the `level.txt` file and change the `<unknown>` texts to
-the difficulty of your level and the level author name (usually your nickname), save the file,
+go to the folder itself, open the `level.txt` file and change `<unknown>` to the level author name (usually your nickname), save the file,
 then get the music for your level, convert it to the `.ogg` format, if it isn't already,
 put it in your level folder next to the `level.txt` file and rename it to `music.ogg`.
 Now you can begin creating your level
