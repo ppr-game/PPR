@@ -28,6 +28,7 @@ namespace PPR.Rendering {
         public int frameRate;
         public BitmapText text;
         Sprite textSprite;
+        readonly Image icon;
         public RenderWindow window;
         readonly Shader bloomFirstPass = Shader.FromString(File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
                                                                                                                      File.ReadAllText(Path.Combine("resources", "bloom_frag.glsl")));
@@ -59,7 +60,11 @@ namespace PPR.Rendering {
             foregroundColors = new Dictionary<Vector2, Color>(this.width * this.height);
             displayString = new Dictionary<Vector2, char>(this.width * this.height);
 
+            icon = new Image(Path.Combine("resources", "icon.png"));
+
             window = new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "Press Press Revolution", Styles.Close);
+            window.SetIcon(icon.Size.X, icon.Size.Y, icon.Pixels);
+
             bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
 
             SubscribeWindowEvents();
@@ -108,6 +113,7 @@ namespace PPR.Rendering {
             window = fullscreen
                 ? new RenderWindow(VideoMode.FullscreenModes[0], "Press Press Revolution", Styles.Fullscreen)
                 : new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "Press Press Revolution", Styles.Close);
+            window.SetIcon(icon.Size.X, icon.Size.Y, icon.Pixels);
             SubscribeWindowEvents();
             UpdateWindow();
         }
