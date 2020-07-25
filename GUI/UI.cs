@@ -81,21 +81,27 @@ namespace PPR.GUI {
             Renderer.Alignment right = Renderer.Alignment.Right;
             mainMenuButtons = new List<Button>() {
                 new Button(new Vector2(40, 25), "PLAY", 4, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Enter"), center),
-                new Button(new Vector2(40, 27), "EDIT", 4, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow, new InputKey("LShift,RShift"), center),
+                new Button(new Vector2(40, 27), "EDIT", 4, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow,
+                new InputKey("LShift,RShift"), center),
                 new Button(new Vector2(40, 29), "SETTINGS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab"), center),
                 new Button(new Vector2(40, 31), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, null, center),
             };
-            pauseMusicButton = new Button(new Vector2(1, 58), "►", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Space"));
-            switchMusicButton = new Button(new Vector2(3, 58), ">", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Right"));
+            pauseMusicButton = new Button(new Vector2(1, 58), "►", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
+                new InputKey("Space"));
+            switchMusicButton = new Button(new Vector2(3, 58), ">", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
+                new InputKey("Right"));
             levelSelectButtons = new List<Button>() {
                 new Button(new Vector2(25, 10), "AUTO", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab")),
-                new Button(new Vector2(25, 10), "NEW", 3, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("LControl+N,RControl+N")),
+                new Button(new Vector2(25, 10), "NEW", 3, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
+                new InputKey("LControl+N,RControl+N")),
             };
             lastStatsButtons = new List<Button>() {
                 new Button(new Vector2(2, 53), "CONTINUE", 8, ColorScheme.black, ColorScheme.cyan, ColorScheme.lightDarkCyan),
-                new Button(new Vector2(2, 55), "RESTART", 7, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow, new InputKey("LControl+R,RControl+R")),
+                new Button(new Vector2(2, 55), "RESTART", 7, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow,
+                new InputKey("LControl+R,RControl+R")),
                 new Button(new Vector2(10, 55), "AUTO", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab")),
-                new Button(new Vector2(2, 55), "SAVE", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("LControl+S,RControl+S")),
+                new Button(new Vector2(2, 55), "SAVE", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue,
+                new InputKey("LControl+S,RControl+S")),
                 new Button(new Vector2(2, 57), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Backspace")),
             };
             levelEditorButtons = new List<Button>() {
@@ -103,7 +109,8 @@ namespace PPR.GUI {
             };
             musicSpeedSlider = new Slider(new Vector2(78, 58), 25, 100, 16, 100, "", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, true,
                 Renderer.Alignment.Right, Slider.TextAlignment.Right);
-            skipButton = new Button(new Vector2(78, 58), "SKIP", 4, ColorScheme.black, ColorScheme.orange, ColorScheme.lightDarkOrange, new InputKey("Space"), right);
+            skipButton = new Button(new Vector2(78, 58), "SKIP", 4, ColorScheme.black, ColorScheme.orange, ColorScheme.lightDarkOrange,
+                new InputKey("Space"), right);
 
             musicVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, 15, "MUSIC VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
             soundsVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, 10, "SOUNDS VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
@@ -171,7 +178,8 @@ namespace PPR.GUI {
                     Game.currentMenu = Menu.Game;
                     Game.RecalculatePosition();
                 }
-                if(button.currentState == Button.State.Hovered && button.prevFrameState != Button.State.Hovered && button.prevFrameState != Button.State.Clicked) {
+                if(button.currentState == Button.State.Hovered && button.prevFrameState != Button.State.Hovered &&
+                    button.prevFrameState != Button.State.Clicked) {
                     string levelPath = Path.Combine("levels", button.text);
                     string musicPath = Game.GetSoundFilePath(Path.Combine(levelPath, "music"));
                     if(File.Exists(musicPath)) {
@@ -269,16 +277,20 @@ namespace PPR.GUI {
                         }
                     }
                 }
-                Renderer.instance.DrawText(bpmPos, "BPM: " + Game.currentBPM + "  " + Map.currentLevel.metadata.linesFrequency, ColorScheme.blue, Color.Transparent);
+                Renderer.instance.DrawText(bpmPos, "BPM: " + Game.currentBPM + "  " + Map.currentLevel.metadata.linesFrequency, ColorScheme.blue,
+                    Color.Transparent);
                 TimeSpan curTime = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
                 Renderer.instance.DrawText(timePos, "TIME: " + (curTime < TimeSpan.Zero ? "'-'" : "") + curTime.ToString((curTime.Hours != 0 ? "h':'mm" : "m") + "':'ss"),
                                             ColorScheme.blue, Color.Transparent);
-                Renderer.instance.DrawText(offsetPos, "OFFSET: " + Game.roundedOffset + " (" + Game.roundedSteps + ")", ColorScheme.blue, Color.Transparent);
+                Renderer.instance.DrawText(offsetPos, "OFFSET: " + Game.roundedOffset + " (" + Game.roundedSteps + ")", ColorScheme.blue,
+                    Color.Transparent);
 
                 Renderer.instance.DrawText(hpDrainPos, "HP DRAIN: " + Map.currentLevel.metadata.hpDrain, ColorScheme.red, Color.Transparent);
-                Renderer.instance.DrawText(hpRestoragePos, "HP RESTORAGE: " + Map.currentLevel.metadata.hpRestorage, ColorScheme.red, Color.Transparent);
+                Renderer.instance.DrawText(hpRestoragePos, "HP RESTORAGE: " + Map.currentLevel.metadata.hpRestorage, ColorScheme.red,
+                    Color.Transparent);
 
-                Renderer.instance.DrawText(musicOffsetPos, "MUSIC OFFSET: " + Map.currentLevel.metadata.initialOffsetMS + " MS", ColorScheme.gray, Color.Transparent);
+                Renderer.instance.DrawText(musicOffsetPos, "MUSIC OFFSET: " + Map.currentLevel.metadata.initialOffsetMS + " MS", ColorScheme.gray,
+                    Color.Transparent);
 
                 Game.music.Pitch = musicSpeedSlider.Draw() / 100f;
 
@@ -475,7 +487,8 @@ namespace PPR.GUI {
         public static void UpdateAllFolderSwitchButtons() {
             UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.Default.audio, audioSwitchPos.x, audioSwitchPos.y, 7);
             UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.Default.font, fontSwitchPos.x, fontSwitchPos.y, 5);
-            UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.Default.colorScheme, colorSchemeSwitchPos.x, colorSchemeSwitchPos.y, 13);
+            UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.Default.colorScheme, colorSchemeSwitchPos.x,
+                colorSchemeSwitchPos.y, 13);
         }
         public static void UpdateFolderSwitchButtons(List<Button> buttonsList, string path, int baseX, int baseY, int xOffset) {
             buttonsList.Clear();
@@ -538,7 +551,8 @@ namespace PPR.GUI {
                 for(int i = colorSchemeSwitchButtonsList.Count - 1; i >= 0; i--) {
                     if(colorSchemeSwitchButtonsList[i].Draw()) {
                         Settings.Default.colorScheme = IncreaseFolderSwitchDirectory(Settings.Default.colorScheme, Path.Combine("resources", "colors"), i);
-                        UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.Default.colorScheme, colorSchemeSwitchPos.x, colorSchemeSwitchPos.y, 13);
+                        UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.Default.colorScheme, colorSchemeSwitchPos.x,
+                            colorSchemeSwitchPos.y, 13);
                     }
                 }
 
