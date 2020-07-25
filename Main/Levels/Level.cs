@@ -378,7 +378,7 @@ namespace PPR.Main.Levels {
             if(character == speedChar || ignore) {
                 _ = Map.currentLevel.objects.Remove(this);
             }
-            else if(Game.StepPassedLine(step, character == holdChar ? 1 : missRange)) {
+            else if(Game.StepPassedLine(step, character == holdChar ? hitRange : missRange)) {
                 Miss();
                 Game.RecalculateAccuracy();
                 removed = true;
@@ -388,7 +388,7 @@ namespace PPR.Main.Levels {
             }
         }
         public void CheckHit() {
-            if(character == holdChar ? step == Game.roundedSteps : Game.StepPassedLine(step, -hitRange)) {
+            if(Game.StepPassedLine(step, character == holdChar ? 0 : -hitRange)) {
                 Hit();
             }
             else {
