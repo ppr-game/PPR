@@ -104,6 +104,14 @@ namespace PPR.Main {
         public static int currentBPM = 1;
         public static float currentSpeedSec = 60f;
         public static float absoluteCurrentSpeedSec = 60f;
+        public static Random random = new Random();
+        public static string musicPath;
+        public static string musicName {
+            get {
+                string name = Path.GetFileNameWithoutExtension(Path.GetDirectoryName(musicPath));
+                return name == "Default" ? "Waterflame - Cove" : name;
+            }
+        }
         public static Music music;
         public static Sound hitSound;
         public static Sound tickSound;
@@ -146,14 +154,15 @@ namespace PPR.Main {
             RPC.Initialize();
 
             try {
-                music = new Music(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "mainMenu")));
+                musicPath = Path.Combine("resources", "audio", Settings.Default.audio, "mainMenu");
+                music = new Music(GetSoundFilePath(musicPath));
             }
             catch(SFML.LoadingFailedException) {
-                music = new Music(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "mainMenu")));
+                musicPath = Path.Combine("resources", "audio", "Default", "mainMenu");
+                music = new Music(GetSoundFilePath(musicPath));
             }
 
             music.Volume = Settings.Default.musicVolume;
-            music.Loop = true;
             music.Play();
         }
         public void ReloadSettings() {
@@ -321,6 +330,7 @@ namespace PPR.Main {
             music.Stop();
 
             if(File.Exists(musicPath)) {
+                Game.musicPath = musicPath;
                 music = new Music(musicPath) {
                     Volume = Settings.Default.musicVolume
                 };
@@ -330,7 +340,27 @@ namespace PPR.Main {
 
             logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
         }
+        public static void SwitchMusic() {
+            string newPath = "";
+            string[] paths = Directory.GetDirectories("levels");
+            if(paths.Length == 0) newPath = musicPath;
+            else if(paths.Length == 1) {
+                newPath = paths[0];
+            }
+            else {
+                while(musicPath == newPath || Path.GetFileNameWithoutExtension(newPath) == "_template" || !File.Exists(newPath)) {
+                    newPath = Path.Combine(paths[random.Next(0, paths.Length)], "music.ogg");
+                }
+            }
+            musicPath = newPath;
+            music.Stop();
+            music = new Music(musicPath) {
+                Volume = Settings.Default.musicVolume
+            };
+            music.Play();
+        }
         public void Update() {
+            if(currentMenu == Menu.Main && music.Status == SoundStatus.Stopped) SwitchMusic();
             if(currentMenu != Menu.Game) return;
 
             if(editing) {

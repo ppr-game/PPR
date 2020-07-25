@@ -85,6 +85,8 @@ namespace PPR.GUI {
                 new Button(new Vector2(40, 29), "SETTINGS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab"), center),
                 new Button(new Vector2(40, 31), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, null, center),
             };
+            pauseMusicButton = new Button(new Vector2(1, 58), "►", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Space"));
+            switchMusicButton = new Button(new Vector2(3, 58), ">", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Right"));
             levelSelectButtons = new List<Button>() {
                 new Button(new Vector2(25, 10), "AUTO", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab")),
                 new Button(new Vector2(25, 10), "NEW", 3, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("LControl+N,RControl+N")),
@@ -116,6 +118,26 @@ namespace PPR.GUI {
 
             UpdateAllFolderSwitchButtons();
         }
+        static Button pauseMusicButton;
+        static Button switchMusicButton;
+        static readonly Vector2 nowPlayingCtrlPos = new Vector2(5, 58);
+        static readonly Vector2 nowPlayingPos = new Vector2(1, 58);
+        static void DrawNowPlaying(bool controls = false) {
+            string text = string.Format("NOW PLAYING : {0}", Game.musicName);
+            Core.renderer.DrawText(controls ? nowPlayingCtrlPos : nowPlayingPos, text, ColorScheme.white, Color.Transparent);
+            if(controls) {
+                pauseMusicButton.text = Game.music.Status switch
+                {
+                    SoundStatus.Playing => "║",
+                    _ => "►"
+                };
+                if(pauseMusicButton.Draw()) {
+                    if(pauseMusicButton.text == "►") Game.music.Play();
+                    else if(pauseMusicButton.text == "║") Game.music.Pause();
+                }
+                if(switchMusicButton.Draw()) Game.SwitchMusic();
+            }
+        }
         static void DrawMainMenu() {
             Renderer.instance.DrawText(zero, mainMenuText, ColorScheme.white, ColorScheme.black);
             foreach(Button button in mainMenuButtons) {
@@ -134,6 +156,7 @@ namespace PPR.GUI {
                     }
                 }
             }
+            DrawNowPlaying(true);
         }
         public static readonly Vector2 scoresPos = new Vector2(1, 12);
         static void DrawLevelSelect() {
@@ -152,6 +175,7 @@ namespace PPR.GUI {
                     string levelPath = Path.Combine("levels", button.text);
                     string musicPath = Game.GetSoundFilePath(Path.Combine(levelPath, "music"));
                     if(File.Exists(musicPath)) {
+                        Game.musicPath = musicPath;
                         Game.music.Stop();
                         Game.music = new Music(musicPath) {
                             Volume = Settings.Default.musicVolume
@@ -178,6 +202,7 @@ namespace PPR.GUI {
                 DrawMetadata(levelSelectMetadatas[currentLevelSelectIndex]);
                 DrawScores(levelSelectScores[currentLevelSelectIndex]);
             }
+            DrawNowPlaying();
         }
         static readonly Vector2 metaLengthPos = new Vector2(56, 12);
         static readonly Vector2 metaDiffPos = new Vector2(56, 13);
