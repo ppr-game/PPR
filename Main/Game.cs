@@ -348,8 +348,8 @@ namespace PPR.Main {
                 newPath = paths[0];
             }
             else {
-                while(musicPath == newPath || Path.GetFileNameWithoutExtension(newPath) == "_template" || !File.Exists(newPath)) {
-                    newPath = Path.Combine(paths[random.Next(0, paths.Length)], "music.ogg");
+                while(musicPath == newPath || Path.GetFileNameWithoutExtension(newPath) == "_template" || string.IsNullOrEmpty(newPath)) {
+                    newPath = GetSoundFilePath(Path.Combine(paths[random.Next(0, paths.Length)], "music"));
                 }
             }
             musicPath = newPath;
