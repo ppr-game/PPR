@@ -54,6 +54,8 @@ namespace PPR.Main {
                 }
                 if(value == Menu.LevelSelect) {
                     GenerateLevelList();
+                    if(musicPath == Path.Combine("resources", "audio", Settings.Default.audio, "mainMenu") ||
+                        musicPath == Path.Combine("resources", "audio", "Default", "mainMenu")) SwitchMusic();
                 }
                 _currentMenu = value;
                 switch(value) {
