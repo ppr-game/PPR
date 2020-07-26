@@ -418,7 +418,7 @@ namespace PPR.Main {
                 UI.progress = (int)(music.PlayingOffset.AsSeconds() / duration * 80f);
             }
 
-            statsState = Map.currentLevel.objects.Count(obj => !obj.ignore) < 0 ? health > 0 ? StatsState.Pass : StatsState.Fail : StatsState.Pause;
+            statsState = Map.currentLevel.objects.Count(obj => !obj.ignore) <= 0 ? health > 0 ? StatsState.Pass : StatsState.Fail : StatsState.Pause;
 
             Map.SimulateAll();
         }
