@@ -168,7 +168,7 @@ namespace PPR.Main {
             music.Volume = Settings.Default.musicVolume;
             music.Play();
         }
-        public void ReloadSettings() {
+        public void UpdateSettings() {
             UI.RecreateButtons();
             UI.musicVolumeSlider.value = Settings.Default.musicVolume;
             UI.soundsVolumeSlider.value = Settings.Default.soundsVolume;
@@ -224,17 +224,23 @@ namespace PPR.Main {
         }
 
         public void ReloadSounds() {
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "hit")), out hitSound))
+            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "hit")), out hitSound) ||
+                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "hit")), out hitSound))
                 hitSound.Volume = Settings.Default.soundsVolume;
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "tick")), out tickSound))
+            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "tick")), out tickSound) ||
+                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "tick")), out hitSound))
                 tickSound.Volume = Settings.Default.soundsVolume;
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "fail")), out failSound))
+            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "fail")), out failSound) ||
+                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "fail")), out hitSound))
                 failSound.Volume = Settings.Default.soundsVolume;
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "pass")), out passSound))
+            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "pass")), out passSound) ||
+                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "pass")), out hitSound))
                 passSound.Volume = Settings.Default.soundsVolume;
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "buttonClick")), out buttonClickSound))
+            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "buttonClick")), out buttonClickSound) ||
+                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "buttonClick")), out hitSound))
                 buttonClickSound.Volume = Settings.Default.soundsVolume;
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "slider")), out sliderSound))
+            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "slider")), out sliderSound) ||
+                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "slider")), out hitSound))
                 sliderSound.Volume = Settings.Default.soundsVolume;
         }
         public void End() {

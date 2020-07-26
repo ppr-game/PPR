@@ -136,7 +136,7 @@ namespace PPR.GUI {
                 }
             }
 
-            Core.game.ReloadSettings();
+            Core.game.UpdateSettings();
         }
     }
 }
