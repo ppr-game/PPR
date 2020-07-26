@@ -21,15 +21,17 @@ using SFML.System;
 using SFML.Window;
 
 namespace PPR.Main {
+    public enum StatsState { Pause, Fail, Pass }
     public enum Menu { Main, LevelSelect, Settings, KeybindsEditor, LastStats, Game }
     public class Game {
         static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
+        public static StatsState statsState { get; private set; }
         static Menu _currentMenu = Menu.Main;
         public static Menu currentMenu {
             get => _currentMenu;
             set {
-                if(Map.currentLevel != null && Map.currentLevel.objects.Count > 0 && health > 0) {
+                if(Map.currentLevel != null && statsState == StatsState.Pause) {
                     if(_currentMenu == Menu.Game && value == Menu.LastStats) { // Pause
                         music.Pause();
                     }
@@ -40,7 +42,7 @@ namespace PPR.Main {
                 if(value == Menu.Game) {
                     if(auto) usedAuto = true;
                 }
-                if(value == Menu.LastStats && !usedAuto && Map.currentLevel.objects.Count <= 0 && health > 0) {
+                if(value == Menu.LastStats && !usedAuto && statsState == StatsState.Pass) {
                     string path = Path.Combine("scores", Map.currentLevel.metadata.name + ".txt");
                     string text = File.Exists(path) ? File.ReadAllText(path) : "";
                     text = Map.TextFromScore(new LevelScore(Vector2.zero, score, accuracy, maxCombo, scores)) + "\n" + text;
@@ -76,7 +78,7 @@ namespace PPR.Main {
                         break;
                     case Menu.LastStats:
                         RPC.client.SetPresence(new RichPresence() {
-                            Details = "Looking at statistics",
+                            Details = editing ? "Paused Editing" : statsState == StatsState.Pause ? "Paused" : statsState == StatsState.Pass ? "Passed" : "Failed",
                             State = Map.currentLevel.metadata.name,
                             Timestamps = Timestamps.Now
                         });
@@ -414,6 +416,8 @@ namespace PPR.Main {
                 UI.progress = (int)(music.PlayingOffset.AsSeconds() / duration * 80f);
             }
 
+            statsState = Map.currentLevel.objects.Count(obj => !obj.ignore) < 0 ? health > 0 ? StatsState.Pass : StatsState.Fail : StatsState.Pause;
+
             Map.SimulateAll();
         }
         public static void UpdateTime() {
@@ -526,7 +530,7 @@ namespace PPR.Main {
             // Back
             if(Bindings.Default.back.IsPressed(key)) {
                 currentMenu = currentMenu == Menu.Game ? Menu.LastStats
-                    : currentMenu == Menu.LastStats ? Map.currentLevel.objects.FindAll(obj => !obj.ignore).Count > 0 && health > 0 ? Menu.Game : Menu.LevelSelect :
+                    : currentMenu == Menu.LastStats ? statsState == StatsState.Pause ? Menu.Game : Menu.LevelSelect :
                     currentMenu == Menu.KeybindsEditor ? Menu.Settings : Menu.Main;
             }
             if(currentMenu == Menu.Game) {

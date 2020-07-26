@@ -12,6 +12,7 @@ namespace PPR.Main.Levels {
         public static readonly Vector2 linePos = new Vector2(0, 54);
         public static void Draw() {
             if(Game.currentMenu != Menu.Game) return;
+
             Renderer.instance.DrawText(linePos, "────────────────────────────────────────────────────────────────────────────────",
                                                                                     ColorScheme.white, Color.Transparent);
             if(Game.editing) {
@@ -37,19 +38,19 @@ namespace PPR.Main.Levels {
         }
         public static void StepAll() {
             if(Game.currentMenu != Menu.Game) return;
+
             for(int i = 0; i < currentLevel.objects.Count; i++) {
                 currentLevel.objects[i].Step();
             }
-            if(Game.health <= 0 || currentLevel.objects.FindAll(obj => !obj.ignore).Count == 0) {
+            if(Game.statsState != StatsState.Pause) {
                 Game.currentMenu = Menu.LastStats;
-                if (Game.health <= 0) {
-                    Game.failSound.Play();
-                } else {
-                    Game.passSound.Play();
-                }
+                if(Game.statsState == StatsState.Fail) Game.failSound.Play();
+                else Game.passSound.Play();
             }
         }
         public static void SimulateAll() {
+            if(Game.currentMenu != Menu.Game) return;
+
             for(int i = 0; i < currentLevel.objects.Count; i++) {
                 currentLevel.objects[i].Simulate();
             }

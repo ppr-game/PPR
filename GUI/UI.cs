@@ -391,8 +391,8 @@ namespace PPR.GUI {
             Renderer.instance.DrawText(zero, lastStatsText, ColorScheme.white, ColorScheme.black);
             string text = "PAUSE";
             Color color = ColorScheme.cyan;
-            if(!Game.editing && (Map.currentLevel.objects.Count <= 0 || Game.health <= 0)) {
-                if(Game.health > 0) {
+            if(!Game.editing && Game.statsState != StatsState.Pause) {
+                if(Game.statsState == StatsState.Pass) {
                     text = "PASS";
                     color = ColorScheme.green;
                 }
