@@ -82,7 +82,7 @@ namespace PPR.GUI {
             mainMenuButtons = new List<Button>() {
                 new Button(new Vector2(40, 25), "PLAY", 4, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Enter"), center),
                 new Button(new Vector2(40, 27), "EDIT", 4, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow,
-                new InputKey("LShift,RShift"), center),
+                    new InputKey("LShift,RShift"), center),
                 new Button(new Vector2(40, 29), "SETTINGS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab"), center),
                 new Button(new Vector2(40, 31), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, null, center),
             };
@@ -93,15 +93,16 @@ namespace PPR.GUI {
             levelSelectButtons = new List<Button>() {
                 new Button(new Vector2(25, 10), "AUTO", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab")),
                 new Button(new Vector2(25, 10), "NEW", 3, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
-                new InputKey("LControl+N,RControl+N")),
+                    new InputKey("LControl+N,RControl+N")),
+                new Button(new Vector2(39, 52), "BACK", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Escape"), center),
             };
             lastStatsButtons = new List<Button>() {
                 new Button(new Vector2(2, 53), "CONTINUE", 8, ColorScheme.black, ColorScheme.cyan, ColorScheme.lightDarkCyan),
                 new Button(new Vector2(2, 55), "RESTART", 7, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow,
-                new InputKey("LControl+R,RControl+R")),
+                    new InputKey("LControl+R,RControl+R")),
                 new Button(new Vector2(10, 55), "AUTO", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab")),
                 new Button(new Vector2(2, 55), "SAVE", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue,
-                new InputKey("LControl+S,RControl+S")),
+                    new InputKey("LControl+S,RControl+S")),
                 new Button(new Vector2(2, 57), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Backspace")),
             };
             levelEditorButtons = new List<Button>() {
@@ -204,6 +205,9 @@ namespace PPR.GUI {
                 else if(button.text == "AUTO" && !Game.editing) {
                     if(button.Draw()) Game.auto = !Game.auto;
                     button.selected = Game.auto;
+                }
+                else if(button.text == "BACK" && button.Draw()) {
+                    Game.currentMenu = Menu.Main;
                 }
             }
             if(levelSelectButtons.Count > 0 && levelSelectMetadatas.Count > 0 && levelSelectScores.Count > 0) {

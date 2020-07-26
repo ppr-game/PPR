@@ -342,15 +342,18 @@ namespace PPR.Main {
         public static void SwitchMusic() {
             string newPath = "";
             string[] paths = Directory.GetDirectories("levels");
+            int index = 0;
             if(paths.Length == 0) newPath = musicPath;
             else if(paths.Length == 1) {
                 newPath = paths[0];
             }
             else {
                 while(musicPath == newPath || Path.GetFileNameWithoutExtension(newPath) == "_template" || string.IsNullOrEmpty(newPath)) {
-                    newPath = GetSoundFilePath(Path.Combine(paths[random.Next(0, paths.Length)], "music"));
+                    index = random.Next(0, paths.Length);
+                    newPath = GetSoundFilePath(Path.Combine(paths[index], "music"));
                 }
             }
+            UI.currentLevelSelectIndex = index;
             musicPath = newPath;
             music.Stop();
             music = new Music(musicPath) {
@@ -525,7 +528,7 @@ namespace PPR.Main {
         }
         public void KeyPressed(object caller, KeyEventArgs key) {
             // Back
-            if(Bindings.Default.back.IsPressed(key)) {
+            if(Bindings.Default.back.IsPressed(key) && currentMenu != Menu.LevelSelect) {
                 currentMenu = currentMenu == Menu.Game ? Menu.LastStats
                     : currentMenu == Menu.LastStats ? statsState == StatsState.Pause ? Menu.Game : Menu.LevelSelect :
                     currentMenu == Menu.KeybindsEditor ? Menu.Settings : Menu.Main;
