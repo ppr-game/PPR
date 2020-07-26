@@ -194,6 +194,8 @@ namespace PPR.GUI {
 
                     currentLevelSelectIndex = i;
                 }
+                if(i == currentLevelSelectIndex) button.selected = true;
+                else button.selected = false;
             }
             foreach(Button button in levelSelectButtons) {
                 if(button.text == "NEW" && Game.editing && button.Draw()) {
