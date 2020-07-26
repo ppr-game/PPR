@@ -140,6 +140,7 @@ namespace PPR.Main {
         public static bool usedAuto = false;
         float accumulator = 0f;
         public void Start() {
+            Settings.Default.PropertyChanged += PropertyChanged;
             ColorScheme.Reload();
             ReloadSounds();
 
@@ -168,14 +169,6 @@ namespace PPR.Main {
             music.Play();
         }
         public void ReloadSettings() {
-            Bindings.Default.Reload();
-
-            Settings.Default.PropertyChanged -= PropertyChanged;
-
-            Settings.Default.Reload();
-
-            Core.renderer.SetFullscreen(Settings.Default.fullscreen);
-
             UI.RecreateButtons();
             UI.musicVolumeSlider.value = Settings.Default.musicVolume;
             UI.soundsVolumeSlider.value = Settings.Default.soundsVolume;
@@ -196,8 +189,6 @@ namespace PPR.Main {
             };
             if(Map.currentLevel != null) foreach(LevelObject obj in Map.currentLevel.objects) obj.UpdateColors();
             LevelObject.speedColor = ColorScheme.blue;
-
-            Settings.Default.PropertyChanged += PropertyChanged;
         }
 
         public static string GetSoundFilePath(string pathWithoutExtension) {
