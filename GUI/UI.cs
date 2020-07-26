@@ -179,8 +179,8 @@ namespace PPR.GUI {
                     Game.currentMenu = Menu.Game;
                     Game.RecalculatePosition();
                 }
-                if(button.currentState == Button.State.Hovered && button.prevFrameState != Button.State.Hovered &&
-                    button.prevFrameState != Button.State.Clicked) {
+                if((button.currentState == Button.State.Hovered || button.currentState == Button.State.Clicked) &&
+                    button.prevFrameState != Button.State.Hovered && button.prevFrameState != Button.State.Clicked) {
                     string levelPath = Path.Combine("levels", button.text);
                     string musicPath = Game.GetSoundFilePath(Path.Combine(levelPath, "music"));
                     if(File.Exists(musicPath)) {
@@ -194,8 +194,7 @@ namespace PPR.GUI {
 
                     currentLevelSelectIndex = i;
                 }
-                if(i == currentLevelSelectIndex) button.selected = true;
-                else button.selected = false;
+                button.selected = i == currentLevelSelectIndex;
             }
             foreach(Button button in levelSelectButtons) {
                 if(button.text == "NEW" && Game.editing && button.Draw()) {
