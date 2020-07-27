@@ -306,6 +306,7 @@ namespace PPR.Main {
             music.Volume = Settings.Default.musicVolume;
         }
         public static void GameStart(string musicPath) {
+            statsState = StatsState.Pause;
             usedAuto = auto;
             UI.progress = 80;
             offset = 0;
