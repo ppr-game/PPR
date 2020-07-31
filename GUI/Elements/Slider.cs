@@ -6,6 +6,7 @@ using PPR.Rendering;
 using SFML.Graphics;
 
 namespace PPR.GUI.Elements {
+    // Yes. Yes I just copy-pasted the code from the Button class and modified it a bit. Sorry
     public class Slider {
         public Vector2 position;
         public readonly int minValue;

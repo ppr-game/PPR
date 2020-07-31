@@ -45,7 +45,7 @@ namespace PPR.GUI {
                 string value = keyValue[1];
                 byte[] values = value.Split(',').Select(val => byte.Parse(val)).ToArray();
                 Color color = new Color(values[0], values[1], values[2]);
-                switch(key) {
+                switch(key) { // This is a long ass switch and I don't know what to do with it
                     case "black":
                         black = color;
                         break;

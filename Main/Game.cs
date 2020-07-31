@@ -306,6 +306,8 @@ namespace PPR.Main {
             music.Volume = Settings.Default.musicVolume;
         }
         public static void GameStart(string musicPath) {
+            // Reset everything when we enter the level or bad things will happen
+
             statsState = StatsState.Pause;
             usedAuto = auto;
             UI.progress = 80;
@@ -368,6 +370,7 @@ namespace PPR.Main {
             if(currentMenu == Menu.Main && music.Status == SoundStatus.Stopped) SwitchMusic();
             if(currentMenu != Menu.Game) return;
 
+            // If we're in the editor, update logic every frame instead of using a fixed time step to remove bugs that happen when scrolling
             if(editing) {
                 interpolatedPlayingOffset = music.PlayingOffset;
                 FixedUpdate();
@@ -501,6 +504,7 @@ namespace PPR.Main {
             };
         }
         public static void ChangeSpeed(int delta) {
+            // Create a new speed if we don't have a speed at the current position
             List<int> flooredSpeedsSteps = Map.currentLevel.speeds.Select(speed => speed.step).ToList();
             if(!flooredSpeedsSteps.Contains((int)steps)) {
                 int speedIndex = 0;
@@ -512,15 +516,18 @@ namespace PPR.Main {
                 //Map.currentLevel.speeds = SortLevelSpeeds(Map.currentLevel.speeds);
             }
 
+            // Get the index of the speed we want to change
             flooredSpeedsSteps = Map.currentLevel.speeds.Select(speed => speed.step).ToList();
             int index = flooredSpeedsSteps.IndexOf((int)steps);
 
             Map.currentLevel.speeds[index].speed += delta;
-
+            
+            // Remove the current speed if it's the same as the previous one
             if(index >= 1 && Map.currentLevel.speeds[index].speed == Map.currentLevel.speeds[index - 1].speed) {
                 Map.currentLevel.speeds.RemoveAt(index);
             }
 
+            // Recreate the objects that show the speeds
             List<LevelObject> speedObjects = Map.currentLevel.objects.FindAll(obj => obj.character == LevelObject.speedChar);
             foreach(LevelObject obj in speedObjects) {
                 _ = Map.currentLevel.objects.Remove(obj);
@@ -681,12 +688,12 @@ namespace PPR.Main {
             }
             float steps = 0;
             for(int i = 0; i <= speedIndex; i++) {
-                if(i != speedIndex) {
+                if(i == speedIndex) steps += useTime / (60000f / Math.Abs(sortedSpeeds[i].speed));
+                else {
                     int stepsIncrement = sortedSpeeds[i + 1].step - sortedSpeeds[i].step;
                     steps += stepsIncrement;
                     useTime -= stepsIncrement * (60000f / Math.Abs(sortedSpeeds[i].speed));
                 }
-                else steps += useTime / (60000f / Math.Abs(sortedSpeeds[i].speed));
             }
             return steps;
         }
@@ -703,12 +710,12 @@ namespace PPR.Main {
             }
             float offset = 0;
             for(int i = 0; i <= speedIndex; i++) {
-                if(i != speedIndex) {
+                if(i == speedIndex) offset += useSteps * MathF.Sign(sortedSpeeds[i].speed);
+                else {
                     int stepsDecrement = sortedSpeeds[i + 1].step - sortedSpeeds[i].step;
                     offset += stepsDecrement * MathF.Sign(sortedSpeeds[i].speed);
                     useSteps -= stepsDecrement;
                 }
-                else offset += useSteps * MathF.Sign(sortedSpeeds[i].speed);
             }
             return offset;
         }

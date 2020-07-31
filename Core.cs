@@ -16,7 +16,7 @@ public static class Core {
     public static readonly Renderer renderer = new Renderer(80, 60, 0);
 
     static void Main() {
-        game.Start();
+        game.Start(); // Start the game
 
         logger.Info("Loading finished");
 

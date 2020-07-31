@@ -11,6 +11,8 @@ namespace PPR.Main {
 
         public int x;
         public int y;
+
+        // This is wrong but it's not used anyway so nobody cares
         public Vector2 normalized => new Vector2(x == 0 ? 0 : (x == 1 ? 1 : -1), y == 0 ? 0 : (y == 1 ? 1 : -1));
         public Vector2() {
             x = 0;
@@ -25,6 +27,7 @@ namespace PPR.Main {
             y = vector.y;
         }
 
+        // YEP this is as wrong as Vector2.normalized
         public void Normalize() {
             x = x == 0 ? 0 : (x == 1 ? 1 : -1);
             y = y == 0 ? 0 : (y == 1 ? 1 : -1);
