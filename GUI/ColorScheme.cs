@@ -1,11 +1,14 @@
 ﻿using System.IO;
 using System.Linq;
 
+using PPR.Main;
 using PPR.Properties;
 
 using SFML.Graphics;
 
 namespace PPR.GUI {
+    // ReSharper disable MemberCanBePrivate.Global
+    // ReSharper disable NotAccessedField.Global
     public static class ColorScheme {
         public static Color black;
         public static Color white;
@@ -43,7 +46,7 @@ namespace PPR.GUI {
                 string[] keyValue = line.Split('=');
                 string key = keyValue[0];
                 string value = keyValue[1];
-                byte[] values = value.Split(',').Select(val => byte.Parse(val)).ToArray();
+                byte[] values = value.Split(',').Select(byte.Parse).ToArray();
                 Color color = new Color(values[0], values[1], values[2]);
                 switch(key) { // This is a long ass switch and I don't know what to do with it
                     case "black":
@@ -136,7 +139,7 @@ namespace PPR.GUI {
                 }
             }
 
-            Core.game.UpdateSettings();
+            Game.UpdateSettings();
         }
     }
 }

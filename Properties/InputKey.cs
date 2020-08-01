@@ -42,10 +42,10 @@ namespace PPR.Properties {
                 }
             }
         }
-        public Keyboard.Key? mainModifier { get; private set; } = null;
-        public Keyboard.Key? mainKey { get; private set; } = null;
-        public Keyboard.Key? secondaryModifier { get; private set; } = null;
-        public Keyboard.Key? secondaryKey { get; private set; } = null;
+        public Keyboard.Key? mainModifier { get; private set; }
+        public Keyboard.Key? mainKey { get; private set; }
+        public Keyboard.Key? secondaryModifier { get; private set; }
+        public Keyboard.Key? secondaryKey { get; private set; }
         public InputKey() { }
         public InputKey(string fromString) {
             asString = fromString;

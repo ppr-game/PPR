@@ -1,6 +1,7 @@
 ﻿using System;
 
 namespace PPR.Main {
+    // ReSharper disable UnusedMember.Global
     public class Vector2 {
         public static Vector2 zero => new Vector2();
         public static Vector2 one => new Vector2(1, 1);
@@ -13,7 +14,9 @@ namespace PPR.Main {
         public int y;
 
         // This is wrong but it's not used anyway so nobody cares
-        public Vector2 normalized => new Vector2(x == 0 ? 0 : (x == 1 ? 1 : -1), y == 0 ? 0 : (y == 1 ? 1 : -1));
+        // ReSharper disable once ConvertConditionalTernaryExpressionToSwitchExpression
+        public Vector2 normalized => new Vector2(x == 0 ? 0 : x == 1 ? 1 : -1, y == 0 ? 0 : y == 1 ? 1 : -1);
+        // ReSharper disable once MemberCanBePrivate.Global
         public Vector2() {
             x = 0;
             y = 0;
@@ -29,8 +32,8 @@ namespace PPR.Main {
 
         // YEP this is as wrong as Vector2.normalized
         public void Normalize() {
-            x = x == 0 ? 0 : (x == 1 ? 1 : -1);
-            y = y == 0 ? 0 : (y == 1 ? 1 : -1);
+            x = x == 0 ? 0 : x == 1 ? 1 : -1;
+            y = y == 0 ? 0 : y == 1 ? 1 : -1;
         }
         public Vector2 Abs() {
             return new Vector2(Math.Abs(x), Math.Abs(y));
@@ -58,9 +61,11 @@ namespace PPR.Main {
             return new Vector2(left.x / right, left.y / right);
         }
         public static bool operator ==(Vector2 left, Vector2 right) {
+            if(left is null || right is null) return left is null && right is null;
             return left.x == right.x && left.y == right.y;
         }
         public static bool operator !=(Vector2 left, Vector2 right) {
+            if(left is null || right is null) return !(left is null && right is null);
             return left.x != right.x || left.y != right.y;
         }
         public override bool Equals(object obj) {
@@ -69,6 +74,7 @@ namespace PPR.Main {
                    y == vector.y;
         }
         public override int GetHashCode() {
+            // ReSharper disable NonReadonlyMemberInGetHashCode
             return HashCode.Combine(x, y);
         }
     }

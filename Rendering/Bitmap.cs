@@ -7,17 +7,15 @@ using SFML.System;
 
 namespace PPR.Rendering {
     public class BitmapFont {
-        public Texture texture;
-        public Vector2 characterSize;
+        public readonly Texture texture;
+        public readonly Vector2 characterSize;
         public readonly Dictionary<char, Vector2f[]> characters = new Dictionary<char, Vector2f[]>();
         public BitmapFont(Image fontImage, string mappings, Vector2 characterSize) {
             this.characterSize = characterSize;
             int index = 0;
             for(uint y = 0; y < fontImage.Size.Y; y++) {
-                for(uint x = 0; x < fontImage.Size.X; x++) {
-                    if(fontImage.GetPixel(x, y) == Color.Black) fontImage.SetPixel(x, y, Color.Transparent);
-                    else fontImage.SetPixel(x, y, Color.White);
-                }
+                for(uint x = 0; x < fontImage.Size.X; x++)
+                    fontImage.SetPixel(x, y, fontImage.GetPixel(x, y) == Color.Black ? Color.Transparent : Color.White);
             }
             texture = new Texture(fontImage);
             for(int y = 0; y < fontImage.Size.Y; y += characterSize.y) {
@@ -38,70 +36,70 @@ namespace PPR.Rendering {
         public Dictionary<Vector2, Color> backgroundColors;
         public Dictionary<Vector2, Color> foregroundColors;
         public Dictionary<Vector2, char> text;
-        readonly Vertex[] backgroundQuads;
-        readonly Vertex[] foregroundQuads;
+        readonly Vertex[] _backgroundQuads;
+        readonly Vertex[] _foregroundQuads;
         public RenderTexture renderTexture { get; }
         public void RebuildRenderTexture() {
             renderTexture.Clear();
 
             uint index = 0;
             foreach(KeyValuePair<Vector2, Color> curColor in backgroundColors) {
-                int xChar = curColor.Key.x * charWidth;
-                int yChar = curColor.Key.y * charHeight;
+                int xChar = curColor.Key.x * _charWidth;
+                int yChar = curColor.Key.y * _charHeight;
                 Vector2f position = new Vector2f(xChar, yChar);
                 Color color = curColor.Value;
 
-                backgroundQuads[index].Position = position; backgroundQuads[index].Color = color;
-                backgroundQuads[index + 1].Position = position + new Vector2f(charWidth, 0f); backgroundQuads[index + 1].Color = color;
-                backgroundQuads[index + 2].Position = position + new Vector2f(charWidth, charHeight); backgroundQuads[index + 2].Color = color;
-                backgroundQuads[index + 3].Position = position + new Vector2f(0f, charHeight); backgroundQuads[index + 3].Color = color;
+                _backgroundQuads[index].Position = position; _backgroundQuads[index].Color = color;
+                _backgroundQuads[index + 1].Position = position + new Vector2f(_charWidth, 0f); _backgroundQuads[index + 1].Color = color;
+                _backgroundQuads[index + 2].Position = position + new Vector2f(_charWidth, _charHeight); _backgroundQuads[index + 2].Color = color;
+                _backgroundQuads[index + 3].Position = position + new Vector2f(0f, _charHeight); _backgroundQuads[index + 3].Color = color;
 
                 index += 4;
             }
-            renderTexture.Draw(backgroundQuads, 0, (uint)(backgroundColors.Count * 4), PrimitiveType.Quads);
+            renderTexture.Draw(_backgroundQuads, 0, (uint)(backgroundColors.Count * 4), PrimitiveType.Quads);
 
             index = 0;
             foreach(KeyValuePair<Vector2, char> curChar in text) {
-                int xChar = curChar.Key.x * charWidth;
-                int yChar = curChar.Key.y * charHeight;
-                if(font.characters.TryGetValue(curChar.Value, out Vector2f[] texCoords)) {
+                int xChar = curChar.Key.x * _charWidth;
+                int yChar = curChar.Key.y * _charHeight;
+                if(_font.characters.TryGetValue(curChar.Value, out Vector2f[] texCoords)) {
                     Vector2f position = new Vector2f(xChar, yChar);
                     Color foregroundColor = foregroundColors.TryGetValue(curChar.Key, out Color color) ? color : Color.White;
 
-                    foregroundQuads[index].Position = position; foregroundQuads[index].TexCoords = texCoords[0];
-                    foregroundQuads[index + 1].Position = position + new Vector2f(charWidth, 0f); foregroundQuads[index + 1].TexCoords = texCoords[1];
-                    foregroundQuads[index + 2].Position = position + new Vector2f(charWidth, charHeight); foregroundQuads[index + 2].TexCoords = texCoords[2];
-                    foregroundQuads[index + 3].Position = position + new Vector2f(0f, charHeight); foregroundQuads[index + 3].TexCoords = texCoords[3];
+                    _foregroundQuads[index].Position = position; _foregroundQuads[index].TexCoords = texCoords[0];
+                    _foregroundQuads[index + 1].Position = position + new Vector2f(_charWidth, 0f); _foregroundQuads[index + 1].TexCoords = texCoords[1];
+                    _foregroundQuads[index + 2].Position = position + new Vector2f(_charWidth, _charHeight); _foregroundQuads[index + 2].TexCoords = texCoords[2];
+                    _foregroundQuads[index + 3].Position = position + new Vector2f(0f, _charHeight); _foregroundQuads[index + 3].TexCoords = texCoords[3];
 
-                    foregroundQuads[index].Color = foregroundColor; foregroundQuads[index + 1].Color = foregroundColor;
-                    foregroundQuads[index + 2].Color = foregroundColor; foregroundQuads[index + 3].Color = foregroundColor;
+                    _foregroundQuads[index].Color = foregroundColor; _foregroundQuads[index + 1].Color = foregroundColor;
+                    _foregroundQuads[index + 2].Color = foregroundColor; _foregroundQuads[index + 3].Color = foregroundColor;
 
                     index += 4;
                 }
             }
-            renderTexture.Draw(foregroundQuads, 0, (uint)(text.Count * 4), PrimitiveType.Quads, new RenderStates(font.texture));
+            renderTexture.Draw(_foregroundQuads, 0, (uint)(text.Count * 4), PrimitiveType.Quads, new RenderStates(_font.texture));
 
             renderTexture.Display();
         }
 
-        readonly byte charWidth = 0;
-        readonly byte charHeight = 0;
-        public readonly uint imageWidth = 0;
-        public readonly uint imageHeight = 0;
-        readonly uint textWidth = 0;
-        readonly uint textHeight = 0;
-        public BitmapFont font;
+        readonly byte _charWidth;
+        readonly byte _charHeight;
+        public readonly uint imageWidth;
+        public readonly uint imageHeight; // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+        readonly uint _textWidth; // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+        readonly uint _textHeight;
+        readonly BitmapFont _font;
         public BitmapText(BitmapFont font, Vector2 size) {
-            this.font = font;
-            charWidth = (byte)font.characterSize.x;
-            charHeight = (byte)font.characterSize.y;
-            textWidth = (uint)size.x;
-            textHeight = (uint)size.y;
-            imageWidth = textWidth * charWidth;
-            imageHeight = textHeight * charHeight;
+            _font = font;
+            _charWidth = (byte)font.characterSize.x;
+            _charHeight = (byte)font.characterSize.y;
+            _textWidth = (uint)size.x;
+            _textHeight = (uint)size.y;
+            imageWidth = _textWidth * _charWidth;
+            imageHeight = _textHeight * _charHeight;
             renderTexture = new RenderTexture(imageWidth, imageHeight);
-            backgroundQuads = new Vertex[4 * textWidth * textHeight];
-            foregroundQuads = new Vertex[4 * textWidth * textHeight];
+            _backgroundQuads = new Vertex[4 * _textWidth * _textHeight];
+            _foregroundQuads = new Vertex[4 * _textWidth * _textHeight];
         }
     }
 }

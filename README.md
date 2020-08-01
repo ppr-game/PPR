@@ -53,7 +53,7 @@ The numbers on the **green**, **yellow** and **red** backgrounds are your curren
 
 ## How to create levels
 To begin creating a level, press "EDIT" in the main menu, then press "NEW" at the top,
-pause the game by pressing `Escape` on your keayboard, press "SAVE" and "EXIT",
+pause the game by pressing `Escape` on your keyboard, press "SAVE" and "EXIT",
 then go to the folder, where your game is located at, go to the `levels` folder,
 rename the `unnamed` folder to whatever you'd like your new level to be named,
 go to the folder itself, open the `level.txt` file and change `<unknown>` to the level author name (usually your nickname), save the file,
@@ -76,7 +76,7 @@ Now you can begin creating your level
 
 - `Up/down arrows` - increase/decrease the speed by 10 BPM (`+ Shift` - 1 BPM) (`+ Alt` - increase/decrease the guide lines spacing)
 
-- `Left/right arrows` - decrease/increase the health drain *(the value which will be substracted from the **health** on **misses**)* (`+ Shift` - restorage (the opposite of drain))
+- `Left/right arrows` - decrease/increase the health drain *(the value which will be subtracted from the **health** on **misses**)* (`+ Shift` - restorage (the opposite of drain))
 
 - `F1/F2` - increase/decrease the initial music offset by 1 ms (`+ Shift` - 10 ms)
 

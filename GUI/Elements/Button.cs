@@ -7,6 +7,8 @@ using PPR.Rendering;
 using SFML.Graphics;
 
 namespace PPR.GUI.Elements {
+    // ReSharper disable FieldCanBeMadeReadOnly.Global
+    // ReSharper disable MemberCanBePrivate.Global
     public class Button {
         public Vector2 position;
         public string text;
@@ -15,8 +17,8 @@ namespace PPR.GUI.Elements {
             get => _width;
             set {
                 _width = value;
-                animTimes = new float[value];
-                animRateOffsets = new float[value];
+                _animTimes = new float[value];
+                _animRateOffsets = new float[value];
             }
         }
         public Color idleColor;
@@ -24,17 +26,17 @@ namespace PPR.GUI.Elements {
         public Color clickColor;
         public Renderer.Alignment align;
         public InputKey hotkey;
-        bool hotkeyPressed = false;
-        bool prevFrameHotkeyPressed = false;
-        Color currentColor;
-        Color prevColor;
+        bool _hotkeyPressed;
+        bool _prevFrameHotkeyPressed;
+        Color _currentColor;
+        Color _prevColor;
         public State currentState = State.Hovered;
-        State prevState = State.Hovered;
+        State _prevState = State.Hovered;
         public State prevFrameState = State.Hovered;
-        float[] animTimes;
-        float[] animRateOffsets;
+        float[] _animTimes;
+        float[] _animRateOffsets;
         public bool selected = false;
-        int posX;
+        int _posX;
         public enum State { Idle, Hovered, Clicked, Selected };
         public Button(Vector2 position, string text, int width, Color idleColor, Color hoverColor, Color clickColor,
                 InputKey hotkey = null, Renderer.Alignment align = Renderer.Alignment.Left) {
@@ -45,34 +47,34 @@ namespace PPR.GUI.Elements {
             this.hoverColor = hoverColor;
             this.clickColor = clickColor;
             this.align = align;
-            animTimes = new float[width];
-            animRateOffsets = new float[width];
-            currentColor = hoverColor;
+            _animTimes = new float[width];
+            _animRateOffsets = new float[width];
+            _currentColor = hoverColor;
             this.hotkey = hotkey;
             Core.renderer.window.KeyPressed += (_, key) => {
-                if(this.hotkey != null && this.hotkey.IsPressed(key)) hotkeyPressed = true;
+                if(this.hotkey != null && this.hotkey.IsPressed(key)) _hotkeyPressed = true;
             };
             Core.renderer.window.KeyReleased += (_, key) => {
-                if(this.hotkey != null && this.hotkey.IsPressed(key)) hotkeyPressed = false;
+                if(this.hotkey != null && this.hotkey.IsPressed(key)) _hotkeyPressed = false;
             };
         }
 
         State DrawWithState() {
             Renderer.instance.DrawText(position, text.Substring(0, Math.Min(text.Length, width)), ColorScheme.white, Color.Transparent, align);
-            posX = position.x - align switch
+            _posX = position.x - align switch
             {
                 Renderer.Alignment.Right => text.Length - 1,
                 Renderer.Alignment.Center => (int)MathF.Ceiling(text.Length / 2f),
                 _ => 0
             };
-            return Renderer.instance.mousePosition.InBounds(posX, position.y, posX + width - 1, position.y) || prevFrameHotkeyPressed
-                              ? Core.renderer.leftButtonPressed || hotkeyPressed ? State.Clicked : State.Hovered
+            return Renderer.instance.mousePosition.InBounds(_posX, position.y, _posX + width - 1, position.y) || _prevFrameHotkeyPressed
+                              ? Core.renderer.leftButtonPressed || _hotkeyPressed ? State.Clicked : State.Hovered
                                : selected ? State.Selected : State.Idle;
         }
         public bool Draw() {
             prevFrameState = currentState;
             currentState = DrawWithState();
-            if(prevState != currentState) {
+            if(_prevState != currentState) {
                 Color color = idleColor;
                 switch(currentState) {
                     case State.Hovered:
@@ -83,32 +85,31 @@ namespace PPR.GUI.Elements {
                         color = clickColor;
                         break;
                 }
-                if(currentColor != color) {
-                    prevColor = currentColor;
+                if(_currentColor != color) {
+                    _prevColor = _currentColor;
                     for(int x = 0; x < width; x++) {
-                        animTimes[x] = 0f;
-                        animRateOffsets[x] = new Random().NextFloat(-1f, 1f);
+                        _animTimes[x] = 0f;
+                        _animRateOffsets[x] = new Random().NextFloat(-1f, 1f);
                     }
                 }
-                currentColor = color;
+                _currentColor = color;
             }
-            prevState = currentState;
+            _prevState = currentState;
 
             for(int x = 0; x < width; x++) {
-                Vector2 pos = new Vector2(posX + x, position.y);
+                Vector2 pos = new Vector2(_posX + x, position.y);
                 Renderer.instance.SetCellColor(pos,
-                    Renderer.AnimateColor(animTimes[x], currentColor, currentState == State.Idle ? hoverColor : idleColor, 4f + animRateOffsets[x]),
-                    Renderer.AnimateColor(animTimes[x], prevColor, currentColor, 4f + animRateOffsets[x]));
-                animTimes[x] += Core.deltaTime;
+                    Renderer.AnimateColor(_animTimes[x], _currentColor, currentState == State.Idle ? hoverColor : idleColor, 4f + _animRateOffsets[x]),
+                    Renderer.AnimateColor(_animTimes[x], _prevColor, _currentColor, 4f + _animRateOffsets[x]));
+                _animTimes[x] += Core.deltaTime;
             }
 
-            prevFrameHotkeyPressed = Renderer.instance.window.HasFocus() && hotkeyPressed;
+            _prevFrameHotkeyPressed = Renderer.instance.window.HasFocus() && _hotkeyPressed;
 
-            if(Renderer.instance.window.HasFocus() && currentState == State.Hovered && prevFrameState == State.Clicked) {
-                Game.buttonClickSound.Play();
-                return true;
-            }
-            return false;
+            if(!Renderer.instance.window.HasFocus() || currentState != State.Hovered ||
+               prevFrameState != State.Clicked) return false;
+            Game.buttonClickSound.Play();
+            return true;
         }
     }
 }

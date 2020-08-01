@@ -39,7 +39,7 @@ namespace PPR.Rendering {
 
         public Vector2f mousePositionF = new Vector2f(-1f, -1f);
         public Vector2 mousePosition = new Vector2(-1, -1);
-        public bool leftButtonPressed = false;
+        public bool leftButtonPressed;
 
         public Renderer(int width, int height, int frameRate) {
             instance = this;
@@ -90,11 +90,11 @@ namespace PPR.Rendering {
         public void SubscribeWindowEvents() {
             leftButtonPressed = false;
 
-            window.KeyPressed += Core.game.KeyPressed;
-            window.MouseWheelScrolled += Core.game.MouseWheelScrolled;
-            window.LostFocus += Core.game.LostFocus;
-            window.GainedFocus += Core.game.GainedFocus;
-            window.Closed += (_, __) => Core.game.End();
+            window.KeyPressed += Game.KeyPressed;
+            window.MouseWheelScrolled += Game.MouseWheelScrolled;
+            window.LostFocus += Game.LostFocus;
+            window.GainedFocus += Game.GainedFocus;
+            window.Closed += (_, __) => Game.End();
             window.MouseMoved += UpdateMousePosition;
             window.MouseButtonPressed += (_, e) => {
                 if(e.Button == Mouse.Button.Left) leftButtonPressed = true;

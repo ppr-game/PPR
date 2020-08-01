@@ -4,7 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Platforms>AnyCPU;x86;x64</Platforms>
-    <StartupObject>Core</StartupObject>
+    <StartupObject>PPR.Core</StartupObject>
     <Version>0.8.3-beta</Version>
     <Authors>ConfiG</Authors>
     <Company />

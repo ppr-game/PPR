@@ -20,40 +20,42 @@ namespace PPR.Main.Levels {
                 for(int y = -linePos.y / 2; y < linePos.y / 2 + 30 + currentLevel.metadata.linesFrequency; y++) {
                     int useY = y * 2 + Game.roundedOffset % doubleFrequency - doubleFrequency + linePos.y + 2;
                     if(useY > linePos.y) continue;
-                    if(y % currentLevel.metadata.linesFrequency == 0) {
-                        for(int x = 0; x < 80; x++) {
+                    if(y % currentLevel.metadata.linesFrequency == 0)
+                        for(int x = 0; x < 80; x++)
                             Renderer.instance.SetCellColor(new Vector2(x, useY), ColorScheme.white, new Color(6, 6, 6));
-                        }
-                    }
-                    else {
-                        for(int x = 0; x < 80; x++) {
+                    else
+                        for(int x = 0; x < 80; x++)
                             Renderer.instance.SetCellColor(new Vector2(x, useY), ColorScheme.white, new Color(4, 4, 4));
-                        }
-                    }
                 }
             }
-            for(int i = 0; i < currentLevel.objects.Count; i++) {
-                currentLevel.objects[i].Draw();
+
+            DestroyToDestroy();
+            foreach(LevelObject obj in currentLevel.objects) obj.Draw();
+        }
+
+        static void DestroyToDestroy() {
+            int destroyIndex = 0;
+            while(destroyIndex < currentLevel.objects.Count) {
+                LevelObject obj = currentLevel.objects[destroyIndex];
+                if(obj.toDestroy) _ = currentLevel.objects.Remove(obj);
+                else destroyIndex++;
             }
         }
         public static void StepAll() {
             if(Game.currentMenu != Menu.Game) return;
 
-            for(int i = 0; i < currentLevel.objects.Count; i++) {
-                currentLevel.objects[i].Step();
-            }
-            if(Game.statsState != StatsState.Pause) {
-                Game.currentMenu = Menu.LastStats;
-                if(Game.statsState == StatsState.Fail) Game.failSound.Play();
-                else Game.passSound.Play();
-            }
+            foreach(LevelObject obj in currentLevel.objects) obj.Step();
+
+            if(Game.statsState == StatsState.Pause) return;
+            Game.currentMenu = Menu.LastStats;
+            if(Game.statsState == StatsState.Fail) Game.failSound.Play();
+            else Game.passSound.Play();
         }
         public static void SimulateAll() {
             if(Game.currentMenu != Menu.Game) return;
 
-            for(int i = 0; i < currentLevel.objects.Count; i++) {
-                currentLevel.objects[i].Simulate();
-            }
+            foreach(LevelObject obj in currentLevel.objects) obj.Simulate();
+            DestroyToDestroy();
         }
         public static void LoadLevelFromLines(string[] lines, string name, string musicPath) {
             currentLevel = new Level(lines, name);
@@ -71,26 +73,20 @@ namespace PPR.Main.Levels {
                                    level.metadata.difficulty + ":" +
                                    level.metadata.author + ":" +
                                    level.metadata.linesFrequency + ":" +
-                                   level.metadata.initialOffsetMS;
+                                   level.metadata.initialOffsetMs;
             return string.Join('\n', lines);
         }
         public static List<LevelScore> ScoresFromLines(string[] lines, Vector2 position) {
-            List<LevelScore> scores = new List<LevelScore>();
-            for(int i = 0; i < lines.Length; i++) {
-                string[] data = lines[i].Split(':');
-                scores.Add(new LevelScore(new Vector2(position.x, position.y + i * 4), int.Parse(data[0]),
-                                                                                                                                                                                         int.Parse(data[1]),
-                                                                                                                                                                                         int.Parse(data[2]),
-                                                                                                                                                                                         new int[3] {
-                                                                                                                                                                                             int.Parse(data[3]),
-                                                                                                                                                                                             int.Parse(data[4]),
-                                                                                                                                                                                             int.Parse(data[5])
-                                                                                                                                                                                         }));
-            }
-            return scores;
+            return lines.Select(t => t.Split(':')).Select((data, i) =>
+                    new LevelScore(new Vector2(position.x, position.y + i * 4), int.Parse(data[0]), int.Parse(data[1]),
+                        int.Parse(data[2]), new int[] { int.Parse(data[3]), int.Parse(data[4]), int.Parse(data[5]) }))
+                .ToList();
         }
         public static string TextFromScore(LevelScore score) {
-            return string.Join(':', new int[6] { score.score, score.accuracy, score.maxCombo, score.scores[0], score.scores[1], score.scores[2] });
+            return string.Join(':',
+                new int[] {
+                    score.score, score.accuracy, score.maxCombo, score.scores[0], score.scores[1], score.scores[2]
+                });
         }
     }
 }
