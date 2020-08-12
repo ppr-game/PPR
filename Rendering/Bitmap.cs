@@ -43,41 +43,52 @@ namespace PPR.Rendering {
             renderTexture.Clear();
 
             uint index = 0;
-            foreach(KeyValuePair<Vector2, Color> curColor in backgroundColors) {
-                int xChar = curColor.Key.x * _charWidth;
-                int yChar = curColor.Key.y * _charHeight;
+            foreach((Vector2 key, Color color) in backgroundColors) {
+                int xChar = key.x * _charWidth;
+                int yChar = key.y * _charHeight;
                 Vector2f position = new Vector2f(xChar, yChar);
-                Color color = curColor.Value;
 
-                _backgroundQuads[index].Position = position; _backgroundQuads[index].Color = color;
-                _backgroundQuads[index + 1].Position = position + new Vector2f(_charWidth, 0f); _backgroundQuads[index + 1].Color = color;
-                _backgroundQuads[index + 2].Position = position + new Vector2f(_charWidth, _charHeight); _backgroundQuads[index + 2].Color = color;
-                _backgroundQuads[index + 3].Position = position + new Vector2f(0f, _charHeight); _backgroundQuads[index + 3].Color = color;
+                _backgroundQuads[index].Position = position;
+                _backgroundQuads[index + 1].Position = position + new Vector2f(_charWidth, 0f);
+                _backgroundQuads[index + 2].Position = position + new Vector2f(_charWidth, _charHeight);
+                _backgroundQuads[index + 3].Position = position + new Vector2f(0f, _charHeight);
+                
+                _backgroundQuads[index].Color = color;
+                _backgroundQuads[index + 1].Color = color;
+                _backgroundQuads[index + 2].Color = color;
+                _backgroundQuads[index + 3].Color = color;
 
                 index += 4;
             }
             renderTexture.Draw(_backgroundQuads, 0, (uint)(backgroundColors.Count * 4), PrimitiveType.Quads);
 
             index = 0;
-            foreach(KeyValuePair<Vector2, char> curChar in text) {
-                int xChar = curChar.Key.x * _charWidth;
-                int yChar = curChar.Key.y * _charHeight;
-                if(_font.characters.TryGetValue(curChar.Value, out Vector2f[] texCoords)) {
-                    Vector2f position = new Vector2f(xChar, yChar);
-                    Color foregroundColor = foregroundColors.TryGetValue(curChar.Key, out Color color) ? color : Color.White;
+            foreach((Vector2 key, char value) in text) {
+                int xChar = key.x * _charWidth;
+                int yChar = key.y * _charHeight;
+                if(!_font.characters.TryGetValue(value, out Vector2f[] texCoords)) continue;
+                Vector2f position = new Vector2f(xChar, yChar);
+                Color foregroundColor = foregroundColors.TryGetValue(key, out Color color) ? color : Color.White;
 
-                    _foregroundQuads[index].Position = position; _foregroundQuads[index].TexCoords = texCoords[0];
-                    _foregroundQuads[index + 1].Position = position + new Vector2f(_charWidth, 0f); _foregroundQuads[index + 1].TexCoords = texCoords[1];
-                    _foregroundQuads[index + 2].Position = position + new Vector2f(_charWidth, _charHeight); _foregroundQuads[index + 2].TexCoords = texCoords[2];
-                    _foregroundQuads[index + 3].Position = position + new Vector2f(0f, _charHeight); _foregroundQuads[index + 3].TexCoords = texCoords[3];
+                _foregroundQuads[index].Position = position;
+                _foregroundQuads[index + 1].Position = position + new Vector2f(_charWidth, 0f);
+                _foregroundQuads[index + 2].Position = position + new Vector2f(_charWidth, _charHeight);
+                _foregroundQuads[index + 3].Position = position + new Vector2f(0f, _charHeight);
+                
+                _foregroundQuads[index].TexCoords = texCoords[0];
+                _foregroundQuads[index + 1].TexCoords = texCoords[1];
+                _foregroundQuads[index + 2].TexCoords = texCoords[2];
+                _foregroundQuads[index + 3].TexCoords = texCoords[3];
 
-                    _foregroundQuads[index].Color = foregroundColor; _foregroundQuads[index + 1].Color = foregroundColor;
-                    _foregroundQuads[index + 2].Color = foregroundColor; _foregroundQuads[index + 3].Color = foregroundColor;
+                _foregroundQuads[index].Color = foregroundColor;
+                _foregroundQuads[index + 1].Color = foregroundColor;
+                _foregroundQuads[index + 2].Color = foregroundColor;
+                _foregroundQuads[index + 3].Color = foregroundColor;
 
-                    index += 4;
-                }
+                index += 4;
             }
-            renderTexture.Draw(_foregroundQuads, 0, (uint)(text.Count * 4), PrimitiveType.Quads, new RenderStates(_font.texture));
+            renderTexture.Draw(_foregroundQuads, 0, (uint)(text.Count * 4), PrimitiveType.Quads,
+                new RenderStates(_font.texture));
 
             renderTexture.Display();
         }

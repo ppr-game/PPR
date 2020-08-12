@@ -15,7 +15,7 @@ namespace PPR.Rendering {
     public class Renderer {
         public static Renderer instance;
 
-        readonly Dictionary<Vector2, float> randomColorAnimationOffsets;
+        readonly Dictionary<Vector2, float> _randomColorAnimationOffsets;
 
         public readonly Dictionary<Vector2, Color> backgroundColors;
         public readonly Dictionary<Vector2, Color> foregroundColors;
@@ -27,15 +27,18 @@ namespace PPR.Rendering {
         public int windowHeight;
         public int frameRate;
         public BitmapText text;
-        Sprite textSprite;
-        readonly Image icon;
+        Sprite _textSprite;
+        readonly Image _icon;
         public RenderWindow window;
-        readonly Shader bloomFirstPass = Shader.FromString(File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
-                                                                                                                     File.ReadAllText(Path.Combine("resources", "bloom_frag.glsl")));
-        readonly Shader bloomSecondPass = Shader.FromString(File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
-                                                                                                                     File.ReadAllText(Path.Combine("resources", "bloom_frag.glsl")));
+        readonly Shader _bloomFirstPass = Shader.FromString(
+            File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
+            File.ReadAllText(Path.Combine("resources", "bloom_frag.glsl")));
+        readonly Shader _bloomSecondPass = Shader.FromString(
+            File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
+            File.ReadAllText(Path.Combine("resources", "bloom_frag.glsl")));
+                                                      
         public RenderTexture bloomRT;
-        readonly RenderStates blendModeAddState = new RenderStates(BlendMode.Add);
+        readonly RenderStates _blendModeAddState = new RenderStates(BlendMode.Add);
 
         public Vector2f mousePositionF = new Vector2f(-1f, -1f);
         public Vector2 mousePosition = new Vector2(-1, -1);
@@ -54,16 +57,16 @@ namespace PPR.Rendering {
             windowHeight = height * fontSize.y;
             this.frameRate = frameRate;
 
-            randomColorAnimationOffsets = new Dictionary<Vector2, float>(this.width * this.height);
+            _randomColorAnimationOffsets = new Dictionary<Vector2, float>(this.width * this.height);
 
             backgroundColors = new Dictionary<Vector2, Color>(this.width * this.height);
             foregroundColors = new Dictionary<Vector2, Color>(this.width * this.height);
             displayString = new Dictionary<Vector2, char>(this.width * this.height);
 
-            icon = new Image(Path.Combine("resources", "icon.png"));
+            _icon = new Image(Path.Combine("resources", "icon.png"));
 
             window = new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "Press Press Revolution", Styles.Close);
-            window.SetIcon(icon.Size.X, icon.Size.Y, icon.Pixels);
+            window.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
 
             bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
 
@@ -79,13 +82,13 @@ namespace PPR.Rendering {
                 text = displayString
             };
 
-            textSprite = new Sprite(text.renderTexture.Texture) {
+            _textSprite = new Sprite(text.renderTexture.Texture) {
                 Origin = new Vector2f(text.imageWidth / 2f, text.imageHeight / 2f),
                 Position = new Vector2f(windowWidth / 2f, windowHeight / 2f)
             };
 
-            bloomFirstPass.SetUniform("horizontal", true);
-            bloomSecondPass.SetUniform("horizontal", false);
+            _bloomFirstPass.SetUniform("horizontal", true);
+            _bloomSecondPass.SetUniform("horizontal", false);
         }
         public void SubscribeWindowEvents() {
             leftButtonPressed = false;
@@ -113,7 +116,7 @@ namespace PPR.Rendering {
             window = fullscreen
                 ? new RenderWindow(VideoMode.FullscreenModes[0], "Press Press Revolution", Styles.Fullscreen)
                 : new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "Press Press Revolution", Styles.Close);
-            window.SetIcon(icon.Size.X, icon.Size.Y, icon.Pixels);
+            window.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
             SubscribeWindowEvents();
             UpdateWindow();
         }
@@ -129,7 +132,7 @@ namespace PPR.Rendering {
                 window.SetView(new View(new Vector2f(windowWidth / 2f, windowHeight / 2f), new Vector2f(windowWidth, windowHeight)));
             }
             bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
-            textSprite = new Sprite(text.renderTexture.Texture) {
+            _textSprite = new Sprite(text.renderTexture.Texture) {
                 Origin = new Vector2f(text.imageWidth / 2f, text.imageHeight / 2f),
                 Position = new Vector2f(windowWidth / 2f, windowHeight / 2f)
             };
@@ -168,25 +171,29 @@ namespace PPR.Rendering {
 
             if(Settings.Default.bloom) {
                 bloomRT.Clear();
-                bloomRT.Draw(textSprite);
+                bloomRT.Draw(_textSprite);
                 Sprite sprite = new Sprite(bloomRT.Texture);
 
-                bloomFirstPass.SetUniform("image", bloomRT.Texture);
-                bloomRT.Draw(sprite, new RenderStates(bloomFirstPass));
+                _bloomFirstPass.SetUniform("image", bloomRT.Texture);
+                bloomRT.Draw(sprite, new RenderStates(_bloomFirstPass));
                 bloomRT.Display();
 
-                bloomSecondPass.SetUniform("image", bloomRT.Texture);
-                window.Draw(sprite, new RenderStates(bloomSecondPass));
+                _bloomSecondPass.SetUniform("image", bloomRT.Texture);
+                window.Draw(sprite, new RenderStates(_bloomSecondPass));
             }
 
-            window.Draw(textSprite, blendModeAddState);
+            window.Draw(_textSprite, _blendModeAddState);
         }
         public enum Alignment { Left, Center, Right }
         public void DrawText(Vector2 position, string text, Color foregroundColor, Color backgroundColor, Alignment align = Alignment.Left,
             bool replacingSpaces = false) {
-            if(text.Length == 0) return; // Don't do anything, if the text is empty
-            if(text.Length == 1) {
-                if(!replacingSpaces && text[0] == ' ') SetCharacter(position, text[0], foregroundColor, backgroundColor);
+            switch(text.Length) {
+                case 0: return; // Don't do anything, if the text is empty
+                case 1: {
+                    if(!replacingSpaces && text[0] == ' ')
+                        SetCharacter(position, text[0], foregroundColor, backgroundColor);
+                    return;
+                }
             }
 
             int posX = position.x - align switch
@@ -196,30 +203,29 @@ namespace PPR.Rendering {
                 _ => 0
             };
 
-            string[] lines = text.Split('\n');
-            int height = lines.Length;
-
-            if(height == 1) DrawOneLineText(new Vector2(posX, position.y), text, foregroundColor, backgroundColor, replacingSpaces);
-
-            for(int l = 0; l < height; l++) {
-                string curLine = lines[l];
-                DrawOneLineText(new Vector2(posX, position.y + l), curLine, foregroundColor, backgroundColor, replacingSpaces);
-            }
-        }
-        void DrawOneLineText(Vector2 position, string text, Color foregroundColor, Color backgroundColor, bool replacingSpaces = true) {
-            for(int x = 0; x < text.Length; x++) {
-                char curChar = text[x];
-                if(!replacingSpaces && curChar == ' ') continue;
-                SetCharacter(new Vector2(position.x + x, position.y), curChar, foregroundColor, backgroundColor);
+            int x = 0;
+            int y = 0;
+            foreach(char curChar in text) {
+                if(curChar == '\n') {
+                    x = 0;
+                    y++;
+                    continue;
+                }
+                if(!replacingSpaces && curChar == ' ') {
+                    x++;
+                    continue;
+                }
+                SetCharacter(new Vector2(posX + x, position.y + y), curChar, foregroundColor, backgroundColor);
+                x++;
             }
         }
 
         public void SetCharacter(Vector2 position, char character) {
-            if(position.InBounds(0, 0, width - 1, height - 1)) {
-                // If a character is a space or null, remove it from a dictionary
-                if(character == ' ' || character == '\0') _ = displayString.Remove(position);
-                else displayString[position] = character;
-            }
+            if(!position.InBounds(0, 0, width - 1, height - 1)) return;
+            
+            // If a character is a space or null, remove it from a dictionary
+            if(character == ' ' || character == '\0') _ = displayString.Remove(position);
+            else displayString[position] = character;
         }
         public void SetCharacter(Vector2 position, char character, Color foregroundColor, Color backgroundColor) {
             SetCharacter(position, foregroundColor == backgroundColor || foregroundColor.A == 0 ? ' ' : character);
@@ -229,32 +235,31 @@ namespace PPR.Rendering {
             return !displayString.ContainsKey(position) ? '\0' : displayString[position];
         }
         public void SetCellColor(Vector2 position, Color foregroundColor, Color backgroundColor) {
-            if(position.InBounds(0, 0, width - 1, height - 1)) {
-                if(backgroundColor == Color.Black) _ = backgroundColors.Remove(position);
-                else if(backgroundColor.A != 0) backgroundColors[position] = backgroundColor;
+            if(!position.InBounds(0, 0, width - 1, height - 1)) return;
+            
+            if(backgroundColor == Color.Black) _ = backgroundColors.Remove(position);
+            else if(backgroundColor.A != 0) backgroundColors[position] = backgroundColor;
 
-                if(foregroundColor == Color.White) _ = foregroundColors.Remove(position);
-                else foregroundColors[position] = foregroundColor;
-            }
+            if(foregroundColor == Color.White) _ = foregroundColors.Remove(position);
+            else foregroundColors[position] = foregroundColor;
         }
         public static Color LerpColors(Color a, Color b, float t) {
             return t <= 0f ? a : t >= 1f ? b :
                 new Color((byte)MathF.Floor(a.R + (b.R - a.R) * t),
-                    (byte)MathF.Floor(a.G + (b.G - a.G) * t),
-                    (byte)MathF.Floor(a.B + (b.B - a.B) * t),
-                    (byte)MathF.Floor(a.A + (b.A - a.A) * t));
+                          (byte)MathF.Floor(a.G + (b.G - a.G) * t),
+                          (byte)MathF.Floor(a.B + (b.B - a.B) * t),
+                          (byte)MathF.Floor(a.A + (b.A - a.A) * t));
         }
         public static Color AnimateColor(float time, Color start, Color end, float rate) {
             float t = Math.Clamp(time * rate, 0f, 1f);
             return LerpColors(start, end, t);
         }
         public void UpdateRandomColorAnimationOffset(Vector2 position, float min, float max) {
-            if(position.InBounds(0, 0, width - 1, height - 1)) {
-                randomColorAnimationOffsets[position] = new Random().NextFloat(min, max);
-            }
+            if(position.InBounds(0, 0, width - 1, height - 1))
+                _randomColorAnimationOffsets[position] = new Random().NextFloat(min, max);
         }
         public float GetRandomColorAnimationOffset(Vector2 position) {
-            return !randomColorAnimationOffsets.ContainsKey(position) ? 0f : randomColorAnimationOffsets[position];
+            return !_randomColorAnimationOffsets.ContainsKey(position) ? 0f : _randomColorAnimationOffsets[position];
         }
         public Color GetCellBackgroundColor(Vector2 position) {
             return !backgroundColors.ContainsKey(position) ? Color.Black : backgroundColors[position];

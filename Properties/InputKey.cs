@@ -12,10 +12,11 @@ namespace PPR.Properties {
         public string asString {
             get {
                 string fullString = "";
-                if(mainModifier != null) fullString += mainModifier + "+";
-                if(mainKey != null) fullString += mainKey.ToString();
-                if(secondaryModifier != null) fullString += "," + secondaryModifier + "+";
-                if(secondaryKey != null) fullString += (secondaryModifier == null ? "," : "") + secondaryKey;
+                if(mainModifier != null) fullString = $"{mainModifier.ToString()}+";
+                if(mainKey != null) fullString = $"{fullString}{mainKey.ToString()}";
+                if(secondaryModifier != null) fullString = $"{fullString},{secondaryModifier.ToString()}+";
+                if(secondaryKey != null)
+                    fullString = $"{fullString}{(secondaryModifier == null ? "," : "")}{secondaryKey.ToString()}";
                 return fullString;
             }
             set {
@@ -46,7 +47,6 @@ namespace PPR.Properties {
         public Keyboard.Key? mainKey { get; private set; }
         public Keyboard.Key? secondaryModifier { get; private set; }
         public Keyboard.Key? secondaryKey { get; private set; }
-        public InputKey() { }
         public InputKey(string fromString) {
             asString = fromString;
         }
@@ -66,16 +66,17 @@ namespace PPR.Properties {
                 return !anyModifier ||
                     (modifierIsAlt && key.Alt) || (modifierIsCtrl && key.Control) || (modifierIsShift && key.Shift) || (modifierIsSys && key.System);
             }
-            if(secondaryKey == key.Code) {
+
+            if(secondaryKey != key.Code) return false;
+            {
                 bool modifierIsAlt = secondaryModifier == Keyboard.Key.LAlt || secondaryModifier == Keyboard.Key.RAlt;
                 bool modifierIsCtrl = secondaryModifier == Keyboard.Key.LControl || secondaryModifier == Keyboard.Key.RControl;
                 bool modifierIsShift = secondaryModifier == Keyboard.Key.LShift || secondaryModifier == Keyboard.Key.RShift;
                 bool modifierIsSys = secondaryModifier == Keyboard.Key.LSystem || secondaryModifier == Keyboard.Key.RSystem;
                 bool anyModifier = modifierIsAlt || modifierIsCtrl || modifierIsShift || modifierIsSys;
                 return !anyModifier ||
-                    (modifierIsAlt && key.Alt) || (modifierIsCtrl && key.Control) || (modifierIsShift && key.Shift) || (modifierIsSys && key.System);
+                       (modifierIsAlt && key.Alt) || (modifierIsCtrl && key.Control) || (modifierIsShift && key.Shift) || (modifierIsSys && key.System);
             }
-            return false;
         }
     }
     public class InputKeyConverter : TypeConverter {

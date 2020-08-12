@@ -45,7 +45,7 @@ namespace PPR.Main {
                         string path = Path.Combine("scores", $"{Map.currentLevel.metadata.name}.txt");
                         string text = File.Exists(path) ? File.ReadAllText(path) : "";
                         text =
-                            $"{Map.TextFromScore(new LevelScore(Vector2.zero, score, accuracy, maxCombo, scores))}\n{text}";
+                            $"{Map.TextFromScore(new LevelScore(new Vector2(), score, accuracy, maxCombo, scores))}\n{text}";
                         _ = Directory.CreateDirectory("scores");
                         File.WriteAllText(path, text);
                         break;
@@ -61,20 +61,20 @@ namespace PPR.Main {
                 _currentMenu = value;
                 switch(value) {
                     case Menu.Main:
-                        RPC.client.SetPresence(new RichPresence() {
+                        RPC.client.SetPresence(new RichPresence {
                             Details = "In main menu",
                             Timestamps = Timestamps.Now
                         });
                         break;
                     case Menu.LevelSelect:
-                        RPC.client.SetPresence(new RichPresence() {
+                        RPC.client.SetPresence(new RichPresence {
                             Details = $"Choosing what to {(editing ? "edit" : "play")}",
                             Timestamps = Timestamps.Now
                         });
                         break;
                     case Menu.Game:
                         if(Map.currentLevel != null)
-                            RPC.client.SetPresence(new RichPresence() {
+                            RPC.client.SetPresence(new RichPresence {
                                 Details = editing ? "Editing" :
                                     auto ? "Watching" : "Playing",
                                 State = Map.currentLevel.metadata.name,
@@ -83,7 +83,7 @@ namespace PPR.Main {
                         break;
                     case Menu.LastStats:
                         if(Map.currentLevel != null)
-                            RPC.client.SetPresence(new RichPresence() {
+                            RPC.client.SetPresence(new RichPresence {
                                 Details = editing ? "Paused Editing" :
                                     statsState == StatsState.Pause ? "Paused" :
                                     statsState == StatsState.Pass ? "Passed" : "Failed",
@@ -635,17 +635,21 @@ namespace PPR.Main {
                             if(scroll.Delta < 0 && UI.levelSelectLevels.Last().position.y <= 49) return;
                             foreach(Button button in UI.levelSelectLevels) button.position.y += (int)scroll.Delta;
                         }
-                        else if(mousePos.x >= 1 && mousePos.x <= 26) {
+                        else if(mousePos.x >= 1 && mousePos.x <= 26 &&
+                                UI.levelSelectScores[UI.currentLevelSelectIndex] != null &&
+                                UI.levelSelectScores[UI.currentLevelSelectIndex].Count > 0) {
                             if(scroll.Delta > 0 && UI.levelSelectScores[UI.currentLevelSelectIndex].First().scorePosition.y >= 12) return;
                             if(scroll.Delta < 0 && UI.levelSelectScores[UI.currentLevelSelectIndex].Last().scoresPosition.y <= 49) return;
-                            foreach(LevelScore score in UI.levelSelectScores[UI.currentLevelSelectIndex]) {
+                            for(int i = 0; i < UI.levelSelectScores[UI.currentLevelSelectIndex].Count; i++) {
                                 int increment = (int)scroll.Delta;
+                                LevelScore score = UI.levelSelectScores[UI.currentLevelSelectIndex][i];
                                 score.scorePosition.y += increment;
                                 score.accComboPosition.y += increment;
                                 score.accComboDividerPosition.y += increment;
                                 score.maxComboPosition.y += increment;
                                 score.scoresPosition.y += increment;
                                 score.linePosition.y += increment;
+                                UI.levelSelectScores[UI.currentLevelSelectIndex][i] = score;
                             }
                         }
                     }

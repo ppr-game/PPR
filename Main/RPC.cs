@@ -11,7 +11,7 @@ namespace PPR.Main {
             client = new DiscordRpcClient("699266677698723941");
             client.OnError += (sender, e) => logger.Error(e.Message);
             _ = client.Initialize();
-            client.SetPresence(new RichPresence() {
+            client.SetPresence(new RichPresence {
                 Details = "In main menu",
                 Timestamps = Timestamps.Now
             });

@@ -1,26 +1,10 @@
 ﻿using System;
 
 namespace PPR.Main {
-    // ReSharper disable UnusedMember.Global
-    public class Vector2 {
-        public static Vector2 zero => new Vector2();
-        public static Vector2 one => new Vector2(1, 1);
-        public static Vector2 left => new Vector2(-1, 0);
-        public static Vector2 right => new Vector2(1, 0);
-        public static Vector2 up => new Vector2(0, -1);
-        public static Vector2 down => new Vector2(0, 1);
-
+    public struct Vector2 {
         public int x;
         public int y;
 
-        // This is wrong but it's not used anyway so nobody cares
-        // ReSharper disable once ConvertConditionalTernaryExpressionToSwitchExpression
-        public Vector2 normalized => new Vector2(x == 0 ? 0 : x == 1 ? 1 : -1, y == 0 ? 0 : y == 1 ? 1 : -1);
-        // ReSharper disable once MemberCanBePrivate.Global
-        public Vector2() {
-            x = 0;
-            y = 0;
-        }
         public Vector2(int x, int y) {
             this.x = x;
             this.y = y;
@@ -29,23 +13,12 @@ namespace PPR.Main {
             x = vector.x;
             y = vector.y;
         }
-
-        // YEP this is as wrong as Vector2.normalized
-        public void Normalize() {
-            x = x == 0 ? 0 : x == 1 ? 1 : -1;
-            y = y == 0 ? 0 : y == 1 ? 1 : -1;
-        }
-        public Vector2 Abs() {
-            return new Vector2(Math.Abs(x), Math.Abs(y));
-        }
+        
         public bool InBounds(int minX, int minY, int maxX, int maxY) {
             return x >= minX && x <= maxX && y >= minY && y <= maxY;
         }
-        public bool InBounds(Vector2 min, Vector2 max) {
-            return InBounds(min.x, min.y, max.x, max.y);
-        }
         public override string ToString() {
-            return "(" + x + ", " + y + ")";
+            return $"({x.ToString()}, {y.ToString()})";
         }
 
         public static Vector2 operator +(Vector2 left, Vector2 right) {
@@ -61,11 +34,9 @@ namespace PPR.Main {
             return new Vector2(left.x / right, left.y / right);
         }
         public static bool operator ==(Vector2 left, Vector2 right) {
-            if(left is null || right is null) return left is null && right is null;
             return left.x == right.x && left.y == right.y;
         }
         public static bool operator !=(Vector2 left, Vector2 right) {
-            if(left is null || right is null) return !(left is null && right is null);
             return left.x != right.x || left.y != right.y;
         }
         public override bool Equals(object obj) {

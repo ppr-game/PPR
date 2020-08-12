@@ -75,11 +75,11 @@ namespace PPR.GUI {
 
         static Button _skipButton;
 
-        static readonly Vector2 zero = Vector2.zero;
+        static readonly Vector2 zero = new Vector2();
         public static void RecreateButtons() {
-            Renderer.Alignment center = Renderer.Alignment.Center;
-            Renderer.Alignment right = Renderer.Alignment.Right;
-            _mainMenuButtons = new List<Button>() {
+            const Renderer.Alignment center = Renderer.Alignment.Center;
+            const Renderer.Alignment right = Renderer.Alignment.Right;
+            _mainMenuButtons = new List<Button> {
                 new Button(new Vector2(40, 25), "PLAY", 4, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Enter"), center),
                 new Button(new Vector2(40, 27), "EDIT", 4, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow,
                     new InputKey("LShift,RShift"), center),
@@ -88,15 +88,15 @@ namespace PPR.GUI {
             };
             _pauseMusicButton = new Button(new Vector2(1, 58), "►", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
                 new InputKey("Space"));
-            _switchMusicButton = new Button(new Vector2(3, 58), ">", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
+            _switchMusicButton = new Button(new Vector2(3, 58), "»", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
                 new InputKey("Right"));
-            _levelSelectButtons = new List<Button>() {
+            _levelSelectButtons = new List<Button> {
                 new Button(new Vector2(25, 10), "AUTO", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab")),
                 new Button(new Vector2(25, 10), "NEW", 3, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
                     new InputKey("LControl+N,RControl+N")),
                 new Button(new Vector2(39, 52), "BACK", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Escape"), center),
             };
-            _lastStatsButtons = new List<Button>() {
+            _lastStatsButtons = new List<Button> {
                 new Button(new Vector2(2, 53), "CONTINUE", 8, ColorScheme.black, ColorScheme.cyan, ColorScheme.lightDarkCyan),
                 new Button(new Vector2(2, 55), "RESTART", 7, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow,
                     new InputKey("LControl+R,RControl+R")),
@@ -105,16 +105,18 @@ namespace PPR.GUI {
                     new InputKey("LControl+S,RControl+S")),
                 new Button(new Vector2(2, 57), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Backspace")),
             };
-            _levelEditorButtons = new List<Button>() {
+            _levelEditorButtons = new List<Button> {
                 new Button(new Vector2(78, 58), "►", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Enter")),
             };
             _musicSpeedSlider = new Slider(new Vector2(78, 58), 25, 100, 16, 100, "", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, true,
                 Renderer.Alignment.Right, Slider.TextAlignment.Right);
             _skipButton = new Button(new Vector2(78, 58), "SKIP", 4, ColorScheme.black, ColorScheme.orange, ColorScheme.lightDarkOrange,
                 new InputKey("Space"), right);
+            
+            
 
-            musicVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, 15, "MUSIC VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
-            soundsVolumeSlider = new Slider(Vector2.zero, 0, 100, 21, 10, "SOUNDS VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+            musicVolumeSlider = new Slider(new Vector2(), 0, 100, 21, 15, "MUSIC VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+            soundsVolumeSlider = new Slider(new Vector2(), 0, 100, 21, 10, "SOUNDS VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
 
             bloomSwitch = new Button(new Vector2(4, 24), "BLOOM", 5, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
             fullscreenSwitch = new Button(new Vector2(4, 26), "FULLSCREEN", 10, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
@@ -133,18 +135,21 @@ namespace PPR.GUI {
         static void DrawNowPlaying(bool controls = false) {
             string text = $"NOW PLAYING : {Game.currentMusicName}";
             Core.renderer.DrawText(controls ? nowPlayingCtrlPos : nowPlayingPos, text, ColorScheme.white, Color.Transparent);
-            if(controls) {
-                _pauseMusicButton.text = Game.music.Status switch
-                {
-                    SoundStatus.Playing => "║",
-                    _ => "►"
-                };
-                if(_pauseMusicButton.Draw()) {
-                    if(_pauseMusicButton.text == "►") Game.music.Play();
-                    else if(_pauseMusicButton.text == "║") Game.music.Pause();
+            if(!controls) return;
+            _pauseMusicButton.text = Game.music.Status switch
+            {
+                SoundStatus.Playing => "║",
+                _ => "►"
+            };
+            if(_pauseMusicButton.Draw())
+                switch(_pauseMusicButton.text) {
+                    case "►": Game.music.Play();
+                        break;
+                    case "║": Game.music.Pause();
+                        break;
                 }
-                if(_switchMusicButton.Draw()) Game.SwitchMusic();
-            }
+
+            if(_switchMusicButton.Draw()) Game.SwitchMusic();
         }
         static void DrawMainMenu() {
             Renderer.instance.DrawText(zero, mainMenuText, ColorScheme.white, ColorScheme.black);
@@ -286,7 +291,7 @@ namespace PPR.GUI {
                                 break;
                         }
                 }
-                Renderer.instance.DrawText(bpmPos, "BPM: " + Game.currentBPM + "  " + Map.currentLevel.metadata.linesFrequency, ColorScheme.blue,
+                Renderer.instance.DrawText(bpmPos, $"BPM: {Game.currentBPM.ToString()}", ColorScheme.blue,
                     Color.Transparent);
                 TimeSpan curTime = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
                 Renderer.instance.DrawText(timePos, "TIME: " + (curTime < TimeSpan.Zero ? "'-'" : "") + curTime.ToString((curTime.Hours != 0 ? "h':'mm" : "m") + "':'ss"),
@@ -321,21 +326,23 @@ namespace PPR.GUI {
                     Game.music.PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.skipTime);
             }
         }
+        static Vector2 _healthTempVector = new Vector2(0, 1);
         static void DrawHealth() {
             for(int x = 0; x < 80; x++) {
-                Vector2 pos = new Vector2(x, 1);
+                _healthTempVector.x = x;
                 float rate = 3.5f + healthAnimRateOffsets[x];
-                Renderer.instance.SetCellColor(pos, Color.Transparent,
-                                                                                                           Renderer.AnimateColor(healthAnimTimes[x], prevHealthColors[x], healthColors[x], rate));
+                Renderer.instance.SetCellColor(_healthTempVector, Color.Transparent,
+                    Renderer.AnimateColor(healthAnimTimes[x], prevHealthColors[x], healthColors[x], rate));
                 healthAnimTimes[x] += Core.deltaTime;
             }
         }
+        static Vector2 _progressTempVector;
         static void DrawProgress() {
             for(int x = 0; x < 80; x++) {
-                Vector2 pos = new Vector2(x, 0);
+                _progressTempVector.x = x;
                 float rate = 3.5f + progressAnimRateOffsets[x];
-                Renderer.instance.SetCellColor(pos, Color.Transparent,
-                                                                                                           Renderer.AnimateColor(progressAnimTimes[x], prevProgressColors[x], progressColors[x], rate));
+                Renderer.instance.SetCellColor(_progressTempVector, Color.Transparent,
+                    Renderer.AnimateColor(progressAnimTimes[x], prevProgressColors[x], progressColors[x], rate));
                 progressAnimTimes[x] += Core.deltaTime;
             }
         }

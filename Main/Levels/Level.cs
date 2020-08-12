@@ -12,30 +12,30 @@ using SFML.Window;
 
 namespace PPR.Main.Levels {
     public struct LevelScore {
-        public readonly Vector2 scorePosition;
+        public Vector2 scorePosition;
         public readonly int score;
         public readonly string scoreStr;
-        public readonly Vector2 accComboPosition;
+        public Vector2 accComboPosition;
         public readonly int accuracy;
         public readonly int maxCombo;
         public readonly string accuracyStr;
         public Color accuracyColor;
-        public readonly Vector2 accComboDividerPosition;
-        public readonly Vector2 maxComboPosition;
+        public Vector2 accComboDividerPosition;
+        public Vector2 maxComboPosition;
         public readonly string maxComboStr;
         public Color maxComboColor;
-        public readonly Vector2 scoresPosition;
+        public Vector2 scoresPosition;
         public readonly int[] scores;
-        public readonly Vector2 linePosition;
+        public Vector2 linePosition;
 
         public LevelScore(Vector2 position, int score, int accuracy, int maxCombo, int[] scores) {
             scorePosition = position;
             this.score = score;
-            scoreStr = "SCORE: " + score;
+            scoreStr = $"SCORE: {score.ToString()}";
             accComboPosition = new Vector2(position.x, position.y + 1);
             this.accuracy = accuracy;
             this.maxCombo = maxCombo;
-            accuracyStr = accuracy + "%";
+            accuracyStr = $"{accuracy.ToString()}%";
             accuracyColor = Game.GetAccuracyColor(accuracy);
             accComboDividerPosition = accComboPosition + new Vector2(accuracyStr.Length, 0);
             maxComboPosition = accComboDividerPosition + new Vector2(1, 0);
@@ -208,7 +208,7 @@ namespace PPR.Main.Levels {
         public static int perfectRange;
         public static int hitRange;
         public static int missRange;
-        readonly Vector2 _position;
+        Vector2 _position;
         readonly Vector2 _startPosition;
         public readonly char character;
         readonly Keyboard.Key _key;
