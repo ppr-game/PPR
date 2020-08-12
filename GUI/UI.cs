@@ -113,15 +113,13 @@ namespace PPR.GUI {
                 new Button(hpDrainPos + new Vector2(2, 0), ">", "editor.hp.drain.up", 1, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed),
                 new Button(hpRestoragePos, "<", "editor.hp.restorage.down", 1, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed),
                 new Button(hpRestoragePos + new Vector2(2, 0), ">", "editor.hp.restorage.up", 1, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed),
-                new Button(musicOffsetPos, "<", "editor.music.offset.down", 1, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue),
-                new Button(musicOffsetPos + new Vector2(2, 0), ">", "editor.music.offset.up", 1, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue)
+                new Button(musicOffsetPos, "<", "editor.music.offset.down", 1, ColorScheme.black, ColorScheme.gray, ColorScheme.lightDarkGray),
+                new Button(musicOffsetPos + new Vector2(2, 0), ">", "editor.music.offset.up", 1, ColorScheme.black, ColorScheme.gray, ColorScheme.lightDarkGray)
             };
             _musicSpeedSlider = new Slider(new Vector2(78, 58), 25, 100, 16, 100, "", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, true,
                 Renderer.Alignment.Right, Slider.TextAlignment.Right);
             _skipButton = new Button(new Vector2(78, 58), "SKIP", "game.skip", 4, ColorScheme.black, ColorScheme.orange, ColorScheme.lightDarkOrange,
                 new InputKey("Space"), right);
-            
-            
 
             musicVolumeSlider = new Slider(new Vector2(), 0, 100, 21, 15, "MUSIC VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
             soundsVolumeSlider = new Slider(new Vector2(), 0, 100, 21, 10, "SOUNDS VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
@@ -283,11 +281,12 @@ namespace PPR.GUI {
         static void DrawGame() {
             if(Game.editing) {
                 foreach(Button button in _levelEditorButtons) {
-                    button.text = Game.music.Status switch
-                    {
-                        SoundStatus.Playing => "║",
-                        _ => "►"
-                    };
+                    if(button.id == "editor.playPause") {
+                        button.text = Game.music.Status switch {
+                            SoundStatus.Playing => "║",
+                            _ => "►"
+                        };
+                    }
                     if(button.Draw()) {
                         switch(button.text) {
                             case "►":
@@ -324,9 +323,9 @@ namespace PPR.GUI {
                     Color.Transparent);
                 TimeSpan curTime = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
                 Renderer.instance.DrawText(timePos,
-                    $"TIME: {(curTime < TimeSpan.Zero ? "'-'" : "")}{curTime.ToString($"{(curTime.Hours != 0 ? "h':'mm" : "m")}':'ss")}",
+                    $"    TIME: {(curTime < TimeSpan.Zero ? "'-'" : "")}{curTime.ToString($"{(curTime.Hours != 0 ? "h':'mm" : "m")}':'ss")}",
                                             ColorScheme.blue, Color.Transparent);
-                Renderer.instance.DrawText(offsetPos, $"OFFSET: {Game.roundedOffset.ToString()} ({Game.roundedSteps.ToString()})", ColorScheme.blue,
+                Renderer.instance.DrawText(offsetPos, $"    OFFSET: {Game.roundedOffset.ToString()} ({Game.roundedSteps.ToString()})", ColorScheme.blue,
                     Color.Transparent);
 
                 Renderer.instance.DrawText(hpDrainPos, $"    HP DRAIN: {Map.currentLevel.metadata.hpDrain.ToString()}", ColorScheme.red, Color.Transparent);
