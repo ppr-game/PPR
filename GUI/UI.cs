@@ -80,37 +80,45 @@ namespace PPR.GUI {
             const Renderer.Alignment center = Renderer.Alignment.Center;
             const Renderer.Alignment right = Renderer.Alignment.Right;
             _mainMenuButtons = new List<Button> {
-                new Button(new Vector2(40, 25), "PLAY", 4, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Enter"), center),
-                new Button(new Vector2(40, 27), "EDIT", 4, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow,
+                new Button(new Vector2(40, 25), "PLAY", "mainMenu.play", 4, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Enter"), center),
+                new Button(new Vector2(40, 27), "EDIT", "mainMenu.edit", 4, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow,
                     new InputKey("LShift,RShift"), center),
-                new Button(new Vector2(40, 29), "SETTINGS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab"), center),
-                new Button(new Vector2(40, 31), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, null, center),
+                new Button(new Vector2(40, 29), "SETTINGS", "mainMenu.settings", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab"), center),
+                new Button(new Vector2(40, 31), "EXIT", "mainMenu.exit", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, null, center),
             };
-            _pauseMusicButton = new Button(new Vector2(1, 58), "►", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
+            _pauseMusicButton = new Button(new Vector2(1, 58), "►", "mainMenu.music.pause", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
                 new InputKey("Space"));
-            _switchMusicButton = new Button(new Vector2(3, 58), "»", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
+            _switchMusicButton = new Button(new Vector2(3, 58), "»", "mainMenu.music.switch", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
                 new InputKey("Right"));
             _levelSelectButtons = new List<Button> {
-                new Button(new Vector2(25, 10), "AUTO", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab")),
-                new Button(new Vector2(25, 10), "NEW", 3, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
+                new Button(new Vector2(25, 10), "AUTO", "levelSelect.auto", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab")),
+                new Button(new Vector2(25, 10), "NEW", "levelSelect.new", 3, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
                     new InputKey("LControl+N,RControl+N")),
-                new Button(new Vector2(39, 52), "BACK", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Escape"), center),
+                new Button(new Vector2(39, 52), "BACK", "levelSelect.back", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Escape"), center),
             };
             _lastStatsButtons = new List<Button> {
-                new Button(new Vector2(2, 53), "CONTINUE", 8, ColorScheme.black, ColorScheme.cyan, ColorScheme.lightDarkCyan),
-                new Button(new Vector2(2, 55), "RESTART", 7, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow,
+                new Button(new Vector2(2, 53), "CONTINUE", "lastStats.continue", 8, ColorScheme.black, ColorScheme.cyan, ColorScheme.lightDarkCyan),
+                new Button(new Vector2(2, 55), "RESTART", "lastStats.restart", 7, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow,
                     new InputKey("LControl+R,RControl+R")),
-                new Button(new Vector2(10, 55), "AUTO", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab")),
-                new Button(new Vector2(2, 55), "SAVE", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue,
+                new Button(new Vector2(10, 55), "AUTO", "lastStats.auto", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab")),
+                new Button(new Vector2(2, 55), "SAVE", "lastStats.save", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue,
                     new InputKey("LControl+S,RControl+S")),
-                new Button(new Vector2(2, 57), "EXIT", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Backspace")),
+                new Button(new Vector2(2, 57), "EXIT", "lastStats.exit", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Backspace")),
             };
             _levelEditorButtons = new List<Button> {
-                new Button(new Vector2(78, 58), "►", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Enter")),
+                new Button(new Vector2(78, 58), "►", "editor.playPause", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Enter")),
+                new Button(bpmPos, "<", "editor.speed.down", 1, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue),
+                new Button(bpmPos + new Vector2(2, 0), ">", "editor.speed.up", 1, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue),
+                new Button(hpDrainPos, "<", "editor.hp.drain.down", 1, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed),
+                new Button(hpDrainPos + new Vector2(2, 0), ">", "editor.hp.drain.up", 1, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed),
+                new Button(hpRestoragePos, "<", "editor.hp.restorage.down", 1, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed),
+                new Button(hpRestoragePos + new Vector2(2, 0), ">", "editor.hp.restorage.up", 1, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed),
+                new Button(musicOffsetPos, "<", "editor.music.offset.down", 1, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue),
+                new Button(musicOffsetPos + new Vector2(2, 0), ">", "editor.music.offset.up", 1, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue)
             };
             _musicSpeedSlider = new Slider(new Vector2(78, 58), 25, 100, 16, 100, "", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, true,
                 Renderer.Alignment.Right, Slider.TextAlignment.Right);
-            _skipButton = new Button(new Vector2(78, 58), "SKIP", 4, ColorScheme.black, ColorScheme.orange, ColorScheme.lightDarkOrange,
+            _skipButton = new Button(new Vector2(78, 58), "SKIP", "game.skip", 4, ColorScheme.black, ColorScheme.orange, ColorScheme.lightDarkOrange,
                 new InputKey("Space"), right);
             
             
@@ -118,13 +126,13 @@ namespace PPR.GUI {
             musicVolumeSlider = new Slider(new Vector2(), 0, 100, 21, 15, "MUSIC VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
             soundsVolumeSlider = new Slider(new Vector2(), 0, 100, 21, 10, "SOUNDS VOLUME", ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
 
-            bloomSwitch = new Button(new Vector2(4, 24), "BLOOM", 5, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
-            fullscreenSwitch = new Button(new Vector2(4, 26), "FULLSCREEN", 10, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
-            uppercaseSwitch = new Button(new Vector2(4, 28), "UPPERCASE NOTES", 15, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+            bloomSwitch = new Button(new Vector2(4, 24), "BLOOM", "settings.bloom", 5, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+            fullscreenSwitch = new Button(new Vector2(4, 26), "FULLSCREEN", "settings.fullscreen", 10, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+            uppercaseSwitch = new Button(new Vector2(4, 28), "UPPERCASE NOTES", "settings.uppercaseNotes", 15, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
 
-            showFpsSwitch = new Button(new Vector2(4, 37), "SHOW FPS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+            showFpsSwitch = new Button(new Vector2(4, 37), "SHOW FPS", "settings.showFPS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
 
-            _keybindsButton = new Button(new Vector2(2, 57), "KEYBINDS", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
+            _keybindsButton = new Button(new Vector2(2, 57), "KEYBINDS", "settings.keybinds", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue);
 
             UpdateAllFolderSwitchButtons();
         }
@@ -280,9 +288,10 @@ namespace PPR.GUI {
                         SoundStatus.Playing => "║",
                         _ => "►"
                     };
-                    if(button.Draw())
+                    if(button.Draw()) {
                         switch(button.text) {
-                            case "►": Game.music.Play();
+                            case "►":
+                                Game.music.Play();
                                 break;
                             case "║":
                                 Game.music.Pause();
@@ -290,20 +299,42 @@ namespace PPR.GUI {
                                 Game.UpdateTime();
                                 break;
                         }
+
+                        switch(button.id) {
+                            case "editor.speed.up": Game.ChangeSpeed(10);
+                                break;
+                            case "editor.speed.down": Game.ChangeSpeed(-10);
+                                break;
+                            case "editor.hp.drain.up": Map.currentLevel.metadata.hpDrain++;
+                                break;
+                            case "editor.hp.drain.down": Map.currentLevel.metadata.hpDrain--;
+                                break;
+                            case "editor.hp.restorage.up": Map.currentLevel.metadata.hpRestorage++;
+                                break;
+                            case "editor.hp.restorage.down": Map.currentLevel.metadata.hpRestorage--;
+                                break;
+                            case "editor.music.offset.up": Map.currentLevel.metadata.initialOffsetMs++;
+                                break;
+                            case "editor.music.offset.down": Map.currentLevel.metadata.initialOffsetMs--;
+                                break;
+                        }
+                    }
                 }
-                Renderer.instance.DrawText(bpmPos, $"BPM: {Game.currentBPM.ToString()}", ColorScheme.blue,
+                Renderer.instance.DrawText(bpmPos, $"    BPM: {Game.currentBPM.ToString()}", ColorScheme.blue,
                     Color.Transparent);
                 TimeSpan curTime = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
-                Renderer.instance.DrawText(timePos, "TIME: " + (curTime < TimeSpan.Zero ? "'-'" : "") + curTime.ToString((curTime.Hours != 0 ? "h':'mm" : "m") + "':'ss"),
+                Renderer.instance.DrawText(timePos,
+                    $"TIME: {(curTime < TimeSpan.Zero ? "'-'" : "")}{curTime.ToString($"{(curTime.Hours != 0 ? "h':'mm" : "m")}':'ss")}",
                                             ColorScheme.blue, Color.Transparent);
-                Renderer.instance.DrawText(offsetPos, "OFFSET: " + Game.roundedOffset + " (" + Game.roundedSteps + ")", ColorScheme.blue,
+                Renderer.instance.DrawText(offsetPos, $"OFFSET: {Game.roundedOffset.ToString()} ({Game.roundedSteps.ToString()})", ColorScheme.blue,
                     Color.Transparent);
 
-                Renderer.instance.DrawText(hpDrainPos, "HP DRAIN: " + Map.currentLevel.metadata.hpDrain, ColorScheme.red, Color.Transparent);
-                Renderer.instance.DrawText(hpRestoragePos, "HP RESTORAGE: " + Map.currentLevel.metadata.hpRestorage, ColorScheme.red,
+                Renderer.instance.DrawText(hpDrainPos, $"    HP DRAIN: {Map.currentLevel.metadata.hpDrain.ToString()}", ColorScheme.red, Color.Transparent);
+                Renderer.instance.DrawText(hpRestoragePos, $"    HP RESTORAGE: {Map.currentLevel.metadata.hpRestorage.ToString()}", ColorScheme.red,
                     Color.Transparent);
 
-                Renderer.instance.DrawText(musicOffsetPos, "MUSIC OFFSET: " + Map.currentLevel.metadata.initialOffsetMs + " MS", ColorScheme.gray,
+                Renderer.instance.DrawText(musicOffsetPos,
+                    $"    MUSIC OFFSET: {Map.currentLevel.metadata.initialOffsetMs.ToString()} MS", ColorScheme.gray,
                     Color.Transparent);
 
                 Game.music.Pitch = _musicSpeedSlider.Draw() / 100f;
@@ -528,7 +559,7 @@ namespace PPR.GUI {
                 new Vector2(baseX + xOffset + (names.Length > 1 ? 1 : 0) + prevDir.Length, baseY);
             string text = names[^1];
             buttonsList.Insert(0,
-                new Button(position, text, text.Length, ColorScheme.black, ColorScheme.blue,
+                new Button(position, text, "", text.Length, ColorScheme.black, ColorScheme.blue,
                     ColorScheme.lightDarkBlue));
 
             string nextPath = Path.GetDirectoryName(path);

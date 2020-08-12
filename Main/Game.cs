@@ -512,7 +512,7 @@ namespace PPR.Main {
             };
         }
 
-        static void ChangeSpeed(int delta) {
+        public static void ChangeSpeed(int delta) {
             // Create a new speed if we don't have a speed at the current position
             List<int> flooredSpeedsSteps = Map.currentLevel.speeds.Select(speed => speed.step).ToList();
             if(!flooredSpeedsSteps.Contains((int)steps)) {
@@ -751,7 +751,7 @@ namespace PPR.Main {
             for(int i = 0; i < directories.Length; i++) {
                 string name = Path.GetFileName(directories[i]);
                 if(name == "_template") continue;
-                buttons.Add(new Button(new Vector2(25, 12 + i), name, 30, ColorScheme.black, ColorScheme.white, ColorScheme.lightDarkGray));
+                buttons.Add(new Button(new Vector2(25, 12 + i), name, $"levelSelect.level.at{i}", 30, ColorScheme.black, ColorScheme.white, ColorScheme.lightDarkGray));
                 metadatas.Add(new LevelMetadata(File.ReadAllLines(Path.Combine(directories[i], "level.txt")), name));
                 logger.Info("Loaded metadata for level {0}", name);
             }

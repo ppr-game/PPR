@@ -15,8 +15,6 @@ namespace PPR.Rendering {
     public class Renderer {
         public static Renderer instance;
 
-        readonly Dictionary<Vector2, float> _randomColorAnimationOffsets;
-
         public readonly Dictionary<Vector2, Color> backgroundColors;
         public readonly Dictionary<Vector2, Color> foregroundColors;
         public readonly Dictionary<Vector2, char> displayString;
@@ -36,8 +34,8 @@ namespace PPR.Rendering {
         readonly Shader _bloomSecondPass = Shader.FromString(
             File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
             File.ReadAllText(Path.Combine("resources", "bloom_frag.glsl")));
-                                                      
-        public RenderTexture bloomRT;
+
+        RenderTexture _bloomRT;
         readonly RenderStates _blendModeAddState = new RenderStates(BlendMode.Add);
 
         public Vector2f mousePositionF = new Vector2f(-1f, -1f);
@@ -57,8 +55,6 @@ namespace PPR.Rendering {
             windowHeight = height * fontSize.y;
             this.frameRate = frameRate;
 
-            _randomColorAnimationOffsets = new Dictionary<Vector2, float>(this.width * this.height);
-
             backgroundColors = new Dictionary<Vector2, Color>(this.width * this.height);
             foregroundColors = new Dictionary<Vector2, Color>(this.width * this.height);
             displayString = new Dictionary<Vector2, char>(this.width * this.height);
@@ -68,7 +64,7 @@ namespace PPR.Rendering {
             window = new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "Press Press Revolution", Styles.Close);
             window.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
 
-            bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
+            _bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
 
             SubscribeWindowEvents();
 
@@ -90,7 +86,8 @@ namespace PPR.Rendering {
             _bloomFirstPass.SetUniform("horizontal", true);
             _bloomSecondPass.SetUniform("horizontal", false);
         }
-        public void SubscribeWindowEvents() {
+
+        void SubscribeWindowEvents() {
             leftButtonPressed = false;
 
             window.KeyPressed += Game.KeyPressed;
@@ -131,7 +128,7 @@ namespace PPR.Rendering {
                 window.Size = new Vector2u((uint)windowWidth, (uint)windowHeight);
                 window.SetView(new View(new Vector2f(windowWidth / 2f, windowHeight / 2f), new Vector2f(windowWidth, windowHeight)));
             }
-            bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
+            _bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
             _textSprite = new Sprite(text.renderTexture.Texture) {
                 Origin = new Vector2f(text.imageWidth / 2f, text.imageHeight / 2f),
                 Position = new Vector2f(windowWidth / 2f, windowHeight / 2f)
@@ -141,7 +138,7 @@ namespace PPR.Rendering {
             else if(frameRate != 0) window.SetFramerateLimit((uint)frameRate);
         }
 
-        public void ClearText() {
+        void ClearText() {
             backgroundColors.Clear();
             foregroundColors.Clear();
             displayString.Clear();
@@ -170,15 +167,15 @@ namespace PPR.Rendering {
             window.Clear();
 
             if(Settings.Default.bloom) {
-                bloomRT.Clear();
-                bloomRT.Draw(_textSprite);
-                Sprite sprite = new Sprite(bloomRT.Texture);
+                _bloomRT.Clear();
+                _bloomRT.Draw(_textSprite);
+                Sprite sprite = new Sprite(_bloomRT.Texture);
 
-                _bloomFirstPass.SetUniform("image", bloomRT.Texture);
-                bloomRT.Draw(sprite, new RenderStates(_bloomFirstPass));
-                bloomRT.Display();
+                _bloomFirstPass.SetUniform("image", _bloomRT.Texture);
+                _bloomRT.Draw(sprite, new RenderStates(_bloomFirstPass));
+                _bloomRT.Display();
 
-                _bloomSecondPass.SetUniform("image", bloomRT.Texture);
+                _bloomSecondPass.SetUniform("image", _bloomRT.Texture);
                 window.Draw(sprite, new RenderStates(_bloomSecondPass));
             }
 
@@ -190,8 +187,8 @@ namespace PPR.Rendering {
             switch(text.Length) {
                 case 0: return; // Don't do anything, if the text is empty
                 case 1: {
-                    if(!replacingSpaces && text[0] == ' ')
-                        SetCharacter(position, text[0], foregroundColor, backgroundColor);
+                    if(!replacingSpaces && text[0] == ' ') return;
+                    SetCharacter(position, text[0], foregroundColor, backgroundColor);
                     return;
                 }
             }
@@ -253,19 +250,6 @@ namespace PPR.Rendering {
         public static Color AnimateColor(float time, Color start, Color end, float rate) {
             float t = Math.Clamp(time * rate, 0f, 1f);
             return LerpColors(start, end, t);
-        }
-        public void UpdateRandomColorAnimationOffset(Vector2 position, float min, float max) {
-            if(position.InBounds(0, 0, width - 1, height - 1))
-                _randomColorAnimationOffsets[position] = new Random().NextFloat(min, max);
-        }
-        public float GetRandomColorAnimationOffset(Vector2 position) {
-            return !_randomColorAnimationOffsets.ContainsKey(position) ? 0f : _randomColorAnimationOffsets[position];
-        }
-        public Color GetCellBackgroundColor(Vector2 position) {
-            return !backgroundColors.ContainsKey(position) ? Color.Black : backgroundColors[position];
-        }
-        public Color GetCellForegroundColor(Vector2 position) {
-            return !foregroundColors.ContainsKey(position) ? Color.White : foregroundColors[position];
         }
     }
 }

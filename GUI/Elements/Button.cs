@@ -12,6 +12,7 @@ namespace PPR.GUI.Elements {
     public class Button {
         public Vector2 position;
         public string text;
+        public string id;
         int _width;
         public int width {
             get => _width;
@@ -38,10 +39,11 @@ namespace PPR.GUI.Elements {
         public bool selected = false;
         int _posX;
         public enum State { Idle, Hovered, Clicked, Selected };
-        public Button(Vector2 position, string text, int width, Color idleColor, Color hoverColor, Color clickColor,
+        public Button(Vector2 position, string text, string id, int width, Color idleColor, Color hoverColor, Color clickColor,
                 InputKey hotkey = null, Renderer.Alignment align = Renderer.Alignment.Left) {
             this.position = position;
             this.text = text;
+            this.id = id;
             this.width = width;
             this.idleColor = idleColor;
             this.hoverColor = hoverColor;
