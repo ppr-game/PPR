@@ -24,7 +24,7 @@ namespace PPR {
         // bruh Rider wth
         // ReSharper disable once UnusedMember.Local
         static void Main() {
-            game.Start(); // Start the game
+            Game.Start(); // Start the game
 
             logger.Info("Loading finished");
 

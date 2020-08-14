@@ -160,6 +160,7 @@ namespace PPR.GUI {
         static void DrawMainMenu() {
             Core.renderer.DrawText(zero, mainMenuText, ColorScheme.white, ColorScheme.black);
             Core.renderer.DrawText(new Vector2(1, 1), $"v{Core.version}", ColorScheme.white, Color.Transparent);
+            DrawNowPlaying(true);
             // ReSharper disable once HeapView.ObjectAllocation
             // ReSharper disable once HeapView.ObjectAllocation.Possible
             foreach(Button button in _mainMenuButtons.Where(button => button.Draw()))
@@ -176,8 +177,6 @@ namespace PPR.GUI {
                     case "EXIT": Game.End();
                         break;
                 }
-
-            DrawNowPlaying(true);
         }
         public static readonly Vector2 scoresPos = new Vector2(1, 12);
         static void DrawLevelSelect() {

@@ -147,7 +147,7 @@ namespace PPR.Main {
         public static bool auto = false;
         static bool _usedAuto;
         float _accumulator;
-        public void Start() {
+        public static void Start() {
             Settings.Default.PropertyChanged += PropertyChanged;
             ColorScheme.Reload();
             ReloadSounds();
@@ -181,12 +181,14 @@ namespace PPR.Main {
             UI.fullscreenSwitch.selected = Settings.Default.fullscreen;
             UI.uppercaseSwitch.selected = Settings.Default.uppercaseNotes;
 
-            LevelObject.linesColors = new Color[] { ColorScheme.lightOrange,
+            LevelObject.linesColors = new Color[] {
+                ColorScheme.lightOrange,
                 ColorScheme.lightRed,
                 ColorScheme.lightGreen,
                 ColorScheme.lightBlue
             };
-            LevelObject.linesDarkColors = new Color[] { ColorScheme.lightDarkOrange,
+            LevelObject.linesDarkColors = new Color[] {
+                ColorScheme.lightDarkOrange,
                 ColorScheme.lightDarkRed,
                 ColorScheme.lightDarkGreen,
                 ColorScheme.lightDarkBlue
@@ -222,6 +224,7 @@ namespace PPR.Main {
                 sound = new Sound(buffer);
                 return true;
             }
+            logger.Warn("Tried loading a sound at {0} but no success :(", path);
             sound = null;
             return false;
         }
@@ -248,18 +251,24 @@ namespace PPR.Main {
         }
         public static void End() {
             logger.Info("Exiting");
+            
+            music.Stop();
+            logger.Info("Stopped music");
 
             Settings.Default.Save();
+            logger.Info("Saved settings");
 
             RPC.client.ClearPresence();
             RPC.client.Dispose();
+            logger.Info("Removed Discord RPC");
 
+            logger.Info("F to the logger");
             LogManager.Shutdown();
 
             Core.renderer.window.Close();
         }
 
-        void PropertyChanged(object caller, PropertyChangedEventArgs e) {
+        static void PropertyChanged(object caller, PropertyChangedEventArgs e) {
             switch (e.PropertyName) {
                 case "font": {
                     string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.Default.font, "mappings.txt"));
