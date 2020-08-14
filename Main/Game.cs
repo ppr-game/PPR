@@ -231,19 +231,19 @@ namespace PPR.Main {
                 TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "hit")), out hitSound))
                 hitSound.Volume = Settings.Default.soundsVolume;
             if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "tick")), out tickSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "tick")), out hitSound))
+                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "tick")), out tickSound))
                 tickSound.Volume = Settings.Default.soundsVolume;
             if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "fail")), out failSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "fail")), out hitSound))
+                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "fail")), out failSound))
                 failSound.Volume = Settings.Default.soundsVolume;
             if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "pass")), out passSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "pass")), out hitSound))
+                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "pass")), out passSound))
                 passSound.Volume = Settings.Default.soundsVolume;
             if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "buttonClick")), out buttonClickSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "buttonClick")), out hitSound))
+                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "buttonClick")), out buttonClickSound))
                 buttonClickSound.Volume = Settings.Default.soundsVolume;
             if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "slider")), out sliderSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "slider")), out hitSound))
+                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "slider")), out sliderSound))
                 sliderSound.Volume = Settings.Default.soundsVolume;
         }
         public static void End() {
