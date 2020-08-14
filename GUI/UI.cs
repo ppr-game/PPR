@@ -158,7 +158,8 @@ namespace PPR.GUI {
             if(_switchMusicButton.Draw()) Game.SwitchMusic();
         }
         static void DrawMainMenu() {
-            Renderer.instance.DrawText(zero, mainMenuText, ColorScheme.white, ColorScheme.black);
+            Core.renderer.DrawText(zero, mainMenuText, ColorScheme.white, ColorScheme.black);
+            Core.renderer.DrawText(new Vector2(1, 1), $"v{Core.version}", ColorScheme.white, Color.Transparent);
             // ReSharper disable once HeapView.ObjectAllocation
             // ReSharper disable once HeapView.ObjectAllocation.Possible
             foreach(Button button in _mainMenuButtons.Where(button => button.Draw()))

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 
 using NLog;
 
@@ -11,6 +12,10 @@ using SFML.System;
 namespace PPR {
     public static class Core {
         static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
+        public static readonly string version = Assembly.GetExecutingAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion;
 
         public static float deltaTime;
         public static readonly Game game = new Game();

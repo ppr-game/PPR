@@ -5,19 +5,16 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Platforms>AnyCPU;x86;x64</Platforms>
     <StartupObject>PPR.Core</StartupObject>
-    <Version>0.8.3-beta</Version>
+    <Version>0.8.4-beta</Version>
+    <AssemblyVersion>0.8.4</AssemblyVersion>
     <Authors>ConfiG</Authors>
     <Company />
     <PackageId>com.github.cgytrus.PPR</PackageId>
-    <PackageProjectUrl></PackageProjectUrl>
     <RepositoryUrl>https://github.com/cgytrus/PPR</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <NoWin32Manifest>true</NoWin32Manifest>
-    <PackageVersion>0.8.4-beta</PackageVersion>
     <Title>Press Press Revolution</Title>
-    <AssemblyVersion>0.8.4-beta</AssemblyVersion>
-    <FileVersion>0.8.4-beta</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
