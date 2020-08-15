@@ -93,7 +93,7 @@ Make an image of any size (1 image pixel = 1 screen pixel) with the characters y
 
 You can add multiple fonts in your font folder, to do that, create folders in your font folder and put fonts there
 
-**Higly recommended font folder hierarchy:** `[font name]/[font size (can be multiple)]/[font scale (usually x1 and x2 is enough, but you may want to add x3 and/or x4 if your font is too small or if you want to)]`
+**Highly recommended font folder hierarchy:** `[font name]/[font size (can be multiple)]/[font scale (usually x1 and x2 is enough, but you may want to add x3 and/or x4 if your font is too small or if you want to)]`
 
 *You can use the default included font as an example*
 
