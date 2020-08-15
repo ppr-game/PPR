@@ -107,8 +107,6 @@ namespace PPR.GUI {
             };
             _levelEditorButtons = new List<Button> {
                 new Button(new Vector2(78, 58), "►", "editor.playPause", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Enter")),
-                new Button(bpmPos, "<", "editor.speed.down", 1, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue),
-                new Button(bpmPos + new Vector2(2, 0), ">", "editor.speed.up", 1, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue),
                 new Button(hpDrainPos, "<", "editor.hp.drain.down", 1, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed),
                 new Button(hpDrainPos + new Vector2(2, 0), ">", "editor.hp.drain.up", 1, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed),
                 new Button(hpRestoragePos, "<", "editor.hp.restorage.down", 1, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed),
@@ -300,10 +298,6 @@ namespace PPR.GUI {
                         }
 
                         switch(button.id) {
-                            case "editor.speed.up": Game.ChangeSpeed(10);
-                                break;
-                            case "editor.speed.down": Game.ChangeSpeed(-10);
-                                break;
                             case "editor.hp.drain.up": Map.currentLevel.metadata.hpDrain++;
                                 break;
                             case "editor.hp.drain.down": Map.currentLevel.metadata.hpDrain--;
@@ -319,13 +313,13 @@ namespace PPR.GUI {
                         }
                     }
                 }
-                Renderer.instance.DrawText(bpmPos, $"    BPM: {Game.currentBPM.ToString()}", ColorScheme.blue,
+                Renderer.instance.DrawText(bpmPos, $"BPM: {Game.currentBPM.ToString()}", ColorScheme.blue,
                     Color.Transparent);
                 TimeSpan curTime = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
                 Renderer.instance.DrawText(timePos,
-                    $"    TIME: {(curTime < TimeSpan.Zero ? "'-'" : "")}{curTime.ToString($"{(curTime.Hours != 0 ? "h':'mm" : "m")}':'ss")}",
+                    $"TIME: {(curTime < TimeSpan.Zero ? "'-'" : "")}{curTime.ToString($"{(curTime.Hours != 0 ? "h':'mm" : "m")}':'ss")}",
                                             ColorScheme.blue, Color.Transparent);
-                Renderer.instance.DrawText(offsetPos, $"    OFFSET: {Game.roundedOffset.ToString()} ({Game.roundedSteps.ToString()})", ColorScheme.blue,
+                Renderer.instance.DrawText(offsetPos, $"OFFSET: {Game.roundedOffset.ToString()} ({Game.roundedSteps.ToString()})", ColorScheme.blue,
                     Color.Transparent);
 
                 Renderer.instance.DrawText(hpDrainPos, $"    HP DRAIN: {Map.currentLevel.metadata.hpDrain.ToString()}", ColorScheme.red, Color.Transparent);
