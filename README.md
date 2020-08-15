@@ -8,7 +8,7 @@ Inspired by [osu!](https://osu.ppy.sh), [Beatmania](https://en.wikipedia.org/wik
 ### Install levels
 Unpack levels in `game's folder/levels` to play them
 
-Download levels in my [Discord server](https://discord.gg/AuYUVs5)
+Download levels in the [Discord server](https://discord.gg/AuYUVs5)
 
 **OR**
 
@@ -61,7 +61,7 @@ then get the music for your level, convert it to the `.ogg` format, if it isn't 
 put it in your level folder next to the `level.txt` file and rename it to `music.ogg`.
 Now you can begin creating your level
 
-*You can publish your level in my Discord server I linked above*
+*You can publish your levels in the Discord server linked above*
 
 ### Editor controls
 - `Mouse Wheel Scroll` - scroll the time
@@ -74,8 +74,9 @@ Now you can begin creating your level
 
 - `Backspace` - remove all the notes at the current time (on the line)
 
-- `Up/down arrows` - increase/decrease the speed by 10 BPM (`+ Shift` - 1 BPM) (`+ Alt` - increase/decrease the guide lines spacing)
+- `Up/down arrows` - increase/decrease the speed by 10 BPM (`+ Shift` - 1 BPM) (`+ Alt` - increase/decrease the guide lines spacing (doesn't work wth????))
 
+#### _In case you want to use the keybord instead of the UI buttons_
 - `Left/right arrows` - decrease/increase the health drain *(the value which will be subtracted from the **health** on **misses**)* (`+ Shift` - restorage (the opposite of drain))
 
 - `F1/F2` - increase/decrease the initial music offset by 1 ms (`+ Shift` - 10 ms)
