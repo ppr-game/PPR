@@ -56,7 +56,8 @@ To begin creating a level, press "EDIT" in the main menu, then press "NEW" at th
 pause the game by pressing `Escape` on your keyboard, press "SAVE" and "EXIT",
 then go to the folder, where your game is located at, go to the `levels` folder,
 rename the `unnamed` folder to whatever you'd like your new level to be named,
-go to the folder itself, open the `level.txt` file and change `<unknown>` to the level author name (usually your nickname), save the file,
+go to the folder itself, open the `level.txt` file and change `<unknown>` to the level author name (usually your nickname) 
+(you can also edit that in the template level so that you don't have to do that every time), save the file,
 then get the music for your level, convert it to the `.ogg` format, if it isn't already,
 put it in your level folder next to the `level.txt` file and rename it to `music.ogg`.
 Now you can begin creating your level
