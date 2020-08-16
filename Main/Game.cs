@@ -33,7 +33,14 @@ namespace PPR.Main {
             set {
                 if(Map.currentLevel != null && statsState == StatsState.Pause) {
                     if(_currentMenu == Menu.Game && value == Menu.LastStats) music.Pause();
-                    else if(!editing && _currentMenu == Menu.LastStats && value == Menu.Game) music.Play();
+                    else if(!editing && _currentMenu == Menu.LastStats && value == Menu.Game) {
+                        music.Play();
+                        if(!auto) {
+                            music.PlayingOffset =
+                                Time.FromMicroseconds(Math.Max(0, music.PlayingOffset.AsMicroseconds() - 3000000));
+                            _prevFramePlayingOffset = music.PlayingOffset;
+                        }
+                    }
                 }
 
                 switch(value) {
