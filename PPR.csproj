@@ -5,8 +5,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Platforms>AnyCPU;x86;x64</Platforms>
     <StartupObject>PPR.Core</StartupObject>
-    <Version>0.8.4-beta</Version>
-    <AssemblyVersion>0.8.4</AssemblyVersion>
+    <Version>0.8.5-beta</Version>
     <Authors>ConfiG</Authors>
     <Company />
     <PackageId>com.github.cgytrus.PPR</PackageId>
