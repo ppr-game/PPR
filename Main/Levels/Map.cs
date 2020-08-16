@@ -45,11 +45,6 @@ namespace PPR.Main.Levels {
             if(Game.currentMenu != Menu.Game) return;
 
             foreach(LevelObject obj in currentLevel.objects) obj.Step();
-
-            if(Game.statsState == StatsState.Pause) return;
-            Game.currentMenu = Menu.LastStats;
-            if(Game.statsState == StatsState.Fail) Game.failSound.Play();
-            else Game.passSound.Play();
         }
         public static void SimulateAll() {
             if(Game.currentMenu != Menu.Game) return;

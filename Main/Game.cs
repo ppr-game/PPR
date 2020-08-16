@@ -50,6 +50,14 @@ namespace PPR.Main {
                         File.WriteAllText(path, text);
                         break;
                     }
+                    case Menu.LastStats:
+                        switch(statsState) {
+                            case StatsState.Fail: failSound.Play();
+                                break;
+                            case StatsState.Pass: passSound.Play();
+                                break;
+                        }
+                        break;
                 }
 
                 if((value == Menu.Main || value == Menu.LevelSelect) && music.Status == SoundStatus.Paused) music.Play();
@@ -439,9 +447,12 @@ namespace PPR.Main {
                 UI.progress = (int)(music.PlayingOffset.AsSeconds() / duration * 80f);
             }
 
-            statsState = Map.currentLevel.objects.Count(obj => !obj.ignore) <= 0 ? health > 0 ? StatsState.Pass : StatsState.Fail : StatsState.Pause;
+            statsState = health > 0 ? Map.currentLevel.objects.Count(obj => !obj.ignore) > 0 ? StatsState.Pause :
+                StatsState.Pass : StatsState.Fail;
 
             Map.SimulateAll();
+
+            if(statsState != StatsState.Pause) currentMenu = Menu.LastStats;
         }
         public static void UpdateTime() {
             long useMicrosecs = (long)((MathF.Round(StepsToMilliseconds(steps)) + Map.currentLevel.metadata.initialOffsetMs) * 1000f);
