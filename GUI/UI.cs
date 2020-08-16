@@ -84,7 +84,7 @@ namespace PPR.GUI {
                 new Button(new Vector2(40, 27), "EDIT", "mainMenu.edit", 4, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow,
                     new InputKey("LShift,RShift"), center),
                 new Button(new Vector2(40, 29), "SETTINGS", "mainMenu.settings", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab"), center),
-                new Button(new Vector2(40, 31), "EXIT", "mainMenu.exit", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Tilde"), center),
+                new Button(new Vector2(40, 31), "EXIT", "mainMenu.exit", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Tilde"), center)
             };
             _pauseMusicButton = new Button(new Vector2(1, 58), "►", "mainMenu.music.pause", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
                 new InputKey("Space"));
@@ -94,7 +94,7 @@ namespace PPR.GUI {
                 new Button(new Vector2(25, 10), "AUTO", "levelSelect.auto", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab")),
                 new Button(new Vector2(25, 10), "NEW", "levelSelect.new", 3, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
                     new InputKey("LControl+N,RControl+N")),
-                new Button(new Vector2(39, 52), "BACK", "levelSelect.back", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Escape"), center),
+                new Button(new Vector2(39, 52), "BACK", "levelSelect.back", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Escape"), center)
             };
             _lastStatsButtons = new List<Button> {
                 new Button(new Vector2(2, 53), "CONTINUE", "lastStats.continue", 8, ColorScheme.black, ColorScheme.cyan, ColorScheme.lightDarkCyan),
@@ -103,7 +103,7 @@ namespace PPR.GUI {
                 new Button(new Vector2(10, 55), "AUTO", "lastStats.auto", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab")),
                 new Button(new Vector2(2, 55), "SAVE", "lastStats.save", 4, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue,
                     new InputKey("LControl+S,RControl+S")),
-                new Button(new Vector2(2, 57), "EXIT", "lastStats.exit", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Backspace")),
+                new Button(new Vector2(2, 57), "EXIT", "lastStats.exit", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Backspace"))
             };
             _levelEditorButtons = new List<Button> {
                 new Button(new Vector2(78, 58), "►", "editor.playPause", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen, new InputKey("Enter")),
@@ -238,13 +238,18 @@ namespace PPR.GUI {
         static readonly Vector2 metaSpdCountPos = new Vector2(56, 49);
         static void DrawMetadata(LevelMetadata? metadata) {
             if(metadata == null) return;
-            Renderer.instance.DrawText(metaLengthPos, "LENGTH:" + metadata.Value.length, ColorScheme.white, Color.Transparent);
-            Renderer.instance.DrawText(metaDiffPos, "DIFFICULTY:" + metadata.Value.difficulty, ColorScheme.white, Color.Transparent);
-            Renderer.instance.DrawText(metaBPMPos, "BPM:" + metadata.Value.bpm, ColorScheme.white, Color.Transparent);
-            Renderer.instance.DrawText(metaAuthorPos, "AUTHOR:" + metadata.Value.author, ColorScheme.white, Color.Transparent);
+            Renderer.instance.DrawText(metaLengthPos, $"LENGTH:{metadata.Value.length}", ColorScheme.white,
+                Color.Transparent);
+            Renderer.instance.DrawText(metaDiffPos, $"DIFFICULTY:{metadata.Value.difficulty}", ColorScheme.white,
+                Color.Transparent);
+            Renderer.instance.DrawText(metaBPMPos, $"BPM:{metadata.Value.bpm}", ColorScheme.white, Color.Transparent);
+            Renderer.instance.DrawText(metaAuthorPos, $"AUTHOR:{metadata.Value.author}", ColorScheme.white,
+                Color.Transparent);
 
-            Renderer.instance.DrawText(metaObjCountPos, "objects:" + metadata.Value.objectCount, ColorScheme.white, Color.Transparent);
-            Renderer.instance.DrawText(metaSpdCountPos, "speeds:" + metadata.Value.speedsCount, ColorScheme.white, Color.Transparent);
+            Renderer.instance.DrawText(metaObjCountPos, $"objects:{metadata.Value.objectCount.ToString()}", ColorScheme.white,
+                Color.Transparent);
+            Renderer.instance.DrawText(metaSpdCountPos, $"speeds:{metadata.Value.speedsCount.ToString()}", ColorScheme.white,
+                Color.Transparent);
         }
         static void DrawScores(IReadOnlyCollection<LevelScore> scores) {
             if(scores == null) return;
@@ -279,12 +284,11 @@ namespace PPR.GUI {
         static void DrawGame() {
             if(Game.editing) {
                 foreach(Button button in _levelEditorButtons) {
-                    if(button.id == "editor.playPause") {
+                    if(button.id == "editor.playPause")
                         button.text = Game.music.Status switch {
                             SoundStatus.Playing => "║",
                             _ => "►"
                         };
-                    }
                     if(button.Draw()) {
                         switch(button.text) {
                             case "►":
@@ -374,26 +378,29 @@ namespace PPR.GUI {
         public static int prevScore;
         static float _newScoreAnimationTime;
         static void DrawScore(Vector2 position, Color color) {
-            string scoreStr = "SCORE: " + Game.score;
+            string scoreStr = $"SCORE: {Game.score.ToString()}";
             Renderer.instance.DrawText(position, scoreStr, color, Color.Transparent);
             if(prevScore != Game.score) {
                 if(_newScoreAnimationTime >= 1f) _scoreChange = 0;
                 _newScoreAnimationTime = 0f;
                 _scoreChange += Game.score - prevScore;
             }
-            Renderer.instance.DrawText(new Vector2(position.x + scoreStr.Length + 2, position.y), "+" + _scoreChange,
-                                                                                    Renderer.AnimateColor(_newScoreAnimationTime, color, Color.Transparent, 2f), Color.Transparent);
+            Renderer.instance.DrawText(new Vector2(position.x + scoreStr.Length + 2, position.y),
+                $"+{_scoreChange.ToString()}",
+                Renderer.AnimateColor(_newScoreAnimationTime, color, Color.Transparent, 2f), Color.Transparent);
             _newScoreAnimationTime += Core.deltaTime;
 
             prevScore = Game.score;
         }
         static void DrawAccuracy(Vector2 position) {
-            Renderer.instance.DrawText(position, "ACCURACY: " + Game.accuracy + "%", Game.GetAccuracyColor(Game.accuracy), Color.Transparent);
+            Renderer.instance.DrawText(position, $"ACCURACY: {Game.accuracy.ToString()}%",
+                Game.GetAccuracyColor(Game.accuracy), Color.Transparent);
         }
         static void DrawCombo(Vector2 position, bool maxCombo = false) {
             string prefix = Game.accuracy >= 100 ? "PERFECT " : Game.scores[0] <= 0 ? "FULL " : maxCombo ? "MAX " : "";
             Color color = Game.GetComboColor(Game.accuracy, Game.scores[0]);
-            Renderer.instance.DrawText(position, prefix + "COMBO: " + (maxCombo ? Game.maxCombo : Game.combo), color, Color.Transparent);
+            Renderer.instance.DrawText(position, $"{prefix}COMBO: {(maxCombo ? Game.maxCombo : Game.combo).ToString()}",
+                color, Color.Transparent);
         }
         static void DrawMiniScores(Vector2 position, int[] scores) {
             string scores0Str = scores[0].ToString();
@@ -419,7 +426,8 @@ namespace PPR.GUI {
             Renderer.instance.DrawText(new Vector2(posXOffseted, posYPerfectHits), Game.scores[2].ToString(), ColorScheme.black, ColorScheme.green);
         }
         static void DrawLevelName(Vector2 position, Color color) {
-            Renderer.instance.DrawText(position, Map.currentLevel.metadata.name + " : " + Map.currentLevel.metadata.author, color, Color.Transparent);
+            Renderer.instance.DrawText(position,
+                $"{Map.currentLevel.metadata.name} : {Map.currentLevel.metadata.author}", color, Color.Transparent);
         }
         static readonly Vector2 passFailText = new Vector2(40, 5);
         static readonly Vector2 lastLevelPos = new Vector2(2, 13);
@@ -540,11 +548,11 @@ namespace PPR.GUI {
                 colorSchemeSwitchPos.y, 13);
         }
 
-        static void UpdateFolderSwitchButtons(List<Button> buttonsList, string path, int baseX, int baseY, int xOffset) {
+        static void UpdateFolderSwitchButtons(IList<Button> buttonsList, string path, int baseX, int baseY, int xOffset) {
             buttonsList.Clear();
             UpdateFolderSwitchButton(buttonsList, path, baseX, baseY, xOffset);
         }
-        static void UpdateFolderSwitchButton(List<Button> buttonsList, string path, int baseX, int baseY, int xOffset) {
+        static void UpdateFolderSwitchButton(IList<Button> buttonsList, string path, int baseX, int baseY, int xOffset) {
             string[] names = path.Split(Path.DirectorySeparatorChar);
 
             string prevDir = Path.GetDirectoryName(path) ?? string.Empty;
@@ -660,7 +668,8 @@ namespace PPR.GUI {
                     break;
             }
             if(Settings.Default.showFps)
-                Renderer.instance.DrawText(fpsPos, fps + " FPS", fps >= 60 ? ColorScheme.green : fps > 20 ? ColorScheme.yellow : ColorScheme.red,
+                Renderer.instance.DrawText(fpsPos, $"{fps.ToString()} FPS", fps >= 60 ? ColorScheme.green :
+                    fps > 20 ? ColorScheme.yellow : ColorScheme.red,
                     ColorScheme.black, Renderer.Alignment.Right);
         }
         static readonly Vector2 fpsPos = new Vector2(79, 59);

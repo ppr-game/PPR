@@ -58,17 +58,18 @@ namespace PPR.Main.Levels {
         }
         public static string TextFromLevel(Level level) {
             string[] lines = new string[5];
-            List<LevelObject> objects = level.objects.FindAll(obj => obj.character != LevelObject.speedChar);
+            string hpDrain = level.metadata.hpDrain.ToString();
+            string hpRestorage = level.metadata.hpRestorage.ToString();
+            string diff = level.metadata.difficulty;
+            string author = level.metadata.author;
+            string linesFreq = level.metadata.linesFrequency.ToString();
+            string initialOffset = level.metadata.initialOffsetMs.ToString();
+            List<LevelObject> objects = level.objects.FindAll(obj => obj.character != LevelObject.SPEED_CHAR);
             lines[0] = string.Join("", objects.Select(obj => obj.character.ToString().ToLower()));
             lines[1] = string.Join(':', objects.Select(obj => obj.step));
             lines[2] = string.Join(':', level.speeds.Select(speed => speed.speed));
             lines[3] = string.Join(':', level.speeds.Select(speed => speed.step));
-            lines[4] = level.metadata.hpDrain + ":" +
-                                   level.metadata.hpRestorage + ":" +
-                                   level.metadata.difficulty + ":" +
-                                   level.metadata.author + ":" +
-                                   level.metadata.linesFrequency + ":" +
-                                   level.metadata.initialOffsetMs;
+            lines[4] = $"{hpDrain}:{hpRestorage}:{diff}:{author}:{linesFreq}:{initialOffset}";
             return string.Join('\n', lines);
         }
         public static List<LevelScore> ScoresFromLines(string[] lines, Vector2 position) {

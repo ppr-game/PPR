@@ -539,7 +539,7 @@ namespace PPR.Main {
             };
         }
 
-        public static void ChangeSpeed(int delta) {
+        static void ChangeSpeed(int delta) {
             // Create a new speed if we don't have a speed at the current position
             List<int> flooredSpeedsSteps = Map.currentLevel.speeds.Select(speed => speed.step).ToList();
             if(!flooredSpeedsSteps.Contains((int)steps)) {
@@ -561,9 +561,9 @@ namespace PPR.Main {
             if(index >= 1 && Map.currentLevel.speeds[index].speed == Map.currentLevel.speeds[index - 1].speed) Map.currentLevel.speeds.RemoveAt(index);
 
             // Recreate the objects that show the speeds
-            List<LevelObject> speedObjects = Map.currentLevel.objects.FindAll(obj => obj.character == LevelObject.speedChar);
+            List<LevelObject> speedObjects = Map.currentLevel.objects.FindAll(obj => obj.character == LevelObject.SPEED_CHAR);
             foreach(LevelObject obj in speedObjects) obj.toDestroy = true;
-            foreach(LevelSpeed speed in Map.currentLevel.speeds) Map.currentLevel.objects.Add(new LevelObject(LevelObject.speedChar, speed.step, Map.currentLevel.speeds));
+            foreach(LevelSpeed speed in Map.currentLevel.speeds) Map.currentLevel.objects.Add(new LevelObject(LevelObject.SPEED_CHAR, speed.step, Map.currentLevel.speeds));
         }
         public static void KeyPressed(object caller, KeyEventArgs key) {
             // Back
@@ -581,7 +581,7 @@ namespace PPR.Main {
                     // Erase
                     if(Bindings.Default.erase.IsPressed(key)) {
                         List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.step == (int)steps &&
-                                                                                            obj.character != LevelObject.speedChar);
+                                                                                            obj.character != LevelObject.SPEED_CHAR);
                         foreach(LevelObject obj in objects) obj.toDestroy = true;
                     }
 
@@ -625,7 +625,7 @@ namespace PPR.Main {
                     if(Map.currentLevel.objects.FindAll(obj => obj.character == character && obj.step == (int)steps).Count <= 0) {
                         Map.currentLevel.objects.Add(new LevelObject(character, (int)steps, Map.currentLevel.speeds));
                         if(key.Shift) {
-                            character = LevelObject.holdChar;
+                            character = LevelObject.HOLD_CHAR;
                             Map.currentLevel.objects.Add(new LevelObject(character, (int)steps, Map.currentLevel.speeds, Map.currentLevel.objects));
                         }
                     }
@@ -639,8 +639,8 @@ namespace PPR.Main {
         }
 
         static bool CheckLine(int step) {
-            List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != LevelObject.speedChar &&
-                        obj.character != LevelObject.holdChar &&
+            List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != LevelObject.SPEED_CHAR &&
+                        obj.character != LevelObject.HOLD_CHAR &&
                         !obj.removed &&
                         !obj.toDestroy &&
                         !obj.ignore &&
@@ -778,7 +778,8 @@ namespace PPR.Main {
             for(int i = 0; i < directories.Length; i++) {
                 string name = Path.GetFileName(directories[i]);
                 if(name == "_template") continue;
-                buttons.Add(new Button(new Vector2(25, 12 + i), name, $"levelSelect.level.at{i}", 30, ColorScheme.black, ColorScheme.white, ColorScheme.lightDarkGray));
+                buttons.Add(new Button(new Vector2(25, 12 + i), name, $"levelSelect.level.at{i.ToString()}", 30,
+                    ColorScheme.black, ColorScheme.white, ColorScheme.lightDarkGray));
                 metadatas.Add(new LevelMetadata(File.ReadAllLines(Path.Combine(directories[i], "level.txt")), name));
                 logger.Info("Loaded metadata for level {0}", name);
             }
