@@ -84,7 +84,7 @@ namespace PPR.GUI {
                 new Button(new Vector2(40, 27), "EDIT", "mainMenu.edit", 4, ColorScheme.black, ColorScheme.yellow, ColorScheme.lightDarkYellow,
                     new InputKey("LShift,RShift"), center),
                 new Button(new Vector2(40, 29), "SETTINGS", "mainMenu.settings", 8, ColorScheme.black, ColorScheme.blue, ColorScheme.lightDarkBlue, new InputKey("Tab"), center),
-                new Button(new Vector2(40, 31), "EXIT", "mainMenu.exit", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, null, center),
+                new Button(new Vector2(40, 31), "EXIT", "mainMenu.exit", 4, ColorScheme.black, ColorScheme.red, ColorScheme.lightDarkRed, new InputKey("Tilde"), center),
             };
             _pauseMusicButton = new Button(new Vector2(1, 58), "►", "mainMenu.music.pause", 1, ColorScheme.black, ColorScheme.green, ColorScheme.lightDarkGreen,
                 new InputKey("Space"));
