@@ -41,7 +41,7 @@ namespace PPR.Rendering {
         readonly Vertex[] _foregroundQuads;
         public RenderTexture renderTexture { get; }
         public void RebuildRenderTexture() {
-            renderTexture.Clear();
+            renderTexture.Clear(ColorScheme.GetColor("background"));
 
             uint index = 0;
             foreach((Vector2 key, Color color) in backgroundColors) {

@@ -164,12 +164,10 @@ namespace PPR.Rendering {
 
             text.RebuildRenderTexture();
 
-            Color backgroundColor = ColorScheme.GetColor("background");
-
-            window.Clear(backgroundColor);
+            window.Clear();
 
             if(Settings.Default.bloom) {
-                _bloomRT.Clear(backgroundColor);
+                _bloomRT.Clear();
                 _bloomRT.Draw(_textSprite);
                 Sprite sprite = new Sprite(_bloomRT.Texture);
 

@@ -34,6 +34,7 @@ darker_yellow=15,15,0
 darker_orange=15,7,0
 
 # Light
+light_gray=158,158,158
 light_red=255,158,158
 light_green=158,255,158
 light_blue=158,158,255
@@ -189,7 +190,7 @@ slider_editor.music.speed_hover=settings
 slider_editor.music.speed_click=dark_settings
 
 # Settings
-settings_header=white
+settings_header=foreground
 
 settings_keybind_name=settings
 settings_keybind_primary=settings

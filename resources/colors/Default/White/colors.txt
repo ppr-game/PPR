@@ -10,8 +10,8 @@ white=255,255,255
 gray=127,127,127
 red=255,0,0
 green=0,255,0
-blue=31,31,255
-cyan=0,255,255
+blue=0,0,255
+cyan=0,223,223
 yellow=255,255,0
 orange=255,127,0
 
@@ -43,8 +43,8 @@ light_yellow=255,255,158
 light_orange=255,205,158
 
 # Misc
-background=black
-foreground=white
+background=white
+foreground=black
 
 fps_good=green
 fps_ok=yellow
@@ -87,14 +87,14 @@ button_mainMenu.music.switch_click=button_mainMenu.music.pause_click
 progress=white
 dark_progress=darker_gray
 
-line_1_color=light_orange
-line_2_color=light_red
-line_3_color=light_green
-line_4_color=light_blue
-dark_line_1_color=dark_orange
-dark_line_2_color=dark_red
-dark_line_3_color=dark_green
-dark_line_4_color=dark_blue
+line_1_color=dark_orange
+line_2_color=dark_red
+line_3_color=dark_green
+line_4_color=dark_blue
+dark_line_1_color=light_orange
+dark_line_2_color=light_red
+dark_line_3_color=light_green
+dark_line_4_color=light_blue
 
 speed=blue
 
@@ -106,7 +106,7 @@ button_game.skip_click=dark_orange
 
 # Level select buttons
 button_levelSelect.level_idle=background
-button_levelSelect.level_hover=white
+button_levelSelect.level_hover=black
 button_levelSelect.level_click=dark_gray
 
 button_levelSelect.auto_idle=background
@@ -132,7 +132,7 @@ fail=red
 
 score=blue
 
-stats_level_name=white
+stats_level_name=black
 
 # Statistics buttons
 button_lastStats.continue_idle=background

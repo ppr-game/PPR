@@ -17,6 +17,8 @@ namespace PPR.GUI {
             colors.Clear();
             
             string filePath = Path.Combine("resources", "colors", Settings.Default.colorScheme, "colors.txt");
+            if(!File.Exists(filePath))
+                filePath = Path.Combine("resources", "colors", "Default", "Classic", "colors.txt");
             string[] lines = File.ReadAllLines(filePath);
             
             foreach(string line in lines) {
