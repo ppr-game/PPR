@@ -5,7 +5,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Platforms>AnyCPU;x86;x64</Platforms>
     <StartupObject>PPR.Core</StartupObject>
-    <Version>0.8.6-beta</Version>
+    <Version>0.8.7-beta</Version>
     <Authors>ConfiG</Authors>
     <Company />
     <PackageId>com.github.cgytrus.PPR</PackageId>
@@ -58,10 +58,16 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings1.Designer.cs</LastGenOutput>
     </None>
+    <None Update="resources\colors\Default\Classic\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="resources\colors\Default\Classic (Lighter Blue)\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="resources\colors\Default\Classic\*">
+    <None Update="resources\colors\Default\White\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="resources\colors\Default\White (bloom-friendly)\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="resources\*">

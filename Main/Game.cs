@@ -368,9 +368,11 @@ namespace PPR.Main {
             logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
         }
         public static void SwitchMusic() {
-            string newPath = "";
-            string[] paths = Directory.GetDirectories("levels");
-            paths = paths.Where(path => !string.IsNullOrEmpty(Path.Combine(path, "music"))).ToArray();
+            string newPath = currentMusicPath;
+            string[] paths = Directory.GetDirectories("levels")
+                .Where(path => Path.GetFileNameWithoutExtension(Path.GetDirectoryName(path)) != "_template")
+                .Select(path => GetSoundFilePath(Path.Combine(path, "music")))
+                .Where(path => !string.IsNullOrEmpty(path)).ToArray();
             int index = 0;
             switch(paths.Length) {
                 case 0 when music.Status != SoundStatus.Stopped: return;
@@ -378,10 +380,9 @@ namespace PPR.Main {
                 case 1: newPath = currentMusicPath;
                     break;
                 default: {
-                    while(currentMusicPath == newPath ||
-                          Path.GetFileNameWithoutExtension(Path.GetDirectoryName(newPath)) == "_template") {
+                    while(currentMusicPath == newPath) {
                         index = random.Next(0, paths.Length);
-                        newPath = GetSoundFilePath(Path.Combine(paths[index], "music"));
+                        newPath = paths[index];
                     }
                     break;
                 }
