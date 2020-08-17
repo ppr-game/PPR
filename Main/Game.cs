@@ -197,19 +197,19 @@ namespace PPR.Main {
             UI.uppercaseSwitch.selected = Settings.Default.uppercaseNotes;
 
             LevelObject.linesColors = new Color[] {
-                ColorScheme.lightOrange,
-                ColorScheme.lightRed,
-                ColorScheme.lightGreen,
-                ColorScheme.lightBlue
+                ColorScheme.GetColor("line_1_color"),
+                ColorScheme.GetColor("line_2_color"),
+                ColorScheme.GetColor("line_3_color"),
+                ColorScheme.GetColor("line_4_color")
             };
             LevelObject.linesDarkColors = new Color[] {
-                ColorScheme.lightDarkOrange,
-                ColorScheme.lightDarkRed,
-                ColorScheme.lightDarkGreen,
-                ColorScheme.lightDarkBlue
+                ColorScheme.GetColor("dark_line_1_color"),
+                ColorScheme.GetColor("dark_line_2_color"),
+                ColorScheme.GetColor("dark_line_3_color"),
+                ColorScheme.GetColor("dark_line_4_color")
             };
             if(Map.currentLevel != null) foreach(LevelObject obj in Map.currentLevel.objects) obj.UpdateColors();
-            LevelObject.speedColor = ColorScheme.blue;
+            LevelObject.speedColor = ColorScheme.GetColor("speed");
         }
 
         public static string GetSoundFilePath(string pathWithoutExtension) {
@@ -778,8 +778,7 @@ namespace PPR.Main {
             for(int i = 0; i < directories.Length; i++) {
                 string name = Path.GetFileName(directories[i]);
                 if(name == "_template") continue;
-                buttons.Add(new Button(new Vector2(25, 12 + i), name, $"levelSelect.level.at{i.ToString()}", 30,
-                    ColorScheme.black, ColorScheme.white, ColorScheme.lightDarkGray));
+                buttons.Add(new Button(new Vector2(25, 12 + i), name, "levelSelect.level", 30));
                 metadatas.Add(new LevelMetadata(File.ReadAllLines(Path.Combine(directories[i], "level.txt")), name));
                 logger.Info("Loaded metadata for level {0}", name);
             }
@@ -811,10 +810,12 @@ namespace PPR.Main {
             accuracy = (int)MathF.Floor(mulSum / sum * 100f);
         }
         public static Color GetAccuracyColor(int accuracy) {
-            return accuracy >= 100 ? ColorScheme.green : accuracy >= 70 ? ColorScheme.yellow : ColorScheme.red;
+            return accuracy >= 100 ? ColorScheme.GetColor("perfect_hit") :
+                accuracy >= 70 ? ColorScheme.GetColor("hit") : ColorScheme.GetColor("miss");
         }
         public static Color GetComboColor(int accuracy, int misses) {
-            return accuracy >= 100 ? ColorScheme.green : misses <= 0 ? ColorScheme.yellow : ColorScheme.blue;
+            return accuracy >= 100 ? ColorScheme.GetColor("perfect_hit") :
+                misses <= 0 ? ColorScheme.GetColor("hit") : ColorScheme.GetColor("score");
         }
     }
 }

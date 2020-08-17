@@ -164,10 +164,12 @@ namespace PPR.Rendering {
 
             text.RebuildRenderTexture();
 
-            window.Clear();
+            Color backgroundColor = ColorScheme.GetColor("background");
+
+            window.Clear(backgroundColor);
 
             if(Settings.Default.bloom) {
-                _bloomRT.Clear();
+                _bloomRT.Clear(backgroundColor);
                 _bloomRT.Draw(_textSprite);
                 Sprite sprite = new Sprite(_bloomRT.Texture);
 
@@ -182,6 +184,16 @@ namespace PPR.Rendering {
             window.Draw(_textSprite, _blendModeAddState);
         }
         public enum Alignment { Left, Center, Right }
+
+        
+        public void DrawText(Vector2 position, string text, Alignment align = Alignment.Left,
+            bool replacingSpaces = false) {
+            DrawText(position, text, ColorScheme.GetColor("foreground"), align, replacingSpaces);
+        }
+        public void DrawText(Vector2 position, string text, Color color, Alignment align = Alignment.Left,
+            bool replacingSpaces = false) {
+            DrawText(position, text, color, ColorScheme.GetColor("transparent"), align, replacingSpaces);
+        }
         public void DrawText(Vector2 position, string text, Color foregroundColor, Color backgroundColor, Alignment align = Alignment.Left,
             bool replacingSpaces = false) {
             switch(text.Length) {
@@ -234,10 +246,10 @@ namespace PPR.Rendering {
         public void SetCellColor(Vector2 position, Color foregroundColor, Color backgroundColor) {
             if(!position.InBounds(0, 0, width - 1, height - 1)) return;
             
-            if(backgroundColor == Color.Black) _ = backgroundColors.Remove(position);
+            if(backgroundColor == ColorScheme.GetColor("background")) _ = backgroundColors.Remove(position);
             else if(backgroundColor.A != 0) backgroundColors[position] = backgroundColor;
 
-            if(foregroundColor == Color.White) _ = foregroundColors.Remove(position);
+            if(foregroundColor == ColorScheme.GetColor("foreground")) _ = foregroundColors.Remove(position);
             else foregroundColors[position] = foregroundColor;
         }
         public static Color LerpColors(Color a, Color b, float t) {

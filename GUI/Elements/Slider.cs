@@ -17,6 +17,7 @@ namespace PPR.GUI.Elements {
         public readonly int step;
         public int value;
         public string text;
+        public string id;
         public Color idleColor;
         public Color hoverColor;
         public Color clickColor;
@@ -34,7 +35,15 @@ namespace PPR.GUI.Elements {
         int _posX;
         public enum State { Idle, Hovered, Clicked };
         public enum TextAlignment { Left, Right };
-        public Slider(Vector2 position, int minValue, int maxValue, int size, int defaultValue, string text, Color idleColor, Color hoverColor, Color clickColor, bool showValue = true, Renderer.Alignment align = Renderer.Alignment.Left, TextAlignment alignText = TextAlignment.Left) {
+        public Slider(Vector2 position, int minValue, int maxValue, int size, int defaultValue, string text, string id,
+            bool showValue = true, Renderer.Alignment align = Renderer.Alignment.Left,
+            TextAlignment alignText = TextAlignment.Left) : this(position, minValue, maxValue, size, defaultValue, text, id,
+            ColorScheme.GetColor($"slider_{id}_idle"),
+            ColorScheme.GetColor($"slider_{id}_hover"),
+            ColorScheme.GetColor($"slider_{id}_click"), showValue, align, alignText) { }
+        public Slider(Vector2 position, int minValue, int maxValue, int size, int defaultValue, string text, string id,
+            Color idleColor, Color hoverColor, Color clickColor, bool showValue = true,
+            Renderer.Alignment align = Renderer.Alignment.Left, TextAlignment alignText = TextAlignment.Left) {
             this.position = position;
             this.minValue = minValue;
             this.maxValue = maxValue;
@@ -42,6 +51,7 @@ namespace PPR.GUI.Elements {
             step = (maxValue - minValue) / (size - 1);
             value = defaultValue;
             this.text = text;
+            this.id = id;
             this.idleColor = idleColor;
             this.hoverColor = hoverColor;
             this.clickColor = clickColor;
@@ -71,15 +81,11 @@ namespace PPR.GUI.Elements {
             prevFrameState = currentState;
             currentState = DrawWithState();
             if(_prevState != currentState) {
-                Color color = idleColor;
-                switch(currentState) {
-                    case State.Hovered:
-                        color = hoverColor;
-                        break;
-                    case State.Clicked:
-                        color = clickColor;
-                        break;
-                }
+                Color color = currentState switch {
+                    State.Hovered => hoverColor,
+                    State.Clicked => clickColor,
+                    _ => idleColor
+                };
                 if(_currentColor != color) {
                     _prevColor = _currentColor;
                     for(int x = 0; x < size; x++) {
@@ -104,8 +110,8 @@ namespace PPR.GUI.Elements {
                 if(x < drawValue) curChar = '─';
                 else if(x > drawValue) curChar = '-';
                 Renderer.instance.SetCharacter(pos, curChar,
-                                                                            Renderer.AnimateColor(_animTimes[x], _currentColor, currentState == State.Idle ? hoverColor : idleColor, 4f + _animRateOffsets[x]),
-                                                                            Renderer.AnimateColor(_animTimes[x], _prevColor, _currentColor, 4f + _animRateOffsets[x]));
+                    Renderer.AnimateColor(_animTimes[x], _currentColor, currentState == State.Idle ? hoverColor : idleColor, 4f + _animRateOffsets[x]),
+                    Renderer.AnimateColor(_animTimes[x], _prevColor, _currentColor, 4f + _animRateOffsets[x]));
                 _animTimes[x] += Core.deltaTime;
             }
             return value;

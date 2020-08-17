@@ -39,6 +39,12 @@ namespace PPR.GUI.Elements {
         public bool selected = false;
         int _posX;
         public enum State { Idle, Hovered, Clicked, Selected };
+
+        public Button(Vector2 position, string text, string id, int width, InputKey hotkey = null,
+            Renderer.Alignment align = Renderer.Alignment.Left) : this(position, text, id, width,
+            ColorScheme.GetColor($"button_{id}_idle"),
+            ColorScheme.GetColor($"button_{id}_hover"),
+            ColorScheme.GetColor($"button_{id}_click"), hotkey, align) { }
         public Button(Vector2 position, string text, string id, int width, Color idleColor, Color hoverColor, Color clickColor,
                 InputKey hotkey = null, Renderer.Alignment align = Renderer.Alignment.Left) {
             this.position = position;
@@ -62,7 +68,7 @@ namespace PPR.GUI.Elements {
         }
 
         State DrawWithState() {
-            Renderer.instance.DrawText(position, text.Substring(0, Math.Min(text.Length, width)), ColorScheme.white, Color.Transparent, align);
+            Renderer.instance.DrawText(position, text.Substring(0, Math.Min(text.Length, width)), align);
             _posX = position.x - align switch
             {
                 Renderer.Alignment.Right => text.Length - 1,

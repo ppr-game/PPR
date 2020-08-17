@@ -345,7 +345,7 @@ namespace PPR.Main.Levels {
             return difference switch {
                 0 => color,
                 1 => nextDirLayerColor,
-                _ => Color.Transparent
+                _ => ColorScheme.GetColor("transparent")
             };
         }
         public void Draw() {
@@ -356,15 +356,16 @@ namespace PPR.Main.Levels {
                     if(samePosObjects.Count > 0) samePosObjects.ForEach(obj => obj.toDestroy = true);
                 }
                 Renderer.instance.SetCellColor(_position,
-                    Renderer.AnimateColor(_removeAnimationTime, _hitColor, ColorScheme.white, 3f),
-                    Renderer.AnimateColor(_removeAnimationTime, _hitColor, Color.Transparent, 3f));
+                    Renderer.AnimateColor(_removeAnimationTime, _hitColor, ColorScheme.GetColor("foreground"), 3f),
+                    Renderer.AnimateColor(_removeAnimationTime, _hitColor, ColorScheme.GetColor("transparent"), 3f));
                 if(_removeAnimationTime >= 1f) toDestroy = true;
                 _removeAnimationTime += Core.deltaTime;
                 return;
             }
             if(!ignore && !toDestroy && (!Game.editing || !Game.StepPassedLine(step, 1)) &&
                 (_directionLayer == Game.currentDirectionLayer || Renderer.instance.GetCharacter(_position) == '\0'))
-                Renderer.instance.SetCharacter(_position, character, character == SPEED_CHAR ? speedColor : NormalColor(), Color.Transparent);
+                Renderer.instance.SetCharacter(_position, character, character == SPEED_CHAR ? speedColor : NormalColor(),
+                    ColorScheme.GetColor("transparent"));
         }
         public void Simulate() {
             if(removed || toDestroy || Game.editing || !Game.StepPassedLine(step)) return;
@@ -402,13 +403,13 @@ namespace PPR.Main.Levels {
             Game.maxCombo = Math.Max(Game.combo, Game.maxCombo);
             Game.score += score * Game.combo;
             Game.scores[score / 5]++;
-            _hitColor = perfect ? ColorScheme.green : ColorScheme.yellow;
+            _hitColor = perfect ? ColorScheme.GetColor("perfect_hit") : ColorScheme.GetColor("hit");
         }
         void Miss() {
             Game.health -= Map.currentLevel.metadata.hpDrain;
             Game.combo = 0;
             Game.scores[0]++;
-            _hitColor = ColorScheme.red;
+            _hitColor = ColorScheme.GetColor("miss");
         }
         public void Step() {
             if(removed || toDestroy) return;

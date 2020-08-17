@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 
+using PPR.GUI;
 using PPR.Main;
 
 using SFML.Graphics;
@@ -68,7 +69,8 @@ namespace PPR.Rendering {
                 int yChar = key.y * _charHeight;
                 if(!_font.characters.TryGetValue(value, out Vector2f[] texCoords)) continue;
                 Vector2f position = new Vector2f(xChar, yChar);
-                Color foregroundColor = foregroundColors.TryGetValue(key, out Color color) ? color : Color.White;
+                Color foregroundColor = foregroundColors.TryGetValue(key, out Color color) ? color :
+                    ColorScheme.GetColor("foreground");
 
                 _foregroundQuads[index].Position = position;
                 _foregroundQuads[index + 1].Position = position + new Vector2f(_charWidth, 0f);
