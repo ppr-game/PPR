@@ -220,9 +220,11 @@ namespace PPR.GUI {
                         break;
                 }
 
-            if(_levelSelectButtons.Count > 0 && levelSelectMetadatas.Count > 0 && levelSelectScores.Count > 0) {
-                DrawMetadata(levelSelectMetadatas[currentLevelSelectIndex]);
-                DrawScores(levelSelectScores[currentLevelSelectIndex]);
+            if(_levelSelectButtons.Count > 0) {
+                if(levelSelectMetadatas.Count > currentLevelSelectIndex)
+                    DrawMetadata(levelSelectMetadatas[currentLevelSelectIndex]);
+                if(levelSelectScores.Count > currentLevelSelectIndex)
+                    DrawScores(levelSelectScores[currentLevelSelectIndex]);
             }
             DrawNowPlaying();
         }
