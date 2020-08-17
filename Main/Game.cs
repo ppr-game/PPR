@@ -370,6 +370,7 @@ namespace PPR.Main {
         public static void SwitchMusic() {
             string newPath = "";
             string[] paths = Directory.GetDirectories("levels");
+            paths = paths.Where(path => !string.IsNullOrEmpty(Path.Combine(path, "music"))).ToArray();
             int index = 0;
             switch(paths.Length) {
                 case 0 when music.Status != SoundStatus.Stopped: return;
@@ -378,8 +379,7 @@ namespace PPR.Main {
                     break;
                 default: {
                     while(currentMusicPath == newPath ||
-                          Path.GetFileNameWithoutExtension(Path.GetDirectoryName(newPath)) == "_template" ||
-                          string.IsNullOrEmpty(newPath)) {
+                          Path.GetFileNameWithoutExtension(Path.GetDirectoryName(newPath)) == "_template") {
                         index = random.Next(0, paths.Length);
                         newPath = GetSoundFilePath(Path.Combine(paths[index], "music"));
                     }
