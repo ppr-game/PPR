@@ -357,7 +357,7 @@ namespace PPR.Main {
             music.Stop();
 
             if(File.Exists(musicPath)) {
-                Game.currentMusicPath = musicPath;
+                currentMusicPath = musicPath;
                 music = new Music(musicPath) {
                     Volume = Settings.Default.musicVolume,
                     PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMs)
@@ -372,7 +372,8 @@ namespace PPR.Main {
             string[] paths = Directory.GetDirectories("levels");
             int index = 0;
             switch(paths.Length) {
-                case 0:
+                case 0 when music.Status != SoundStatus.Stopped: return;
+                case 0 when music.Status == SoundStatus.Stopped:
                 case 1: newPath = currentMusicPath;
                     break;
                 default: {
