@@ -389,7 +389,7 @@ namespace PPR.Main {
             currentMusicPath = newPath;
             music.Stop();
             music = new Music(currentMusicPath) {
-                Volume = Settings.Default.musicVolume
+                Volume = Core.renderer.window.HasFocus() ? Settings.Default.musicVolume : 0f
             };
             music.Play();
         }
