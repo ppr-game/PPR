@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using NLog;
+
 using PPR.Main;
 using PPR.Properties;
 
@@ -12,13 +14,33 @@ namespace PPR.GUI {
     // ReSharper disable MemberCanBePrivate.Global
     // ReSharper disable NotAccessedField.Global
     public static class ColorScheme {
+        static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        
         static readonly Dictionary<string, Color> colors = new Dictionary<string, Color>();
         public static void Reload() {
             colors.Clear();
             
-            string filePath = Path.Combine("resources", "colors", Settings.Default.colorScheme, "colors.txt");
-            if(!File.Exists(filePath))
+            Dictionary<string, string> queue = new Dictionary<string, string>();
+            
+            LoadScheme(Path.Combine("Default", "Classic"), queue);
+            LoadScheme(Settings.Default.colorScheme, queue);
+            
+            LoadQueue(queue);
+
+            Game.UpdateSettings();
+        }
+
+        static void LoadScheme(string path, IDictionary<string, string> queue) {
+            string filePath = Path.Combine("resources", "colors", path, "colors.txt");
+            if(!File.Exists(filePath)) {
+                logger.Warn($"The color scheme at '{path}' was not found, falling back to default");
                 filePath = Path.Combine("resources", "colors", "Default", "Classic", "colors.txt");
+            }
+            if(!File.Exists(filePath)) {
+                FileNotFoundException ex = new FileNotFoundException("The default color scheme was not found");
+                logger.Fatal(ex);
+                throw ex;
+            }
             string[] lines = File.ReadAllLines(filePath);
             
             foreach(string line in lines) {
@@ -32,12 +54,16 @@ namespace PPR.GUI {
                 byte[] values = strValues.Length == 3 || strValues.Length == 4 ?
                     strValues.Select(byte.Parse).ToArray() :
                     Array.Empty<byte>();
-                colors[key] = values.Length == 3 || values.Length == 4 ?
-                    new Color(values[0], values[1], values[2], values.Length == 4 ? values[3] : byte.MaxValue) :
-                    colors[value];
+                if(values.Length == 3 || values.Length == 4)
+                    colors[key] = new Color(values[0], values[1], values[2],
+                        values.Length == 4 ? values[3] : byte.MaxValue);
+                else queue[key] = value;
             }
-
-            Game.UpdateSettings();
+        }
+        static void LoadQueue(Dictionary<string, string> queue) {
+            foreach((string key, string value) in queue) {
+                colors[key] = colors[value];
+            }
         }
 
         public static Color GetColor(string key) {
