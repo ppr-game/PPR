@@ -51,9 +51,7 @@ namespace PPR.Rendering {
             fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
 
             this.width = width;
-            windowWidth = width * fontSize.x;
             this.height = height;
-            windowHeight = height * fontSize.y;
             this.frameRate = frameRate;
 
             backgroundColors = new Dictionary<Vector2, Color>(this.width * this.height);
@@ -62,28 +60,16 @@ namespace PPR.Rendering {
 
             _icon = new Image(Path.Combine("resources", "icon.png"));
 
-            window = new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "Press Press Revolution", Styles.Close);
-            window.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
-
-            _bloomRT1 = new RenderTexture((uint)windowWidth, (uint)windowHeight);
-            _bloomRT2 = new RenderTexture((uint)windowWidth, (uint)windowHeight);
-
-            SubscribeWindowEvents();
-
-            if(frameRate < 0) window.SetVerticalSyncEnabled(true);
-            else if(frameRate != 0) window.SetFramerateLimit((uint)frameRate);
-
-            BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")), fontMappingsLines[1], fontSize);
+            BitmapFont font =
+                new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")),
+                    fontMappingsLines[1], fontSize);
             text = new BitmapText(font, new Vector2(width, height)) {
                 backgroundColors = backgroundColors,
                 foregroundColors = foregroundColors,
                 text = displayString
             };
 
-            _textSprite = new Sprite(text.renderTexture.Texture) {
-                Origin = new Vector2f(text.imageWidth / 2f, text.imageHeight / 2f),
-                Position = new Vector2f(windowWidth / 2f, windowHeight / 2f)
-            };
+            SetFullscreen(Settings.Default.fullscreen);
 
             _bloomFirstPass.SetUniform("horizontal", true);
             _bloomSecondPass.SetUniform("horizontal", false);
@@ -107,10 +93,10 @@ namespace PPR.Rendering {
             window.SetKeyRepeatEnabled(false);
         }
         public void SetFullscreen(bool fullscreen = false) {
-            window.Close();
+            if(window != null && window.IsOpen) window.Close();
             if(!fullscreen) {
-                Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.x;
-                Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.y;
+                windowWidth = width * fontSize.x;
+                windowHeight = height * fontSize.y;
             }
             window = fullscreen
                 ? new RenderWindow(VideoMode.FullscreenModes[0], "Press Press Revolution", Styles.Fullscreen)
