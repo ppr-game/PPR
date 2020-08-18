@@ -69,7 +69,7 @@ namespace PPR.Rendering {
                 text = displayString
             };
 
-            SetFullscreen(Settings.Default.fullscreen);
+            SetFullscreen(Settings.Default.fullscreen, false);
 
             _bloomFirstPass.SetUniform("horizontal", true);
             _bloomSecondPass.SetUniform("horizontal", false);
@@ -92,7 +92,7 @@ namespace PPR.Rendering {
             };
             window.SetKeyRepeatEnabled(false);
         }
-        public void SetFullscreen(bool fullscreen = false) {
+        public void SetFullscreen(bool fullscreen = false, bool recreateButtons = true) {
             if(window != null && window.IsOpen) window.Close();
             if(!fullscreen) {
                 windowWidth = width * fontSize.x;
@@ -102,6 +102,7 @@ namespace PPR.Rendering {
                 ? new RenderWindow(VideoMode.FullscreenModes[0], "Press Press Revolution", Styles.Fullscreen)
                 : new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "Press Press Revolution", Styles.Close);
             window.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
+            if(recreateButtons) UI.RecreateButtons();
             SubscribeWindowEvents();
             UpdateWindow();
         }
