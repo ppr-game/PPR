@@ -34,9 +34,12 @@ namespace PPR.Rendering {
         readonly Shader _bloomSecondPass = Shader.FromString(
             File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
             File.ReadAllText(Path.Combine("resources", "bloom_frag.glsl")));
+        readonly Shader _lightenOnly = Shader.FromString(
+            File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
+            File.ReadAllText(Path.Combine("resources", "lighten-only_frag.glsl")));
 
-        RenderTexture _bloomRT;
-        readonly RenderStates _blendModeAddState = new RenderStates(BlendMode.Add);
+        RenderTexture _bloomRT1;
+        RenderTexture _bloomRT2;
 
         public Vector2f mousePositionF = new Vector2f(-1f, -1f);
         public Vector2 mousePosition = new Vector2(-1, -1);
@@ -64,7 +67,8 @@ namespace PPR.Rendering {
             window = new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "Press Press Revolution", Styles.Close);
             window.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
 
-            _bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
+            _bloomRT1 = new RenderTexture((uint)windowWidth, (uint)windowHeight);
+            _bloomRT2 = new RenderTexture((uint)windowWidth, (uint)windowHeight);
 
             SubscribeWindowEvents();
 
@@ -128,7 +132,8 @@ namespace PPR.Rendering {
                 window.Size = new Vector2u((uint)windowWidth, (uint)windowHeight);
                 window.SetView(new View(new Vector2f(windowWidth / 2f, windowHeight / 2f), new Vector2f(windowWidth, windowHeight)));
             }
-            _bloomRT = new RenderTexture((uint)windowWidth, (uint)windowHeight);
+            _bloomRT1 = new RenderTexture((uint)windowWidth, (uint)windowHeight);
+            _bloomRT2 = new RenderTexture((uint)windowWidth, (uint)windowHeight);
             _textSprite = new Sprite(text.renderTexture.Texture) {
                 Origin = new Vector2f(text.imageWidth / 2f, text.imageHeight / 2f),
                 Position = new Vector2f(windowWidth / 2f, windowHeight / 2f)
@@ -164,26 +169,35 @@ namespace PPR.Rendering {
 
             text.RebuildRenderTexture();
 
-            window.Clear();
-
             if(Settings.Default.bloom) {
-                _bloomRT.Clear();
-                _bloomRT.Draw(_textSprite);
-                Sprite sprite = new Sprite(_bloomRT.Texture);
+                _bloomRT1.Clear(ColorScheme.GetColor("background"));
+                _bloomRT1.Draw(_textSprite);
+                //Texture fullscreenText = new Texture(_bloomRT.Texture);
+                
+                _bloomFirstPass.SetUniform("image", _bloomRT1.Texture);
+                _bloomRT2.Clear(ColorScheme.GetColor("background"));
+                _bloomRT2.Draw(new Sprite(_bloomRT1.Texture), new RenderStates(_bloomFirstPass));
 
-                _bloomFirstPass.SetUniform("image", _bloomRT.Texture);
-                _bloomRT.Draw(sprite, new RenderStates(_bloomFirstPass));
-                _bloomRT.Display();
+                _bloomSecondPass.SetUniform("image", _bloomRT2.Texture);
+                _bloomRT1.Clear(ColorScheme.GetColor("background"));
+                _bloomRT1.Draw(new Sprite(_bloomRT2.Texture), new RenderStates(_bloomSecondPass));
+                
+                _bloomRT2.Clear(ColorScheme.GetColor("background"));
+                _bloomRT2.Draw(_textSprite);
+                
+                _bloomRT1.Display();
+                _bloomRT2.Display();
 
-                _bloomSecondPass.SetUniform("image", _bloomRT.Texture);
-                window.Draw(sprite, new RenderStates(_bloomSecondPass));
+                _lightenOnly.SetUniform("imageA", _bloomRT2.Texture);
+                _lightenOnly.SetUniform("imageB", _bloomRT1.Texture);
+                window.Draw(new Sprite(_bloomRT1.Texture), new RenderStates(_lightenOnly));
             }
-
-            window.Draw(_textSprite, _blendModeAddState);
+            else {
+                window.Clear(ColorScheme.GetColor("background"));
+                window.Draw(_textSprite);
+            }
         }
         public enum Alignment { Left, Center, Right }
-
-        
         public void DrawText(Vector2 position, string text, Alignment align = Alignment.Left,
             bool replacingSpaces = false) {
             DrawText(position, text, ColorScheme.GetColor("foreground"), align, replacingSpaces);
