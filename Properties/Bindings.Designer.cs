@@ -238,5 +238,17 @@ namespace PPR.Properties {
                 this["fastScrollDown"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("F11")]
+        public global::PPR.Properties.InputKey fullscreen {
+            get {
+                return ((global::PPR.Properties.InputKey)(this["fullscreen"]));
+            }
+            set {
+                this["fullscreen"] = value;
+            }
+        }
     }
 }

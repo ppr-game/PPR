@@ -576,6 +576,10 @@ namespace PPR.Main {
                     Menu.KeybindsEditor => Menu.Settings,
                     _ => Menu.Main
                 };
+            // Fullscreen
+            if(Bindings.Default.fullscreen.IsPressed(key)) {
+                Settings.Default.fullscreen = !Settings.Default.fullscreen;
+            }
             if(currentMenu != Menu.Game) return;
             if(editing) {
                 char character = GetNoteBinding(key.Code);
