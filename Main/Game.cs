@@ -197,16 +197,16 @@ namespace PPR.Main {
             UI.uppercaseSwitch.selected = Settings.Default.uppercaseNotes;
 
             LevelObject.linesColors = new Color[] {
-                ColorScheme.GetColor("line_1_color"),
-                ColorScheme.GetColor("line_2_color"),
-                ColorScheme.GetColor("line_3_color"),
-                ColorScheme.GetColor("line_4_color")
+                ColorScheme.GetColor("line_1_fg_color"),
+                ColorScheme.GetColor("line_2_fg_color"),
+                ColorScheme.GetColor("line_3_fg_color"),
+                ColorScheme.GetColor("line_4_fg_color")
             };
             LevelObject.linesDarkColors = new Color[] {
-                ColorScheme.GetColor("dark_line_1_color"),
-                ColorScheme.GetColor("dark_line_2_color"),
-                ColorScheme.GetColor("dark_line_3_color"),
-                ColorScheme.GetColor("dark_line_4_color")
+                ColorScheme.GetColor("line_1_bg_color"),
+                ColorScheme.GetColor("line_2_bg_color"),
+                ColorScheme.GetColor("line_3_bg_color"),
+                ColorScheme.GetColor("line_4_bg_color")
             };
             if(Map.currentLevel != null) foreach(LevelObject obj in Map.currentLevel.objects) obj.UpdateColors();
             LevelObject.speedColor = ColorScheme.GetColor("speed");
@@ -812,12 +812,12 @@ namespace PPR.Main {
             accuracy = (int)MathF.Floor(mulSum / sum * 100f);
         }
         public static Color GetAccuracyColor(int accuracy) {
-            return accuracy >= 100 ? ColorScheme.GetColor("perfect_hit") :
-                accuracy >= 70 ? ColorScheme.GetColor("hit") : ColorScheme.GetColor("miss");
+            return accuracy >= 100 ? ColorScheme.GetColor("accuracy_good") :
+                accuracy >= 70 ? ColorScheme.GetColor("accuracy_ok") : ColorScheme.GetColor("accuracy_bad");
         }
         public static Color GetComboColor(int accuracy, int misses) {
-            return accuracy >= 100 ? ColorScheme.GetColor("perfect_hit") :
-                misses <= 0 ? ColorScheme.GetColor("hit") : ColorScheme.GetColor("score");
+            return accuracy >= 100 ? ColorScheme.GetColor("perfect_combo") :
+                misses <= 0 ? ColorScheme.GetColor("full_combo") : ColorScheme.GetColor("combo");
         }
     }
 }

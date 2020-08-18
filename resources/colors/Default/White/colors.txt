@@ -3,14 +3,14 @@
 background=white
 foreground=black
 
-line_1_color=dark_orange
-line_2_color=dark_red
-line_3_color=dark_green
-line_4_color=dark_blue
-dark_line_1_color=light_orange
-dark_line_2_color=light_red
-dark_line_3_color=light_green
-dark_line_4_color=light_blue
+line_1_fg_color=dark_orange
+line_2_fg_color=dark_red
+line_3_fg_color=dark_green
+line_4_fg_color=dark_blue
+line_1_bg_color=light_orange
+line_2_bg_color=light_red
+line_3_bg_color=light_green
+line_4_bg_color=light_blue
 
 button_game.skip_idle=background
 button_game.skip_hover=orange

@@ -26,7 +26,7 @@ namespace PPR.GUI {
         public static int health {
             set {
                 for(int x = 0; x < 80; x++) {
-                    Color color = value > x ? ColorScheme.GetColor("health") : ColorScheme.GetColor("dark_health");
+                    Color color = value > x ? ColorScheme.GetColor("health_bar") : ColorScheme.GetColor("dark_health_bar");
                     if(healthColors[x] != color) {
                         prevHealthColors[x] = healthColors[x];
                         healthAnimTimes[x] = 0f;
@@ -44,7 +44,7 @@ namespace PPR.GUI {
         public static int progress {
             set {
                 for(int x = 0; x < 80; x++) {
-                    Color color = value > x ? ColorScheme.GetColor("progress") : ColorScheme.GetColor("dark_progress");
+                    Color color = value > x ? ColorScheme.GetColor("progress_bar") : ColorScheme.GetColor("dark_progress_bar");
                     if(progressColors[x] != color) {
                         prevProgressColors[x] = progressColors[x];
                         progressAnimTimes[x] = 0f;
@@ -253,7 +253,7 @@ namespace PPR.GUI {
                     Renderer.instance.DrawText(score.scorePosition, score.scoreStr, ColorScheme.GetColor("score"));
                 if(score.accComboPosition.y >= 12 && score.accComboPosition.y <= 49) {
                     Renderer.instance.DrawText(score.accComboPosition, score.accuracyStr, score.accuracyColor);
-                    Renderer.instance.DrawText(score.accComboDividerPosition, "│", ColorScheme.GetColor("score"));
+                    Renderer.instance.DrawText(score.accComboDividerPosition, "│", ColorScheme.GetColor("combo"));
                     Renderer.instance.DrawText(score.maxComboPosition, score.maxComboStr, score.maxComboColor);
                 }
                 if(score.scoresPosition.y >= 12 && score.scoresPosition.y <= 49)
@@ -311,16 +311,16 @@ namespace PPR.GUI {
                         }
                     }
                 }
-                Renderer.instance.DrawText(bpmPos, $"BPM: {Game.currentBPM.ToString()}", ColorScheme.GetColor("bpm_time"));
+                Renderer.instance.DrawText(bpmPos, $"BPM: {Game.currentBPM.ToString()}", ColorScheme.GetColor("bpm"));
                 TimeSpan curTime = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
                 Renderer.instance.DrawText(timePos,
                     $"TIME: {(curTime < TimeSpan.Zero ? "'-'" : "")}{curTime.ToString($"{(curTime.Hours != 0 ? "h':'mm" : "m")}':'ss")}",
-                    ColorScheme.GetColor("bpm_time"));
+                    ColorScheme.GetColor("time"));
                 Renderer.instance.DrawText(offsetPos, $"OFFSET: {Game.roundedOffset.ToString()} ({Game.roundedSteps.ToString()})",
-                    ColorScheme.GetColor("bpm_time"));
+                    ColorScheme.GetColor("offset"));
 
-                Renderer.instance.DrawText(hpDrainPos, $"    HP DRAIN: {Map.currentLevel.metadata.hpDrain.ToString()}", ColorScheme.GetColor("health"));
-                Renderer.instance.DrawText(hpRestoragePos, $"    HP RESTORAGE: {Map.currentLevel.metadata.hpRestorage.ToString()}", ColorScheme.GetColor("health"));
+                Renderer.instance.DrawText(hpDrainPos, $"    HP DRAIN: {Map.currentLevel.metadata.hpDrain.ToString()}", ColorScheme.GetColor("hp_drain"));
+                Renderer.instance.DrawText(hpRestoragePos, $"    HP RESTORAGE: {Map.currentLevel.metadata.hpRestorage.ToString()}", ColorScheme.GetColor("hp_restorage"));
 
                 Renderer.instance.DrawText(musicOffsetPos,
                     $"    MUSIC OFFSET: {Map.currentLevel.metadata.initialOffsetMs.ToString()} MS", ColorScheme.GetColor("music_offset"));
@@ -578,7 +578,7 @@ namespace PPR.GUI {
                 soundsVolumeSlider.alignText = Slider.TextAlignment.Right;
             }
             else {
-                Renderer.instance.DrawText(audioGroupTextPos, "[ AUDIO ]", ColorScheme.GetColor("settings_header"));
+                Renderer.instance.DrawText(audioGroupTextPos, "[ AUDIO ]", ColorScheme.GetColor("settings_header_audio"));
                 musicVolumeSlider.position.x = 4;
                 musicVolumeSlider.position.y = 15;
                 musicVolumeSlider.align = Renderer.Alignment.Left;
@@ -596,7 +596,7 @@ namespace PPR.GUI {
                         UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.Default.audio, audioSwitchPos.x, audioSwitchPos.y, 7);
                     }
 
-                Renderer.instance.DrawText(graphicsGroupTextPos, "[ GRAPHICS ]", ColorScheme.GetColor("settings_header"));
+                Renderer.instance.DrawText(graphicsGroupTextPos, "[ GRAPHICS ]", ColorScheme.GetColor("settings_header_graphics"));
                 if(bloomSwitch.Draw()) Settings.Default.bloom = bloomSwitch.selected = !bloomSwitch.selected;
                 if(fullscreenSwitch.Draw()) Settings.Default.fullscreen = fullscreenSwitch.selected = !fullscreenSwitch.selected;
                 if(uppercaseSwitch.Draw()) Settings.Default.uppercaseNotes = uppercaseSwitch.selected = !uppercaseSwitch.selected;
@@ -615,7 +615,7 @@ namespace PPR.GUI {
                             colorSchemeSwitchPos.y, 13);
                     }
 
-                Renderer.instance.DrawText(advancedGroupTextPos, "[ ADVANCED ]", ColorScheme.GetColor("settings_header"));
+                Renderer.instance.DrawText(advancedGroupTextPos, "[ ADVANCED ]", ColorScheme.GetColor("settings_header_advanced"));
                 if(showFpsSwitch.Draw()) Settings.Default.showFps = showFpsSwitch.selected = !showFpsSwitch.selected;
             }
 

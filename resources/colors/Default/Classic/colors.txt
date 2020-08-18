@@ -46,9 +46,13 @@ light_orange=255,205,158
 background=black
 foreground=white
 
-fps_good=green
-fps_ok=yellow
-fps_bad=red
+good=green
+ok=yellow
+bad=red
+
+fps_good=good
+fps_ok=ok
+fps_bad=bad
 
 back=red
 dark_back=dark_red
@@ -84,17 +88,19 @@ button_mainMenu.music.switch_hover=button_mainMenu.music.pause_hover
 button_mainMenu.music.switch_click=button_mainMenu.music.pause_click
 
 # Game
-progress=white
-dark_progress=darker_gray
+health_bar=red
+dark_health_bar=dark_red
+progress_bar=white
+dark_progress_bar=darker_gray
 
-line_1_color=light_orange
-line_2_color=light_red
-line_3_color=light_green
-line_4_color=light_blue
-dark_line_1_color=dark_orange
-dark_line_2_color=dark_red
-dark_line_3_color=dark_green
-dark_line_4_color=dark_blue
+line_1_fg_color=light_orange
+line_2_fg_color=light_red
+line_3_fg_color=light_green
+line_4_fg_color=light_blue
+line_1_bg_color=dark_orange
+line_2_bg_color=dark_red
+line_3_bg_color=dark_green
+line_4_bg_color=dark_blue
 
 speed=blue
 
@@ -122,15 +128,23 @@ button_levelSelect.back_hover=back
 button_levelSelect.back_click=dark_back
 
 # Statistics
-miss=red
-hit=yellow
-perfect_hit=green
+miss=bad
+hit=ok
+perfect_hit=good
 
 pause=cyan
-pass=green
-fail=red
+pass=good
+fail=bad
 
 score=blue
+
+combo=score
+full_combo=hit
+perfect_combo=perfect_hit
+
+accuracy_bad=miss
+accuracy_ok=hit
+accuracy_good=perfect_hit
 
 stats_level_name=white
 
@@ -156,7 +170,11 @@ button_lastStats.exit_hover=back
 button_lastStats.exit_click=dark_back
 
 # Level editor
-bpm_time=blue
+bpm=blue
+time=bpm
+offset=bpm
+hp_drain=health
+hp_restorage=hp_drain
 music_offset=gray
 dark_music_offset=darker_gray
 
@@ -191,6 +209,9 @@ slider_editor.music.speed_click=dark_settings
 
 # Settings
 settings_header=foreground
+settings_header_audio=settings_header
+settings_header_graphics=settings_header
+settings_header_advanced=settings_header
 
 settings_keybind_name=settings
 settings_keybind_primary=settings
