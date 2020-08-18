@@ -553,18 +553,27 @@ namespace PPR.GUI {
             buttonsList.Clear();
             UpdateFolderSwitchButton(buttonsList, path, baseX, baseY, xOffset);
         }
+
         static void UpdateFolderSwitchButton(IList<Button> buttonsList, string path, int baseX, int baseY, int xOffset) {
-            string[] names = path.Split(Path.DirectorySeparatorChar);
+            while(true) {
+                if(path == null) return;
+                string[] names = path.Split(Path.DirectorySeparatorChar);
 
-            string prevDir = Path.GetDirectoryName(path) ?? string.Empty;
-            Vector2 position =
-                new Vector2(baseX + xOffset + (names.Length > 1 ? 1 : 0) + prevDir.Length, baseY);
-            string text = names[^1];
-            buttonsList.Insert(0, new Button(position, text, "settings.folderButton", text.Length));
+                string prevDir = Path.GetDirectoryName(path) ?? string.Empty;
+                Vector2 position = new Vector2(baseX + xOffset + (names.Length > 1 ? 1 : 0) + prevDir.Length, baseY);
+                string text = names[^1];
+                buttonsList.Insert(0, new Button(position, text, "settings.folderButton", text.Length));
 
-            string nextPath = Path.GetDirectoryName(path);
-            if(nextPath != "") UpdateFolderSwitchButton(buttonsList, nextPath, baseX, baseY, xOffset);
+                string nextPath = Path.GetDirectoryName(path);
+                if(nextPath != "") {
+                    path = nextPath;
+                    continue;
+                }
+
+                break;
+            }
         }
+
         static void DrawSettingsList(bool pauseMenu = false) {
             if(pauseMenu) {
                 musicVolumeSlider.position.x = 78;
