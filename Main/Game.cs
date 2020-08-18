@@ -662,7 +662,7 @@ namespace PPR.Main {
                         if(mousePos.x >= 28 && mousePos.x <= 51) {
                             if(scroll.Delta > 0 && UI.levelSelectLevels.First().position.y >= 12) return;
                             if(scroll.Delta < 0 && UI.levelSelectLevels.Last().position.y <= 49) return;
-                            foreach(Button button in UI.levelSelectLevels) button.position.y += (int)scroll.Delta;
+                            foreach(Button button in UI.levelSelectLevels) button.position += new Vector2(0, (int)scroll.Delta);
                         }
                         else if(mousePos.x >= 1 && mousePos.x <= 26 &&
                                 UI.levelSelectScores[UI.currentLevelSelectIndex] != null &&
@@ -672,12 +672,12 @@ namespace PPR.Main {
                             for(int i = 0; i < UI.levelSelectScores[UI.currentLevelSelectIndex].Count; i++) {
                                 int increment = (int)scroll.Delta;
                                 LevelScore score = UI.levelSelectScores[UI.currentLevelSelectIndex][i];
-                                score.scorePosition.y += increment;
-                                score.accComboPosition.y += increment;
-                                score.accComboDividerPosition.y += increment;
-                                score.maxComboPosition.y += increment;
-                                score.scoresPosition.y += increment;
-                                score.linePosition.y += increment;
+                                score.scorePosition += new Vector2(0, increment);
+                                score.accComboPosition += new Vector2(0, increment);
+                                score.accComboDividerPosition += new Vector2(0, increment);
+                                score.maxComboPosition += new Vector2(0, increment);
+                                score.scoresPosition += new Vector2(0, increment);
+                                score.linePosition += new Vector2(0, increment);
                                 UI.levelSelectScores[UI.currentLevelSelectIndex][i] = score;
                             }
                         }

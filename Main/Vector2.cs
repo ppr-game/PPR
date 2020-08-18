@@ -1,9 +1,9 @@
 ﻿using System;
 
 namespace PPR.Main {
-    public struct Vector2 {
-        public int x;
-        public int y;
+    public readonly struct Vector2 {
+        public readonly int x;
+        public readonly int y;
 
         public Vector2(int x, int y) {
             this.x = x;
@@ -45,7 +45,6 @@ namespace PPR.Main {
                    y == vector.y;
         }
         public override int GetHashCode() {
-            // ReSharper disable NonReadonlyMemberInGetHashCode
             return HashCode.Combine(x, y);
         }
     }

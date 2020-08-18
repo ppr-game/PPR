@@ -413,7 +413,7 @@ namespace PPR.Main.Levels {
         }
         public void Step() {
             if(removed || toDestroy) return;
-            _position.y = _startPosition.y + Game.roundedOffset;
+            _position = new Vector2(_position.x, _startPosition.y + Game.roundedOffset);
             if(Game.editing && Game.music.Status == SoundStatus.Playing && step == (int)Game.steps)
                 PlayHitsound();
         }

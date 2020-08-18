@@ -345,22 +345,18 @@ namespace PPR.GUI {
                     Game.music.PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.skipTime);
             }
         }
-        static Vector2 _healthTempVector = new Vector2(0, 1);
         static void DrawHealth() {
             for(int x = 0; x < 80; x++) {
-                _healthTempVector.x = x;
                 float rate = 3.5f + healthAnimRateOffsets[x];
-                Renderer.instance.SetCellColor(_healthTempVector, ColorScheme.GetColor("transparent"),
+                Renderer.instance.SetCellColor(new Vector2(x, 1), ColorScheme.GetColor("transparent"),
                     Renderer.AnimateColor(healthAnimTimes[x], prevHealthColors[x], healthColors[x], rate));
                 healthAnimTimes[x] += Core.deltaTime;
             }
         }
-        static Vector2 _progressTempVector;
         static void DrawProgress() {
             for(int x = 0; x < 80; x++) {
-                _progressTempVector.x = x;
                 float rate = 3.5f + progressAnimRateOffsets[x];
-                Renderer.instance.SetCellColor(_progressTempVector, ColorScheme.GetColor("transparent"),
+                Renderer.instance.SetCellColor(new Vector2(x, 0), ColorScheme.GetColor("transparent"),
                     Renderer.AnimateColor(progressAnimTimes[x], prevProgressColors[x], progressColors[x], rate));
                 progressAnimTimes[x] += Core.deltaTime;
             }
@@ -576,25 +572,21 @@ namespace PPR.GUI {
 
         static void DrawSettingsList(bool pauseMenu = false) {
             if(pauseMenu) {
-                musicVolumeSlider.position.x = 78;
-                musicVolumeSlider.position.y = 55;
+                musicVolumeSlider.position = new Vector2(78, 55);
                 musicVolumeSlider.align = Renderer.Alignment.Right;
                 musicVolumeSlider.alignText = Slider.TextAlignment.Right;
 
-                soundsVolumeSlider.position.x = 78;
-                soundsVolumeSlider.position.y = 57;
+                soundsVolumeSlider.position = new Vector2(78, 57);
                 soundsVolumeSlider.align = Renderer.Alignment.Right;
                 soundsVolumeSlider.alignText = Slider.TextAlignment.Right;
             }
             else {
                 Renderer.instance.DrawText(audioGroupTextPos, "[ AUDIO ]", ColorScheme.GetColor("settings_header_audio"));
-                musicVolumeSlider.position.x = 4;
-                musicVolumeSlider.position.y = 15;
+                musicVolumeSlider.position = new Vector2(4, 15);
                 musicVolumeSlider.align = Renderer.Alignment.Left;
                 musicVolumeSlider.alignText = Slider.TextAlignment.Left;
 
-                soundsVolumeSlider.position.x = 4;
-                soundsVolumeSlider.position.y = 17;
+                soundsVolumeSlider.position = new Vector2(4, 17);
                 soundsVolumeSlider.align = Renderer.Alignment.Left;
                 soundsVolumeSlider.alignText = Slider.TextAlignment.Left;
 
