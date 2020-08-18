@@ -19,3 +19,6 @@ button_game.skip_click=dark_orange
 button_levelSelect.level_hover=black
 
 stats_level_name=black
+
+guidelines=243,243,243
+light_guidelines=231,231,231

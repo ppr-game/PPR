@@ -178,6 +178,9 @@ hp_restorage=hp_drain
 music_offset=gray
 dark_music_offset=darker_gray
 
+guidelines=8,8,8
+light_guidelines=12,12,12
+
 # Level editor buttons
 button_editor.playPause_idle=background
 button_editor.playPause_hover=green

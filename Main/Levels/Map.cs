@@ -21,10 +21,12 @@ namespace PPR.Main.Levels {
                     if(useY > linePos.y) continue;
                     if(y % currentLevel.metadata.linesFrequency == 0)
                         for(int x = 0; x < 80; x++)
-                            Renderer.instance.SetCellColor(new Vector2(x, useY), ColorScheme.GetColor("foreground"), new Color(6, 6, 6));
+                            Renderer.instance.SetCellColor(new Vector2(x, useY), ColorScheme.GetColor("foreground"),
+                                ColorScheme.GetColor("light_guidelines"));
                     else
                         for(int x = 0; x < 80; x++)
-                            Renderer.instance.SetCellColor(new Vector2(x, useY), ColorScheme.GetColor("foreground"), new Color(4, 4, 4));
+                            Renderer.instance.SetCellColor(new Vector2(x, useY), ColorScheme.GetColor("foreground"),
+                                ColorScheme.GetColor("guidelines"));
                 }
             }
 
