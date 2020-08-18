@@ -34,9 +34,7 @@ namespace PPR.Rendering {
         readonly Shader _bloomSecondPass = Shader.FromString(
             File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
             File.ReadAllText(Path.Combine("resources", "bloom_frag.glsl")));
-        readonly Shader _lightenOnly = Shader.FromString(
-            File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
-            File.ReadAllText(Path.Combine("resources", "lighten-only_frag.glsl")));
+        public Shader bloomBlend;
 
         RenderTexture _bloomRT1;
         RenderTexture _bloomRT2;
@@ -188,9 +186,9 @@ namespace PPR.Rendering {
                 _bloomRT1.Display();
                 _bloomRT2.Display();
 
-                _lightenOnly.SetUniform("imageA", _bloomRT2.Texture);
-                _lightenOnly.SetUniform("imageB", _bloomRT1.Texture);
-                window.Draw(new Sprite(_bloomRT1.Texture), new RenderStates(_lightenOnly));
+                bloomBlend.SetUniform("imageA", _bloomRT2.Texture);
+                bloomBlend.SetUniform("imageB", _bloomRT1.Texture);
+                window.Draw(new Sprite(_bloomRT1.Texture), new RenderStates(bloomBlend));
             }
             else {
                 window.Clear(ColorScheme.GetColor("background"));

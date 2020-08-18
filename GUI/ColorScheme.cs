@@ -19,6 +19,21 @@ namespace PPR.GUI {
         static readonly Dictionary<string, Color> colors = new Dictionary<string, Color>();
         public static void Reload() {
             colors.Clear();
+
+            string bloomBlendShaderPath = Path.Combine("resources", "colors", Settings.Default.colorScheme,
+                "bloom-blend_frag.glsl");
+            if(!File.Exists(bloomBlendShaderPath))
+                bloomBlendShaderPath = Path.Combine("resources", "colors", "Default", "Classic",
+                    "bloom-blend_frag.glsl");
+            if(!File.Exists(bloomBlendShaderPath)) {
+                FileNotFoundException ex =
+                    new FileNotFoundException("The default color scheme bloom blend shader was not found");
+                logger.Fatal(ex);
+                throw ex;
+            }
+            Core.renderer.bloomBlend = Shader.FromString(
+                File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
+                File.ReadAllText(bloomBlendShaderPath));
             
             Dictionary<string, string> queue = new Dictionary<string, string>();
             
