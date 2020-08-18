@@ -77,10 +77,44 @@ Now you can begin creating your level
 
 - `Up/down arrows` - increase/decrease the speed by 10 BPM (`+ Shift` - 1 BPM) (`+ Alt` - increase/decrease the guide lines spacing (doesn't work wth????))
 
-#### _In case you want to use the keybord instead of the UI buttons_
+#### *In case you want to use the keyboard instead of the UI buttons*
 - `Left/right arrows` - decrease/increase the health drain *(the value which will be subtracted from the **health** on **misses**)* (`+ Shift` - restorage (the opposite of drain))
 
 - `F1/F2` - increase/decrease the initial music offset by 1 ms (`+ Shift` - 10 ms)
+
+### Creator guidelines
+Note: These are just guidelines and you don't _have_ to follow them but it's recommended
+
+#### Use multiplications of the current BPM
+For example, if the *perfect* BPM at the current place is 120, then make it 240, 360, 480 etc.
+to make this place fit the speed of the song and (sometimes) make it easier to read
+
+#### Use the keyboard "lines" for (at least obviously) different parts and keys/"positions" for the current note
+##### Lines
+
+For example, if the current part of the song/level is going on the ASDF line and then the instrument changes, 
+the line should change too (for example too QWER)
+
+There are 4 lines in total you can use (1234, QWER, ASDF and ZXCV)
+
+##### Notes
+
+Use the keyboard keys to show the *relation* of the current note to the next note, 
+a specific key doesn't always have to be one exact note
+
+That means that if the next note is higher than the current note, then put the next in-game note one key to the right 
+(for example if the current note is 'g', then the next note will be 'h')
+
+Or if the next note is higher than just higher than the current note, place the in-game note two or three or how much 
+keys you think it's relevant in the current situation
+
+Same goes for lower notes but place them to the left
+
+#### Leave some space before putting the first note
+Give the players time to prepare and see what they need to press, usually about 1-3 seconds is enough
+
+If the song starts right away you can start the map at the next part of the song or the next after that or 
+where you think it's relevant
 
 ## Custom fonts
 ### How to install custom fonts
@@ -104,7 +138,9 @@ Unpack the font folder in `game's folder/resources/colors`
 Open the game and go to `Settings -> Graphics -> Colors`, click the buttons on the right to choose the color scheme
 
 ### How to create custom color schemes
-The same as fonts but there's only one file in a folder (`colors.txt`), you can copy one of the default color schemes and use it as a template
+The same as fonts but there's only one file in a folder (`colors.txt`), you can look for the default color schemes for an example
+
+(`# some text` is a comment and is ignored by the game)
 
 ## Custom sounds
 ### How to install custom sounds
