@@ -3,6 +3,8 @@
 background=white
 foreground=black
 
+menus_anim_max=231,231,231
+
 line_1_fg_color=dark_orange
 line_2_fg_color=dark_red
 line_3_fg_color=dark_green

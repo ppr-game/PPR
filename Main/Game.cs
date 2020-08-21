@@ -20,6 +20,8 @@ using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
+using LoadingFailedException = SFML.LoadingFailedException;
+
 namespace PPR.Main {
     public enum StatsState { Pause, Fail, Pass }
     public enum Menu { Main, LevelSelect, Settings, KeybindsEditor, LastStats, Game }
@@ -130,13 +132,26 @@ namespace PPR.Main {
         static float _currentSpeedSec = 60f;
         static float _absoluteCurrentSpeedSec = 60f;
         static readonly Random random = new Random();
-        public static string currentMusicPath;
+        static string _currentMusicPath;
+        public static string currentMusicPath {
+            get => _currentMusicPath;
+            set {
+                _currentMusicPath = value;
+                if(currentMusicName == "Waterflame - Cove") return;
+                string[] menusAnimLines =
+                    File.ReadAllLines(Path.Combine(Path.GetDirectoryName(value)!, "level.txt"));
+                menusAnimInitialOffset = GetInitialOffset(menusAnimLines);
+                menusAnimSpeeds = GetSpeeds(menusAnimLines);
+            }
+        }
         public static string currentMusicName {
             get {
                 string name = Path.GetFileNameWithoutExtension(Path.GetDirectoryName(currentMusicPath));
                 return name == "Default" || name == Settings.Default.audio ? "Waterflame - Cove" : name;
             }
         }
+        public static int menusAnimInitialOffset = 0;
+        public static List<LevelSpeed> menusAnimSpeeds;
         public static Music music;
         public static Sound hitSound;
         public static Sound tickSound;
@@ -179,7 +194,7 @@ namespace PPR.Main {
                 currentMusicPath = GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "mainMenu"));
                 music = new Music(currentMusicPath);
             }
-            catch(SFML.LoadingFailedException) {
+            catch(LoadingFailedException) {
                 currentMusicPath = GetSoundFilePath(Path.Combine("resources", "audio", "Default", "mainMenu"));
                 music = new Music(currentMusicPath);
             }
@@ -399,7 +414,18 @@ namespace PPR.Main {
         }
         public void Update() {
             if(currentMenu == Menu.Main && music.Status == SoundStatus.Stopped) SwitchMusic();
-            if(currentMenu != Menu.Game) return;
+            if(currentMenu != Menu.Game) {
+                if(Path.GetFileNameWithoutExtension(Path.GetDirectoryName(currentMusicPath)) == "Default" ||
+                   music.Status != SoundStatus.Playing)
+                    UI.menusAnimBPM = 60;
+                else {
+                    int step = (int)MillisecondsToSteps(music.PlayingOffset.AsMilliseconds() - menusAnimInitialOffset,
+                        menusAnimSpeeds);
+                    UI.menusAnimBPM = Math.Abs(GetBPMAtStep(step, menusAnimSpeeds));
+                }
+
+                return;
+            }
 
             // If we're in the editor, update logic every frame
             // instead of using a fixed time step to remove bugs that happen when scrolling
@@ -648,11 +674,11 @@ namespace PPR.Main {
 
         static bool CheckLine(int step) {
             List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != LevelObject.SPEED_CHAR &&
-                        obj.character != LevelObject.HOLD_CHAR &&
-                        !obj.removed &&
-                        !obj.toDestroy &&
-                        !obj.ignore &&
-                        obj.step == step);
+                                                                                obj.character != LevelObject.HOLD_CHAR &&
+                                                                                !obj.removed &&
+                                                                                !obj.toDestroy &&
+                                                                                !obj.ignore &&
+                                                                                obj.step == step);
             foreach(LevelObject obj in objects) {
                 obj.CheckPress();
                 if(obj.removed || obj.toDestroy) return true;
@@ -726,7 +752,7 @@ namespace PPR.Main {
 
             int speedIndex = 0;
             for(int i = 0; i < sortedSpeeds.Count; i++)
-                if(StepsToMilliseconds(sortedSpeeds[i].step) <= useTime) speedIndex = i;
+                if(StepsToMilliseconds(sortedSpeeds[i].step, sortedSpeeds) <= useTime) speedIndex = i;
                 else break;
             float steps = 0;
             for(int i = 0; i <= speedIndex; i++)
@@ -777,6 +803,26 @@ namespace PPR.Main {
         }
         public static bool StepPassedLine(int step, int lineOffset = 0) {
             return roundedSteps >= step + lineOffset;
+        }
+
+        public static int GetBPMAtStep(int step, IEnumerable<LevelSpeed> sortedSpeeds) {
+            int bpm = 0;
+            foreach(LevelSpeed speed in sortedSpeeds)
+                if(speed.step <= step) bpm = speed.speed;
+                else break;
+            return bpm;
+        }
+
+        static int GetInitialOffset(IReadOnlyList<string> lines) {
+            string[] meta = lines[4].Split(':');
+            return meta.Length > 5 ? int.Parse(meta[5]) : 0;
+        }
+        static List<LevelSpeed> GetSpeeds(IReadOnlyList<string> lines) {
+            int[] speeds = lines[2].Length > 0 ? lines[2].Split(':').Select(int.Parse).ToArray() : new int[0];
+            int[] speedsStarts = lines[3].Length > 0 ? lines[3].Split(':').Select(int.Parse).ToArray() : new int[0];
+            List<LevelSpeed> levelSpeeds = speedsStarts.Select((step, i) => new LevelSpeed(speeds[i], step)).ToList();
+            levelSpeeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
+            return levelSpeeds;
         }
 
         static void GenerateLevelList() {

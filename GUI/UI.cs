@@ -18,6 +18,9 @@ using SFML.System;
 namespace PPR.GUI {
     public static class UI {
         public static int fps = 0;
+        
+        static readonly Random random = new Random();
+        static readonly Perlin perlin = new Perlin();
 
         static readonly Color[] prevHealthColors = new Color[80];
         static readonly Color[] healthColors = new Color[80];
@@ -30,7 +33,7 @@ namespace PPR.GUI {
                     if(healthColors[x] != color) {
                         prevHealthColors[x] = healthColors[x];
                         healthAnimTimes[x] = 0f;
-                        healthAnimRateOffsets[x] = new Random().NextFloat(-3f, 3f);
+                        healthAnimRateOffsets[x] = random.NextFloat(-3f, 3f);
                     }
                     healthColors[x] = color;
                 }
@@ -48,7 +51,7 @@ namespace PPR.GUI {
                     if(progressColors[x] != color) {
                         prevProgressColors[x] = progressColors[x];
                         progressAnimTimes[x] = 0f;
-                        progressAnimRateOffsets[x] = new Random().NextFloat(-3f, 3f);
+                        progressAnimRateOffsets[x] = random.NextFloat(-3f, 3f);
                     }
                     progressColors[x] = color;
                 }
@@ -152,7 +155,28 @@ namespace PPR.GUI {
 
             if(_switchMusicButton.Draw()) Game.SwitchMusic();
         }
+        static float _menusAnimTime;
+        public static int menusAnimBPM = 120;
+        static void DrawMenusAnim() {
+            for(int x = -3; x < Core.renderer.width + 3; x++) {
+                for(int y = -3; y < Core.renderer.height + 3; y++) {
+                    if(x % 3 != 0 || y % 3 != 0) continue;
+                    float noiseX = (float)perlin.Get(x / 10f, y / 10f, _menusAnimTime / 2f) - 0.5f;
+                    float noiseY = (float)perlin.Get(x / 10f, y / 10f, _menusAnimTime / 2f + 100f) - 0.5f;
+                    float noise = MathF.Abs(noiseX * noiseY);
+                    int xOffset = (int)((Core.renderer.mousePositionF.X / Core.renderer.width - 0.5f) * noise * -100f);
+                    int yOffset = (int)((Core.renderer.mousePositionF.Y / Core.renderer.width - 0.5f) * noise * -100f);
+                    Color useColor = Renderer.LerpColors( ColorScheme.GetColor("background"),
+                        ColorScheme.GetColor("menus_anim_max"), noise * 30f);
+                    Core.renderer.SetCellColor(
+                        new Vector2(x + (int)(noiseX * 10f) + xOffset, y + (int)(noiseY * 10f) + yOffset),
+                        ColorScheme.GetColor("foreground"), useColor);
+                }
+            }
+            _menusAnimTime += Core.deltaTime * menusAnimBPM / 60f;
+        }
         static void DrawMainMenu() {
+            DrawMenusAnim();
             Core.renderer.DrawText(zero, mainMenuText);
             Core.renderer.DrawText(new Vector2(1, 1), $"v{Core.version}");
             DrawNowPlaying(true);
@@ -175,6 +199,7 @@ namespace PPR.GUI {
         }
         public static readonly Vector2 scoresPos = new Vector2(1, 12);
         static void DrawLevelSelect() {
+            DrawMenusAnim();
             Renderer.instance.DrawText(zero, levelSelectText);
             for(int i = 0; i < levelSelectLevels.Count; i++) {
                 Button button = levelSelectLevels[i];
@@ -444,6 +469,7 @@ namespace PPR.GUI {
         static readonly Vector2 lastScoresPos = new Vector2(25, 16);
         static readonly Vector2 lastMaxComboPos = new Vector2(2, 20);
         static void DrawLastStats() {
+            DrawMenusAnim();
             Renderer.instance.DrawText(zero, lastStatsText);
             string text = "PAUSE";
             Color color = ColorScheme.GetColor("pause");
@@ -636,11 +662,13 @@ namespace PPR.GUI {
         }
         static Button _keybindsButton;
         static void DrawSettings() {
+            DrawMenusAnim();
             Renderer.instance.DrawText(zero, settingsText);
             DrawSettingsList();
             if(_keybindsButton.Draw()) Game.currentMenu = Menu.KeybindsEditor;
         }
         static void DrawKeybindsEditor() {
+            DrawMenusAnim();
             Renderer.instance.DrawText(zero, keybindsEditorText);
 
             IEnumerator enumerator = Bindings.Default.PropertyValues.GetEnumerator();

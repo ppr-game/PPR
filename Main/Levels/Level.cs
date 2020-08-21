@@ -127,7 +127,7 @@ namespace PPR.Main.Levels {
             diffFactors.Add(timeDifferences.Count == 0 ? 0 : 1f / ((timeDifferences.Average() + timeDifferences.Min()) / 2f));
 
             List<float> timeFrames = (from obj in sortedObjects
-                                      select Math.Abs(GetBPMAtStep(obj.step, sortedSpeeds)) into bpm
+                                      select Math.Abs(Game.GetBPMAtStep(obj.step, sortedSpeeds)) into bpm
                                       select 60f / bpm * ((int)(bpm / 600f) * 2 + 1)).ToList();
             diffFactors.Add(timeFrames.Count == 0 ? 0 : 1f / ((timeFrames.Average() + timeFrames.Min()) / 2f));
 
@@ -140,13 +140,6 @@ namespace PPR.Main.Levels {
             diffFactors.Add(keyDistances.Count == 0 ? 0 : (keyDistances.Average() + keyDistances.Max()) / 16f);
 
             return (int)diffFactors.Average();
-        }
-        static int GetBPMAtStep(int step, IEnumerable<LevelSpeed> sortedSpeeds) {
-            int bpm = 0;
-            foreach(LevelSpeed speed in sortedSpeeds)
-                if(speed.step <= step) bpm = speed.speed;
-                else break;
-            return bpm;
         }
         public LevelMetadata(IReadOnlyList<string> lines, string name) : this(name, lines[4].Split(':'),
             lines[0].ToList().FindAll(obj => obj != LevelObject.HOLD_CHAR).Count, lines[0].ToList(),
