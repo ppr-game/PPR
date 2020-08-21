@@ -591,17 +591,17 @@ namespace PPR.Main {
                         foreach(LevelObject obj in objects) obj.toDestroy = true;
                     }
 
-                    // Speed
-                    else if(Bindings.Default.speedUpSlow.IsPressed(key)) ChangeSpeed(1);
-                    else if(Bindings.Default.speedDownSlow.IsPressed(key)) ChangeSpeed(-1);
-                    else if(Bindings.Default.speedUp.IsPressed(key)) ChangeSpeed(10);
-                    else if(Bindings.Default.speedDown.IsPressed(key)) ChangeSpeed(-10);
-
                     // Lines
                     else if(Bindings.Default.linesFrequencyUp.IsPressed(key))
                         Map.currentLevel.metadata.linesFrequency++;
                     else if(Bindings.Default.linesFrequencyDown.IsPressed(key))
                         Map.currentLevel.metadata.linesFrequency--;
+
+                    // Speed
+                    else if(Bindings.Default.speedUpSlow.IsPressed(key)) ChangeSpeed(1);
+                    else if(Bindings.Default.speedDownSlow.IsPressed(key)) ChangeSpeed(-1);
+                    else if(Bindings.Default.speedUp.IsPressed(key)) ChangeSpeed(10);
+                    else if(Bindings.Default.speedDown.IsPressed(key)) ChangeSpeed(-10);
 
                     // HP Drain/Restorage
                     else if(Bindings.Default.hpRestorageUp.IsPressed(key))

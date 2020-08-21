@@ -75,7 +75,7 @@ Now you can begin creating your level
 
 - `Backspace` - remove all the notes at the current time (on the line)
 
-- `Up/down arrows` - increase/decrease the speed by 10 BPM (`+ Shift` - 1 BPM) (`+ Alt` - increase/decrease the guide lines spacing (doesn't work wth????))
+- `Up/down arrows` - increase/decrease the speed by 10 BPM (`+ Shift` - 1 BPM) (`+ Alt` - increase/decrease the guide lines spacing)
 
 #### *In case you want to use the keyboard instead of the UI buttons*
 - `Left/right arrows` - decrease/increase the health drain *(the value which will be subtracted from the **health** on **misses**)* (`+ Shift` - restorage (the opposite of drain))

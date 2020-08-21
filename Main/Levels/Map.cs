@@ -13,17 +13,18 @@ namespace PPR.Main.Levels {
         public static void Draw() {
             if(Game.currentMenu != Menu.Game) return;
 
-            Renderer.instance.DrawText(linePos, "────────────────────────────────────────────────────────────────────────────────");
+            Renderer.instance.DrawText(linePos,
+                "────────────────────────────────────────────────────────────────────────────────");
             if(Game.editing) {
                 int doubleFrequency = currentLevel.metadata.linesFrequency * 2;
-                for(int y = -linePos.y / 2; y < linePos.y / 2 + 30 + currentLevel.metadata.linesFrequency; y++) {
-                    int useY = y * 2 + Game.roundedOffset % doubleFrequency - doubleFrequency + linePos.y + 2;
+                for(int y = -linePos.y; y < 30 + currentLevel.metadata.linesFrequency; y++) {
+                    int useY = y + Game.roundedOffset % doubleFrequency - doubleFrequency + linePos.y;
                     if(useY > linePos.y) continue;
                     if(y % currentLevel.metadata.linesFrequency == 0)
                         for(int x = 0; x < 80; x++)
                             Renderer.instance.SetCellColor(new Vector2(x, useY), ColorScheme.GetColor("foreground"),
                                 ColorScheme.GetColor("light_guidelines"));
-                    else
+                    else if(y % 2 == 0)
                         for(int x = 0; x < 80; x++)
                             Renderer.instance.SetCellColor(new Vector2(x, useY), ColorScheme.GetColor("foreground"),
                                 ColorScheme.GetColor("guidelines"));
