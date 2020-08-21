@@ -324,9 +324,11 @@ namespace PPR.Main {
         public static void LostFocus(object caller, EventArgs args) {
             if(currentMenu == Menu.Game) currentMenu = Menu.LastStats;
             music.Volume = 0;
+            Core.renderer.frameRate = 30;
         }
         public static void GainedFocus(object caller, EventArgs args) {
             music.Volume = Settings.Default.musicVolume;
+            Core.renderer.frameRate = 0;
         }
         public static void GameStart(string musicPath) {
             // Reset everything when we enter the level or bad things will happen

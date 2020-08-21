@@ -23,7 +23,15 @@ namespace PPR.Rendering {
         public int windowWidth;
         public readonly int height;
         public int windowHeight;
-        public int frameRate;
+        int _frameRate;
+        public int frameRate {
+            get => _frameRate;
+            set {
+                _frameRate = value;
+                if(value < 0) window.SetVerticalSyncEnabled(true);
+                else window.SetFramerateLimit((uint)value);
+            }
+        }
         public BitmapText text;
         Sprite _textSprite;
         readonly Image _icon;
@@ -52,7 +60,6 @@ namespace PPR.Rendering {
 
             this.width = width;
             this.height = height;
-            this.frameRate = frameRate;
 
             backgroundColors = new Dictionary<Vector2, Color>(this.width * this.height);
             foregroundColors = new Dictionary<Vector2, Color>(this.width * this.height);
@@ -70,6 +77,8 @@ namespace PPR.Rendering {
             };
 
             SetFullscreen(Settings.Default.fullscreen, false);
+            
+            this.frameRate = frameRate;
 
             _bloomFirstPass.SetUniform("horizontal", true);
             _bloomSecondPass.SetUniform("horizontal", false);
@@ -124,8 +133,7 @@ namespace PPR.Rendering {
                 Position = new Vector2f(windowWidth / 2f, windowHeight / 2f)
             };
 
-            if(frameRate < 0) window.SetVerticalSyncEnabled(true);
-            else if(frameRate != 0) window.SetFramerateLimit((uint)frameRate);
+            frameRate = frameRate;
         }
 
         void ClearText() {
