@@ -128,9 +128,7 @@ namespace PPR.Main.Levels {
 
             List<float> timeFrames = (from obj in sortedObjects
                                       select Math.Abs(GetBPMAtStep(obj.step, sortedSpeeds)) into bpm
-                                      let rangeModifier = (int)(bpm / 600f / 1.5f) + 1
-                                      select bpm / rangeModifier into feelBpm
-                                      select 60f / feelBpm).ToList();
+                                      select 60f / bpm * ((int)(bpm / 600f) * 2 + 1)).ToList();
             diffFactors.Add(timeFrames.Count == 0 ? 0 : 1f / ((timeFrames.Average() + timeFrames.Min()) / 2f));
 
             List<float> keyDistances = new List<float>();
