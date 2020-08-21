@@ -424,15 +424,16 @@ namespace PPR.GUI {
                 ColorScheme.GetColor("background"),
                 ColorScheme.GetColor("perfect_hit"));
         }
-        static void DrawLevelName(Vector2 position, Color color) {
+        static void DrawLevelName(Vector2 position, Color color, bool invertOnDarkBG = true) {
             Renderer.instance.DrawText(position,
-                $"{Map.currentLevel.metadata.name} : {Map.currentLevel.metadata.author}", color);
+                $"{Map.currentLevel.metadata.name} : {Map.currentLevel.metadata.author}", color,
+                Renderer.Alignment.Left, false, invertOnDarkBG);
         }
         static void DrawMusicTime(Vector2 position, Color color) {
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
             string at = $"{(timeSpan < TimeSpan.Zero ? "-" : "")}{timeSpan.ToString($"{(timeSpan.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
             Core.renderer.DrawText(position, $"{at}/{Map.currentLevel.metadata.length}", color,
-                Renderer.Alignment.Right);
+                Renderer.Alignment.Right, false, true);
         }
         static readonly Vector2 passFailText = new Vector2(40, 5);
         static readonly Vector2 lastLevelPos = new Vector2(2, 13);
@@ -455,7 +456,7 @@ namespace PPR.GUI {
                 }
             }
             Renderer.instance.DrawText(passFailText, text, color, Renderer.Alignment.Center);
-            DrawLevelName(lastLevelPos, ColorScheme.GetColor("stats_level_name"));
+            DrawLevelName(lastLevelPos, ColorScheme.GetColor("stats_level_name"), false);
             if(!Game.editing) {
                 DrawScore(lastScorePos, ColorScheme.GetColor("score"));
                 DrawAccuracy(lastAccPos);

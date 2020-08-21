@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 
 using PPR.GUI;
@@ -192,20 +193,31 @@ namespace PPR.Rendering {
         }
         public enum Alignment { Left, Center, Right }
         public void DrawText(Vector2 position, string text, Alignment align = Alignment.Left,
-            bool replacingSpaces = false) {
-            DrawText(position, text, ColorScheme.GetColor("foreground"), align, replacingSpaces);
+            bool replacingSpaces = false, bool invertOnDarkBG = false) {
+            DrawText(position, text, ColorScheme.GetColor("foreground"), align, replacingSpaces, invertOnDarkBG);
         }
         public void DrawText(Vector2 position, string text, Color color, Alignment align = Alignment.Left,
-            bool replacingSpaces = false) {
-            DrawText(position, text, color, ColorScheme.GetColor("transparent"), align, replacingSpaces);
+            bool replacingSpaces = false, bool invertOnDarkBG = false) {
+            DrawText(position, text, color, ColorScheme.GetColor("transparent"), align, replacingSpaces,
+                invertOnDarkBG);
         }
         public void DrawText(Vector2 position, string text, Color foregroundColor, Color backgroundColor, Alignment align = Alignment.Left,
-            bool replacingSpaces = false) {
+            bool replacingSpaces = false, bool invertOnDarkBG = false) {
             switch(text.Length) {
                 case 0: return; // Don't do anything, if the text is empty
                 case 1: {
                     if(!replacingSpaces && text[0] == ' ') return;
-                    SetCharacter(position, text[0], foregroundColor, backgroundColor);
+                    Color useFG = foregroundColor;
+                    if(invertOnDarkBG) {
+                        Color useBGColor = backgroundColor.A == 0 ? GetBackgroundColor(position) : backgroundColor;
+                        float luma = 0.299f * useBGColor.R +
+                                     0.587f * useBGColor.G +
+                                     0.114f * useBGColor.B;
+                        if(luma < 127.5f) useFG = new Color(255, 255, 255, foregroundColor.A) -
+                                                  new Color(foregroundColor.R, foregroundColor.G,
+                                                      foregroundColor.B, 0);
+                    }
+                    SetCharacter(position, text[0], useFG, backgroundColor);
                     return;
                 }
             }
@@ -229,7 +241,18 @@ namespace PPR.Rendering {
                     x++;
                     continue;
                 }
-                SetCharacter(new Vector2(posX + x, position.y + y), curChar, foregroundColor, backgroundColor);
+                Vector2 charPos = new Vector2(posX + x, position.y + y);
+                Color useFG = foregroundColor;
+                if(invertOnDarkBG) {
+                    Color useBGColor = backgroundColor.A == 0 ? GetBackgroundColor(charPos) : backgroundColor;
+                    float luma = 0.299f * useBGColor.R +
+                                 0.587f * useBGColor.G +
+                                 0.114f * useBGColor.B;
+                    if(luma < 127.5f) useFG = new Color(255, 255, 255, foregroundColor.A) -
+                                              new Color(foregroundColor.R, foregroundColor.G,
+                                                  foregroundColor.B, 0);
+                }
+                SetCharacter(charPos, curChar, useFG, backgroundColor);
                 x++;
             }
         }
@@ -256,6 +279,11 @@ namespace PPR.Rendering {
 
             if(foregroundColor == ColorScheme.GetColor("foreground")) _ = foregroundColors.Remove(position);
             else foregroundColors[position] = foregroundColor;
+        }
+        public Color GetBackgroundColor(Vector2 position) {
+            if(!position.InBounds(0, 0, width - 1, height - 1) || !backgroundColors.ContainsKey(position))
+                return ColorScheme.GetColor("background");
+            return backgroundColors[position];
         }
         public static Color LerpColors(Color a, Color b, float t) {
             return t <= 0f ? a : t >= 1f ? b :
