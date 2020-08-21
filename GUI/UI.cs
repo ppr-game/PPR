@@ -366,17 +366,19 @@ namespace PPR.GUI {
         static int _scoreChange;
         public static int prevScore;
         static float _newScoreAnimationTime;
+        static float _scoreAnimationRate = 2f;
         static void DrawScore(Vector2 position, Color color) {
             string scoreStr = $"SCORE: {Game.score.ToString()}";
             Renderer.instance.DrawText(position, scoreStr, color);
             if(prevScore != Game.score) {
-                if(_newScoreAnimationTime >= 1f) _scoreChange = 0;
+                if(_newScoreAnimationTime >= 1f / _scoreAnimationRate) _scoreChange = 0;
                 _newScoreAnimationTime = 0f;
                 _scoreChange += Game.score - prevScore;
             }
             Renderer.instance.DrawText(new Vector2(position.x + scoreStr.Length + 2, position.y),
                 $"+{_scoreChange.ToString()}",
-                Renderer.AnimateColor(_newScoreAnimationTime, color, ColorScheme.GetColor("transparent"), 2f));
+                Renderer.AnimateColor(_newScoreAnimationTime, color, ColorScheme.GetColor("transparent"),
+                    _scoreAnimationRate));
             _newScoreAnimationTime += Core.deltaTime;
 
             prevScore = Game.score;
