@@ -105,6 +105,7 @@ line_4_bg_color=dark_blue
 speed=blue
 
 game_level_name=black
+game_music_time=black
 
 button_game.skip_idle=background
 button_game.skip_hover=orange

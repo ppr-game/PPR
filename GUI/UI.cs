@@ -264,6 +264,7 @@ namespace PPR.GUI {
         }
 
         static readonly Vector2 levelNamePos = new Vector2(0, 0);
+        static readonly Vector2 musicTimePos = new Vector2(79, 0);
         static readonly Vector2 scorePos = new Vector2(0, 57);
         static readonly Vector2 accPos = new Vector2(0, 58);
         static readonly Vector2 comboPos = new Vector2(0, 59);
@@ -338,6 +339,7 @@ namespace PPR.GUI {
                 DrawCombo(comboPos);
                 DrawMiniScores(miniScoresPos, Game.scores);
                 DrawLevelName(levelNamePos, ColorScheme.GetColor("game_level_name"));
+                DrawMusicTime(musicTimePos, ColorScheme.GetColor("game_music_time"));
                 LevelMetadata metadata = Map.currentLevel.metadata;
 
                 if(metadata.skippable &&
@@ -425,6 +427,12 @@ namespace PPR.GUI {
         static void DrawLevelName(Vector2 position, Color color) {
             Renderer.instance.DrawText(position,
                 $"{Map.currentLevel.metadata.name} : {Map.currentLevel.metadata.author}", color);
+        }
+        static void DrawMusicTime(Vector2 position, Color color) {
+            TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
+            string at = $"{(timeSpan < TimeSpan.Zero ? "-" : "")}{timeSpan.ToString($"{(timeSpan.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
+            Core.renderer.DrawText(position, $"{at}/{Map.currentLevel.metadata.length}", color,
+                Renderer.Alignment.Right);
         }
         static readonly Vector2 passFailText = new Vector2(40, 5);
         static readonly Vector2 lastLevelPos = new Vector2(2, 13);
