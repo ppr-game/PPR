@@ -232,10 +232,12 @@ namespace PPR.Rendering {
             int x = 0;
             int y = 0;
             foreach(char curChar in text) {
-                if(curChar == '\n') {
-                    x = 0;
-                    y++;
-                    continue;
+                switch(curChar) {
+                    case '\n':
+                        x = 0;
+                        y++;
+                        continue;
+                    case '\r': continue;
                 }
                 if(!replacingSpaces && curChar == ' ') {
                     x++;
