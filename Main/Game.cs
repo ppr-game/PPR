@@ -414,6 +414,14 @@ namespace PPR.Main {
 
             logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
         }
+        public static void ClearAllCustomScriptEvents() {
+            Core.game.ClearCustomScriptEvents();
+            Map.ClearCustomScriptEvents();
+        }
+        void ClearCustomScriptEvents() {
+            onTick = null;
+            onUpdate = null;
+        }
         public static void SwitchMusic() {
             string newPath = currentMusicPath;
             string[] paths = Directory.GetDirectories("levels")

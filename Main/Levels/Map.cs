@@ -39,6 +39,9 @@ namespace PPR.Main.Levels {
             
             onDraw?.Invoke(null, EventArgs.Empty);
         }
+        public static void ClearCustomScriptEvents() {
+            onDraw = null;
+        }
 
         static void DestroyToDestroy() {
             int destroyIndex = 0;

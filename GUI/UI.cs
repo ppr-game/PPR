@@ -528,6 +528,7 @@ namespace PPR.GUI {
                                 Game.currentMenu = Menu.LevelSelect;
                                 Game.music.Pitch = 1f;
                                 _musicSpeedSlider.value = 100;
+                                Game.ClearAllCustomScriptEvents();
                             }
                         break;
                     }
