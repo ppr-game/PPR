@@ -498,6 +498,7 @@ namespace PPR.Main {
                 if(music.Status != SoundStatus.Playing) steps = MathF.Round(steps);
                 _offset = StepsToOffset(steps);
             }
+            _prevPlayingOffset = _interpolatedPlayingOffset;
 
             //if(steps - prevSteps > 1f) logger.Warn("Lag detected: steps increased too quickly ({0})", steps - prevSteps);
 
@@ -506,6 +507,7 @@ namespace PPR.Main {
                 roundedOffset = (int)MathF.Round(_offset);
                 RecalculatePosition();
             }
+            _prevSteps = steps;
 
             if(editing) {
                 float initialOffset = Map.currentLevel.metadata.initialOffsetMs / 1000f;
@@ -527,8 +529,6 @@ namespace PPR.Main {
 
             onTick?.Invoke(this, EventArgs.Empty);
 
-            _prevPlayingOffset = _interpolatedPlayingOffset;
-            _prevSteps = steps;
             if(statsState != StatsState.Pause) currentMenu = Menu.LastStats;
         }
         public static void UpdateTime() {
