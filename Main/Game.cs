@@ -77,7 +77,7 @@ namespace PPR.Main {
                 if((value == Menu.Main || value == Menu.LevelSelect) && music.Status == SoundStatus.Paused) music.Play();
                 if(value == Menu.LevelSelect) {
                     GenerateLevelList();
-                    string name = Path.GetFileNameWithoutExtension(Path.GetDirectoryName(currentMusicPath));
+                    string name = Path.GetFileName(Path.GetDirectoryName(currentMusicPath));
                     if(name == "Default" || name == Settings.Default.audio) SwitchMusic();
                 }
                 _currentMenu = value;
@@ -151,7 +151,7 @@ namespace PPR.Main {
         }
         public static string currentMusicName {
             get {
-                string name = Path.GetFileNameWithoutExtension(Path.GetDirectoryName(currentMusicPath));
+                string name = Path.GetFileName(Path.GetDirectoryName(currentMusicPath));
                 return name == "Default" || name == Settings.Default.audio ? "Waterflame - Cove" : name;
             }
         }
@@ -425,7 +425,7 @@ namespace PPR.Main {
         public static void SwitchMusic() {
             string newPath = currentMusicPath;
             string[] paths = Directory.GetDirectories("levels")
-                .Where(path => Path.GetFileNameWithoutExtension(Path.GetDirectoryName(path)) != "_template")
+                .Where(path => Path.GetFileName(Path.GetDirectoryName(path)) != "_template")
                 .Select(path => GetSoundFilePath(Path.Combine(path, "music")))
                 .Where(path => !string.IsNullOrEmpty(path)).ToArray();
             int index = 0;
@@ -453,7 +453,7 @@ namespace PPR.Main {
         public void Update() {
             if(currentMenu == Menu.Main && music.Status == SoundStatus.Stopped) SwitchMusic();
             if(currentMenu != Menu.Game) {
-                if(Path.GetFileNameWithoutExtension(Path.GetDirectoryName(currentMusicPath)) == "Default" ||
+                if(Path.GetFileName(Path.GetDirectoryName(currentMusicPath)) == "Default" ||
                    music.Status != SoundStatus.Playing)
                     UI.menusAnimBPM = 60;
                 else {
