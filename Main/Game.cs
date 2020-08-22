@@ -4,8 +4,13 @@ using System.ComponentModel;
 using System.Configuration;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 using DiscordRPC;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 
 using NLog;
 
@@ -150,7 +155,7 @@ namespace PPR.Main {
                 return name == "Default" || name == Settings.Default.audio ? "Waterflame - Cove" : name;
             }
         }
-        public static int menusAnimInitialOffset = 0;
+        public static int menusAnimInitialOffset;
         public static List<LevelSpeed> menusAnimSpeeds;
         public static Music music;
         public static Sound hitSound;
@@ -177,6 +182,8 @@ namespace PPR.Main {
         public static bool auto = false;
         static bool _usedAuto;
         float _accumulator;
+        public event EventHandler onUpdate;
+        public event EventHandler onTick;
         public static void Start() {
             Settings.Default.PropertyChanged += PropertyChanged;
             ColorScheme.Reload();
@@ -373,6 +380,29 @@ namespace PPR.Main {
             maxCombo = 0;
             music.Stop();
 
+            if(Map.currentLevel.script != null)
+                try {
+                    string testScript = Map.currentLevel.script.ToLowerInvariant()
+                        .Replace(" ", "")
+                        .Replace("\n", "")
+                        .Replace("\r", "");
+                    if(testScript.Contains("system.io")) logger.Error("System.IO is not allowed");
+                    else CSharpScript.EvaluateAsync(Map.currentLevel.script, ScriptOptions.Default
+                        .WithOptimizationLevel(OptimizationLevel.Release)
+                        .WithReferences(Assembly.GetExecutingAssembly()));
+                }
+                catch(CompilationErrorException ex) {
+                    foreach(Diagnostic diagnostic in ex.Diagnostics)
+                        switch(diagnostic.Severity) {
+                            case DiagnosticSeverity.Error: logger.Error(diagnostic);
+                                break;
+                            case DiagnosticSeverity.Warning: logger.Warn(diagnostic);
+                                break;
+                            case DiagnosticSeverity.Info: logger.Info(diagnostic);
+                                break;
+                        }
+                }
+
             if(File.Exists(musicPath)) {
                 currentMusicPath = musicPath;
                 music = new Music(musicPath) {
@@ -450,17 +480,16 @@ namespace PPR.Main {
                     _accumulator -= fixedDeltaTime;
                 }
             }
+            onUpdate?.Invoke(this, EventArgs.Empty);
             _prevFramePlayingOffset = music.PlayingOffset;
         }
-
-        static void FixedUpdate() {
+        void FixedUpdate() {
             if(_interpolatedPlayingOffset != _prevPlayingOffset) {
                 timeFromStart = _interpolatedPlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMs);
                 steps = MillisecondsToSteps(timeFromStart.AsMicroseconds() / 1000f);
                 if(music.Status != SoundStatus.Playing) steps = MathF.Round(steps);
                 _offset = StepsToOffset(steps);
             }
-            _prevPlayingOffset = _interpolatedPlayingOffset;
 
             //if(steps - prevSteps > 1f) logger.Warn("Lag detected: steps increased too quickly ({0})", steps - prevSteps);
 
@@ -469,7 +498,6 @@ namespace PPR.Main {
                 roundedOffset = (int)MathF.Round(_offset);
                 RecalculatePosition();
             }
-            _prevSteps = steps;
 
             if(editing) {
                 float initialOffset = Map.currentLevel.metadata.initialOffsetMs / 1000f;
@@ -489,6 +517,10 @@ namespace PPR.Main {
 
             Map.SimulateAll();
 
+            onTick?.Invoke(this, EventArgs.Empty);
+
+            _prevPlayingOffset = _interpolatedPlayingOffset;
+            _prevSteps = steps;
             if(statsState != StatsState.Pause) currentMenu = Menu.LastStats;
         }
         public static void UpdateTime() {
@@ -605,9 +637,7 @@ namespace PPR.Main {
                     _ => Menu.Main
                 };
             // Fullscreen
-            if(Bindings.Default.fullscreen.IsPressed(key)) {
-                Settings.Default.fullscreen = !Settings.Default.fullscreen;
-            }
+            if(Bindings.Default.fullscreen.IsPressed(key)) Settings.Default.fullscreen = !Settings.Default.fullscreen;
             if(currentMenu != Menu.Game) return;
             if(editing) {
                 char character = GetNoteBinding(key.Code);

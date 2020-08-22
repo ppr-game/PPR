@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using PPR.GUI;
@@ -10,6 +12,7 @@ namespace PPR.Main.Levels {
     public static class Map {
         public static Level currentLevel;
         public static readonly Vector2 linePos = new Vector2(0, 54);
+        public static event EventHandler onDraw;
         public static void Draw() {
             if(Game.currentMenu != Menu.Game) return;
 
@@ -33,6 +36,8 @@ namespace PPR.Main.Levels {
 
             DestroyToDestroy();
             foreach(LevelObject obj in currentLevel.objects) obj.Draw();
+            
+            onDraw?.Invoke(null, EventArgs.Empty);
         }
 
         static void DestroyToDestroy() {
@@ -54,8 +59,8 @@ namespace PPR.Main.Levels {
             foreach(LevelObject obj in currentLevel.objects) obj.Simulate();
             DestroyToDestroy();
         }
-        public static void LoadLevelFromLines(string[] lines, string name, string musicPath) {
-            currentLevel = new Level(lines, name);
+        public static void LoadLevelFromLines(string[] lines, string name, string musicPath, string scriptPath) {
+            currentLevel = new Level(lines, name, File.Exists(scriptPath) ? File.ReadAllText(scriptPath) : null);
             Game.GameStart(musicPath);
         }
         public static string TextFromLevel(Level level) {

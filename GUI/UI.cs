@@ -207,7 +207,8 @@ namespace PPR.GUI {
                 if(button.Draw()) {
                     _lastLevel = button.text;
                     string path = Path.Combine("levels", _lastLevel);
-                    Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine(path, "level.txt")), _lastLevel, Game.GetSoundFilePath(Path.Combine(path, "music")));
+                    Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine(path, "level.txt")), _lastLevel,
+                        Game.GetSoundFilePath(Path.Combine(path, "music")), Path.Combine(path, "Script.csx"));
                     Game.currentMenu = Menu.Game;
                     Game.RecalculatePosition();
                 }
@@ -232,7 +233,8 @@ namespace PPR.GUI {
                 switch(button.text) {
                     case "NEW" when Game.editing && button.Draw():
                         _lastLevel = "unnamed";
-                        Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine("levels", "_template", "level.txt")), _lastLevel, "");
+                        Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine("levels", "_template", "level.txt")),
+                            _lastLevel, "", Path.Combine("levels", "_template", "Script.csx"));
                         Game.currentMenu = Menu.Game;
                         Game.RecalculatePosition();
                         break;
@@ -502,7 +504,8 @@ namespace PPR.GUI {
                         if(!Game.editing && button.Draw()) {
                             Game.currentMenu = Menu.Game;
                             string path = Path.Combine("levels", _lastLevel);
-                            Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine(path, "level.txt")), _lastLevel, Game.GetSoundFilePath(Path.Combine(path, "music")));
+                            Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine(path, "level.txt")), _lastLevel,
+                                Game.GetSoundFilePath(Path.Combine(path, "music")), Path.Combine(path, "Script.csx"));
                         }
                         break;
                     }

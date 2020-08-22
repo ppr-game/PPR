@@ -152,8 +152,9 @@ namespace PPR.Main.Levels {
         public LevelMetadata metadata;
         public readonly List<LevelObject> objects = new List<LevelObject>();
         public readonly List<LevelSpeed> speeds = new List<LevelSpeed>();
+        public readonly string script;
 
-        public Level(IReadOnlyList<string> lines, string name) {
+        public Level(IReadOnlyList<string> lines, string name, string script = null) {
             int[] objectsSteps = lines[1].Length > 0 ? lines[1].Split(':').Select(int.Parse).ToArray() : new int[0];
             int[] speeds = lines[2].Length > 0 ? lines[2].Split(':').Select(int.Parse).ToArray() : new int[0];
             int[] speedsStarts = lines[3].Length > 0 ? lines[3].Split(':').Select(int.Parse).ToArray() : new int[0];
@@ -168,6 +169,7 @@ namespace PPR.Main.Levels {
             this.speeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
             string[] meta = lines[4].Split(':');
             metadata = new LevelMetadata(this, meta, name);
+            this.script = script;
         }
     }
     public class LevelSpeed {
