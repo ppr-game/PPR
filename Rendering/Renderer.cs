@@ -222,22 +222,27 @@ namespace PPR.Rendering {
                 }
             }
 
+            text = text.Replace("\r", "\n").Replace("\n\n", "\n");
+            string[] lines = text.Split('\n');
             int posX = position.x - align switch
             {
-                Alignment.Right => text.Length - 1,
-                Alignment.Center => (int)MathF.Ceiling(text.Length / 2f),
+                Alignment.Right => lines[0].Length - 1,
+                Alignment.Center => (int)MathF.Ceiling(lines[0].Length / 2f),
                 _ => 0
             };
 
             int x = 0;
             int y = 0;
             foreach(char curChar in text) {
-                switch(curChar) {
-                    case '\n':
-                        x = 0;
-                        y++;
-                        continue;
-                    case '\r': continue;
+                if(curChar == '\n') {
+                    x = 0;
+                    y++;
+                    posX = position.x - align switch {
+                        Alignment.Right => lines[y].Length - 1,
+                        Alignment.Center => (int)MathF.Ceiling(lines[y].Length / 2f),
+                        _ => 0
+                    };
+                    continue;
                 }
                 if(!replacingSpaces && curChar == ' ') {
                     x++;
