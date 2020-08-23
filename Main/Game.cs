@@ -83,35 +83,22 @@ namespace PPR.Main {
                 _currentMenu = value;
                 switch(value) {
                     case Menu.Main:
-                        RPC.client.SetPresence(new RichPresence {
-                            Details = "In main menu",
-                            Timestamps = Timestamps.Now
-                        });
+                        RPC.SetPresence("In main menu");
                         break;
                     case Menu.LevelSelect:
-                        RPC.client.SetPresence(new RichPresence {
-                            Details = $"Choosing what to {(editing ? "edit" : "play")}",
-                            Timestamps = Timestamps.Now
-                        });
+                        RPC.SetPresence($"Choosing what to {(editing ? "edit" : "play")}");
                         break;
                     case Menu.Game:
                         if(Map.currentLevel != null)
-                            RPC.client.SetPresence(new RichPresence {
-                                Details = editing ? "Editing" :
-                                    auto ? "Watching" : "Playing",
-                                State = Map.currentLevel.metadata.name,
-                                Timestamps = Timestamps.Now
-                            });
+                            RPC.SetPresence(editing ? "Editing" : auto ? "Watching" : "Playing",
+                                Map.currentLevel.metadata.name);
                         break;
                     case Menu.LastStats:
                         if(Map.currentLevel != null)
-                            RPC.client.SetPresence(new RichPresence {
-                                Details = editing ? "Paused Editing" :
-                                    statsState == StatsState.Pause ? "Paused" :
-                                    statsState == StatsState.Pass ? "Passed" : "Failed",
-                                State = Map.currentLevel.metadata.name,
-                                Timestamps = Timestamps.Now
-                            });
+                            RPC.SetPresence(editing ? "Paused Editing" :
+                                statsState == StatsState.Pause ? "Paused" :
+                                statsState == StatsState.Pass ? "Passed" : "Failed",
+                                Map.currentLevel.metadata.name);
                         break;
                 }
             }
