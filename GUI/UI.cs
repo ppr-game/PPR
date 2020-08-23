@@ -18,6 +18,8 @@ using SFML.System;
 namespace PPR.GUI {
     public static class UI {
         public static int fps = 0;
+
+        public static EventHandler onDraw;
         
         static readonly Random random = new Random();
         static readonly Perlin perlin = new Perlin();
@@ -710,6 +712,7 @@ namespace PPR.GUI {
                     DrawLastStats();
                     break;
             }
+            onDraw?.Invoke(null, EventArgs.Empty);
             if(Settings.Default.showFps)
                 Renderer.instance.DrawText(fpsPos, $"{fps.ToString()} FPS", fps >= 60 ?
                     ColorScheme.GetColor("fps_good") : fps > 20 ? ColorScheme.GetColor("fps_ok") : 
