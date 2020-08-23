@@ -230,20 +230,12 @@ namespace PPR.Rendering {
             };
 
             int x = 0;
-            int y = 0;
             foreach(char curChar in text) {
-                switch(curChar) {
-                    case '\n':
-                        x = 0;
-                        y++;
-                        continue;
-                    case '\r': continue;
-                }
                 if(!replacingSpaces && curChar == ' ') {
                     x++;
                     continue;
                 }
-                Vector2 charPos = new Vector2(posX + x, position.y + y);
+                Vector2 charPos = new Vector2(posX + x, position.y);
                 Color useFG = foregroundColor;
                 if(invertOnDarkBG) {
                     Color useBGColor = backgroundColor.A == 0 ? GetBackgroundColor(charPos) : backgroundColor;
@@ -257,6 +249,36 @@ namespace PPR.Rendering {
                 SetCharacter(charPos, curChar, useFG, backgroundColor);
                 x++;
             }
+        }
+        public void DrawText(Vector2 position, string[] lines, Alignment align = Alignment.Left,
+            bool replacingSpaces = false, bool invertOnDarkBG = false) {
+            DrawLines(position, lines, align, replacingSpaces, invertOnDarkBG);
+        }
+        public void DrawText(Vector2 position, string[] lines, Color color, Alignment align = Alignment.Left,
+            bool replacingSpaces = false, bool invertOnDarkBG = false) {
+            DrawLines(position, lines, color, align, replacingSpaces, invertOnDarkBG);
+        }
+        public void DrawText(Vector2 position, string[] lines, Color foregroundColor, Color backgroundColor,
+            Alignment align = Alignment.Left,
+            bool replacingSpaces = false, bool invertOnDarkBG = false) {
+            DrawLines(position, lines, foregroundColor, backgroundColor, align, replacingSpaces, invertOnDarkBG);
+        }
+        public void DrawLines(Vector2 position, string[] lines, Alignment align = Alignment.Left,
+            bool replacingSpaces = false, bool invertOnDarkBG = false) {
+            DrawLines(position, lines, ColorScheme.GetColor("foreground"), align, replacingSpaces, invertOnDarkBG);
+        }
+        public void DrawLines(Vector2 position, string[] lines, Color color, Alignment align = Alignment.Left,
+            bool replacingSpaces = false, bool invertOnDarkBG = false) {
+            DrawLines(position, lines, color, ColorScheme.GetColor("transparent"), align, replacingSpaces,
+                invertOnDarkBG);
+        }
+        // ReSharper disable once ParameterTypeCanBeEnumerable.Global
+        public void DrawLines(Vector2 position, string[] lines, Color foregroundColor, Color backgroundColor,
+            Alignment align = Alignment.Left,
+            bool replacingSpaces = false, bool invertOnDarkBG = false) {
+            for(int i = 0; i < lines.Length; i++)
+                DrawText(position + new Vector2(0, i), lines[i], foregroundColor, backgroundColor, align,
+                    replacingSpaces, invertOnDarkBG);
         }
 
         public void SetCharacter(Vector2 position, char character) {

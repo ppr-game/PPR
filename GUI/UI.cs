@@ -60,11 +60,11 @@ namespace PPR.GUI {
             }
         }
 
-        static readonly string mainMenuText = File.ReadAllText(Path.Combine("resources", "ui", "mainMenu.txt"));
-        static readonly string settingsText = File.ReadAllText(Path.Combine("resources", "ui", "settings.txt"));
-        static readonly string keybindsEditorText = File.ReadAllText(Path.Combine("resources", "ui", "keybinds.txt"));
-        static readonly string levelSelectText = File.ReadAllText(Path.Combine("resources", "ui", "levelSelect.txt"));
-        static readonly string lastStatsText = File.ReadAllText(Path.Combine("resources", "ui", "lastStats.txt"));
+        static readonly string[] mainMenuText = File.ReadAllLines(Path.Combine("resources", "ui", "mainMenu.txt"));
+        static readonly string[] settingsText = File.ReadAllLines(Path.Combine("resources", "ui", "settings.txt"));
+        static readonly string[] keybindsEditorText = File.ReadAllLines(Path.Combine("resources", "ui", "keybinds.txt"));
+        static readonly string[] levelSelectText = File.ReadAllLines(Path.Combine("resources", "ui", "levelSelect.txt"));
+        static readonly string[] lastStatsText = File.ReadAllLines(Path.Combine("resources", "ui", "lastStats.txt"));
         static List<Button> _mainMenuButtons;
 
         public static int currentLevelSelectIndex;
