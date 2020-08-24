@@ -62,9 +62,8 @@ namespace PPR.Properties {
                 bool modifierIsCtrl = mainModifier == Keyboard.Key.LControl || mainModifier == Keyboard.Key.RControl;
                 bool modifierIsShift = mainModifier == Keyboard.Key.LShift || mainModifier == Keyboard.Key.RShift;
                 bool modifierIsSys = mainModifier == Keyboard.Key.LSystem || mainModifier == Keyboard.Key.RSystem;
-                bool anyModifier = modifierIsAlt || modifierIsCtrl || modifierIsShift || modifierIsSys;
-                return !anyModifier ||
-                    (modifierIsAlt && key.Alt) || (modifierIsCtrl && key.Control) || (modifierIsShift && key.Shift) || (modifierIsSys && key.System);
+                return (!modifierIsAlt || key.Alt) && (!modifierIsCtrl || key.Control) &&
+                       (!modifierIsShift || key.Shift) && (!modifierIsSys || key.System);
             }
 
             if(secondaryKey != key.Code) return false;
@@ -73,9 +72,8 @@ namespace PPR.Properties {
                 bool modifierIsCtrl = secondaryModifier == Keyboard.Key.LControl || secondaryModifier == Keyboard.Key.RControl;
                 bool modifierIsShift = secondaryModifier == Keyboard.Key.LShift || secondaryModifier == Keyboard.Key.RShift;
                 bool modifierIsSys = secondaryModifier == Keyboard.Key.LSystem || secondaryModifier == Keyboard.Key.RSystem;
-                bool anyModifier = modifierIsAlt || modifierIsCtrl || modifierIsShift || modifierIsSys;
-                return !anyModifier ||
-                       (modifierIsAlt && key.Alt) || (modifierIsCtrl && key.Control) || (modifierIsShift && key.Shift) || (modifierIsSys && key.System);
+                return (!modifierIsAlt || key.Alt) && (!modifierIsCtrl || key.Control) &&
+                       (!modifierIsShift || key.Shift) && (!modifierIsSys || key.System);
             }
         }
     }
