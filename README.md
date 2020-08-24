@@ -116,6 +116,9 @@ Give the players time to prepare and see what they need to press, usually about 
 If the song starts right away you can start the map at the next part of the song or the next after that or 
 where you think it's relevant
 
+#### Don't make the player press more than 2 keys at the same time
+Because [keyboard ghosting](https://www.google.com/search?q=keyboard+ghosting)
+
 ## Custom fonts
 ### How to install custom fonts
 Unpack the font folder in `game's folder/resources/fonts`
