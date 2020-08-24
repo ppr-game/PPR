@@ -248,7 +248,7 @@ namespace PPR.Main.Levels {
             return MathF.Sqrt((leftX + rightX) * (leftX + rightX) + (leftY + rightY) * (leftY + rightY));
         }
         public LevelObject(char character, int step, IEnumerable<LevelSpeed> speeds, IReadOnlyCollection<LevelObject> objects = null) {
-            character = Settings.Default.uppercaseNotes ? char.ToUpper(character) : char.ToLower(character);
+            character = Settings.GetBool("uppercaseNotes") ? char.ToUpper(character) : char.ToLower(character);
             int x = GetXPosForCharacter(character);
             if(character == HOLD_CHAR && objects != null) {
                 List<LevelObject> existingObjects = new List<LevelObject>(objects);

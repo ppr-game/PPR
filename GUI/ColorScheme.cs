@@ -20,7 +20,7 @@ namespace PPR.GUI {
         public static void Reload() {
             colors.Clear();
 
-            string bloomBlendShaderPath = Path.Combine("resources", "colors", Settings.Default.colorScheme,
+            string bloomBlendShaderPath = Path.Combine("resources", "colors", Settings.GetString("colorScheme"),
                 "bloom-blend_frag.glsl");
             if(!File.Exists(bloomBlendShaderPath))
                 bloomBlendShaderPath = Path.Combine("resources", "colors", "Default", "Classic",
@@ -38,7 +38,7 @@ namespace PPR.GUI {
             Dictionary<string, string> queue = new Dictionary<string, string>();
             
             LoadScheme(Path.Combine("Default", "Classic"), queue);
-            LoadScheme(Settings.Default.colorScheme, queue);
+            LoadScheme(Settings.GetString("colorScheme"), queue);
             
             LoadQueue(queue);
 
@@ -76,9 +76,7 @@ namespace PPR.GUI {
             }
         }
         static void LoadQueue(Dictionary<string, string> queue) {
-            foreach((string key, string value) in queue) {
-                colors[key] = colors[value];
-            }
+            foreach((string key, string value) in queue) colors[key] = colors[value];
         }
 
         public static Color GetColor(string key) {

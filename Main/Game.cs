@@ -78,7 +78,7 @@ namespace PPR.Main {
                 if(value == Menu.LevelSelect) {
                     GenerateLevelList();
                     string name = Path.GetFileName(Path.GetDirectoryName(currentMusicPath));
-                    if(name == "Default" || name == Settings.Default.audio) SwitchMusic();
+                    if(name == "Default" || name == Settings.GetString("audio")) SwitchMusic();
                 }
                 _currentMenu = value;
                 switch(value) {
@@ -139,7 +139,7 @@ namespace PPR.Main {
         public static string currentMusicName {
             get {
                 string name = Path.GetFileName(Path.GetDirectoryName(currentMusicPath));
-                return name == "Default" || name == Settings.Default.audio ? "Waterflame - Cove" : name;
+                return name == "Default" || name == Settings.GetString("audio") ? "Waterflame - Cove" : name;
             }
         }
         public static int menusAnimInitialOffset;
@@ -172,20 +172,16 @@ namespace PPR.Main {
         public event EventHandler onUpdate;
         public event EventHandler onTick;
         public static void Start() {
-            Settings.Default.PropertyChanged += PropertyChanged;
+            Settings.settingChanged += SettingChanged;
+            Settings.Reload();
+            Bindings.Reload();
             ColorScheme.Reload();
             ReloadSounds();
-
-            // TODO: Automatic settings list generation
-            logger.Info("Current settings:");
-            foreach(SettingsPropertyValue value in Settings.Default.PropertyValues) logger.Info($"{value.Name}={value.PropertyValue}");
-            logger.Info("Current keybinds:");
-            foreach(SettingsPropertyValue value in Bindings.Default.PropertyValues) logger.Info($"{value.Name}={value.PropertyValue}");
-
+            
             RPC.Initialize();
 
             try {
-                currentMusicPath = GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "mainMenu"));
+                currentMusicPath = GetSoundFilePath(Path.Combine("resources", "audio", Settings.GetString("audio"), "mainMenu"));
                 music = new Music(currentMusicPath);
             }
             catch(LoadingFailedException) {
@@ -193,17 +189,17 @@ namespace PPR.Main {
                 music = new Music(currentMusicPath);
             }
 
-            music.Volume = Settings.Default.musicVolume;
+            music.Volume = Settings.GetInt("musicVolume");
             music.Play();
         }
         public static void UpdateSettings() {
             UI.RecreateButtons();
-            UI.musicVolumeSlider.value = Settings.Default.musicVolume;
-            UI.soundsVolumeSlider.value = Settings.Default.soundsVolume;
-            UI.bloomSwitch.selected = Settings.Default.bloom;
-            UI.showFpsSwitch.selected = Settings.Default.showFps;
-            UI.fullscreenSwitch.selected = Settings.Default.fullscreen;
-            UI.uppercaseSwitch.selected = Settings.Default.uppercaseNotes;
+            UI.musicVolumeSlider.value = Settings.GetInt("musicVolume");
+            UI.soundsVolumeSlider.value = Settings.GetInt("soundsVolume");
+            UI.bloomSwitch.selected = Settings.GetBool("bloom");
+            UI.showFpsSwitch.selected = Settings.GetBool("showFps");
+            UI.fullscreenSwitch.selected = Settings.GetBool("fullscreen");
+            UI.uppercaseSwitch.selected = Settings.GetBool("uppercaseNotes");
 
             LevelObject.linesColors = new Color[] {
                 ColorScheme.GetColor("line_1_fg_color"),
@@ -254,24 +250,24 @@ namespace PPR.Main {
         }
 
         static void ReloadSounds() {
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "hit")), out hitSound) ||
+            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.GetString("audio"), "hit")), out hitSound) ||
                 TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "hit")), out hitSound))
-                hitSound.Volume = Settings.Default.soundsVolume;
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "tick")), out tickSound) ||
+                hitSound.Volume = Settings.GetInt("soundsVolume");
+            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.GetString("audio"), "tick")), out tickSound) ||
                 TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "tick")), out tickSound))
-                tickSound.Volume = Settings.Default.soundsVolume;
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "fail")), out failSound) ||
+                tickSound.Volume = Settings.GetInt("soundsVolume");
+            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.GetString("audio"), "fail")), out failSound) ||
                 TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "fail")), out failSound))
-                failSound.Volume = Settings.Default.soundsVolume;
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "pass")), out passSound) ||
+                failSound.Volume = Settings.GetInt("soundsVolume");
+            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.GetString("audio"), "pass")), out passSound) ||
                 TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "pass")), out passSound))
-                passSound.Volume = Settings.Default.soundsVolume;
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "buttonClick")), out buttonClickSound) ||
+                passSound.Volume = Settings.GetInt("soundsVolume");
+            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.GetString("audio"), "buttonClick")), out buttonClickSound) ||
                 TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "buttonClick")), out buttonClickSound))
-                buttonClickSound.Volume = Settings.Default.soundsVolume;
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.Default.audio, "slider")), out sliderSound) ||
+                buttonClickSound.Volume = Settings.GetInt("soundsVolume");
+            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.GetString("audio"), "slider")), out sliderSound) ||
                 TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "slider")), out sliderSound))
-                sliderSound.Volume = Settings.Default.soundsVolume;
+                sliderSound.Volume = Settings.GetInt("soundsVolume");
         }
         public static void End() {
             logger.Info("Exiting");
@@ -279,7 +275,7 @@ namespace PPR.Main {
             music.Stop();
             logger.Info("Stopped music");
 
-            Settings.Default.Save();
+            Settings.SaveConfig();
             logger.Info("Saved settings");
 
             RPC.client.ClearPresence();
@@ -292,16 +288,16 @@ namespace PPR.Main {
             Core.renderer.window.Close();
         }
 
-        static void PropertyChanged(object caller, PropertyChangedEventArgs e) {
-            switch (e.PropertyName) {
+        static void SettingChanged(object caller, SettingChangedEventArgs e) {
+            switch (e.settingName) {
                 case "font": {
-                    string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.Default.font, "mappings.txt"));
+                    string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.GetString("font"), "mappings.txt"));
                     string[] fontSizeStr = fontMappingsLines[0].Split(',');
                     Core.renderer.fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
                     Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.x;
                     Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.y;
 
-                    BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")),
+                    BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.GetString("font"), "font.png")),
                         fontMappingsLines[1], Core.renderer.fontSize);
                     Core.renderer.text = new BitmapText(font, new Vector2(Core.renderer.width, Core.renderer.height)) {
                         backgroundColors = Core.renderer.backgroundColors,
@@ -314,17 +310,17 @@ namespace PPR.Main {
                 }
                 case "colorScheme": ColorScheme.Reload();
                     break;
-                case "fullscreen": Core.renderer.SetFullscreen(Settings.Default.fullscreen);
+                case "fullscreen": Core.renderer.SetFullscreen(Settings.GetBool("fullscreen"));
                     break;
-                case "musicVolume": music.Volume = Settings.Default.musicVolume;
+                case "musicVolume": music.Volume = Settings.GetInt("musicVolume");
                     break;
                 case "soundsVolume":
-                    hitSound.Volume = Settings.Default.soundsVolume;
-                    tickSound.Volume = Settings.Default.soundsVolume;
-                    failSound.Volume = Settings.Default.soundsVolume;
-                    passSound.Volume = Settings.Default.soundsVolume;
-                    buttonClickSound.Volume = Settings.Default.soundsVolume;
-                    sliderSound.Volume = Settings.Default.soundsVolume;
+                    hitSound.Volume = Settings.GetInt("soundsVolume");
+                    tickSound.Volume = Settings.GetInt("soundsVolume");
+                    failSound.Volume = Settings.GetInt("soundsVolume");
+                    passSound.Volume = Settings.GetInt("soundsVolume");
+                    buttonClickSound.Volume = Settings.GetInt("soundsVolume");
+                    sliderSound.Volume = Settings.GetInt("soundsVolume");
                     break;
                 case "audio": ReloadSounds();
                     break;
@@ -336,7 +332,7 @@ namespace PPR.Main {
             Core.renderer.frameRate = 30;
         }
         public static void GainedFocus(object caller, EventArgs args) {
-            music.Volume = Settings.Default.musicVolume;
+            music.Volume = Settings.GetInt("musicVolume");
             Core.renderer.frameRate = 0;
         }
         public static void GameStart(string musicPath) {
@@ -393,7 +389,7 @@ namespace PPR.Main {
             if(File.Exists(musicPath)) {
                 currentMusicPath = musicPath;
                 music = new Music(musicPath) {
-                    Volume = Settings.Default.musicVolume,
+                    Volume = Settings.GetInt("musicVolume"),
                     PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMs)
                 };
                 if(!editing) music.Play();
@@ -433,7 +429,7 @@ namespace PPR.Main {
             currentMusicPath = newPath;
             music.Stop();
             music = new Music(currentMusicPath) {
-                Volume = Core.renderer.window.HasFocus() ? Settings.Default.musicVolume : 0f
+                Volume = Core.renderer.window.HasFocus() ? Settings.GetInt("musicVolume") : 0f
             };
             music.Play();
         }
@@ -624,7 +620,7 @@ namespace PPR.Main {
         }
         public static void KeyPressed(object caller, KeyEventArgs key) {
             // Back
-            if(Bindings.Default.back.IsPressed(key) && currentMenu != Menu.LevelSelect)
+            if(Bindings.GetBinding("back").IsPressed(key) && currentMenu != Menu.LevelSelect)
                 currentMenu = currentMenu switch {
                     Menu.Game => Menu.LastStats,
                     Menu.LastStats => statsState == StatsState.Pause ? Menu.Game : Menu.LevelSelect,
@@ -632,53 +628,54 @@ namespace PPR.Main {
                     _ => Menu.Main
                 };
             // Fullscreen
-            if(Bindings.Default.fullscreen.IsPressed(key)) Settings.Default.fullscreen = !Settings.Default.fullscreen;
+            if(Bindings.GetBinding("fullscreen").IsPressed(key))
+                Settings.SetBool("fullscreen", !Settings.GetBool("fullscreen"));
             if(currentMenu != Menu.Game) return;
             if(editing) {
                 char character = GetNoteBinding(key.Code);
                 if(character == '\0') {
                     // Erase
-                    if(Bindings.Default.erase.IsPressed(key)) {
+                    if(Bindings.GetBinding("erase").IsPressed(key)) {
                         List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.step == (int)steps &&
                                                                                             obj.character != LevelObject.SPEED_CHAR);
                         foreach(LevelObject obj in objects) obj.toDestroy = true;
                     }
 
                     // Lines
-                    else if(Bindings.Default.linesFrequencyUp.IsPressed(key))
+                    else if(Bindings.GetBinding("linesFrequencyUp").IsPressed(key))
                         Map.currentLevel.metadata.linesFrequency++;
-                    else if(Bindings.Default.linesFrequencyDown.IsPressed(key))
+                    else if(Bindings.GetBinding("linesFrequencyDown").IsPressed(key))
                         Map.currentLevel.metadata.linesFrequency--;
 
                     // Speed
-                    else if(Bindings.Default.speedUpSlow.IsPressed(key)) ChangeSpeed(1);
-                    else if(Bindings.Default.speedDownSlow.IsPressed(key)) ChangeSpeed(-1);
-                    else if(Bindings.Default.speedUp.IsPressed(key)) ChangeSpeed(10);
-                    else if(Bindings.Default.speedDown.IsPressed(key)) ChangeSpeed(-10);
+                    else if(Bindings.GetBinding("speedUpSlow").IsPressed(key)) ChangeSpeed(1);
+                    else if(Bindings.GetBinding("speedDownSlow").IsPressed(key)) ChangeSpeed(-1);
+                    else if(Bindings.GetBinding("speedUp").IsPressed(key)) ChangeSpeed(10);
+                    else if(Bindings.GetBinding("speedDown").IsPressed(key)) ChangeSpeed(-10);
 
                     // HP Drain/Restorage
-                    else if(Bindings.Default.hpRestorageUp.IsPressed(key))
+                    else if(Bindings.GetBinding("hpRestorageUp").IsPressed(key))
                         Map.currentLevel.metadata.hpRestorage++;
-                    else if(Bindings.Default.hpRestorageDown.IsPressed(key))
+                    else if(Bindings.GetBinding("hpRestorageDown").IsPressed(key))
                         Map.currentLevel.metadata.hpRestorage--;
-                    else if(Bindings.Default.hpDrainUp.IsPressed(key))
+                    else if(Bindings.GetBinding("hpDrainUp").IsPressed(key))
                         Map.currentLevel.metadata.hpDrain++;
-                    else if(Bindings.Default.hpDrainDown.IsPressed(key))
+                    else if(Bindings.GetBinding("hpDrainDown").IsPressed(key))
                         Map.currentLevel.metadata.hpDrain--;
 
                     // Initial offset
-                    else if(Bindings.Default.initialOffsetUpBoost.IsPressed(key))
+                    else if(Bindings.GetBinding("initialOffsetUpBoost").IsPressed(key))
                         Map.currentLevel.metadata.initialOffsetMs += 10;
-                    else if(Bindings.Default.initialOffsetDownBoost.IsPressed(key))
+                    else if(Bindings.GetBinding("initialOffsetDownBoost").IsPressed(key))
                         Map.currentLevel.metadata.initialOffsetMs -= 10;
-                    else if(Bindings.Default.initialOffsetUp.IsPressed(key))
+                    else if(Bindings.GetBinding("initialOffsetUp").IsPressed(key))
                         Map.currentLevel.metadata.initialOffsetMs++;
-                    else if(Bindings.Default.initialOffsetDown.IsPressed(key))
+                    else if(Bindings.GetBinding("initialOffsetDown").IsPressed(key))
                         Map.currentLevel.metadata.initialOffsetMs--;
 
                     // Fast scroll
-                    else if(Bindings.Default.fastScrollUp.IsPressed(key)) ScrollTime(10);
-                    else if(Bindings.Default.fastScrollDown.IsPressed(key)) ScrollTime(-10);
+                    else if(Bindings.GetBinding("fastScrollUp").IsPressed(key)) ScrollTime(10);
+                    else if(Bindings.GetBinding("fastScrollDown").IsPressed(key)) ScrollTime(-10);
                 }
                 else {
                     if(Map.currentLevel.objects.FindAll(obj => obj.character == character && obj.step == (int)steps).Count <= 0) {

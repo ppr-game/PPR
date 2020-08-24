@@ -55,7 +55,8 @@ namespace PPR.Rendering {
         public Renderer(int width, int height, int frameRate) {
             instance = this;
 
-            string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.Default.font, "mappings.txt"));
+            string[] fontMappingsLines =
+                File.ReadAllLines(Path.Combine("resources", "fonts", Settings.GetString("font"), "mappings.txt"));
             string[] fontSizeStr = fontMappingsLines[0].Split(',');
             fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
 
@@ -69,7 +70,7 @@ namespace PPR.Rendering {
             _icon = new Image(Path.Combine("resources", "icon.png"));
 
             BitmapFont font =
-                new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.Default.font, "font.png")),
+                new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.GetString("font"), "font.png")),
                     fontMappingsLines[1], fontSize);
             text = new BitmapText(font, new Vector2(width, height)) {
                 backgroundColors = backgroundColors,
@@ -77,7 +78,7 @@ namespace PPR.Rendering {
                 text = displayString
             };
 
-            SetFullscreen(Settings.Default.fullscreen, false);
+            SetFullscreen(Settings.GetBool("fullscreen"), false);
             
             this.frameRate = frameRate;
 
@@ -117,7 +118,7 @@ namespace PPR.Rendering {
             UpdateWindow();
         }
         public void UpdateWindow() {
-            if(Settings.Default.fullscreen) {
+            if(Settings.GetBool("fullscreen")) {
                 VideoMode videoMode = VideoMode.FullscreenModes[0];
 
                 windowWidth = (int)videoMode.Width;
@@ -163,7 +164,7 @@ namespace PPR.Rendering {
 
             text.RebuildRenderTexture();
 
-            if(Settings.Default.bloom) {
+            if(Settings.GetBool("fullscreen")) {
                 _bloomRT1.Clear(ColorScheme.GetColor("background"));
                 _bloomRT1.Draw(_textSprite);
                 //Texture fullscreenText = new Texture(_bloomRT.Texture);

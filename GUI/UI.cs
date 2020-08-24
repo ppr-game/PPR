@@ -222,7 +222,7 @@ namespace PPR.GUI {
                         Game.currentMusicPath = musicPath;
                         Game.music.Stop();
                         Game.music = new Music(musicPath) {
-                            Volume = Settings.Default.musicVolume
+                            Volume = Settings.GetInt("musicVolume")
                         };
                         Game.music.Play();
                     }
@@ -582,10 +582,12 @@ namespace PPR.GUI {
         }
 
         static void UpdateAllFolderSwitchButtons() {
-            UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.Default.audio, audioSwitchPos.x, audioSwitchPos.y, 7);
-            UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.Default.font, fontSwitchPos.x, fontSwitchPos.y, 5);
-            UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.Default.colorScheme, colorSchemeSwitchPos.x,
-                colorSchemeSwitchPos.y, 13);
+            UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.GetString("audio"), audioSwitchPos.x,
+                audioSwitchPos.y, 7);
+            UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.GetString("font"), fontSwitchPos.x,
+                fontSwitchPos.y, 5);
+            UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.GetString("colorScheme"),
+                colorSchemeSwitchPos.x, colorSchemeSwitchPos.y, 13);
         }
 
         static void UpdateFolderSwitchButtons(IList<Button> buttonsList, string path, int baseX, int baseY, int xOffset) {
@@ -636,35 +638,45 @@ namespace PPR.GUI {
                 Renderer.instance.DrawText(audioSwitchPos, "SOUNDS", ColorScheme.GetColor("settings"));
                 for(int i = audioSwitchButtonsList.Count - 1; i >= 0; i--)
                     if(audioSwitchButtonsList[i].Draw()) {
-                        Settings.Default.audio = IncreaseFolderSwitchDirectory(Settings.Default.audio, Path.Combine("resources", "audio"), i);
-                        UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.Default.audio, audioSwitchPos.x, audioSwitchPos.y, 7);
+                        Settings.SetString("audio",
+                            IncreaseFolderSwitchDirectory(Settings.GetString("audio"),
+                                Path.Combine("resources", "audio"), i));
+                        UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.GetString("audio"), audioSwitchPos.x,
+                            audioSwitchPos.y, 7);
                     }
 
                 Renderer.instance.DrawText(graphicsGroupTextPos, "[ GRAPHICS ]", ColorScheme.GetColor("settings_header_graphics"));
-                if(bloomSwitch.Draw()) Settings.Default.bloom = bloomSwitch.selected = !bloomSwitch.selected;
-                if(fullscreenSwitch.Draw()) Settings.Default.fullscreen = fullscreenSwitch.selected = !fullscreenSwitch.selected;
-                if(uppercaseSwitch.Draw()) Settings.Default.uppercaseNotes = uppercaseSwitch.selected = !uppercaseSwitch.selected;
+                if(bloomSwitch.Draw()) Settings.SetBool("bloom", bloomSwitch.selected = !bloomSwitch.selected);
+                if(fullscreenSwitch.Draw())
+                    Settings.SetBool("fullscreen", fullscreenSwitch.selected = !fullscreenSwitch.selected);
+                if(uppercaseSwitch.Draw())
+                    Settings.SetBool("uppercaseNotes", uppercaseSwitch.selected = !uppercaseSwitch.selected);
                 Renderer.instance.DrawText(fontSwitchPos, "FONT", ColorScheme.GetColor("settings"));
                 for(int i = fontSwitchButtonsList.Count - 1; i >= 0; i--)
                     if(fontSwitchButtonsList[i].Draw()) {
-                        Settings.Default.font = IncreaseFolderSwitchDirectory(Settings.Default.font, Path.Combine("resources", "fonts"), i);
-                        UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.Default.font, fontSwitchPos.x, fontSwitchPos.y, 5);
+                        Settings.SetString("font",
+                            IncreaseFolderSwitchDirectory(Settings.GetString("font"),
+                                Path.Combine("resources", "fonts"), i));
+                        UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.GetString("font"), fontSwitchPos.x,
+                            fontSwitchPos.y, 5);
                     }
 
                 Renderer.instance.DrawText(colorSchemeSwitchPos, "COLOR SCHEME", ColorScheme.GetColor("settings"));
                 for(int i = colorSchemeSwitchButtonsList.Count - 1; i >= 0; i--)
                     if(colorSchemeSwitchButtonsList[i].Draw()) {
-                        Settings.Default.colorScheme = IncreaseFolderSwitchDirectory(Settings.Default.colorScheme, Path.Combine("resources", "colors"), i);
-                        UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.Default.colorScheme, colorSchemeSwitchPos.x,
-                            colorSchemeSwitchPos.y, 13);
+                        Settings.SetString("colorScheme",
+                            IncreaseFolderSwitchDirectory(Settings.GetString("colorScheme"),
+                                Path.Combine("resources", "colors"), i));
+                        UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.GetString("colorScheme"),
+                            colorSchemeSwitchPos.x, colorSchemeSwitchPos.y, 13);
                     }
 
                 Renderer.instance.DrawText(advancedGroupTextPos, "[ ADVANCED ]", ColorScheme.GetColor("settings_header_advanced"));
-                if(showFpsSwitch.Draw()) Settings.Default.showFps = showFpsSwitch.selected = !showFpsSwitch.selected;
+                if(showFpsSwitch.Draw()) Settings.SetBool("showFps", showFpsSwitch.selected = !showFpsSwitch.selected);
             }
 
-            Settings.Default.musicVolume = musicVolumeSlider.Draw();
-            Settings.Default.soundsVolume = soundsVolumeSlider.Draw();
+            Settings.SetInt("musicVolume", musicVolumeSlider.Draw());
+            Settings.SetInt("soundsVolume", soundsVolumeSlider.Draw());
         }
         static Button _keybindsButton;
         static void DrawSettings() {
@@ -677,12 +689,10 @@ namespace PPR.GUI {
             DrawMenusAnim();
             Renderer.instance.DrawText(zero, keybindsEditorText);
 
-            IEnumerator enumerator = Bindings.Default.PropertyValues.GetEnumerator();
+            Dictionary<string, InputKey>.Enumerator enumerator = Bindings.keys.GetEnumerator();
             for(int y = 17; enumerator.MoveNext(); y += 2) {
-                SettingsPropertyValue value = (SettingsPropertyValue)enumerator.Current;
-                if(value == null) continue;
-                InputKey key = (InputKey)value.PropertyValue;
-                string name = value.Name.AddSpaces().ToUpper();
+                (string name, InputKey key) = enumerator.Current;
+                name = name.AddSpaces().ToUpper();
                 string[] primAndSec = key.asString.Split(',');
                 string primary = primAndSec[0];
                 string secondary = primAndSec.Length > 1 ? primAndSec[1] : "<NONE>";
@@ -713,7 +723,7 @@ namespace PPR.GUI {
                     break;
             }
             onDraw?.Invoke(null, EventArgs.Empty);
-            if(Settings.Default.showFps)
+            if(Settings.GetBool("showFps"))
                 Renderer.instance.DrawText(fpsPos, $"{fps.ToString()} FPS", fps >= 60 ?
                     ColorScheme.GetColor("fps_good") : fps > 20 ? ColorScheme.GetColor("fps_ok") : 
                         ColorScheme.GetColor("fps_bad"), Renderer.Alignment.Right);
