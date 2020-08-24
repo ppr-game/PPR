@@ -343,3 +343,4 @@ healthchecksdb
 scores/
 levels/*
 !levels/_template
+/config.txt
