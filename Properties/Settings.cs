@@ -70,7 +70,10 @@ namespace PPR.Properties {
             for(int i = 0; i < lines.Length; i++) {
                 if(curArr >= allArrs.Length) continue;
                 if(curIndex < allArrs[curArr].Length) lines[i] = allArrs[curArr][curIndex++];
-                else curArr++;
+                else {
+                    curIndex = 0;
+                    curArr++;
+                }
             }
             File.WriteAllLines(PATH, lines);
         }
