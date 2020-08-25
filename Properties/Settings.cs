@@ -63,9 +63,18 @@ namespace PPR.Properties {
             string[] strBools = _booleans.Select(value => $"{value.Key}={value.Value.ToString(culture)}").ToArray();
             string[] strInts = _integers.Select(value => $"{value.Key}={value.Value.ToString(culture)}").ToArray();
             string[] strStrings = _strings.Select(value => $"{value.Key}={value.Value}").ToArray();
-            File.WriteAllLines(PATH, strBools);
-            File.AppendAllLines(PATH, strInts);
-            File.AppendAllLines(PATH, strStrings);
+            if(strBools.Length > 0) {
+                File.WriteAllText(PATH, "# Booleans\n");
+                File.AppendAllLines(PATH, strBools);
+            }
+            if(strInts.Length > 0) {
+                File.AppendAllText(PATH, "\n# Integers\n");
+                File.AppendAllLines(PATH, strInts);
+            }
+            if(strStrings.Length > 0) {
+                File.AppendAllText(PATH, "\n# Strings\n");
+                File.AppendAllLines(PATH, strStrings);
+            }
         }
 
         public static bool GetBool(string key) {
@@ -85,16 +94,16 @@ namespace PPR.Properties {
         }
         
         public static void SetBool(string key, bool value) {
-            settingChanged?.Invoke(null, new SettingChangedEventArgs(key));
             _booleans[key] = value;
+            settingChanged?.Invoke(null, new SettingChangedEventArgs(key));
         }
         public static void SetInt(string key, int value) {
-            settingChanged?.Invoke(null, new SettingChangedEventArgs(key));
             _integers[key] = value;
+            settingChanged?.Invoke(null, new SettingChangedEventArgs(key));
         }
         public static void SetString(string key, string value) {
-            settingChanged?.Invoke(null, new SettingChangedEventArgs(key));
             _strings[key] = value;
+            settingChanged?.Invoke(null, new SettingChangedEventArgs(key));
         }
         public static void SetPath(string key, string value) {
             SetString(key, value.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));

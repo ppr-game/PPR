@@ -164,7 +164,7 @@ namespace PPR.Rendering {
 
             text.RebuildRenderTexture();
 
-            if(Settings.GetBool("fullscreen")) {
+            if(Settings.GetBool("bloom")) {
                 _bloomRT1.Clear(ColorScheme.GetColor("background"));
                 _bloomRT1.Draw(_textSprite);
                 //Texture fullscreenText = new Texture(_bloomRT.Texture);
