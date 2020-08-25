@@ -116,19 +116,23 @@ namespace PPR.GUI {
                 new Button(musicOffsetPos, "<", "editor.music.offset.down", 1),
                 new Button(musicOffsetPos + new Vector2(2, 0), ">", "editor.music.offset.up", 1)
             };
-            _musicSpeedSlider = new Slider(new Vector2(78, 58), 25, 100, 16, 100, "", "editor.music.speed", true,
-                Renderer.Alignment.Right, Slider.TextAlignment.Right);
+            _musicSpeedSlider = new Slider(new Vector2(78, 58), 25, 100, 16, 100,
+                "[value]%", "", "editor.music.speed", Renderer.Alignment.Right);
             _skipButton = new Button(new Vector2(78, 58), "SKIP", "game.skip", 4,
                 new InputKey("Space"), right);
 
-            musicVolumeSlider = new Slider(new Vector2(), 0, 100, 21, 15, "MUSIC VOLUME", "settings.volume.music");
-            soundsVolumeSlider = new Slider(new Vector2(), 0, 100, 21, 10, "SOUNDS VOLUME", "settings.volume.sounds");
+            musicVolumeSlider = new Slider(new Vector2(), 0, 100, 21, 15, "MUSIC VOLUME",
+                "[value]", "settings.volume.music");
+            soundsVolumeSlider = new Slider(new Vector2(), 0, 100, 21, 10, "SOUNDS VOLUME",
+                "[value]", "settings.volume.sounds");
 
             bloomSwitch = new Button(new Vector2(4, 24), "BLOOM", "settings.bloom", 5);
             fullscreenSwitch = new Button(new Vector2(4, 26), "FULLSCREEN", "settings.fullscreen", 10);
-            uppercaseSwitch = new Button(new Vector2(4, 28), "UPPERCASE NOTES", "settings.uppercaseNotes", 15);
+            fpsLimitSlider = new Slider(new Vector2(4, 28), 0, 1020, 18, 480, "FPS LIMIT", "[value]",
+                "settings.fpsLimit");
+            uppercaseSwitch = new Button(new Vector2(4, 30), "UPPERCASE NOTES", "settings.uppercaseNotes", 15);
 
-            showFpsSwitch = new Button(new Vector2(4, 37), "SHOW FPS", "settings.showFPS", 8);
+            showFpsSwitch = new Button(new Vector2(4, 39), "SHOW FPS", "settings.showFPS", 8);
 
             _keybindsButton = new Button(new Vector2(2, 57), "KEYBINDS", "settings.keybinds", 8);
 
@@ -355,7 +359,7 @@ namespace PPR.GUI {
                 Renderer.instance.DrawText(musicOffsetPos,
                     $"    MUSIC OFFSET: {Map.currentLevel.metadata.initialOffsetMs.ToString()} MS", ColorScheme.GetColor("music_offset"));
 
-                Game.music.Pitch = _musicSpeedSlider.Draw() / 100f;
+                if(_musicSpeedSlider.Draw()) Game.music.Pitch = _musicSpeedSlider.value / 100f;
 
                 DrawProgress();
                 DrawLevelName(levelNamePos, ColorScheme.GetColor("game_level_name"));
@@ -546,13 +550,14 @@ namespace PPR.GUI {
         static readonly Vector2 graphicsGroupTextPos = new Vector2(2, 22);
         public static Button bloomSwitch;
         public static Button fullscreenSwitch;
+        public static Slider fpsLimitSlider;
         public static Button uppercaseSwitch;
-        static readonly Vector2 fontSwitchPos = new Vector2(4, 30);
+        static readonly Vector2 fontSwitchPos = new Vector2(4, 32);
         static readonly List<Button> fontSwitchButtonsList = new List<Button>();
-        static readonly Vector2 colorSchemeSwitchPos = new Vector2(4, 32);
+        static readonly Vector2 colorSchemeSwitchPos = new Vector2(4, 34);
         static readonly List<Button> colorSchemeSwitchButtonsList = new List<Button>();
 
-        static readonly Vector2 advancedGroupTextPos = new Vector2(2, 35);
+        static readonly Vector2 advancedGroupTextPos = new Vector2(2, 37);
         public static Button showFpsSwitch;
 
         static string IncreaseFolderSwitchDirectory(string currentPath, string basePath, int at) {
@@ -618,21 +623,21 @@ namespace PPR.GUI {
             if(pauseMenu) {
                 musicVolumeSlider.position = new Vector2(78, 55);
                 musicVolumeSlider.align = Renderer.Alignment.Right;
-                musicVolumeSlider.alignText = Slider.TextAlignment.Right;
+                musicVolumeSlider.swapTexts = true;
 
                 soundsVolumeSlider.position = new Vector2(78, 57);
                 soundsVolumeSlider.align = Renderer.Alignment.Right;
-                soundsVolumeSlider.alignText = Slider.TextAlignment.Right;
+                soundsVolumeSlider.swapTexts = true;
             }
             else {
                 Renderer.instance.DrawText(audioGroupTextPos, "[ AUDIO ]", ColorScheme.GetColor("settings_header_audio"));
                 musicVolumeSlider.position = new Vector2(4, 15);
                 musicVolumeSlider.align = Renderer.Alignment.Left;
-                musicVolumeSlider.alignText = Slider.TextAlignment.Left;
+                musicVolumeSlider.swapTexts = false;
 
                 soundsVolumeSlider.position = new Vector2(4, 17);
                 soundsVolumeSlider.align = Renderer.Alignment.Left;
-                soundsVolumeSlider.alignText = Slider.TextAlignment.Left;
+                soundsVolumeSlider.swapTexts = false;
 
                 Renderer.instance.DrawText(audioSwitchPos, "SOUNDS", ColorScheme.GetColor("settings"));
                 for(int i = audioSwitchButtonsList.Count - 1; i >= 0; i--)
@@ -648,6 +653,9 @@ namespace PPR.GUI {
                 if(bloomSwitch.Draw()) Settings.SetBool("bloom", bloomSwitch.selected = !bloomSwitch.selected);
                 if(fullscreenSwitch.Draw())
                     Settings.SetBool("fullscreen", fullscreenSwitch.selected = !fullscreenSwitch.selected);
+                fpsLimitSlider.rightText = fpsLimitSlider.value < 60 ? "V-Sync" :
+                    fpsLimitSlider.value > 960 ? "Unlimited" : "[value]";
+                if(fpsLimitSlider.Draw()) Settings.SetInt("fpsLimit", fpsLimitSlider.value);
                 if(uppercaseSwitch.Draw())
                     Settings.SetBool("uppercaseNotes", uppercaseSwitch.selected = !uppercaseSwitch.selected);
                 Renderer.instance.DrawText(fontSwitchPos, "FONT", ColorScheme.GetColor("settings"));
@@ -674,8 +682,8 @@ namespace PPR.GUI {
                 if(showFpsSwitch.Draw()) Settings.SetBool("showFps", showFpsSwitch.selected = !showFpsSwitch.selected);
             }
 
-            Settings.SetInt("musicVolume", musicVolumeSlider.Draw());
-            Settings.SetInt("soundsVolume", soundsVolumeSlider.Draw());
+            if(musicVolumeSlider.Draw()) Settings.SetInt("musicVolume", musicVolumeSlider.value);
+            if(soundsVolumeSlider.Draw()) Settings.SetInt("soundsVolume", soundsVolumeSlider.value);
         }
         static Button _keybindsButton;
         static void DrawSettings() {

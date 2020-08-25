@@ -29,7 +29,7 @@ namespace PPR.Properties {
                 {"bloom", true}, {"fullscreen", false}, {"uppercaseNotes", false}, {"showFps", false}
             };
             _integers = new Dictionary<string, int> {
-                {"musicVolume", 15}, {"soundsVolume", 10}
+                {"musicVolume", 15}, {"soundsVolume", 10}, {"fpsLimit", 480}
             };
             _strings = new Dictionary<string, string> {
                 {"audio", "Default"}, {"font", Path.Join("Codepage 437", "10x10", "x1")},

@@ -16,14 +16,14 @@ namespace PPR.GUI.Elements {
         public readonly int size;
         public readonly int step;
         public int value;
-        public string text;
+        public string leftText;
+        public string rightText;
         public string id;
         public Color idleColor;
         public Color hoverColor;
         public Color clickColor;
-        public bool showValue;
         public Renderer.Alignment align;
-        public TextAlignment alignText;
+        public bool swapTexts;
         Color _currentColor;
         Color _prevColor;
         public State currentState = State.Clicked;
@@ -34,38 +34,36 @@ namespace PPR.GUI.Elements {
         readonly float[] _animRateOffsets;
         int _posX;
         public enum State { Idle, Hovered, Clicked };
-        public enum TextAlignment { Left, Right };
-        public Slider(Vector2 position, int minValue, int maxValue, int size, int defaultValue, string text, string id,
-            bool showValue = true, Renderer.Alignment align = Renderer.Alignment.Left,
-            TextAlignment alignText = TextAlignment.Left) : this(position, minValue, maxValue, size, defaultValue, text, id,
+        public Slider(Vector2 position, int minValue, int maxValue, int size, int defaultValue, string leftText,
+            string rightText, string id, Renderer.Alignment align = Renderer.Alignment.Left, bool swapTexts = false) :
+            this(position, minValue, maxValue, size, defaultValue, leftText, rightText, id,
             ColorScheme.GetColor($"slider_{id}_idle"),
             ColorScheme.GetColor($"slider_{id}_hover"),
-            ColorScheme.GetColor($"slider_{id}_click"), showValue, align, alignText) { }
-        public Slider(Vector2 position, int minValue, int maxValue, int size, int defaultValue, string text, string id,
-            Color idleColor, Color hoverColor, Color clickColor, bool showValue = true,
-            Renderer.Alignment align = Renderer.Alignment.Left, TextAlignment alignText = TextAlignment.Left) {
+            ColorScheme.GetColor($"slider_{id}_click"), align, swapTexts) { }
+        public Slider(Vector2 position, int minValue, int maxValue, int size, int defaultValue, string leftText,
+            string rightText, string id, Color idleColor, Color hoverColor, Color clickColor,
+            Renderer.Alignment align = Renderer.Alignment.Left, bool swapTexts = false) {
             this.position = position;
             this.minValue = minValue;
             this.maxValue = maxValue;
             this.size = size;
             step = (maxValue - minValue) / (size - 1);
             value = defaultValue;
-            this.text = text;
+            this.leftText = leftText;
+            this.rightText = rightText;
             this.id = id;
             this.idleColor = idleColor;
             this.hoverColor = hoverColor;
             this.clickColor = clickColor;
-            this.showValue = showValue;
             this.align = align;
-            this.alignText = alignText;
+            this.swapTexts = swapTexts;
             _animTimes = new float[size];
             _animRateOffsets = new float[size];
             _currentColor = hoverColor;
         }
         State DrawWithState() {
-            bool left = alignText == TextAlignment.Left;
-            string leftText = $"{(left ? text : showValue ? value.ToString() : "")} ";
-            string rightText = left ? showValue ? value.ToString() : "" : text;
+            string leftText = $"{(swapTexts ? this.rightText : this.leftText).Replace("[value]", value.ToString())} ";
+            string rightText = (swapTexts ? this.leftText : this.rightText).Replace("[value]", value.ToString());
             _posX = position.x - align switch
             {
                 Renderer.Alignment.Right => size + rightText.Length + 1,
@@ -77,7 +75,7 @@ namespace PPR.GUI.Elements {
             return Renderer.instance.mousePosition.InBounds(_posX, position.y, _posX + size - 1, position.y)
                               ? Core.renderer.leftButtonPressed ? State.Clicked : State.Hovered : State.Idle;
         }
-        public int Draw() {
+        public bool Draw() {
             prevFrameState = currentState;
             currentState = DrawWithState();
             if(_prevState != currentState) {
@@ -97,10 +95,12 @@ namespace PPR.GUI.Elements {
             }
             _prevState = currentState;
 
+            bool valueChanged = false;
             if(Renderer.instance.window.HasFocus() && currentState == State.Clicked) {
                 int previousValue = value;
                 value = Math.Clamp((Renderer.instance.mousePosition.x - _posX) * step + minValue, minValue, maxValue);
-                if (value != previousValue) Game.sliderSound.Play();
+                valueChanged = value != previousValue;
+                if(valueChanged) Game.sliderSound.Play();
             }
 
             for(int x = 0; x < size; x++) {
@@ -114,7 +114,7 @@ namespace PPR.GUI.Elements {
                     Renderer.AnimateColor(_animTimes[x], _prevColor, _currentColor, 4f + _animRateOffsets[x]));
                 _animTimes[x] += Core.deltaTime;
             }
-            return value;
+            return valueChanged;
         }
     }
 }

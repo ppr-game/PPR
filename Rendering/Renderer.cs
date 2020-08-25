@@ -29,8 +29,8 @@ namespace PPR.Rendering {
             get => _frameRate;
             set {
                 _frameRate = value;
-                if(value < 0) window.SetVerticalSyncEnabled(true);
-                else window.SetFramerateLimit((uint)value);
+                window.SetVerticalSyncEnabled(value < 0);
+                if(value >= 0) window.SetFramerateLimit((uint)value);
             }
         }
         public BitmapText text;

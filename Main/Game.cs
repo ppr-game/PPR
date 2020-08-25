@@ -176,6 +176,7 @@ namespace PPR.Main {
             Settings.Reload();
             Bindings.Reload();
             ColorScheme.Reload();
+            Core.renderer.frameRate = Settings.GetInt("fpsLimit");
             ReloadSounds();
             
             RPC.Initialize();
@@ -199,6 +200,7 @@ namespace PPR.Main {
             UI.bloomSwitch.selected = Settings.GetBool("bloom");
             UI.showFpsSwitch.selected = Settings.GetBool("showFps");
             UI.fullscreenSwitch.selected = Settings.GetBool("fullscreen");
+            UI.fpsLimitSlider.value = Settings.GetInt("fpsLimit");
             UI.uppercaseSwitch.selected = Settings.GetBool("uppercaseNotes");
 
             LevelObject.linesColors = new Color[] {
@@ -324,6 +326,10 @@ namespace PPR.Main {
                     break;
                 case "audio": ReloadSounds();
                     break;
+                case "fpsLimit":
+                    int value = Settings.GetInt("fpsLimit");
+                    Core.renderer.frameRate = value < 60 ? -1 : value > 960 ? 0 : value;
+                    break;
             }
         }
         public static void LostFocus(object caller, EventArgs args) {
@@ -333,7 +339,7 @@ namespace PPR.Main {
         }
         public static void GainedFocus(object caller, EventArgs args) {
             music.Volume = Settings.GetInt("musicVolume");
-            Core.renderer.frameRate = 0;
+            Core.renderer.frameRate = Settings.GetInt("fpsLimit");
         }
         public static void GameStart(string musicPath) {
             // Reset everything when we enter the level or bad things will happen
