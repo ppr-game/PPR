@@ -318,8 +318,7 @@ namespace PPR.Rendering {
                           (byte)MathF.Floor(a.A + (b.A - a.A) * t));
         }
         public static Color AnimateColor(float time, Color start, Color end, float rate) {
-            float t = Math.Clamp(time * rate, 0f, 1f);
-            return LerpColors(start, end, t);
+            return LerpColors(start, end, time * rate);
         }
     }
 }

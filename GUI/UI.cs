@@ -172,8 +172,8 @@ namespace PPR.GUI {
                     float noise = MathF.Abs(noiseX * noiseY);
                     int xOffset = (int)((Core.renderer.mousePositionF.X / Core.renderer.width - 0.5f) * noise * -100f);
                     int yOffset = (int)((Core.renderer.mousePositionF.Y / Core.renderer.width - 0.5f) * noise * -100f);
-                    Color useColor = Renderer.LerpColors( ColorScheme.GetColor("background"),
-                        ColorScheme.GetColor("menus_anim_max"), noise * 30f);
+                    Color useColor = Renderer.AnimateColor(noise, ColorScheme.GetColor("background"),
+                        ColorScheme.GetColor("menus_anim_max"), 30f);
                     Core.renderer.SetCellColor(
                         new Vector2(x + (int)(noiseX * 10f) + xOffset, y + (int)(noiseY * 10f) + yOffset),
                         ColorScheme.GetColor("foreground"), useColor);

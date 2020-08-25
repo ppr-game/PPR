@@ -12,11 +12,22 @@ namespace PPR.Main.Levels {
     public static class Map {
         public static Level currentLevel;
         public static readonly Vector2 linePos = new Vector2(0, 54);
+        static readonly float[] lineFlashTimes = new float[Core.renderer.width];
+        public static int flashLine {
+            set => lineFlashTimes[value] = 1f;
+        }
         public static event EventHandler onDraw;
         public static void Draw() {
             if(Game.currentMenu != Menu.Game) return;
 
-            Renderer.instance.DrawText(linePos,
+            for(int x = 0; x < Core.renderer.width; x++) {
+                Vector2 pos = new Vector2(x, linePos.y);
+                Core.renderer.SetCellColor(pos, ColorScheme.GetColor("foreground"),
+                    Renderer.AnimateColor(lineFlashTimes[x], ColorScheme.GetColor("background"),
+                        ColorScheme.GetColor("foreground"), 1f));
+                lineFlashTimes[x] -= Core.deltaTime * 3f;
+            }
+            Core.renderer.DrawText(linePos,
                 "────────────────────────────────────────────────────────────────────────────────");
             if(Game.editing) {
                 int doubleFrequency = currentLevel.metadata.linesFrequency * 2;

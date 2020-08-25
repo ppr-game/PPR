@@ -220,7 +220,7 @@ namespace PPR.Main.Levels {
 
         public bool ignore;
 
-        static int GetXPosForCharacter(char character) {
+        public static int GetXPosForCharacter(char character) {
             character = char.ToLower(character);
             int x = 0;
             int xLineOffset = 0;

@@ -637,8 +637,8 @@ namespace PPR.Main {
             if(Bindings.GetBinding("fullscreen").IsPressed(key))
                 Settings.SetBool("fullscreen", !Settings.GetBool("fullscreen"));
             if(currentMenu != Menu.Game) return;
+            char character = GetNoteBinding(key.Code);
             if(editing) {
-                char character = GetNoteBinding(key.Code);
                 if(character == '\0') {
                     // Erase
                     if(Bindings.GetBinding("erase").IsPressed(key)) {
@@ -695,9 +695,17 @@ namespace PPR.Main {
 
                 RecalculatePosition();
             }
-            else if(!auto)
-                for(int step = roundedSteps - LevelObject.missRange; StepPassedLine(step, -LevelObject.missRange); step++)
-                    if(CheckLine(step)) break;
+            else if(!auto) {
+                bool anythingPressed = false;
+                for(int step = roundedSteps - LevelObject.missRange; StepPassedLine(step, -LevelObject.missRange);
+                    step++)
+                    if(CheckLine(step)) {
+                        anythingPressed = true;
+                        break;
+                    }
+
+                if(!anythingPressed && character != '\0') Map.flashLine = LevelObject.GetXPosForCharacter(character);
+            }
         }
 
         static bool CheckLine(int step) {
