@@ -20,10 +20,10 @@ namespace PPR.GUI {
         public static void Reload() {
             colors.Clear();
 
-            string bloomBlendShaderPath = Path.Combine("resources", "colors", Settings.GetString("colorScheme"),
+            string bloomBlendShaderPath = Path.Join("resources", "colors", Settings.GetPath("colorScheme"),
                 "bloom-blend_frag.glsl");
             if(!File.Exists(bloomBlendShaderPath))
-                bloomBlendShaderPath = Path.Combine("resources", "colors", "Default", "Classic",
+                bloomBlendShaderPath = Path.Join("resources", "colors", "Default", "Classic",
                     "bloom-blend_frag.glsl");
             if(!File.Exists(bloomBlendShaderPath)) {
                 FileNotFoundException ex =
@@ -32,13 +32,13 @@ namespace PPR.GUI {
                 throw ex;
             }
             Core.renderer.bloomBlend = Shader.FromString(
-                File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
+                File.ReadAllText(Path.Join("resources", "bloom_vert.glsl")), null,
                 File.ReadAllText(bloomBlendShaderPath));
             
             Dictionary<string, string> queue = new Dictionary<string, string>();
             
-            LoadScheme(Path.Combine("Default", "Classic"), queue);
-            LoadScheme(Settings.GetString("colorScheme"), queue);
+            LoadScheme(Path.Join("Default", "Classic"), queue);
+            LoadScheme(Settings.GetPath("colorScheme"), queue);
             
             LoadQueue(queue);
 
@@ -46,10 +46,10 @@ namespace PPR.GUI {
         }
 
         static void LoadScheme(string path, IDictionary<string, string> queue) {
-            string filePath = Path.Combine("resources", "colors", path, "colors.txt");
+            string filePath = Path.Join("resources", "colors", path, "colors.txt");
             if(!File.Exists(filePath)) {
                 logger.Warn($"The color scheme at '{path}' was not found, falling back to default");
-                filePath = Path.Combine("resources", "colors", "Default", "Classic", "colors.txt");
+                filePath = Path.Join("resources", "colors", "Default", "Classic", "colors.txt");
             }
             if(!File.Exists(filePath)) {
                 FileNotFoundException ex = new FileNotFoundException("The default color scheme was not found");

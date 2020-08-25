@@ -60,11 +60,11 @@ namespace PPR.GUI {
             }
         }
 
-        static readonly string[] mainMenuText = File.ReadAllLines(Path.Combine("resources", "ui", "mainMenu.txt"));
-        static readonly string[] settingsText = File.ReadAllLines(Path.Combine("resources", "ui", "settings.txt"));
-        static readonly string[] keybindsEditorText = File.ReadAllLines(Path.Combine("resources", "ui", "keybinds.txt"));
-        static readonly string[] levelSelectText = File.ReadAllLines(Path.Combine("resources", "ui", "levelSelect.txt"));
-        static readonly string[] lastStatsText = File.ReadAllLines(Path.Combine("resources", "ui", "lastStats.txt"));
+        static readonly string[] mainMenuText = File.ReadAllLines(Path.Join("resources", "ui", "mainMenu.txt"));
+        static readonly string[] settingsText = File.ReadAllLines(Path.Join("resources", "ui", "settings.txt"));
+        static readonly string[] keybindsEditorText = File.ReadAllLines(Path.Join("resources", "ui", "keybinds.txt"));
+        static readonly string[] levelSelectText = File.ReadAllLines(Path.Join("resources", "ui", "levelSelect.txt"));
+        static readonly string[] lastStatsText = File.ReadAllLines(Path.Join("resources", "ui", "lastStats.txt"));
         static List<Button> _mainMenuButtons;
 
         public static int currentLevelSelectIndex;
@@ -208,16 +208,16 @@ namespace PPR.GUI {
                 if(button.position.y < 12 || button.position.y > 49) continue;
                 if(button.Draw()) {
                     _lastLevel = button.text;
-                    string path = Path.Combine("levels", _lastLevel);
-                    Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine(path, "level.txt")), _lastLevel,
-                        Game.GetSoundFilePath(Path.Combine(path, "music")), Path.Combine(path, "Script.csx"));
+                    string path = Path.Join("levels", _lastLevel);
+                    Map.LoadLevelFromLines(File.ReadAllLines(Path.Join(path, "level.txt")), _lastLevel,
+                        Game.GetSoundFilePath(Path.Join(path, "music")), Path.Join(path, "Script.csx"));
                     Game.currentMenu = Menu.Game;
                     Game.RecalculatePosition();
                 }
                 if((button.currentState == Button.State.Hovered || button.currentState == Button.State.Clicked) &&
                     button.prevFrameState != Button.State.Hovered && button.prevFrameState != Button.State.Clicked) {
-                    string levelPath = Path.Combine("levels", button.text);
-                    string musicPath = Game.GetSoundFilePath(Path.Combine(levelPath, "music"));
+                    string levelPath = Path.Join("levels", button.text);
+                    string musicPath = Game.GetSoundFilePath(Path.Join(levelPath, "music"));
                     if(File.Exists(musicPath)) {
                         Game.currentMusicPath = musicPath;
                         Game.music.Stop();
@@ -235,8 +235,8 @@ namespace PPR.GUI {
                 switch(button.text) {
                     case "NEW" when Game.editing && button.Draw():
                         _lastLevel = "unnamed";
-                        Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine("levels", "_template", "level.txt")),
-                            _lastLevel, "", Path.Combine("levels", "_template", "Script.csx"));
+                        Map.LoadLevelFromLines(File.ReadAllLines(Path.Join("levels", "_template", "level.txt")),
+                            _lastLevel, "", Path.Join("levels", "_template", "Script.csx"));
                         Game.currentMenu = Menu.Game;
                         Game.RecalculatePosition();
                         break;
@@ -505,9 +505,9 @@ namespace PPR.GUI {
                     case "RESTART": {
                         if(!Game.editing && button.Draw()) {
                             Game.currentMenu = Menu.Game;
-                            string path = Path.Combine("levels", _lastLevel);
-                            Map.LoadLevelFromLines(File.ReadAllLines(Path.Combine(path, "level.txt")), _lastLevel,
-                                Game.GetSoundFilePath(Path.Combine(path, "music")), Path.Combine(path, "Script.csx"));
+                            string path = Path.Join("levels", _lastLevel);
+                            Map.LoadLevelFromLines(File.ReadAllLines(Path.Join(path, "level.txt")), _lastLevel,
+                                Game.GetSoundFilePath(Path.Join(path, "music")), Path.Join(path, "Script.csx"));
                         }
                         break;
                     }
@@ -518,9 +518,9 @@ namespace PPR.GUI {
                     }
                     case "SAVE": {
                         if(Game.editing && button.Draw()) {
-                            string path = Path.Combine("levels", _lastLevel);
+                            string path = Path.Join("levels", _lastLevel);
                             _ = Directory.CreateDirectory(path);
-                            File.WriteAllText(Path.Combine(path, "level.txt"), Map.TextFromLevel(Map.currentLevel));
+                            File.WriteAllText(Path.Join(path, "level.txt"), Map.TextFromLevel(Map.currentLevel));
                         }
                         break;
                     }
@@ -559,10 +559,9 @@ namespace PPR.GUI {
             // Disassemble the path
             List<string> fullDirNames = currentPath.Split(Path.DirectorySeparatorChar).ToList();
             while(fullDirNames.Count > at + 1) fullDirNames.RemoveAt(fullDirNames.Count - 1);
-            string fullDir = Path.Combine(fullDirNames.ToArray());
+            string fullDir = Path.Join(fullDirNames.ToArray());
             string inDir = Path.GetDirectoryName(fullDir);
-            string[] inDirNames = Directory.GetDirectories(Path.Combine(basePath, inDir ?? ""))
-                // ReSharper disable once HeapView.ObjectAllocation
+            string[] inDirNames = Directory.GetDirectories(Path.Join(basePath, inDir ?? ""))
                 .Select(Path.GetFileName).ToArray();
 
             // Move to the next folder
@@ -572,21 +571,21 @@ namespace PPR.GUI {
             fullDirNames.Add(inDirNames[nextIndex >= inDirNames.Length ? 0 : nextIndex]);
 
             // Assemble the path back
-            string newPath = Path.Combine(fullDirNames.ToArray());
-            string[] newPathDirs = Directory.GetDirectories(Path.Combine(basePath, newPath));
+            string newPath = Path.Join(fullDirNames.ToArray());
+            string[] newPathDirs = Directory.GetDirectories(Path.Join(basePath, newPath));
             while(newPathDirs.Length > 0) {
-                newPath = Path.Combine(newPath, Path.GetFileName(newPathDirs[0]) ?? string.Empty);
-                newPathDirs = Directory.GetDirectories(Path.Combine(basePath, newPath));
+                newPath = Path.Join(newPath, Path.GetFileName(newPathDirs[0]) ?? string.Empty);
+                newPathDirs = Directory.GetDirectories(Path.Join(basePath, newPath));
             }
             return newPath;
         }
 
         static void UpdateAllFolderSwitchButtons() {
-            UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.GetString("audio"), audioSwitchPos.x,
+            UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.GetPath("audio"), audioSwitchPos.x,
                 audioSwitchPos.y, 7);
-            UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.GetString("font"), fontSwitchPos.x,
+            UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.GetPath("font"), fontSwitchPos.x,
                 fontSwitchPos.y, 5);
-            UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.GetString("colorScheme"),
+            UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.GetPath("colorScheme"),
                 colorSchemeSwitchPos.x, colorSchemeSwitchPos.y, 13);
         }
 
@@ -638,10 +637,10 @@ namespace PPR.GUI {
                 Renderer.instance.DrawText(audioSwitchPos, "SOUNDS", ColorScheme.GetColor("settings"));
                 for(int i = audioSwitchButtonsList.Count - 1; i >= 0; i--)
                     if(audioSwitchButtonsList[i].Draw()) {
-                        Settings.SetString("audio",
-                            IncreaseFolderSwitchDirectory(Settings.GetString("audio"),
-                                Path.Combine("resources", "audio"), i));
-                        UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.GetString("audio"), audioSwitchPos.x,
+                        Settings.SetPath("audio",
+                            IncreaseFolderSwitchDirectory(Settings.GetPath("audio"),
+                                Path.Join("resources", "audio"), i));
+                        UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.GetPath("audio"), audioSwitchPos.x,
                             audioSwitchPos.y, 7);
                     }
 
@@ -654,20 +653,20 @@ namespace PPR.GUI {
                 Renderer.instance.DrawText(fontSwitchPos, "FONT", ColorScheme.GetColor("settings"));
                 for(int i = fontSwitchButtonsList.Count - 1; i >= 0; i--)
                     if(fontSwitchButtonsList[i].Draw()) {
-                        Settings.SetString("font",
-                            IncreaseFolderSwitchDirectory(Settings.GetString("font"),
-                                Path.Combine("resources", "fonts"), i));
-                        UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.GetString("font"), fontSwitchPos.x,
+                        Settings.SetPath("font",
+                            IncreaseFolderSwitchDirectory(Settings.GetPath("font"),
+                                Path.Join("resources", "fonts"), i));
+                        UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.GetPath("font"), fontSwitchPos.x,
                             fontSwitchPos.y, 5);
                     }
 
                 Renderer.instance.DrawText(colorSchemeSwitchPos, "COLOR SCHEME", ColorScheme.GetColor("settings"));
                 for(int i = colorSchemeSwitchButtonsList.Count - 1; i >= 0; i--)
                     if(colorSchemeSwitchButtonsList[i].Draw()) {
-                        Settings.SetString("colorScheme",
-                            IncreaseFolderSwitchDirectory(Settings.GetString("colorScheme"),
-                                Path.Combine("resources", "colors"), i));
-                        UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.GetString("colorScheme"),
+                        Settings.SetPath("colorScheme",
+                            IncreaseFolderSwitchDirectory(Settings.GetPath("colorScheme"),
+                                Path.Join("resources", "colors"), i));
+                        UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.GetPath("colorScheme"),
                             colorSchemeSwitchPos.x, colorSchemeSwitchPos.y, 13);
                     }
 

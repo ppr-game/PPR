@@ -56,7 +56,7 @@ namespace PPR.Main {
                         break;
                     }
                     case Menu.LastStats when !_usedAuto && statsState == StatsState.Pass && Map.currentLevel != null: {
-                        string path = Path.Combine("scores", $"{Map.currentLevel.metadata.name}.txt");
+                        string path = Path.Join("scores", $"{Map.currentLevel.metadata.name}.txt");
                         string text = File.Exists(path) ? File.ReadAllText(path) : "";
                         text =
                             $"{Map.TextFromScore(new LevelScore(new Vector2(), score, accuracy, maxCombo, scores))}\n{text}";
@@ -78,7 +78,7 @@ namespace PPR.Main {
                 if(value == Menu.LevelSelect) {
                     GenerateLevelList();
                     string name = Path.GetFileName(Path.GetDirectoryName(currentMusicPath));
-                    if(name == "Default" || name == Settings.GetString("audio")) SwitchMusic();
+                    if(name == "Default" || name == Settings.GetPath("audio")) SwitchMusic();
                 }
                 _currentMenu = value;
                 switch(value) {
@@ -131,7 +131,7 @@ namespace PPR.Main {
                 _currentMusicPath = value;
                 if(currentMusicName == "Waterflame - Cove") return;
                 string[] menusAnimLines =
-                    File.ReadAllLines(Path.Combine(Path.GetDirectoryName(value)!, "level.txt"));
+                    File.ReadAllLines(Path.Join(Path.GetDirectoryName(value)!, "level.txt"));
                 menusAnimInitialOffset = GetInitialOffset(menusAnimLines);
                 menusAnimSpeeds = GetSpeeds(menusAnimLines);
             }
@@ -139,7 +139,7 @@ namespace PPR.Main {
         public static string currentMusicName {
             get {
                 string name = Path.GetFileName(Path.GetDirectoryName(currentMusicPath));
-                return name == "Default" || name == Settings.GetString("audio") ? "Waterflame - Cove" : name;
+                return name == "Default" || name == Settings.GetPath("audio") ? "Waterflame - Cove" : name;
             }
         }
         public static int menusAnimInitialOffset;
@@ -181,11 +181,11 @@ namespace PPR.Main {
             RPC.Initialize();
 
             try {
-                currentMusicPath = GetSoundFilePath(Path.Combine("resources", "audio", Settings.GetString("audio"), "mainMenu"));
+                currentMusicPath = GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "mainMenu"));
                 music = new Music(currentMusicPath);
             }
             catch(LoadingFailedException) {
-                currentMusicPath = GetSoundFilePath(Path.Combine("resources", "audio", "Default", "mainMenu"));
+                currentMusicPath = GetSoundFilePath(Path.Join("resources", "audio", "Default", "mainMenu"));
                 music = new Music(currentMusicPath);
             }
 
@@ -250,23 +250,23 @@ namespace PPR.Main {
         }
 
         static void ReloadSounds() {
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.GetString("audio"), "hit")), out hitSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "hit")), out hitSound))
+            if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "hit")), out hitSound) ||
+                TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "hit")), out hitSound))
                 hitSound.Volume = Settings.GetInt("soundsVolume");
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.GetString("audio"), "tick")), out tickSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "tick")), out tickSound))
+            if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "tick")), out tickSound) ||
+                TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "tick")), out tickSound))
                 tickSound.Volume = Settings.GetInt("soundsVolume");
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.GetString("audio"), "fail")), out failSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "fail")), out failSound))
+            if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "fail")), out failSound) ||
+                TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "fail")), out failSound))
                 failSound.Volume = Settings.GetInt("soundsVolume");
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.GetString("audio"), "pass")), out passSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "pass")), out passSound))
+            if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "pass")), out passSound) ||
+                TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "pass")), out passSound))
                 passSound.Volume = Settings.GetInt("soundsVolume");
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.GetString("audio"), "buttonClick")), out buttonClickSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "buttonClick")), out buttonClickSound))
+            if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "buttonClick")), out buttonClickSound) ||
+                TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "buttonClick")), out buttonClickSound))
                 buttonClickSound.Volume = Settings.GetInt("soundsVolume");
-            if(TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", Settings.GetString("audio"), "slider")), out sliderSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Combine("resources", "audio", "Default", "slider")), out sliderSound))
+            if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "slider")), out sliderSound) ||
+                TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "slider")), out sliderSound))
                 sliderSound.Volume = Settings.GetInt("soundsVolume");
         }
         public static void End() {
@@ -291,13 +291,13 @@ namespace PPR.Main {
         static void SettingChanged(object caller, SettingChangedEventArgs e) {
             switch (e.settingName) {
                 case "font": {
-                    string[] fontMappingsLines = File.ReadAllLines(Path.Combine("resources", "fonts", Settings.GetString("font"), "mappings.txt"));
+                    string[] fontMappingsLines = File.ReadAllLines(Path.Join("resources", "fonts", Settings.GetPath("font"), "mappings.txt"));
                     string[] fontSizeStr = fontMappingsLines[0].Split(',');
                     Core.renderer.fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
                     Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.x;
                     Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.y;
 
-                    BitmapFont font = new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.GetString("font"), "font.png")),
+                    BitmapFont font = new BitmapFont(new Image(Path.Join("resources", "fonts", Settings.GetPath("font"), "font.png")),
                         fontMappingsLines[1], Core.renderer.fontSize);
                     Core.renderer.text = new BitmapText(font, new Vector2(Core.renderer.width, Core.renderer.height)) {
                         backgroundColors = Core.renderer.backgroundColors,
@@ -409,7 +409,7 @@ namespace PPR.Main {
             string newPath = currentMusicPath;
             string[] paths = Directory.GetDirectories("levels")
                 .Where(path => Path.GetFileName(Path.GetDirectoryName(path)) != "_template")
-                .Select(path => GetSoundFilePath(Path.Combine(path, "music")))
+                .Select(path => GetSoundFilePath(Path.Join(path, "music")))
                 .Where(path => !string.IsNullOrEmpty(path)).ToArray();
             int index = 0;
             switch(paths.Length) {
@@ -855,7 +855,7 @@ namespace PPR.Main {
                 string name = Path.GetFileName(directories[i]);
                 if(name == "_template") continue;
                 buttons.Add(new Button(new Vector2(25, 12 + i), name, "levelSelect.level", 30));
-                metadatas.Add(new LevelMetadata(File.ReadAllLines(Path.Combine(directories[i], "level.txt")), name));
+                metadatas.Add(new LevelMetadata(File.ReadAllLines(Path.Join(directories[i], "level.txt")), name));
                 logger.Info("Loaded metadata for level {0}", name);
             }
             UI.levelSelectLevels = buttons;
@@ -868,7 +868,7 @@ namespace PPR.Main {
                 for(int i = 0; i < directories.Length; i++) {
                     string name = Path.GetFileName(directories[i]);
                     if(name == "_template") continue;
-                    string scoresPath = Path.Combine("scores", $"{name}.txt");
+                    string scoresPath = Path.Join("scores", $"{name}.txt");
                     if(File.Exists(scoresPath)) {
                         scores.Add(Map.ScoresFromLines(File.ReadAllLines(scoresPath), UI.scoresPos));
                         logger.Info("Loaded scores for level {0}, total scores count: {1}", name, scores[i].Count);

@@ -32,8 +32,8 @@ namespace PPR.Properties {
                 {"musicVolume", 15}, {"soundsVolume", 10}
             };
             _strings = new Dictionary<string, string> {
-                {"audio", "Default"}, {"font", Path.Combine("Codepage 437", "10x10", "x1")},
-                {"colorScheme", Path.Combine("Default", "Classic")}
+                {"audio", "Default"}, {"font", Path.Join("Codepage 437", "10x10", "x1")},
+                {"colorScheme", Path.Join("Default", "Classic")}
             };
             
             LoadConfig();
@@ -47,7 +47,7 @@ namespace PPR.Properties {
             string[] lines = File.ReadAllLines(PATH);
             
             foreach(string line in lines) {
-                string usableLine = line.Split('#')[0].Replace(' ', '\0');
+                string usableLine = line.Split('#')[0];
                 string[] keyValue = usableLine.Split('=');
                 if(keyValue.Length != 2) continue;
                 string key = keyValue[0];
@@ -63,19 +63,9 @@ namespace PPR.Properties {
             string[] strBools = _booleans.Select(value => $"{value.Key}={value.Value.ToString(culture)}").ToArray();
             string[] strInts = _integers.Select(value => $"{value.Key}={value.Value.ToString(culture)}").ToArray();
             string[] strStrings = _strings.Select(value => $"{value.Key}={value.Value}").ToArray();
-            string[][] allArrs = { strBools, strInts, strStrings };
-            string[] lines = new string[strBools.Length + strInts.Length + strStrings.Length];
-            int curIndex = 0;
-            int curArr = 0;
-            for(int i = 0; i < lines.Length; i++) {
-                if(curArr >= allArrs.Length) continue;
-                if(curIndex < allArrs[curArr].Length) lines[i] = allArrs[curArr][curIndex++];
-                else {
-                    curIndex = 0;
-                    curArr++;
-                }
-            }
-            File.WriteAllLines(PATH, lines);
+            File.WriteAllLines(PATH, strBools);
+            File.AppendAllLines(PATH, strInts);
+            File.AppendAllLines(PATH, strStrings);
         }
 
         public static bool GetBool(string key) {
@@ -86,6 +76,12 @@ namespace PPR.Properties {
         }
         public static string GetString(string key) {
             return _strings.TryGetValue(key, out string value) ? value : "";
+        }
+        public static string[] GetPathArray(string key) {
+            return GetString(key).Split(Path.AltDirectorySeparatorChar);
+        }
+        public static string GetPath(string key) {
+            return string.Join(Path.DirectorySeparatorChar, GetPathArray(key));
         }
         
         public static void SetBool(string key, bool value) {
@@ -99,6 +95,9 @@ namespace PPR.Properties {
         public static void SetString(string key, string value) {
             settingChanged?.Invoke(null, new SettingChangedEventArgs(key));
             _strings[key] = value;
+        }
+        public static void SetPath(string key, string value) {
+            SetString(key, value.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
         }
     }
 }

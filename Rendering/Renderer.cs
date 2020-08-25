@@ -38,11 +38,11 @@ namespace PPR.Rendering {
         readonly Image _icon;
         public RenderWindow window;
         readonly Shader _bloomFirstPass = Shader.FromString(
-            File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
-            File.ReadAllText(Path.Combine("resources", "bloom_frag.glsl")));
+            File.ReadAllText(Path.Join("resources", "bloom_vert.glsl")), null,
+            File.ReadAllText(Path.Join("resources", "bloom_frag.glsl")));
         readonly Shader _bloomSecondPass = Shader.FromString(
-            File.ReadAllText(Path.Combine("resources", "bloom_vert.glsl")), null,
-            File.ReadAllText(Path.Combine("resources", "bloom_frag.glsl")));
+            File.ReadAllText(Path.Join("resources", "bloom_vert.glsl")), null,
+            File.ReadAllText(Path.Join("resources", "bloom_frag.glsl")));
         public Shader bloomBlend;
 
         RenderTexture _bloomRT1;
@@ -56,7 +56,7 @@ namespace PPR.Rendering {
             instance = this;
 
             string[] fontMappingsLines =
-                File.ReadAllLines(Path.Combine("resources", "fonts", Settings.GetString("font"), "mappings.txt"));
+                File.ReadAllLines(Path.Join("resources", "fonts", Settings.GetPath("font"), "mappings.txt"));
             string[] fontSizeStr = fontMappingsLines[0].Split(',');
             fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
 
@@ -67,10 +67,10 @@ namespace PPR.Rendering {
             foregroundColors = new Dictionary<Vector2, Color>(this.width * this.height);
             displayString = new Dictionary<Vector2, char>(this.width * this.height);
 
-            _icon = new Image(Path.Combine("resources", "icon.png"));
+            _icon = new Image(Path.Join("resources", "icon.png"));
 
             BitmapFont font =
-                new BitmapFont(new Image(Path.Combine("resources", "fonts", Settings.GetString("font"), "font.png")),
+                new BitmapFont(new Image(Path.Join("resources", "fonts", Settings.GetPath("font"), "font.png")),
                     fontMappingsLines[1], fontSize);
             text = new BitmapText(font, new Vector2(width, height)) {
                 backgroundColors = backgroundColors,
