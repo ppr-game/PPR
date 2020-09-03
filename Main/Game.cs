@@ -176,7 +176,7 @@ namespace PPR.Main {
             Settings.Reload();
             Bindings.Reload();
             ColorScheme.Reload();
-            Core.renderer.frameRate = Settings.GetInt("fpsLimit");
+            Core.renderer.framerate = Settings.GetInt("fpsLimit");
             ReloadSounds();
             
             RPC.Initialize();
@@ -328,18 +328,18 @@ namespace PPR.Main {
                     break;
                 case "fpsLimit":
                     int value = Settings.GetInt("fpsLimit");
-                    Core.renderer.frameRate = value < 60 ? -1 : value > 960 ? 0 : value;
+                    Core.renderer.framerate = value < 60 ? -1 : value > 960 ? 0 : value;
                     break;
             }
         }
         public static void LostFocus(object caller, EventArgs args) {
             if(currentMenu == Menu.Game) currentMenu = Menu.LastStats;
             music.Volume = 0;
-            Core.renderer.frameRate = 30;
+            Core.renderer.framerate = 30;
         }
         public static void GainedFocus(object caller, EventArgs args) {
             music.Volume = Settings.GetInt("musicVolume");
-            Core.renderer.frameRate = Settings.GetInt("fpsLimit");
+            Core.renderer.framerate = Settings.GetInt("fpsLimit");
         }
         public static void GameStart(string musicPath) {
             // Reset everything when we enter the level or bad things will happen

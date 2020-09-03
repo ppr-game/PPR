@@ -24,11 +24,11 @@ namespace PPR.Rendering {
         public int windowWidth;
         public readonly int height;
         public int windowHeight;
-        int _frameRate;
-        public int frameRate {
-            get => _frameRate;
+        int _framerate;
+        public int framerate {
+            get => _framerate;
             set {
-                _frameRate = value;
+                _framerate = value;
                 window.SetVerticalSyncEnabled(value < 0);
                 if(value >= 0) window.SetFramerateLimit((uint)value);
             }
@@ -52,7 +52,7 @@ namespace PPR.Rendering {
         public Vector2 mousePosition = new Vector2(-1, -1);
         public bool leftButtonPressed;
 
-        public Renderer(int width, int height, int frameRate) {
+        public Renderer(int width, int height, int framerate) {
             instance = this;
 
             string[] fontMappingsLines =
@@ -80,7 +80,7 @@ namespace PPR.Rendering {
 
             SetFullscreen(Settings.GetBool("fullscreen"), false);
             
-            this.frameRate = frameRate;
+            this.framerate = framerate;
 
             _bloomFirstPass.SetUniform("horizontal", true);
             _bloomSecondPass.SetUniform("horizontal", false);
@@ -135,7 +135,7 @@ namespace PPR.Rendering {
                 Position = new Vector2f(windowWidth / 2f, windowHeight / 2f)
             };
 
-            frameRate = frameRate;
+            framerate = framerate;
         }
 
         void ClearText() {
