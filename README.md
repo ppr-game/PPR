@@ -22,7 +22,7 @@ also they only register **perfect hits** and **misses**
 
 The blue arrows on the left indicate the speed changes and can be ignored
 
-When you hit the note when it's perfectly on the line, you get a **perfect hit**, 1 **combo** point and 10 **score** points multiplied by your current **combo**,
+When you hit the note when it's perfectly on the line (or near it, depending on the current BPM), you get a **perfect hit**, 1 **combo** point and 10 **score** points multiplied by your current **combo**,
  when you hit it right before or after it has passed the line, you get a **hit**, 1 **combo** point and 5 **score** points multiplied by your current **combo**,
  when you hit it too early or don't hit it at all, you get a **miss** and you break your **combo** *(the **combo** counter resets to 0)*
  
