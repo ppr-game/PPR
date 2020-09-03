@@ -79,13 +79,19 @@ namespace PPR.Rendering {
             };
 
             SetFullscreen(Settings.GetBool("fullscreen"), false);
-            
+
             this.framerate = framerate;
 
             _bloomFirstPass.SetUniform("horizontal", true);
             _bloomSecondPass.SetUniform("horizontal", false);
         }
 
+        public void UpdateFramerateSetting() {
+            Core.renderer.SetFramerateSetting(Settings.GetInt("fpsLimit"));
+        }
+        public void SetFramerateSetting(int framerate) {
+            this.framerate = window.HasFocus() ? framerate < 60 ? -1 : framerate > 960 ? 0 : framerate : 30;
+        }
         void SubscribeWindowEvents() {
             leftButtonPressed = false;
 
@@ -135,7 +141,7 @@ namespace PPR.Rendering {
                 Position = new Vector2f(windowWidth / 2f, windowHeight / 2f)
             };
 
-            framerate = framerate;
+            UpdateFramerateSetting();
         }
 
         void ClearText() {
