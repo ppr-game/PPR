@@ -500,10 +500,11 @@ namespace PPR.GUI {
                 DrawCombo(lastMaxComboPos, true);
             }
             DrawSettingsList(true);
-            foreach(Button button in _lastStatsButtons)
+            foreach(Button button in _lastStatsButtons) {
                 switch(button.text) {
                     case "CONTINUE": {
-                        if(Map.currentLevel.objects.Count > 0 && Game.health > 0 && button.Draw()) Game.currentMenu = Menu.Game;
+                        if(Map.currentLevel.objects.Count > 0 && Game.health > 0 && button.Draw())
+                            Game.currentMenu = Menu.Game;
                         break;
                     }
                     case "RESTART": {
@@ -513,6 +514,7 @@ namespace PPR.GUI {
                             Map.LoadLevelFromLines(File.ReadAllLines(Path.Join(path, "level.txt")), _lastLevel,
                                 Game.GetSoundFilePath(Path.Join(path, "music")), Path.Join(path, "Script.csx"));
                         }
+
                         break;
                     }
                     case "AUTO": {
@@ -520,25 +522,31 @@ namespace PPR.GUI {
                         button.selected = Game.auto;
                         break;
                     }
-                    case "SAVE": {
-                        if(Game.editing && button.Draw()) {
-                            string path = Path.Join("levels", _lastLevel);
-                            _ = Directory.CreateDirectory(path);
-                            File.WriteAllText(Path.Join(path, "level.txt"), Map.TextFromLevel(Map.currentLevel));
-                        }
-                        break;
+                }
+                if(button.id.Contains("save")) {
+                    if(Game.editing && button.Draw()) {
+                        Game.changed = false;
+                        string path = Path.Join("levels", _lastLevel);
+                        _ = Directory.CreateDirectory(path);
+                        File.WriteAllText(Path.Join(path, "level.txt"), Map.TextFromLevel(Map.currentLevel));
                     }
-                    default: {
-                        if(button.Draw())
-                            if(button.text == "EXIT") {
-                                Game.currentMenu = Menu.LevelSelect;
-                                Game.music.Pitch = 1f;
-                                _musicSpeedSlider.value = 100;
-                                Game.ClearAllCustomScriptEvents();
-                            }
-                        break;
+                    if(button.text.EndsWith('*') && !Game.changed) {
+                        button.text = button.text.Remove(button.text.Length - 1);
+                        button.width--;
+                    }
+                    else if(!button.text.EndsWith('*') && Game.changed) {
+                        button.text = $"{button.text}*";
+                        button.width++;
                     }
                 }
+                if(button.id.Contains("exit") && button.Draw()) {
+                    Game.changed = false;
+                    Game.currentMenu = Menu.LevelSelect;
+                    Game.music.Pitch = 1f;
+                    _musicSpeedSlider.value = 100;
+                    Game.ClearAllCustomScriptEvents();
+                }
+            }
         }
 
         static readonly Vector2 audioGroupTextPos = new Vector2(2, 13);

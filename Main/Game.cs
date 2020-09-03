@@ -168,6 +168,7 @@ namespace PPR.Main {
         public static bool editing = false;
         public static bool auto = false;
         static bool _usedAuto;
+        public static bool changed = false;
         float _accumulator;
         public event EventHandler onUpdate;
         public event EventHandler onTick;
@@ -693,6 +694,8 @@ namespace PPR.Main {
                 }
 
                 RecalculatePosition();
+
+                changed = true;
             }
             else if(!auto) {
                 bool anythingPressed = false;

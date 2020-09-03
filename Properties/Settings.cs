@@ -20,9 +20,9 @@ namespace PPR.Properties {
 
         public static EventHandler<SettingChangedEventArgs> settingChanged;
         
-        static Dictionary<string, bool> _booleans;
-        static Dictionary<string, int> _integers;
-        static Dictionary<string, string> _strings;
+        static Dictionary<string, bool> _booleans = new Dictionary<string, bool>();
+        static Dictionary<string, int> _integers = new Dictionary<string, int>();
+        static Dictionary<string, string> _strings = new Dictionary<string, string>();
 
         public static void Reload() {
             _booleans = new Dictionary<string, bool> {

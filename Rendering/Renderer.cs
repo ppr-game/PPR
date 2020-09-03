@@ -29,8 +29,8 @@ namespace PPR.Rendering {
             get => _framerate;
             set {
                 _framerate = value;
+                window.SetFramerateLimit(value < 0 ? 0 : (uint)value);
                 window.SetVerticalSyncEnabled(value < 0);
-                if(value >= 0) window.SetFramerateLimit((uint)value);
             }
         }
         public BitmapText text;
@@ -87,7 +87,7 @@ namespace PPR.Rendering {
         }
 
         public void UpdateFramerateSetting() {
-            Core.renderer.SetFramerateSetting(Settings.GetInt("fpsLimit"));
+            SetFramerateSetting(Settings.GetInt("fpsLimit"));
         }
         public void SetFramerateSetting(int framerate) {
             this.framerate = window.HasFocus() ? framerate < 60 ? -1 : framerate > 960 ? 0 : framerate : 30;
