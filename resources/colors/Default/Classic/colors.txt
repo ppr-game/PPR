@@ -14,6 +14,7 @@ blue=0,0,255
 cyan=0,255,255
 yellow=255,255,0
 orange=255,127,0
+purple=255,0,255
 
 # Dark
 dark_gray=63,63,63
@@ -23,6 +24,7 @@ dark_blue=0,0,63
 dark_cyan=0,63,63
 dark_yellow=63,63,0
 dark_orange=63,31,0
+dark_purple=63,0,63
 
 # Darker
 darker_gray=15,15,15
@@ -32,6 +34,7 @@ darker_blue=0,0,15
 darker_cyan=0,15,15
 darker_yellow=15,15,0
 darker_orange=15,7,0
+darker_purple=15,0,15
 
 # Light
 light_gray=158,158,158
@@ -41,6 +44,7 @@ light_blue=158,158,255
 light_cyan=158,255,255
 light_yellow=255,255,158
 light_orange=255,205,158
+light_purple=255,158,255
 
 # Misc
 background=black
@@ -167,6 +171,10 @@ button_lastStats.auto_click=button_levelSelect.auto_click
 button_lastStats.save_idle=background
 button_lastStats.save_hover=blue
 button_lastStats.save_click=dark_blue
+
+button_lastStats.saveAndExit_idle=background
+button_lastStats.saveAndExit_hover=purple
+button_lastStats.saveAndExit_click=dark_purple
 
 button_lastStats.exit_idle=background
 button_lastStats.exit_hover=back

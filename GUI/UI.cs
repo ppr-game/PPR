@@ -75,6 +75,8 @@ namespace PPR.GUI {
 
         static string _lastLevel = "";
         static List<Button> _lastStatsButtons;
+        static List<Button> _gameLastStatsButtons;
+        static List<Button> _editorLastStatsButtons;
 
         static List<Button> _levelEditorButtons;
 
@@ -100,11 +102,16 @@ namespace PPR.GUI {
                     new InputKey("LControl+N,RControl+N")),
                 new Button(new Vector2(39, 52), "BACK", "levelSelect.back", 4, new InputKey("Escape"), center)
             };
-            _lastStatsButtons = new List<Button> {
+            _gameLastStatsButtons = new List<Button> {
                 new Button(new Vector2(2, 53), "CONTINUE", "lastStats.continue", 8),
                 new Button(new Vector2(2, 55), "RESTART", "lastStats.restart", 7, new InputKey("LControl+R,RControl+R")),
                 new Button(new Vector2(10, 55), "AUTO", "lastStats.auto", 4, new InputKey("Tab")),
-                new Button(new Vector2(2, 55), "SAVE", "lastStats.save", 4, new InputKey("LControl+S,RControl+S")),
+                new Button(new Vector2(2, 57), "EXIT", "lastStats.exit", 4, new InputKey("Backspace"))
+            };
+            _editorLastStatsButtons = new List<Button> {
+                new Button(new Vector2(2, 51), "CONTINUE", "lastStats.continue", 8),
+                new Button(new Vector2(2, 53), "SAVE", "lastStats.save", 4, new InputKey("LControl+S,RControl+S")),
+                new Button(new Vector2(2, 55), "SAVE & EXIT", "lastStats.saveAndExit", 11),
                 new Button(new Vector2(2, 57), "EXIT", "lastStats.exit", 4, new InputKey("Backspace"))
             };
             _levelEditorButtons = new List<Button> {
@@ -500,53 +507,65 @@ namespace PPR.GUI {
                 DrawCombo(lastMaxComboPos, true);
             }
             DrawSettingsList(true);
-            foreach(Button button in _lastStatsButtons) {
-                switch(button.text) {
-                    case "CONTINUE": {
-                        if(Map.currentLevel.objects.Count > 0 && Game.health > 0 && button.Draw())
-                            Game.currentMenu = Menu.Game;
-                        break;
+            if(Game.editing)
+                foreach(Button button in _editorLastStatsButtons)
+                    switch(button.id) {
+                        case "lastStats.continue": LastStatsContinue(button);
+                            break;
+                        case "lastStats.save":
+                        case "lastStats.saveAndExit":
+                            if(button.Draw()) {
+                                Game.changed = false;
+                                string path = Path.Join("levels", _lastLevel);
+                                _ = Directory.CreateDirectory(path);
+                                File.WriteAllText(Path.Join(path, "level.txt"), Map.TextFromLevel(Map.currentLevel));
+                                if(button.id == "lastStats.saveAndExit") LastStatsExit();
+                            }
+                            if(button.text.EndsWith('*') && !Game.changed) {
+                                button.text = button.text.Remove(button.text.Length - 1);
+                                button.width--;
+                            }
+                            else if(!button.text.EndsWith('*') && Game.changed) {
+                                button.text = $"{button.text}*";
+                                button.width++;
+                            }
+                            break;
+                        case "lastStats.exit":
+                            if(button.Draw()) {
+                                Game.changed = false;
+                                LastStatsExit();
+                            }
+                            break;
                     }
-                    case "RESTART": {
-                        if(!Game.editing && button.Draw()) {
-                            Game.currentMenu = Menu.Game;
-                            string path = Path.Join("levels", _lastLevel);
-                            Map.LoadLevelFromLines(File.ReadAllLines(Path.Join(path, "level.txt")), _lastLevel,
-                                Game.GetSoundFilePath(Path.Join(path, "music")), Path.Join(path, "Script.csx"));
-                        }
-
-                        break;
+            else
+                foreach(Button button in _gameLastStatsButtons)
+                    switch(button.id) {
+                        case "lastStats.continue": LastStatsContinue(button);
+                            break;
+                        case "lastStats.restart":
+                            if(!Game.editing && button.Draw()) {
+                                Game.currentMenu = Menu.Game;
+                                string path = Path.Join("levels", _lastLevel);
+                                Map.LoadLevelFromLines(File.ReadAllLines(Path.Join(path, "level.txt")), _lastLevel,
+                                    Game.GetSoundFilePath(Path.Join(path, "music")), Path.Join(path, "Script.csx"));
+                            }
+                            break;
+                        case "lastStats.auto":
+                            if(!Game.editing && button.Draw()) Game.auto = !Game.auto;
+                            button.selected = Game.auto;
+                            break;
+                        case "lastStats.exit": if(button.Draw()) LastStatsExit();
+                            break;
                     }
-                    case "AUTO": {
-                        if(!Game.editing && button.Draw()) Game.auto = !Game.auto;
-                        button.selected = Game.auto;
-                        break;
-                    }
-                }
-                if(button.id.Contains("save")) {
-                    if(Game.editing && button.Draw()) {
-                        Game.changed = false;
-                        string path = Path.Join("levels", _lastLevel);
-                        _ = Directory.CreateDirectory(path);
-                        File.WriteAllText(Path.Join(path, "level.txt"), Map.TextFromLevel(Map.currentLevel));
-                    }
-                    if(button.text.EndsWith('*') && !Game.changed) {
-                        button.text = button.text.Remove(button.text.Length - 1);
-                        button.width--;
-                    }
-                    else if(!button.text.EndsWith('*') && Game.changed) {
-                        button.text = $"{button.text}*";
-                        button.width++;
-                    }
-                }
-                if(button.id.Contains("exit") && button.Draw()) {
-                    Game.changed = false;
-                    Game.currentMenu = Menu.LevelSelect;
-                    Game.music.Pitch = 1f;
-                    _musicSpeedSlider.value = 100;
-                    Game.ClearAllCustomScriptEvents();
-                }
-            }
+        }
+        static void LastStatsContinue(Button button) {
+            if(Map.currentLevel.objects.Count > 0 && Game.health > 0 && button.Draw()) Game.currentMenu = Menu.Game;
+        }
+        static void LastStatsExit() {
+            Game.currentMenu = Menu.LevelSelect;
+            Game.music.Pitch = 1f;
+            _musicSpeedSlider.value = 100;
+            Game.ClearAllCustomScriptEvents();
         }
 
         static readonly Vector2 audioGroupTextPos = new Vector2(2, 13);
