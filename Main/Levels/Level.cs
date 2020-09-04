@@ -132,10 +132,18 @@ namespace PPR.Main.Levels {
             diffFactors.Add(timeFrames.Count == 0 ? 0 : 1f / ((timeFrames.Average() + timeFrames.Min()) / 2f));
 
             List<float> keyDistances = new List<float>();
-            for(int i = 1; i < sortedObjects.Count; i++) {
-                LightLevelObject obj = sortedObjects[i];
-                LightLevelObject prevObj = sortedObjects[i - 1];
-                keyDistances.Add(LevelObject.GetKeyboardKeyDistance(obj.character, prevObj.character));
+            List<char> leftChars = new List<char>();
+            List<char> rightChars = new List<char>();
+            foreach(LightLevelObject obj in sortedObjects)
+                if(LevelObject.GetXPosForCharacter(obj.character) < 40) leftChars.Add(obj.character);
+                else rightChars.Add(obj.character);
+            for(int i = 1; i < leftChars.Count; i++) {
+                keyDistances.Add(LevelObject.GetKeyboardKeyDistance(sortedObjects[i].character,
+                    sortedObjects[i - 1].character));
+            }
+            for(int i = 1; i < rightChars.Count; i++) {
+                keyDistances.Add(LevelObject.GetKeyboardKeyDistance(sortedObjects[i].character,
+                    sortedObjects[i - 1].character));
             }
             diffFactors.Add(keyDistances.Count == 0 ? 0 : (keyDistances.Average() + keyDistances.Max()) / 16f);
 
