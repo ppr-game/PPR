@@ -6,12 +6,12 @@ using System.Linq;
 using PPR.GUI;
 using PPR.Rendering;
 
-using SFML.Graphics;
-
 namespace PPR.Main.Levels {
     public static class Map {
         public static Level currentLevel;
-        public static readonly Vector2 linePos = new Vector2(0, 54);
+        public static readonly Vector2 gameLinePos = new Vector2(0, 54);
+        public static readonly Vector2 editorLinePos = new Vector2(0, 44);
+        public static Vector2 linePos;
         static readonly float[] lineFlashTimes = new float[Core.renderer.width];
         public static int flashLine {
             set => lineFlashTimes[value] = 1f;
@@ -33,7 +33,7 @@ namespace PPR.Main.Levels {
                 int doubleFrequency = currentLevel.metadata.linesFrequency * 2;
                 for(int y = -linePos.y; y < 30 + currentLevel.metadata.linesFrequency; y++) {
                     int useY = y + Game.roundedOffset % doubleFrequency - doubleFrequency + linePos.y;
-                    if(useY > linePos.y) continue;
+                    if(useY > gameLinePos.y) continue;
                     if(y % currentLevel.metadata.linesFrequency == 0)
                         for(int x = 0; x < 80; x++)
                             Renderer.instance.SetCellColor(new Vector2(x, useY), ColorScheme.GetColor("foreground"),
@@ -74,6 +74,7 @@ namespace PPR.Main.Levels {
             DestroyToDestroy();
         }
         public static void LoadLevelFromLines(string[] lines, string name, string musicPath, string scriptPath) {
+            linePos = Game.editing ? editorLinePos : gameLinePos;
             currentLevel = new Level(lines, name, File.Exists(scriptPath) ? File.ReadAllText(scriptPath) : null);
             Game.GameStart(musicPath);
         }
