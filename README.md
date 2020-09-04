@@ -71,9 +71,10 @@ Now you can begin creating your level
 
 - `Drag the progress bar line at the top` - scroll the time with your mouse
 
-- `Any English letter`, `any number` or `-`, `=`, `[`, `]`, `;`, `'`, `,`, `.`, `/` - place a corresponding note at the current time (on the line)
+- `Any English letter`, `any number` or `-`, `=`, `[`, `]`, `;`, `'`, `,`, `.`, `/` - place a corresponding note at the current step (on the line)
+(`+ Shift` - place a hold note)
 
-- `Backspace` - remove all the notes at the current time (on the line)
+- `Backspace` - remove all the notes at the current step (on the line)
 
 - `Up/down arrows` - increase/decrease the speed by 10 BPM (`+ Shift` - 1 BPM) (`+ Alt` - increase/decrease the guide lines spacing)
 
