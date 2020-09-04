@@ -242,7 +242,7 @@ namespace PPR.Main.Levels {
             int lineOffset = 0;
             foreach(string line in lines) {
                 if(line.Contains(leftChar)) leftY = lineOffset;
-                if(line.Contains(rightChar)) leftY = lineOffset;
+                if(line.Contains(rightChar)) rightY = lineOffset;
                 lineOffset++;
             }
             return MathF.Sqrt((leftX + rightX) * (leftX + rightX) + (leftY + rightY) * (leftY + rightY));
