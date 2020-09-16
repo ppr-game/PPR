@@ -850,6 +850,12 @@ namespace PPR.Main {
                 else break;
             return bpm;
         }
+        public static IEnumerable<int> GetBPMsBetweenSteps(int start, int end, IEnumerable<LevelSpeed> sortedSpeeds) {
+            return (from speed in sortedSpeeds where speed.step > start && speed.step < end select speed.speed);
+        }
+        public static List<LevelSpeed> GetSpeedsBetweenSteps(int start, int end, List<LevelSpeed> sortedSpeeds) {
+            return sortedSpeeds.FindAll(speed => speed.step >= start && speed.step <= end);
+        }
 
         static int GetInitialOffset(IReadOnlyList<string> lines) {
             string[] meta = lines[4].Split(':');

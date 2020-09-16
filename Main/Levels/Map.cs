@@ -43,6 +43,15 @@ namespace PPR.Main.Levels {
                             Renderer.instance.SetCellColor(new Vector2(x, useY), ColorScheme.GetColor("foreground"),
                                 ColorScheme.GetColor("guidelines"));
                 }
+
+                for(int x = 0; x < 80; x++) {
+                    Core.renderer.SetCharacter(new Vector2(x, 1), ((x - 6) / 12).ToString()[0],
+                        ColorScheme.GetColor("foreground"), ColorScheme.GetColor("transparent"));
+                    if((x - 6) % 12 != 0) continue;
+                    for(int y = 0; y < 60; y++)
+                        Core.renderer.SetCellColor(new Vector2(x, y), ColorScheme.GetColor("foreground"),
+                            ColorScheme.GetColor("guidelines"));
+                }
             }
 
             DestroyToDestroy();
