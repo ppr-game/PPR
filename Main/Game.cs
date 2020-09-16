@@ -691,11 +691,11 @@ namespace PPR.Main {
                             Map.currentLevel.objects.Add(new LevelObject(character, (int)steps, Map.currentLevel.speeds, Map.currentLevel.objects));
                         }
                     }
+
+                    changed = true;
                 }
 
                 RecalculatePosition();
-
-                changed = true;
             }
             else if(!auto) {
                 bool anythingPressed = false;
