@@ -74,7 +74,6 @@ namespace PPR.GUI {
         static List<Button> _levelSelectButtons;
 
         static string _lastLevel = "";
-        static List<Button> _lastStatsButtons;
         static List<Button> _gameLastStatsButtons;
         static List<Button> _editorLastStatsButtons;
 
@@ -103,16 +102,16 @@ namespace PPR.GUI {
                 new Button(new Vector2(39, 52), "BACK", "levelSelect.back", 4, new InputKey("Escape"), center)
             };
             _gameLastStatsButtons = new List<Button> {
-                new Button(new Vector2(2, 53), "CONTINUE", "lastStats.continue", 8),
+                new Button(new Vector2(2, 53), "CONTINUE", "lastStats.continue", 8, Bindings.GetBinding("back")),
                 new Button(new Vector2(2, 55), "RESTART", "lastStats.restart", 7, new InputKey("LControl+R,RControl+R")),
                 new Button(new Vector2(10, 55), "AUTO", "lastStats.auto", 4, new InputKey("Tab")),
-                new Button(new Vector2(2, 57), "EXIT", "lastStats.exit", 4, new InputKey("Backspace"))
+                new Button(new Vector2(2, 57), "EXIT", "lastStats.exit", 4, new InputKey("Tilde"))
             };
             _editorLastStatsButtons = new List<Button> {
-                new Button(new Vector2(2, 51), "CONTINUE", "lastStats.continue", 8),
+                new Button(new Vector2(2, 51), "CONTINUE", "lastStats.continue", 8, Bindings.GetBinding("back")),
                 new Button(new Vector2(2, 53), "SAVE", "lastStats.save", 4, new InputKey("LControl+S,RControl+S")),
                 new Button(new Vector2(2, 55), "SAVE & EXIT", "lastStats.saveAndExit", 11),
-                new Button(new Vector2(2, 57), "EXIT", "lastStats.exit", 4, new InputKey("Backspace"))
+                new Button(new Vector2(2, 57), "EXIT", "lastStats.exit", 4, new InputKey("Tilde"))
             };
             _levelEditorButtons = new List<Button> {
                 new Button(new Vector2(78, 58), "►", "editor.playPause", 1, new InputKey("Enter")),

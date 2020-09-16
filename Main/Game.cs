@@ -626,10 +626,10 @@ namespace PPR.Main {
         }
         public static void KeyPressed(object caller, KeyEventArgs key) {
             // Back
-            if(Bindings.GetBinding("back").IsPressed(key) && currentMenu != Menu.LevelSelect)
+            if(Bindings.GetBinding("back").IsPressed(key) &&
+               currentMenu != Menu.LevelSelect && currentMenu != Menu.LastStats)
                 currentMenu = currentMenu switch {
                     Menu.Game => Menu.LastStats,
-                    Menu.LastStats => statsState == StatsState.Pause ? Menu.Game : Menu.LevelSelect,
                     Menu.KeybindsEditor => Menu.Settings,
                     _ => Menu.Main
                 };
