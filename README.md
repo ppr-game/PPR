@@ -8,11 +8,7 @@ Inspired by [osu!](https://osu.ppy.sh), [Beatmania](https://en.wikipedia.org/wik
 ### Install levels
 Unpack levels in `game's folder/levels` to play them
 
-Download levels in the [Discord server](https://discord.gg/AuYUVs5)
-
-**OR**
-
-DM me in Discord: ConfiG#9039
+(Temporary) Download levels in the [Discord server](https://discord.gg/AuYUVs5)
 
 ### Gameplay
 Press the corresponding buttons when they hit a white line at the bottom
@@ -71,9 +67,9 @@ Now you can begin creating your level
 
 - `Drag the progress bar line at the top` - scroll the time with your mouse
 
-- `Any English letter`, `any number` or `-`, `=`, `[`, `]`, `;`, `'`, `,`, `.`, `/` - place a corresponding note at the current time (on the line)
+- `Any English letter`, `any number` or `-`, `=`, `[`, `]`, `;`, `'`, `,`, `.`, `/` - place a corresponding note on the line (`+ Shift` - place a hold note)
 
-- `Backspace` - remove all the notes at the current time (on the line)
+- `Backspace` - remove all the notes on the line
 
 - `Up/down arrows` - increase/decrease the speed by 10 BPM (`+ Shift` - 1 BPM) (`+ Alt` - increase/decrease the guide lines spacing)
 
