@@ -8,11 +8,7 @@ Inspired by [osu!](https://osu.ppy.sh), [Beatmania](https://en.wikipedia.org/wik
 ### Install levels
 Unpack levels in `game's folder/levels` to play them
 
-Download levels in the [Discord server](https://discord.gg/AuYUVs5)
-
-**OR**
-
-DM me in Discord: ConfiG#9039
+(Temporary) Download levels in the [Discord server](https://discord.gg/AuYUVs5)
 
 ### Gameplay
 Press the corresponding buttons when they hit a white line at the bottom
