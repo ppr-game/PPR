@@ -14,6 +14,10 @@ line_2_bg_color=light_red
 line_3_bg_color=light_green
 line_4_bg_color=light_blue
 
+button_mainMenu.github_idle=background
+button_mainMenu.github_hover=34,34,34
+button_mainMenu.github_click=foreground
+
 button_game.skip_idle=background
 button_game.skip_hover=orange
 button_game.skip_click=dark_orange

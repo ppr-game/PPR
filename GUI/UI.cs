@@ -89,7 +89,10 @@ namespace PPR.GUI {
                 new Button(new Vector2(40, 25), "PLAY", "mainMenu.play", 4, new InputKey("Enter"), center),
                 new Button(new Vector2(40, 27), "EDIT", "mainMenu.edit", 4, new InputKey("LShift,RShift"), center),
                 new Button(new Vector2(40, 29), "SETTINGS", "mainMenu.settings", 8, new InputKey("Tab"), center),
-                new Button(new Vector2(40, 31), "EXIT", "mainMenu.exit", 4, new InputKey("Tilde"), center)
+                new Button(new Vector2(40, 31), "EXIT", "mainMenu.exit", 4, new InputKey("Tilde"), center),
+                new Button(new Vector2(78, 1), "SFML", "mainMenu.sfml", 4, null, right),
+                new Button(new Vector2(73, 1), "GITHUB", "mainMenu.github", 6, null, right),
+                new Button(new Vector2(66, 1), "DISCORD", "mainMenu.discord", 7, null, right)
             };
             _pauseMusicButton = new Button(new Vector2(1, 58), "►", "mainMenu.music.pause", 1,
                 new InputKey("Space"));
@@ -195,17 +198,23 @@ namespace PPR.GUI {
             // ReSharper disable once HeapView.ObjectAllocation
             // ReSharper disable once HeapView.ObjectAllocation.Possible
             foreach(Button button in _mainMenuButtons.Where(button => button.Draw()))
-                switch(button.text) {
-                    case "PLAY":
-                    case "EDIT":
-                        Game.editing = button.text == "EDIT";
+                switch(button.id) {
+                    case "mainMenu.play":
+                    case "mainMenu.edit":
+                        Game.editing = button.id == "mainMenu.edit";
                         Renderer.instance.window.SetKeyRepeatEnabled(Game.editing);
                         Game.auto = false;
                         Game.currentMenu = Menu.LevelSelect;
                         break;
-                    case "SETTINGS": Game.currentMenu = Menu.Settings;
+                    case "mainMenu.settings": Game.currentMenu = Menu.Settings;
                         break;
-                    case "EXIT": Game.End();
+                    case "mainMenu.exit": Game.End();
+                        break;
+                    case "mainMenu.sfml": Helper.OpenURL("https://sfml-dev.org");
+                        break;
+                    case "mainMenu.github": Helper.OpenURL("https://github.com/ppr-game/PPR");
+                        break;
+                    case "mainMenu.discord": Helper.OpenURL("https://discord.gg/AuYUVs5");
                         break;
                 }
         }
