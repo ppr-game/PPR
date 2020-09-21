@@ -378,6 +378,7 @@ namespace PPR.GUI {
 
                 DrawProgress();
                 DrawLevelName(levelNamePos, ColorScheme.GetColor("game_level_name"));
+                DrawEditorDifficulty(musicTimePos, ColorScheme.GetColor("game_music_time"));
             }
             else {
                 DrawHealth();
@@ -483,6 +484,10 @@ namespace PPR.GUI {
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
             string at = $"{(timeSpan < TimeSpan.Zero ? "-" : "")}{timeSpan.ToString($"{(timeSpan.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
             Core.renderer.DrawText(position, $"{at}/{Map.currentLevel.metadata.length}", color,
+                Renderer.Alignment.Right, false, true);
+        }
+        static void DrawEditorDifficulty(Vector2 position, Color color) {
+            Core.renderer.DrawText(position, $"DIFFICULTY: {Map.currentLevel.metadata.difficulty}", color,
                 Renderer.Alignment.Right, false, true);
         }
         static readonly Vector2 passFailText = new Vector2(40, 5);

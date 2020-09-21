@@ -51,10 +51,10 @@ namespace PPR.Main.Levels {
         public readonly string name;
         public int hpDrain;
         public int hpRestorage;
-        public readonly string difficulty;
+        public string difficulty;
         public readonly string author;
-        public readonly string length;
-        public readonly int maxStep;
+        public string length;
+        public int maxStep;
         public int linesFrequency;
         public int initialOffsetMs;
         public readonly string bpm;
@@ -77,10 +77,12 @@ namespace PPR.Main.Levels {
 
             maxStep = steps.Count > 0 ? steps.Max() : 0;
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.StepsToMilliseconds(maxStep, speeds) - initialOffsetMs);
-            length =
-                $"{(timeSpan < TimeSpan.Zero ? "-" : "")}{timeSpan.ToString($"{(timeSpan.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
+            length = $"{(timeSpan < TimeSpan.Zero ? "-" : "")}{timeSpan.ToString($"{(timeSpan.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
 
-            difficulty = GetDifficulty(chars, steps, speeds, (int)timeSpan.TotalMinutes)
+            List<LightLevelObject> objects = new List<LightLevelObject>();
+            for(int i = 0; i < Math.Min(chars.Count, steps.Count); i++)
+                objects.Add(new LightLevelObject(chars[i], steps[i]));
+            difficulty = GetDifficulty(objects, speeds, (int)timeSpan.TotalMinutes)
                 .ToString("0.00", CultureInfo.InvariantCulture);
 
             int minStep = steps.Count > 0 ? steps.Min() : 0;
@@ -108,10 +110,12 @@ namespace PPR.Main.Levels {
             combinedSpeeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
             return combinedSpeeds;
         }
-        static float GetDifficulty(IReadOnlyList<char> chars, IReadOnlyList<int> steps, List<LevelSpeed> sortedSpeeds,
-            int lengthMins) {
-            List<LightLevelObject> sortedObjects = new List<LightLevelObject>();
-            for(int i = 0; i < Math.Min(chars.Count, steps.Count); i++) sortedObjects.Add(new LightLevelObject(chars[i], steps[i]));
+        public static float GetDifficulty(List<LevelObject> objects, List<LevelSpeed> sortedSpeeds, int lengthMins) {
+            return GetDifficulty(objects.Select(obj => new LightLevelObject(obj.character, obj.step)), sortedSpeeds,
+                lengthMins);
+        }
+        static float GetDifficulty(IEnumerable<LightLevelObject> lightObjects, List<LevelSpeed> sortedSpeeds, int lengthMins) {
+            List<LightLevelObject> sortedObjects = new List<LightLevelObject>(lightObjects);
             sortedObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
             for(int i = 1; i < sortedObjects.Count; i++) if(sortedObjects[i].character == LevelObject.HOLD_CHAR) sortedObjects.RemoveAt(i - 1);
             sortedObjects = sortedObjects.FindAll(obj => obj.character != LevelObject.HOLD_CHAR);

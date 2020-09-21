@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -645,6 +646,8 @@ namespace PPR.Main {
                         List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.step == (int)steps &&
                                                                                             obj.character != LevelObject.SPEED_CHAR);
                         foreach(LevelObject obj in objects) obj.toDestroy = true;
+
+                        changed = true;
                     }
 
                     // Lines
@@ -693,6 +696,19 @@ namespace PPR.Main {
                     }
 
                     changed = true;
+                }
+
+                if(changed) {
+                    List<int> objSteps = Map.currentLevel.objects.Select(obj => obj.step).ToList();
+                    Map.currentLevel.metadata.maxStep = objSteps.Count > 0 ? objSteps.Max() : 0;
+                    TimeSpan timeSpan = TimeSpan.FromMilliseconds(
+                        StepsToMilliseconds(Map.currentLevel.metadata.maxStep) -
+                        Map.currentLevel.metadata.initialOffsetMs);
+                    Map.currentLevel.metadata.length =
+                        $"{(timeSpan < TimeSpan.Zero ? "-" : "")}{timeSpan.ToString($"{(timeSpan.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
+                    Map.currentLevel.metadata.difficulty = LevelMetadata.GetDifficulty(Map.currentLevel.objects,
+                            Map.currentLevel.speeds, (int)timeSpan.TotalMinutes)
+                        .ToString("0.00", CultureInfo.InvariantCulture);
                 }
 
                 RecalculatePosition();
