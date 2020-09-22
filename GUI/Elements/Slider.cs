@@ -109,9 +109,10 @@ namespace PPR.GUI.Elements {
                 char curChar = '█';
                 if(x < drawValue) curChar = '─';
                 else if(x > drawValue) curChar = '-';
-                Renderer.instance.SetCharacter(pos, curChar,
-                    Renderer.AnimateColor(_animTimes[x], _currentColor, currentState == State.Idle ? hoverColor : idleColor, 4f + _animRateOffsets[x]),
-                    Renderer.AnimateColor(_animTimes[x], _prevColor, _currentColor, 4f + _animRateOffsets[x]));
+                Renderer.instance.SetCharacter(pos, new RenderCharacter(curChar,
+                    Renderer.AnimateColor(_animTimes[x], _prevColor, _currentColor, 4f + _animRateOffsets[x]),
+                    Renderer.AnimateColor(_animTimes[x], _currentColor,
+                        currentState == State.Idle ? hoverColor : idleColor, 4f + _animRateOffsets[x])));
                 _animTimes[x] += Core.deltaTime;
             }
             return valueChanged;

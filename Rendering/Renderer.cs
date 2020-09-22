@@ -13,12 +13,54 @@ using SFML.System;
 using SFML.Window;
 
 namespace PPR.Rendering {
+    public readonly struct RenderCharacter {
+        public RenderCharacter(char character, Color background, Color foreground) {
+            this.character = character;
+            this.background = background;
+            this.foreground = foreground;
+        }
+        public RenderCharacter(char character, RenderCharacter oldChar) {
+            this.character = character;
+            background = oldChar.background;
+            foreground = oldChar.foreground;
+        }
+        public RenderCharacter(Color background, Color foreground, RenderCharacter oldChar) {
+            character = oldChar.character;
+            this.background = background;
+            this.foreground = foreground;
+        }
+        public RenderCharacter(Color background, RenderCharacter oldChar) {
+            character = oldChar.character;
+            this.background = background;
+            foreground = oldChar.foreground;
+        }
+        public RenderCharacter(RenderCharacter oldChar, Color foreground) {
+            character = oldChar.character;
+            background = oldChar.background;
+            this.foreground = foreground;
+        }
+        public bool Equals(RenderCharacter other) {
+            return character == other.character && background.Equals(other.background) &&
+                   foreground.Equals(other.foreground);
+        }
+        public override bool Equals(object obj) {
+            return obj is RenderCharacter other && Equals(other);
+        }
+        public override int GetHashCode() {
+            return HashCode.Combine(character, background, foreground);
+        }
+        public static bool operator ==(RenderCharacter left, RenderCharacter right) { return left.Equals(right); }
+        public static bool operator !=(RenderCharacter left, RenderCharacter right) { return !left.Equals(right); }
+        
+        public readonly char character;
+        public readonly Color background;
+        public readonly Color foreground;
+    }
     public class Renderer {
         public static Renderer instance;
 
-        public readonly Dictionary<Vector2, Color> backgroundColors;
-        public readonly Dictionary<Vector2, Color> foregroundColors;
-        public readonly Dictionary<Vector2, char> displayString;
+        public readonly Dictionary<Vector2, RenderCharacter> display;
+        
         public Vector2 fontSize;
         public readonly int width;
         public int windowWidth;
@@ -63,9 +105,7 @@ namespace PPR.Rendering {
             this.width = width;
             this.height = height;
 
-            backgroundColors = new Dictionary<Vector2, Color>(this.width * this.height);
-            foregroundColors = new Dictionary<Vector2, Color>(this.width * this.height);
-            displayString = new Dictionary<Vector2, char>(this.width * this.height);
+            display = new Dictionary<Vector2, RenderCharacter>(this.width * this.height);
 
             _icon = new Image(Path.Join("resources", "icon.png"));
 
@@ -73,9 +113,7 @@ namespace PPR.Rendering {
                 new BitmapFont(new Image(Path.Join("resources", "fonts", Settings.GetPath("font"), "font.png")),
                     fontMappingsLines[1], fontSize);
             text = new BitmapText(font, new Vector2(width, height)) {
-                backgroundColors = backgroundColors,
-                foregroundColors = foregroundColors,
-                text = displayString
+                text = display
             };
 
             SetFullscreen(Settings.GetBool("fullscreen"), false);
@@ -144,11 +182,6 @@ namespace PPR.Rendering {
             UpdateFramerateSetting();
         }
 
-        void ClearText() {
-            backgroundColors.Clear();
-            foregroundColors.Clear();
-            displayString.Clear();
-        }
         void UpdateMousePosition(object caller, MouseMoveEventArgs mouse) {
             if(!window.HasFocus()) {
                 mousePosition = new Vector2(-1, -1);
@@ -159,17 +192,13 @@ namespace PPR.Rendering {
             mousePosition = new Vector2((int)mousePositionF.X, (int)mousePositionF.Y);
         }
         public void Update() {
-            ClearText();
+            display.Clear();
             Map.Draw();
             UI.Draw();
         }
         public void Draw() {
-            text.backgroundColors = backgroundColors;
-            text.foregroundColors = foregroundColors;
-            text.text = displayString;
-
             text.RebuildRenderTexture();
-
+            
             if(Settings.GetBool("bloom")) {
                 _bloomRT1.Clear(ColorScheme.GetColor("background"));
                 _bloomRT1.Draw(_textSprite);
@@ -224,7 +253,7 @@ namespace PPR.Rendering {
                                                   new Color(foregroundColor.R, foregroundColor.G,
                                                       foregroundColor.B, 0);
                     }
-                    SetCharacter(position, text[0], useFG, backgroundColor);
+                    SetCharacter(position, new RenderCharacter(text[0], backgroundColor, useFG));
                     return;
                 }
             }
@@ -253,7 +282,7 @@ namespace PPR.Rendering {
                                               new Color(foregroundColor.R, foregroundColor.G,
                                                   foregroundColor.B, 0);
                 }
-                SetCharacter(charPos, curChar, useFG, backgroundColor);
+                SetCharacter(charPos, new RenderCharacter(curChar, backgroundColor, useFG));
                 x++;
             }
         }
@@ -288,34 +317,39 @@ namespace PPR.Rendering {
                     replacingSpaces, invertOnDarkBG);
         }
 
-        public void SetCharacter(Vector2 position, char character) {
+        public void SetCharacter(Vector2 position, RenderCharacter character) {
             if(!position.InBounds(0, 0, width - 1, height - 1)) return;
             
-            // If a character is a space or null, remove it from a dictionary
-            if(character == ' ' || character == '\0') _ = displayString.Remove(position);
-            else displayString[position] = character;
+            if(IsRenderCharacterEmpty(character)) display.Remove(position);
+            else display[position] = character;
         }
-        public void SetCharacter(Vector2 position, char character, Color foregroundColor, Color backgroundColor) {
-            SetCharacter(position, foregroundColor == backgroundColor || foregroundColor.A == 0 ? ' ' : character);
-            SetCellColor(position, foregroundColor, backgroundColor);
+        public RenderCharacter GetCharacter(Vector2 position) {
+            return display.ContainsKey(position) ? display[position] : new RenderCharacter('\0', Color.Transparent, Color.Transparent);
         }
-        public char GetCharacter(Vector2 position) {
-            return !displayString.ContainsKey(position) ? '\0' : displayString[position];
+        public char GetDisplayedCharacter(Vector2 position) {
+            return !display.ContainsKey(position) ? '\0' : display[position].character;
         }
         public void SetCellColor(Vector2 position, Color foregroundColor, Color backgroundColor) {
             if(!position.InBounds(0, 0, width - 1, height - 1)) return;
             
-            if(backgroundColor == ColorScheme.GetColor("background")) _ = backgroundColors.Remove(position);
-            else if(backgroundColor.A != 0) backgroundColors[position] = backgroundColor;
+            RenderCharacter newCharacter = new RenderCharacter(backgroundColor, foregroundColor,
+                GetCharacter(position));
 
-            if(foregroundColor == ColorScheme.GetColor("foreground")) _ = foregroundColors.Remove(position);
-            else foregroundColors[position] = foregroundColor;
+            if(IsRenderCharacterEmpty(newCharacter)) display.Remove(position);
+            else display[position] = newCharacter;
         }
         public Color GetBackgroundColor(Vector2 position) {
-            if(!position.InBounds(0, 0, width - 1, height - 1) || !backgroundColors.ContainsKey(position))
+            if(!position.InBounds(0, 0, width - 1, height - 1) || !display.ContainsKey(position))
                 return ColorScheme.GetColor("background");
-            return backgroundColors[position];
+            return display[position].background;
         }
+
+        static bool IsRenderCharacterEmpty(RenderCharacter renderCharacter) {
+            return renderCharacter.background.A == 0 &&
+                   (renderCharacter.character == '\0' || renderCharacter.character == ' ' ||
+                   renderCharacter.foreground.A == 0);
+        }
+        
         public static Color LerpColors(Color a, Color b, float t) {
             return t <= 0f ? a : t >= 1f ? b :
                 new Color((byte)MathF.Floor(a.R + (b.R - a.R) * t),

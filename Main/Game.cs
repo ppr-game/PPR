@@ -304,9 +304,7 @@ namespace PPR.Main {
                     BitmapFont font = new BitmapFont(new Image(Path.Join("resources", "fonts", Settings.GetPath("font"), "font.png")),
                         fontMappingsLines[1], Core.renderer.fontSize);
                     Core.renderer.text = new BitmapText(font, new Vector2(Core.renderer.width, Core.renderer.height)) {
-                        backgroundColors = Core.renderer.backgroundColors,
-                        foregroundColors = Core.renderer.foregroundColors,
-                        text = Core.renderer.displayString
+                        text = Core.renderer.display
                     };
 
                     Core.renderer.UpdateWindow();

@@ -390,9 +390,9 @@ namespace PPR.Main.Levels {
             }
             if(!ignore && !toDestroy &&
                (!Game.editing || (_position.y <= Map.gameLinePos.y && _directionLayer - Game.currentDirectionLayer >= 0)) &&
-               (_directionLayer == Game.currentDirectionLayer || Renderer.instance.GetCharacter(_position) == '\0'))
-                Renderer.instance.SetCharacter(_position, character, character == SPEED_CHAR ? speedColor : NormalColor(),
-                    ColorScheme.GetColor("transparent"));
+               (_directionLayer == Game.currentDirectionLayer || Renderer.instance.GetDisplayedCharacter(_position) == '\0'))
+                Renderer.instance.SetCharacter(_position, new RenderCharacter(character,
+                    ColorScheme.GetColor("transparent"), character == SPEED_CHAR ? speedColor : NormalColor()));
         }
         public void Simulate() {
             if(removed || toDestroy || Game.editing || !Game.StepPassedLine(step)) return;
