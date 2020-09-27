@@ -4,9 +4,9 @@ A rhythm game where you need to use your whole keyboard to play
 Inspired by [osu!](https://osu.ppy.sh), [Beatmania](https://en.wikipedia.org/wiki/Beatmania) and [Dance Dance Revolution](https://en.wikipedia.org/wiki/Dance_Dance_Revolution)
 
 ## Screenshots
-![hinkik - Time Leaper](screenshots\Screenshot-0.png)
+![hinkik - Time Leaper](screenshots/Screenshot-0.png)
 
-![LeaF - Aleph-0](screenshots\Screenshot-1.png)
+![LeaF - Aleph-0](screenshots/Screenshot-1.png)
 
 
 ## How to play
