@@ -19,7 +19,8 @@ using PPR.GUI;
 using PPR.GUI.Elements;
 using PPR.Main.Levels;
 using PPR.Properties;
-using PPR.Rendering;
+
+using PRR;
 
 using SFML.Audio;
 using SFML.Graphics;
@@ -60,7 +61,7 @@ namespace PPR.Main {
                         string path = Path.Join("scores", $"{Map.currentLevel.metadata.name}.txt");
                         string text = File.Exists(path) ? File.ReadAllText(path) : "";
                         text =
-                            $"{Map.TextFromScore(new LevelScore(new Vector2(), score, accuracy, maxCombo, scores))}\n{text}";
+                            $"{Map.TextFromScore(new LevelScore(new Vector2i(), score, accuracy, maxCombo, scores))}\n{text}";
                         _ = Directory.CreateDirectory("scores");
                         File.WriteAllText(path, text);
                         break;
@@ -173,14 +174,11 @@ namespace PPR.Main {
         float _accumulator;
         public event EventHandler onUpdate;
         public event EventHandler onTick;
-        public static void Start() {
+        public Game() {
             Settings.settingChanged += SettingChanged;
             Settings.Reload();
-            Bindings.Reload();
-            ColorScheme.Reload();
-            Core.renderer.UpdateFramerateSetting();
-            ReloadSounds();
-            
+        }
+        public static void Start() {
             RPC.Initialize();
 
             try {
@@ -253,7 +251,7 @@ namespace PPR.Main {
             return false;
         }
 
-        static void ReloadSounds() {
+        public static void ReloadSounds() {
             if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "hit")), out hitSound) ||
                 TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "hit")), out hitSound))
                 hitSound.Volume = Settings.GetInt("soundsVolume");
@@ -292,18 +290,18 @@ namespace PPR.Main {
             Core.renderer.window.Close();
         }
 
-        static void SettingChanged(object caller, SettingChangedEventArgs e) {
+        public static void SettingChanged(object caller, SettingChangedEventArgs e) {
             switch (e.settingName) {
                 case "font": {
                     string[] fontMappingsLines = File.ReadAllLines(Path.Join("resources", "fonts", Settings.GetPath("font"), "mappings.txt"));
                     string[] fontSizeStr = fontMappingsLines[0].Split(',');
-                    Core.renderer.fontSize = new Vector2(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
-                    Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.x;
-                    Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.y;
+                    Core.renderer.fontSize = new Vector2i(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
+                    Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.X;
+                    Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.Y;
 
                     BitmapFont font = new BitmapFont(new Image(Path.Join("resources", "fonts", Settings.GetPath("font"), "font.png")),
                         fontMappingsLines[1], Core.renderer.fontSize);
-                    Core.renderer.text = new BitmapText(font, new Vector2(Core.renderer.width, Core.renderer.height)) {
+                    Core.renderer.text = new BitmapText(font, new Vector2i(Core.renderer.width, Core.renderer.height)) {
                         text = Core.renderer.display
                     };
 
@@ -500,7 +498,7 @@ namespace PPR.Main {
             if(editing) {
                 float initialOffset = Map.currentLevel.metadata.initialOffsetMs / 1000f;
                 float duration = music.Duration.AsSeconds() - initialOffset;
-                if(Core.renderer.mousePosition.y == 0 && Core.renderer.leftButtonPressed) {
+                if(Core.renderer.mousePosition.Y == 0 && Core.renderer.leftButtonPressed) {
                     float mouseProgress = Math.Clamp(Core.renderer.mousePositionF.X / 80f, 0f, 1f);
                     music.PlayingOffset = Time.FromSeconds(duration * mouseProgress + initialOffset);
                     timeFromStart = music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMs);
@@ -741,27 +739,27 @@ namespace PPR.Main {
         public static void MouseWheelScrolled(object caller, MouseWheelScrollEventArgs scroll) {
             switch(currentMenu) {
                 case Menu.LevelSelect: {
-                    Vector2 mousePos = Core.renderer.mousePosition;
-                    if(mousePos.y >= 12 && mousePos.y <= 49) {
-                        if(mousePos.x >= 28 && mousePos.x <= 51) {
-                            if(scroll.Delta > 0 && UI.levelSelectLevels.First().position.y >= 12) return;
-                            if(scroll.Delta < 0 && UI.levelSelectLevels.Last().position.y <= 49) return;
-                            foreach(Button button in UI.levelSelectLevels) button.position += new Vector2(0, (int)scroll.Delta);
+                    Vector2i mousePos = Core.renderer.mousePosition;
+                    if(mousePos.Y >= 12 && mousePos.Y <= 49) {
+                        if(mousePos.X >= 28 && mousePos.X <= 51) {
+                            if(scroll.Delta > 0 && UI.levelSelectLevels.First().position.Y >= 12) return;
+                            if(scroll.Delta < 0 && UI.levelSelectLevels.Last().position.Y <= 49) return;
+                            foreach(Button button in UI.levelSelectLevels) button.position += new Vector2i(0, (int)scroll.Delta);
                         }
-                        else if(mousePos.x >= 1 && mousePos.x <= 26 &&
+                        else if(mousePos.X >= 1 && mousePos.X <= 26 &&
                                 UI.levelSelectScores[UI.currentLevelSelectIndex] != null &&
                                 UI.levelSelectScores[UI.currentLevelSelectIndex].Count > 0) {
-                            if(scroll.Delta > 0 && UI.levelSelectScores[UI.currentLevelSelectIndex].First().scorePosition.y >= 12) return;
-                            if(scroll.Delta < 0 && UI.levelSelectScores[UI.currentLevelSelectIndex].Last().scoresPosition.y <= 49) return;
+                            if(scroll.Delta > 0 && UI.levelSelectScores[UI.currentLevelSelectIndex].First().scorePosition.Y >= 12) return;
+                            if(scroll.Delta < 0 && UI.levelSelectScores[UI.currentLevelSelectIndex].Last().scoresPosition.Y <= 49) return;
                             for(int i = 0; i < UI.levelSelectScores[UI.currentLevelSelectIndex].Count; i++) {
                                 int increment = (int)scroll.Delta;
                                 LevelScore score = UI.levelSelectScores[UI.currentLevelSelectIndex][i];
-                                score.scorePosition += new Vector2(0, increment);
-                                score.accComboPosition += new Vector2(0, increment);
-                                score.accComboDividerPosition += new Vector2(0, increment);
-                                score.maxComboPosition += new Vector2(0, increment);
-                                score.scoresPosition += new Vector2(0, increment);
-                                score.linePosition += new Vector2(0, increment);
+                                score.scorePosition += new Vector2i(0, increment);
+                                score.accComboPosition += new Vector2i(0, increment);
+                                score.accComboDividerPosition += new Vector2i(0, increment);
+                                score.maxComboPosition += new Vector2i(0, increment);
+                                score.scoresPosition += new Vector2i(0, increment);
+                                score.linePosition += new Vector2i(0, increment);
                                 UI.levelSelectScores[UI.currentLevelSelectIndex][i] = score;
                             }
                         }
@@ -890,7 +888,7 @@ namespace PPR.Main {
             for(int i = 0; i < directories.Length; i++) {
                 string name = Path.GetFileName(directories[i]);
                 if(name == "_template") continue;
-                buttons.Add(new Button(new Vector2(25, 12 + i), name, "levelSelect.level", 30));
+                buttons.Add(new Button(new Vector2i(25, 12 + i), name, "levelSelect.level", 30));
                 metadatas.Add(new LevelMetadata(File.ReadAllLines(Path.Join(directories[i], "level.txt")), name));
                 logger.Info("Loaded metadata for level {0}", name);
             }

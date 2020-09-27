@@ -5,46 +5,48 @@ using System.Linq;
 
 using PPR.GUI;
 using PPR.Properties;
-using PPR.Rendering;
+
+using PRR;
 
 using SFML.Audio;
 using SFML.Graphics;
+using SFML.System;
 using SFML.Window;
 
 namespace PPR.Main.Levels {
     public struct LevelScore {
-        public Vector2 scorePosition;
+        public Vector2i scorePosition;
         public readonly int score;
         public readonly string scoreStr;
-        public Vector2 accComboPosition;
+        public Vector2i accComboPosition;
         public readonly int accuracy;
         public readonly int maxCombo;
         public readonly string accuracyStr;
         public Color accuracyColor;
-        public Vector2 accComboDividerPosition;
-        public Vector2 maxComboPosition;
+        public Vector2i accComboDividerPosition;
+        public Vector2i maxComboPosition;
         public readonly string maxComboStr;
         public Color maxComboColor;
-        public Vector2 scoresPosition;
+        public Vector2i scoresPosition;
         public readonly int[] scores;
-        public Vector2 linePosition;
+        public Vector2i linePosition;
 
-        public LevelScore(Vector2 position, int score, int accuracy, int maxCombo, int[] scores) {
+        public LevelScore(Vector2i position, int score, int accuracy, int maxCombo, int[] scores) {
             scorePosition = position;
             this.score = score;
             scoreStr = $"SCORE: {score.ToString()}";
-            accComboPosition = new Vector2(position.x, position.y + 1);
+            accComboPosition = new Vector2i(position.X, position.Y + 1);
             this.accuracy = accuracy;
             this.maxCombo = maxCombo;
             accuracyStr = $"{accuracy.ToString()}%";
             accuracyColor = Game.GetAccuracyColor(accuracy);
-            accComboDividerPosition = accComboPosition + new Vector2(accuracyStr.Length, 0);
-            maxComboPosition = accComboDividerPosition + new Vector2(1, 0);
+            accComboDividerPosition = accComboPosition + new Vector2i(accuracyStr.Length, 0);
+            maxComboPosition = accComboDividerPosition + new Vector2i(1, 0);
             maxComboStr = $"{maxCombo.ToString()}x";
             maxComboColor = Game.GetComboColor(accuracy, scores[0]);
-            scoresPosition = new Vector2(position.x, position.y + 2);
+            scoresPosition = new Vector2i(position.X, position.Y + 2);
             this.scores = scores;
-            linePosition = new Vector2(position.x - 1, position.y + 3);
+            linePosition = new Vector2i(position.X - 1, position.Y + 3);
         }
     }
     public struct LevelMetadata {
@@ -235,8 +237,8 @@ namespace PPR.Main.Levels {
         public static int perfectRange;
         public static int hitRange;
         public static int missRange;
-        Vector2 _position;
-        readonly Vector2 _startPosition;
+        Vector2i _position;
+        readonly Vector2i _startPosition;
         public readonly char character;
         readonly Keyboard.Key _key;
         public readonly int step;
@@ -288,7 +290,7 @@ namespace PPR.Main.Levels {
                 existingObjects.Sort((obj1, obj2) => -obj1.step.CompareTo(obj2.step));
                 foreach(LevelObject obj in existingObjects.Where(obj =>
                     obj.step <= step && obj.character != SPEED_CHAR && obj.character != HOLD_CHAR)) {
-                    x = obj._position.x;
+                    x = obj._position.X;
                     _key = obj._key;
                     obj.ignore = true;
                     break;
@@ -296,8 +298,8 @@ namespace PPR.Main.Levels {
             }
             List<LevelSpeed> existingSpeeds = new List<LevelSpeed>(speeds);
             existingSpeeds.Sort((spd1, spd2) => spd1.step.CompareTo(spd2.step));
-            _startPosition = new Vector2(x, Map.linePos.y - (int)Game.StepsToOffset(step, existingSpeeds));
-            _position = new Vector2(_startPosition);
+            _startPosition = new Vector2i(x, Map.linePos.Y - (int)Game.StepsToOffset(step, existingSpeeds));
+            _position = _startPosition;
             this.character = character;
             char lineChar = character == HOLD_CHAR ? Game.GetNoteBinding(_key) : character;
             lineChar = char.ToLower(lineChar);
@@ -381,7 +383,7 @@ namespace PPR.Main.Levels {
                         obj._position == _position && obj.removed && obj != this);
                     if(samePosObjects.Count > 0) samePosObjects.ForEach(obj => obj.toDestroy = true);
                 }
-                Renderer.instance.SetCellColor(_position,
+                Core.renderer.SetCellColor(_position,
                     Renderer.AnimateColor(_removeAnimationTime, _hitColor, ColorScheme.GetColor("foreground"), 3f),
                     Renderer.AnimateColor(_removeAnimationTime, _hitColor, ColorScheme.GetColor("transparent"), 3f));
                 if(_removeAnimationTime >= 1f) toDestroy = true;
@@ -389,9 +391,9 @@ namespace PPR.Main.Levels {
                 return;
             }
             if(!ignore && !toDestroy &&
-               (!Game.editing || (_position.y <= Map.gameLinePos.y && _directionLayer - Game.currentDirectionLayer >= 0)) &&
-               (_directionLayer == Game.currentDirectionLayer || Renderer.instance.GetDisplayedCharacter(_position) == '\0'))
-                Renderer.instance.SetCharacter(_position, new RenderCharacter(character,
+               (!Game.editing || (_position.Y <= Map.gameLinePos.Y && _directionLayer - Game.currentDirectionLayer >= 0)) &&
+               (_directionLayer == Game.currentDirectionLayer || Core.renderer.GetDisplayedCharacter(_position) == '\0'))
+                Core.renderer.SetCharacter(_position, new RenderCharacter(character,
                     ColorScheme.GetColor("transparent"), character == SPEED_CHAR ? speedColor : NormalColor()));
         }
         public void Simulate() {
@@ -440,7 +442,7 @@ namespace PPR.Main.Levels {
         }
         public void Step() {
             if(removed || toDestroy) return;
-            _position = new Vector2(_position.x, _startPosition.y + Game.roundedOffset);
+            _position = new Vector2i(_position.X, _startPosition.Y + Game.roundedOffset);
             if(Game.editing && Game.music.Status == SoundStatus.Playing && step == (int)Game.steps)
                 PlayHitsound();
         }
@@ -448,7 +450,7 @@ namespace PPR.Main.Levels {
 
         public override bool Equals(object obj) {
             return obj is LevelObject @object &&
-                   EqualityComparer<Vector2>.Default.Equals(_position, @object._position) &&
+                   EqualityComparer<Vector2i>.Default.Equals(_position, @object._position) &&
                    character == @object.character &&
                    step == @object.step;
         }

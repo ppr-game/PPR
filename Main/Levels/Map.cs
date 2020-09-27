@@ -4,14 +4,17 @@ using System.IO;
 using System.Linq;
 
 using PPR.GUI;
-using PPR.Rendering;
+
+using PRR;
+
+using SFML.System;
 
 namespace PPR.Main.Levels {
     public static class Map {
         public static Level currentLevel;
-        public static readonly Vector2 gameLinePos = new Vector2(0, 54);
-        public static readonly Vector2 editorLinePos = new Vector2(0, 44);
-        public static Vector2 linePos;
+        public static readonly Vector2i gameLinePos = new Vector2i(0, 54);
+        public static readonly Vector2i editorLinePos = new Vector2i(0, 44);
+        public static Vector2i linePos;
         static readonly float[] lineFlashTimes = new float[Core.renderer.width];
         public static int flashLine {
             set => lineFlashTimes[value] = 1f;
@@ -21,7 +24,7 @@ namespace PPR.Main.Levels {
             if(Game.currentMenu != Menu.Game) return;
 
             for(int x = 0; x < Core.renderer.width; x++) {
-                Vector2 pos = new Vector2(x, linePos.y);
+                Vector2i pos = new Vector2i(x, linePos.Y);
                 Core.renderer.SetCellColor(pos, ColorScheme.GetColor("foreground"),
                     Renderer.AnimateColor(lineFlashTimes[x], ColorScheme.GetColor("background"),
                         ColorScheme.GetColor("foreground"), 1f));
@@ -31,16 +34,16 @@ namespace PPR.Main.Levels {
                 "────────────────────────────────────────────────────────────────────────────────");
             if(Game.editing) {
                 int doubleFrequency = currentLevel.metadata.linesFrequency * 2;
-                for(int y = -linePos.y; y < 30 + currentLevel.metadata.linesFrequency; y++) {
-                    int useY = y + Game.roundedOffset % doubleFrequency - doubleFrequency + linePos.y;
-                    if(useY > gameLinePos.y) continue;
+                for(int y = -linePos.Y; y < 30 + currentLevel.metadata.linesFrequency; y++) {
+                    int useY = y + Game.roundedOffset % doubleFrequency - doubleFrequency + linePos.Y;
+                    if(useY > gameLinePos.Y) continue;
                     if(y % currentLevel.metadata.linesFrequency == 0)
                         for(int x = 0; x < 80; x++)
-                            Renderer.instance.SetCellColor(new Vector2(x, useY), ColorScheme.GetColor("foreground"),
+                            Core.renderer.SetCellColor(new Vector2i(x, useY), ColorScheme.GetColor("foreground"),
                                 ColorScheme.GetColor("light_guidelines"));
                     else if(y % 2 == 0)
                         for(int x = 0; x < 80; x++)
-                            Renderer.instance.SetCellColor(new Vector2(x, useY), ColorScheme.GetColor("foreground"),
+                            Core.renderer.SetCellColor(new Vector2i(x, useY), ColorScheme.GetColor("foreground"),
                                 ColorScheme.GetColor("guidelines"));
                 }
 
@@ -103,9 +106,9 @@ namespace PPR.Main.Levels {
             lines[4] = $"{hpDrain}:{hpRestorage}:{diff}:{author}:{linesFreq}:{initialOffset}";
             return string.Join('\n', lines);
         }
-        public static List<LevelScore> ScoresFromLines(string[] lines, Vector2 position) {
+        public static List<LevelScore> ScoresFromLines(string[] lines, Vector2i position) {
             return lines.Select(t => t.Split(':')).Select((data, i) =>
-                    new LevelScore(new Vector2(position.x, position.y + i * 4), int.Parse(data[0]), int.Parse(data[1]),
+                    new LevelScore(new Vector2i(position.X, position.Y + i * 4), int.Parse(data[0]), int.Parse(data[1]),
                         int.Parse(data[2]), new int[] { int.Parse(data[3]), int.Parse(data[4]), int.Parse(data[5]) }))
                 .ToList();
         }

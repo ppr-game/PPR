@@ -9,7 +9,8 @@ using PPR.GUI.Elements;
 using PPR.Main;
 using PPR.Main.Levels;
 using PPR.Properties;
-using PPR.Rendering;
+
+using PRR;
 
 using SFML.Audio;
 using SFML.Graphics;
@@ -81,76 +82,76 @@ namespace PPR.GUI {
 
         static Button _skipButton;
 
-        static readonly Vector2 zero = new Vector2();
+        static readonly Vector2i zero = new Vector2i();
         public static void RecreateButtons() {
             const Renderer.Alignment center = Renderer.Alignment.Center;
             const Renderer.Alignment right = Renderer.Alignment.Right;
             _mainMenuButtons = new List<Button> {
-                new Button(new Vector2(40, 25), "PLAY", "mainMenu.play", 4, new InputKey("Enter"), center),
-                new Button(new Vector2(40, 27), "EDIT", "mainMenu.edit", 4, new InputKey("LShift,RShift"), center),
-                new Button(new Vector2(40, 29), "SETTINGS", "mainMenu.settings", 8, new InputKey("Tab"), center),
-                new Button(new Vector2(40, 31), "EXIT", "mainMenu.exit", 4, new InputKey("Tilde"), center),
-                new Button(new Vector2(78, 1), "SFML", "mainMenu.sfml", 4, null, right),
-                new Button(new Vector2(73, 1), "GITHUB", "mainMenu.github", 6, null, right),
-                new Button(new Vector2(66, 1), "DISCORD", "mainMenu.discord", 7, null, right)
+                new Button(new Vector2i(40, 25), "PLAY", "mainMenu.play", 4, new InputKey("Enter"), center),
+                new Button(new Vector2i(40, 27), "EDIT", "mainMenu.edit", 4, new InputKey("LShift,RShift"), center),
+                new Button(new Vector2i(40, 29), "SETTINGS", "mainMenu.settings", 8, new InputKey("Tab"), center),
+                new Button(new Vector2i(40, 31), "EXIT", "mainMenu.exit", 4, new InputKey("Tilde"), center),
+                new Button(new Vector2i(78, 1), "SFML", "mainMenu.sfml", 4, null, right),
+                new Button(new Vector2i(73, 1), "GITHUB", "mainMenu.github", 6, null, right),
+                new Button(new Vector2i(66, 1), "DISCORD", "mainMenu.discord", 7, null, right)
             };
-            _pauseMusicButton = new Button(new Vector2(1, 58), "►", "mainMenu.music.pause", 1,
+            _pauseMusicButton = new Button(new Vector2i(1, 58), "►", "mainMenu.music.pause", 1,
                 new InputKey("Space"));
-            _switchMusicButton = new Button(new Vector2(3, 58), "»", "mainMenu.music.switch", 1,
+            _switchMusicButton = new Button(new Vector2i(3, 58), "»", "mainMenu.music.switch", 1,
                 new InputKey("Right"));
             _levelSelectButtons = new List<Button> {
-                new Button(new Vector2(25, 10), "AUTO", "levelSelect.auto", 4, new InputKey("Tab")),
-                new Button(new Vector2(25, 10), "NEW", "levelSelect.new", 3,
+                new Button(new Vector2i(25, 10), "AUTO", "levelSelect.auto", 4, new InputKey("Tab")),
+                new Button(new Vector2i(25, 10), "NEW", "levelSelect.new", 3,
                     new InputKey("LControl+N,RControl+N")),
-                new Button(new Vector2(39, 52), "BACK", "levelSelect.back", 4, new InputKey("Escape"), center)
+                new Button(new Vector2i(39, 52), "BACK", "levelSelect.back", 4, new InputKey("Escape"), center)
             };
             _gameLastStatsButtons = new List<Button> {
-                new Button(new Vector2(2, 53), "CONTINUE", "lastStats.continue", 8, new InputKey("Enter")),
-                new Button(new Vector2(2, 55), "RESTART", "lastStats.restart", 7, new InputKey("LControl+R,RControl+R")),
-                new Button(new Vector2(10, 55), "AUTO", "lastStats.auto", 4, new InputKey("Tab")),
-                new Button(new Vector2(2, 57), "EXIT", "lastStats.exit", 4, new InputKey("Tilde"))
+                new Button(new Vector2i(2, 53), "CONTINUE", "lastStats.continue", 8, new InputKey("Enter")),
+                new Button(new Vector2i(2, 55), "RESTART", "lastStats.restart", 7, new InputKey("LControl+R,RControl+R")),
+                new Button(new Vector2i(10, 55), "AUTO", "lastStats.auto", 4, new InputKey("Tab")),
+                new Button(new Vector2i(2, 57), "EXIT", "lastStats.exit", 4, new InputKey("Tilde"))
             };
             _editorLastStatsButtons = new List<Button> {
-                new Button(new Vector2(2, 51), "CONTINUE", "lastStats.continue", 8, new InputKey("Enter")),
-                new Button(new Vector2(2, 53), "SAVE", "lastStats.save", 4, new InputKey("LControl+S,RControl+S")),
-                new Button(new Vector2(2, 55), "SAVE & EXIT", "lastStats.saveAndExit", 11),
-                new Button(new Vector2(2, 57), "EXIT", "lastStats.exit", 4, new InputKey("Tilde"))
+                new Button(new Vector2i(2, 51), "CONTINUE", "lastStats.continue", 8, new InputKey("Enter")),
+                new Button(new Vector2i(2, 53), "SAVE", "lastStats.save", 4, new InputKey("LControl+S,RControl+S")),
+                new Button(new Vector2i(2, 55), "SAVE & EXIT", "lastStats.saveAndExit", 11),
+                new Button(new Vector2i(2, 57), "EXIT", "lastStats.exit", 4, new InputKey("Tilde"))
             };
             _levelEditorButtons = new List<Button> {
-                new Button(new Vector2(78, 58), "►", "editor.playPause", 1, new InputKey("Enter")),
+                new Button(new Vector2i(78, 58), "►", "editor.playPause", 1, new InputKey("Enter")),
                 new Button(hpDrainPos, "<", "editor.hp.drain.down", 1),
-                new Button(hpDrainPos + new Vector2(2, 0), ">", "editor.hp.drain.up", 1),
+                new Button(hpDrainPos + new Vector2i(2, 0), ">", "editor.hp.drain.up", 1),
                 new Button(hpRestoragePos, "<", "editor.hp.restorage.down", 1),
-                new Button(hpRestoragePos + new Vector2(2, 0), ">", "editor.hp.restorage.up", 1),
+                new Button(hpRestoragePos + new Vector2i(2, 0), ">", "editor.hp.restorage.up", 1),
                 new Button(musicOffsetPos, "<", "editor.music.offset.down", 1),
-                new Button(musicOffsetPos + new Vector2(2, 0), ">", "editor.music.offset.up", 1)
+                new Button(musicOffsetPos + new Vector2i(2, 0), ">", "editor.music.offset.up", 1)
             };
-            _musicSpeedSlider = new Slider(new Vector2(78, 58), 25, 100, 16, 100,
+            _musicSpeedSlider = new Slider(new Vector2i(78, 58), 25, 100, 16, 100,
                 "[value]%", "", "editor.music.speed", Renderer.Alignment.Right);
-            _skipButton = new Button(new Vector2(78, 58), "SKIP", "game.skip", 4,
+            _skipButton = new Button(new Vector2i(78, 58), "SKIP", "game.skip", 4,
                 new InputKey("Space"), right);
 
-            musicVolumeSlider = new Slider(new Vector2(), 0, 100, 21, 15, "MUSIC VOLUME",
+            musicVolumeSlider = new Slider(new Vector2i(), 0, 100, 21, 15, "MUSIC VOLUME",
                 "[value]", "settings.volume.music");
-            soundsVolumeSlider = new Slider(new Vector2(), 0, 100, 21, 10, "SOUNDS VOLUME",
+            soundsVolumeSlider = new Slider(new Vector2i(), 0, 100, 21, 10, "SOUNDS VOLUME",
                 "[value]", "settings.volume.sounds");
 
-            bloomSwitch = new Button(new Vector2(4, 24), "BLOOM", "settings.bloom", 5);
-            fullscreenSwitch = new Button(new Vector2(4, 26), "FULLSCREEN", "settings.fullscreen", 10);
-            fpsLimitSlider = new Slider(new Vector2(4, 28), 0, 1020, 18, 480, "FPS LIMIT", "[value]",
+            bloomSwitch = new Button(new Vector2i(4, 24), "BLOOM", "settings.bloom", 5);
+            fullscreenSwitch = new Button(new Vector2i(4, 26), "FULLSCREEN", "settings.fullscreen", 10);
+            fpsLimitSlider = new Slider(new Vector2i(4, 28), 0, 1020, 18, 480, "FPS LIMIT", "[value]",
                 "settings.fpsLimit");
-            uppercaseSwitch = new Button(new Vector2(4, 30), "UPPERCASE NOTES", "settings.uppercaseNotes", 15);
+            uppercaseSwitch = new Button(new Vector2i(4, 30), "UPPERCASE NOTES", "settings.uppercaseNotes", 15);
 
-            showFpsSwitch = new Button(new Vector2(4, 39), "SHOW FPS", "settings.showFPS", 8);
+            showFpsSwitch = new Button(new Vector2i(4, 39), "SHOW FPS", "settings.showFPS", 8);
 
-            _keybindsButton = new Button(new Vector2(2, 57), "KEYBINDS", "settings.keybinds", 8);
+            _keybindsButton = new Button(new Vector2i(2, 57), "KEYBINDS", "settings.keybinds", 8);
 
             UpdateAllFolderSwitchButtons();
         }
         static Button _pauseMusicButton;
         static Button _switchMusicButton;
-        static readonly Vector2 nowPlayingCtrlPos = new Vector2(5, 58);
-        static readonly Vector2 nowPlayingPos = new Vector2(1, 58);
+        static readonly Vector2i nowPlayingCtrlPos = new Vector2i(5, 58);
+        static readonly Vector2i nowPlayingPos = new Vector2i(1, 58);
         static void DrawNowPlaying(bool controls = false) {
             string text = $"NOW PLAYING : {Game.currentMusicName}";
             Core.renderer.DrawText(controls ? nowPlayingCtrlPos : nowPlayingPos, text);
@@ -184,7 +185,7 @@ namespace PPR.GUI {
                     Color useColor = Renderer.AnimateColor(noise, ColorScheme.GetColor("background"),
                         ColorScheme.GetColor("menus_anim_max"), 30f);
                     Core.renderer.SetCellColor(
-                        new Vector2(x + (int)(noiseX * 10f) + xOffset, y + (int)(noiseY * 10f) + yOffset),
+                        new Vector2i(x + (int)(noiseX * 10f) + xOffset, y + (int)(noiseY * 10f) + yOffset),
                         ColorScheme.GetColor("foreground"), useColor);
                 }
             }
@@ -193,7 +194,7 @@ namespace PPR.GUI {
         static void DrawMainMenu() {
             DrawMenusAnim();
             Core.renderer.DrawText(zero, mainMenuText);
-            Core.renderer.DrawText(new Vector2(1, 1), $"v{Core.version}");
+            Core.renderer.DrawText(new Vector2i(1, 1), $"v{Core.version}");
             DrawNowPlaying(true);
             // ReSharper disable once HeapView.ObjectAllocation
             // ReSharper disable once HeapView.ObjectAllocation.Possible
@@ -202,7 +203,7 @@ namespace PPR.GUI {
                     case "mainMenu.play":
                     case "mainMenu.edit":
                         Game.editing = button.id == "mainMenu.edit";
-                        Renderer.instance.window.SetKeyRepeatEnabled(Game.editing);
+                        Core.renderer.window.SetKeyRepeatEnabled(Game.editing);
                         Game.auto = false;
                         Game.currentMenu = Menu.LevelSelect;
                         break;
@@ -218,13 +219,13 @@ namespace PPR.GUI {
                         break;
                 }
         }
-        public static readonly Vector2 scoresPos = new Vector2(1, 12);
+        public static readonly Vector2i scoresPos = new Vector2i(1, 12);
         static void DrawLevelSelect() {
             DrawMenusAnim();
-            Renderer.instance.DrawText(zero, levelSelectText);
+            Core.renderer.DrawText(zero, levelSelectText);
             for(int i = 0; i < levelSelectLevels.Count; i++) {
                 Button button = levelSelectLevels[i];
-                if(button.position.y < 12 || button.position.y > 49) continue;
+                if(button.position.Y < 12 || button.position.Y > 49) continue;
                 if(button.Draw()) {
                     _lastLevel = button.text;
                     string path = Path.Join("levels", _lastLevel);
@@ -276,53 +277,53 @@ namespace PPR.GUI {
             }
             DrawNowPlaying();
         }
-        static readonly Vector2 metaLengthPos = new Vector2(56, 12);
-        static readonly Vector2 metaDiffPos = new Vector2(56, 13);
-        static readonly Vector2 metaBPMPos = new Vector2(56, 14);
-        static readonly Vector2 metaAuthorPos = new Vector2(56, 15);
+        static readonly Vector2i metaLengthPos = new Vector2i(56, 12);
+        static readonly Vector2i metaDiffPos = new Vector2i(56, 13);
+        static readonly Vector2i metaBPMPos = new Vector2i(56, 14);
+        static readonly Vector2i metaAuthorPos = new Vector2i(56, 15);
 
-        static readonly Vector2 metaObjCountPos = new Vector2(56, 48);
-        static readonly Vector2 metaSpdCountPos = new Vector2(56, 49);
+        static readonly Vector2i metaObjCountPos = new Vector2i(56, 48);
+        static readonly Vector2i metaSpdCountPos = new Vector2i(56, 49);
         static void DrawMetadata(LevelMetadata? metadata) {
             if(metadata == null) return;
-            Renderer.instance.DrawText(metaLengthPos, $"LENGTH:{metadata.Value.length}");
-            Renderer.instance.DrawText(metaDiffPos, $"DIFFICULTY:{metadata.Value.difficulty}");
-            Renderer.instance.DrawText(metaBPMPos, $"BPM:{metadata.Value.bpm}");
-            Renderer.instance.DrawText(metaAuthorPos, $"AUTHOR:{metadata.Value.author}");
+            Core.renderer.DrawText(metaLengthPos, $"LENGTH:{metadata.Value.length}");
+            Core.renderer.DrawText(metaDiffPos, $"DIFFICULTY:{metadata.Value.difficulty}");
+            Core.renderer.DrawText(metaBPMPos, $"BPM:{metadata.Value.bpm}");
+            Core.renderer.DrawText(metaAuthorPos, $"AUTHOR:{metadata.Value.author}");
 
-            Renderer.instance.DrawText(metaObjCountPos, $"objects:{metadata.Value.objectCount.ToString()}");
-            Renderer.instance.DrawText(metaSpdCountPos, $"speeds:{metadata.Value.speedsCount.ToString()}");
+            Core.renderer.DrawText(metaObjCountPos, $"objects:{metadata.Value.objectCount.ToString()}");
+            Core.renderer.DrawText(metaSpdCountPos, $"speeds:{metadata.Value.speedsCount.ToString()}");
         }
         static void DrawScores(IReadOnlyCollection<LevelScore> scores) {
             if(scores == null) return;
             // ReSharper disable once HeapView.ObjectAllocation.Possible
             foreach(LevelScore score in scores) {
-                if(score.scorePosition.y >= 12 && score.scorePosition.y <= 49)
-                    Renderer.instance.DrawText(score.scorePosition, score.scoreStr, ColorScheme.GetColor("score"));
-                if(score.accComboPosition.y >= 12 && score.accComboPosition.y <= 49) {
-                    Renderer.instance.DrawText(score.accComboPosition, score.accuracyStr, score.accuracyColor);
-                    Renderer.instance.DrawText(score.accComboDividerPosition, "│", ColorScheme.GetColor("combo"));
-                    Renderer.instance.DrawText(score.maxComboPosition, score.maxComboStr, score.maxComboColor);
+                if(score.scorePosition.Y >= 12 && score.scorePosition.Y <= 49)
+                    Core.renderer.DrawText(score.scorePosition, score.scoreStr, ColorScheme.GetColor("score"));
+                if(score.accComboPosition.Y >= 12 && score.accComboPosition.Y <= 49) {
+                    Core.renderer.DrawText(score.accComboPosition, score.accuracyStr, score.accuracyColor);
+                    Core.renderer.DrawText(score.accComboDividerPosition, "│", ColorScheme.GetColor("combo"));
+                    Core.renderer.DrawText(score.maxComboPosition, score.maxComboStr, score.maxComboColor);
                 }
-                if(score.scoresPosition.y >= 12 && score.scoresPosition.y <= 49)
+                if(score.scoresPosition.Y >= 12 && score.scoresPosition.Y <= 49)
                     DrawMiniScores(score.scoresPosition, score.scores);
-                if(score.linePosition.y >= 12 && score.linePosition.y <= 49)
-                    Renderer.instance.DrawText(score.linePosition, "├───────────────────────┤");
+                if(score.linePosition.Y >= 12 && score.linePosition.Y <= 49)
+                    Core.renderer.DrawText(score.linePosition, "├───────────────────────┤");
             }
         }
 
-        static readonly Vector2 levelNamePos = new Vector2(0, 0);
-        static readonly Vector2 musicTimePos = new Vector2(79, 0);
-        static readonly Vector2 scorePos = new Vector2(0, 57);
-        static readonly Vector2 accPos = new Vector2(0, 58);
-        static readonly Vector2 comboPos = new Vector2(0, 59);
-        static readonly Vector2 miniScoresPos = new Vector2(25, 59);
-        static readonly Vector2 bpmPos = new Vector2(0, 57);
-        static readonly Vector2 timePos = new Vector2(0, 58);
-        static readonly Vector2 offsetPos = new Vector2(0, 59);
-        static readonly Vector2 hpDrainPos = new Vector2(20, 57);
-        static readonly Vector2 hpRestoragePos = new Vector2(20, 58);
-        static readonly Vector2 musicOffsetPos = new Vector2(20, 59);
+        static readonly Vector2i levelNamePos = new Vector2i(0, 0);
+        static readonly Vector2i musicTimePos = new Vector2i(79, 0);
+        static readonly Vector2i scorePos = new Vector2i(0, 57);
+        static readonly Vector2i accPos = new Vector2i(0, 58);
+        static readonly Vector2i comboPos = new Vector2i(0, 59);
+        static readonly Vector2i miniScoresPos = new Vector2i(25, 59);
+        static readonly Vector2i bpmPos = new Vector2i(0, 57);
+        static readonly Vector2i timePos = new Vector2i(0, 58);
+        static readonly Vector2i offsetPos = new Vector2i(0, 59);
+        static readonly Vector2i hpDrainPos = new Vector2i(20, 57);
+        static readonly Vector2i hpRestoragePos = new Vector2i(20, 58);
+        static readonly Vector2i musicOffsetPos = new Vector2i(20, 59);
         static Slider _musicSpeedSlider;
         static void DrawGame() {
             if(Game.editing) {
@@ -360,18 +361,18 @@ namespace PPR.GUI {
                         }
                     }
                 }
-                Renderer.instance.DrawText(bpmPos, $"BPM: {Game.currentBPM.ToString()}", ColorScheme.GetColor("bpm"));
+                Core.renderer.DrawText(bpmPos, $"BPM: {Game.currentBPM.ToString()}", ColorScheme.GetColor("bpm"));
                 TimeSpan curTime = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
-                Renderer.instance.DrawText(timePos,
+                Core.renderer.DrawText(timePos,
                     $"TIME: {(curTime < TimeSpan.Zero ? "'-'" : "")}{curTime.ToString($"{(curTime.Hours != 0 ? "h':'mm" : "m")}':'ss")}",
                     ColorScheme.GetColor("time"));
-                Renderer.instance.DrawText(offsetPos, $"OFFSET: {Game.roundedOffset.ToString()} ({Game.roundedSteps.ToString()})",
+                Core.renderer.DrawText(offsetPos, $"OFFSET: {Game.roundedOffset.ToString()} ({Game.roundedSteps.ToString()})",
                     ColorScheme.GetColor("offset"));
 
-                Renderer.instance.DrawText(hpDrainPos, $"    HP DRAIN: {Map.currentLevel.metadata.hpDrain.ToString()}", ColorScheme.GetColor("hp_drain"));
-                Renderer.instance.DrawText(hpRestoragePos, $"    HP RESTORAGE: {Map.currentLevel.metadata.hpRestorage.ToString()}", ColorScheme.GetColor("hp_restorage"));
+                Core.renderer.DrawText(hpDrainPos, $"    HP DRAIN: {Map.currentLevel.metadata.hpDrain.ToString()}", ColorScheme.GetColor("hp_drain"));
+                Core.renderer.DrawText(hpRestoragePos, $"    HP RESTORAGE: {Map.currentLevel.metadata.hpRestorage.ToString()}", ColorScheme.GetColor("hp_restorage"));
 
-                Renderer.instance.DrawText(musicOffsetPos,
+                Core.renderer.DrawText(musicOffsetPos,
                     $"    MUSIC OFFSET: {Map.currentLevel.metadata.initialOffsetMs.ToString()} MS", ColorScheme.GetColor("music_offset"));
 
                 if(_musicSpeedSlider.Draw()) Game.music.Pitch = _musicSpeedSlider.value / 100f;
@@ -399,7 +400,7 @@ namespace PPR.GUI {
         static void DrawHealth() {
             for(int x = 0; x < 80; x++) {
                 float rate = 3.5f + healthAnimRateOffsets[x];
-                Renderer.instance.SetCellColor(new Vector2(x, 1), ColorScheme.GetColor("transparent"),
+                Core.renderer.SetCellColor(new Vector2i(x, 1), ColorScheme.GetColor("transparent"),
                     Renderer.AnimateColor(healthAnimTimes[x], prevHealthColors[x], healthColors[x], rate));
                 healthAnimTimes[x] += Core.deltaTime;
             }
@@ -407,7 +408,7 @@ namespace PPR.GUI {
         static void DrawProgress() {
             for(int x = 0; x < 80; x++) {
                 float rate = 3.5f + progressAnimRateOffsets[x];
-                Renderer.instance.SetCellColor(new Vector2(x, 0), ColorScheme.GetColor("transparent"),
+                Core.renderer.SetCellColor(new Vector2i(x, 0), ColorScheme.GetColor("transparent"),
                     Renderer.AnimateColor(progressAnimTimes[x], prevProgressColors[x], progressColors[x], rate));
                 progressAnimTimes[x] += Core.deltaTime;
             }
@@ -416,15 +417,15 @@ namespace PPR.GUI {
         public static int prevScore;
         static float _newScoreAnimationTime;
         static float _scoreAnimationRate = 2f;
-        static void DrawScore(Vector2 position, Color color) {
+        static void DrawScore(Vector2i position, Color color) {
             string scoreStr = $"SCORE: {Game.score.ToString()}";
-            Renderer.instance.DrawText(position, scoreStr, color);
+            Core.renderer.DrawText(position, scoreStr, color);
             if(prevScore != Game.score) {
                 if(_newScoreAnimationTime >= 1f / _scoreAnimationRate) _scoreChange = 0;
                 _newScoreAnimationTime = 0f;
                 _scoreChange += Game.score - prevScore;
             }
-            Renderer.instance.DrawText(new Vector2(position.x + scoreStr.Length + 2, position.y),
+            Core.renderer.DrawText(new Vector2i(position.X + scoreStr.Length + 2, position.Y),
                 $"+{_scoreChange.ToString()}",
                 Renderer.AnimateColor(_newScoreAnimationTime, color, ColorScheme.GetColor("transparent"),
                     _scoreAnimationRate));
@@ -432,73 +433,73 @@ namespace PPR.GUI {
 
             prevScore = Game.score;
         }
-        static void DrawAccuracy(Vector2 position) {
-            Renderer.instance.DrawText(position, $"ACCURACY: {Game.accuracy.ToString()}%",
+        static void DrawAccuracy(Vector2i position) {
+            Core.renderer.DrawText(position, $"ACCURACY: {Game.accuracy.ToString()}%",
                 Game.GetAccuracyColor(Game.accuracy));
         }
-        static void DrawCombo(Vector2 position, bool maxCombo = false) {
+        static void DrawCombo(Vector2i position, bool maxCombo = false) {
             string prefix = Game.accuracy >= 100 ? "PERFECT " : Game.scores[0] <= 0 ? "FULL " : maxCombo ? "MAX " : "";
             Color color = Game.GetComboColor(Game.accuracy, Game.scores[0]);
-            Renderer.instance.DrawText(position, $"{prefix}COMBO: {(maxCombo ? Game.maxCombo : Game.combo).ToString()}",
+            Core.renderer.DrawText(position, $"{prefix}COMBO: {(maxCombo ? Game.maxCombo : Game.combo).ToString()}",
                 color, ColorScheme.GetColor("transparent"));
         }
-        static void DrawMiniScores(Vector2 position, int[] scores) {
+        static void DrawMiniScores(Vector2i position, int[] scores) {
             string scores0Str = scores[0].ToString();
-            Renderer.instance.DrawText(position, scores0Str, ColorScheme.GetColor("background"),
+            Core.renderer.DrawText(position, scores0Str, ColorScheme.GetColor("background"),
                 ColorScheme.GetColor("miss"));
 
             string scores1Str = scores[1].ToString();
-            int x1 = position.x + scores0Str.Length + 1;
-            Renderer.instance.DrawText(new Vector2(x1, position.y), scores1Str, ColorScheme.GetColor("background"),
+            int x1 = position.X + scores0Str.Length + 1;
+            Core.renderer.DrawText(new Vector2i(x1, position.Y), scores1Str, ColorScheme.GetColor("background"),
                 ColorScheme.GetColor("hit"));
 
-            Renderer.instance.DrawText(new Vector2(x1 + scores1Str.Length + 1, position.y), scores[2].ToString(), 
+            Core.renderer.DrawText(new Vector2i(x1 + scores1Str.Length + 1, position.Y), scores[2].ToString(), 
                 ColorScheme.GetColor("background"),
                 ColorScheme.GetColor("perfect_hit"));
         }
-        static void DrawScores(Vector2 position) {
-            int posXOffseted = position.x + 15;
-            Renderer.instance.DrawText(position, "MISSES:", ColorScheme.GetColor("miss"));
-            Renderer.instance.DrawText(new Vector2(posXOffseted, position.y), Game.scores[0].ToString(),
+        static void DrawScores(Vector2i position) {
+            int posXOffseted = position.X + 15;
+            Core.renderer.DrawText(position, "MISSES:", ColorScheme.GetColor("miss"));
+            Core.renderer.DrawText(new Vector2i(posXOffseted, position.Y), Game.scores[0].ToString(),
                 ColorScheme.GetColor("background"),
                 ColorScheme.GetColor("miss"));
 
-            int posYHits = position.y + 2;
-            Renderer.instance.DrawText(new Vector2(position.x, posYHits), "HITS:", ColorScheme.GetColor("hit"));
-            Renderer.instance.DrawText(new Vector2(posXOffseted, posYHits), Game.scores[1].ToString(),
+            int posYHits = position.Y + 2;
+            Core.renderer.DrawText(new Vector2i(position.X, posYHits), "HITS:", ColorScheme.GetColor("hit"));
+            Core.renderer.DrawText(new Vector2i(posXOffseted, posYHits), Game.scores[1].ToString(),
                 ColorScheme.GetColor("background"),
                 ColorScheme.GetColor("hit"));
 
-            int posYPerfectHits = position.y + 4;
-            Renderer.instance.DrawText(new Vector2(position.x, posYPerfectHits), "PERFECT HITS:", ColorScheme.GetColor("perfect_hit"));
-            Renderer.instance.DrawText(new Vector2(posXOffseted, posYPerfectHits), Game.scores[2].ToString(),
+            int posYPerfectHits = position.Y + 4;
+            Core.renderer.DrawText(new Vector2i(position.X, posYPerfectHits), "PERFECT HITS:", ColorScheme.GetColor("perfect_hit"));
+            Core.renderer.DrawText(new Vector2i(posXOffseted, posYPerfectHits), Game.scores[2].ToString(),
                 ColorScheme.GetColor("background"),
                 ColorScheme.GetColor("perfect_hit"));
         }
-        static void DrawLevelName(Vector2 position, Color color, bool invertOnDarkBG = true) {
-            Renderer.instance.DrawText(position,
+        static void DrawLevelName(Vector2i position, Color color, bool invertOnDarkBG = true) {
+            Core.renderer.DrawText(position,
                 $"{Map.currentLevel.metadata.name} : {Map.currentLevel.metadata.author}", color,
                 Renderer.Alignment.Left, false, invertOnDarkBG);
         }
-        static void DrawMusicTime(Vector2 position, Color color) {
+        static void DrawMusicTime(Vector2i position, Color color) {
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
             string at = $"{(timeSpan < TimeSpan.Zero ? "-" : "")}{timeSpan.ToString($"{(timeSpan.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
             Core.renderer.DrawText(position, $"{at}/{Map.currentLevel.metadata.length}", color,
                 Renderer.Alignment.Right, false, true);
         }
-        static void DrawEditorDifficulty(Vector2 position, Color color) {
+        static void DrawEditorDifficulty(Vector2i position, Color color) {
             Core.renderer.DrawText(position, $"DIFFICULTY: {Map.currentLevel.metadata.difficulty}", color,
                 Renderer.Alignment.Right, false, true);
         }
-        static readonly Vector2 passFailText = new Vector2(40, 5);
-        static readonly Vector2 lastLevelPos = new Vector2(2, 13);
-        static readonly Vector2 lastScorePos = new Vector2(2, 16);
-        static readonly Vector2 lastAccPos = new Vector2(2, 18);
-        static readonly Vector2 lastScoresPos = new Vector2(25, 16);
-        static readonly Vector2 lastMaxComboPos = new Vector2(2, 20);
+        static readonly Vector2i passFailText = new Vector2i(40, 5);
+        static readonly Vector2i lastLevelPos = new Vector2i(2, 13);
+        static readonly Vector2i lastScorePos = new Vector2i(2, 16);
+        static readonly Vector2i lastAccPos = new Vector2i(2, 18);
+        static readonly Vector2i lastScoresPos = new Vector2i(25, 16);
+        static readonly Vector2i lastMaxComboPos = new Vector2i(2, 20);
         static void DrawLastStats() {
             DrawMenusAnim();
-            Renderer.instance.DrawText(zero, lastStatsText);
+            Core.renderer.DrawText(zero, lastStatsText);
             string text = "PAUSE";
             Color color = ColorScheme.GetColor("pause");
             if(!Game.editing && Game.statsState != StatsState.Pause) {
@@ -511,7 +512,7 @@ namespace PPR.GUI {
                     color = ColorScheme.GetColor("fail");
                 }
             }
-            Renderer.instance.DrawText(passFailText, text, color, Renderer.Alignment.Center);
+            Core.renderer.DrawText(passFailText, text, color, Renderer.Alignment.Center);
             DrawLevelName(lastLevelPos, ColorScheme.GetColor("stats_level_name"), false);
             if(!Game.editing) {
                 DrawScore(lastScorePos, ColorScheme.GetColor("score"));
@@ -581,23 +582,23 @@ namespace PPR.GUI {
             Game.ClearAllCustomScriptEvents();
         }
 
-        static readonly Vector2 audioGroupTextPos = new Vector2(2, 13);
+        static readonly Vector2i audioGroupTextPos = new Vector2i(2, 13);
         public static Slider musicVolumeSlider;
         public static Slider soundsVolumeSlider;
-        static readonly Vector2 audioSwitchPos = new Vector2(4, 19);
+        static readonly Vector2i audioSwitchPos = new Vector2i(4, 19);
         static readonly List<Button> audioSwitchButtonsList = new List<Button>();
 
-        static readonly Vector2 graphicsGroupTextPos = new Vector2(2, 22);
+        static readonly Vector2i graphicsGroupTextPos = new Vector2i(2, 22);
         public static Button bloomSwitch;
         public static Button fullscreenSwitch;
         public static Slider fpsLimitSlider;
         public static Button uppercaseSwitch;
-        static readonly Vector2 fontSwitchPos = new Vector2(4, 32);
+        static readonly Vector2i fontSwitchPos = new Vector2i(4, 32);
         static readonly List<Button> fontSwitchButtonsList = new List<Button>();
-        static readonly Vector2 colorSchemeSwitchPos = new Vector2(4, 34);
+        static readonly Vector2i colorSchemeSwitchPos = new Vector2i(4, 34);
         static readonly List<Button> colorSchemeSwitchButtonsList = new List<Button>();
 
-        static readonly Vector2 advancedGroupTextPos = new Vector2(2, 37);
+        static readonly Vector2i advancedGroupTextPos = new Vector2i(2, 37);
         public static Button showFpsSwitch;
 
         static string IncreaseFolderSwitchDirectory(string currentPath, string basePath, int at) {
@@ -626,12 +627,12 @@ namespace PPR.GUI {
         }
 
         static void UpdateAllFolderSwitchButtons() {
-            UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.GetPath("audio"), audioSwitchPos.x,
-                audioSwitchPos.y, 7);
-            UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.GetPath("font"), fontSwitchPos.x,
-                fontSwitchPos.y, 5);
+            UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.GetPath("audio"), audioSwitchPos.X,
+                audioSwitchPos.Y, 7);
+            UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.GetPath("font"), fontSwitchPos.X,
+                fontSwitchPos.Y, 5);
             UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.GetPath("colorScheme"),
-                colorSchemeSwitchPos.x, colorSchemeSwitchPos.y, 13);
+                colorSchemeSwitchPos.X, colorSchemeSwitchPos.Y, 13);
         }
 
         static void UpdateFolderSwitchButtons(IList<Button> buttonsList, string path, int baseX, int baseY, int xOffset) {
@@ -645,7 +646,7 @@ namespace PPR.GUI {
                 string[] names = path.Split(Path.DirectorySeparatorChar);
 
                 string prevDir = Path.GetDirectoryName(path) ?? string.Empty;
-                Vector2 position = new Vector2(baseX + xOffset + (names.Length > 1 ? 1 : 0) + prevDir.Length, baseY);
+                Vector2i position = new Vector2i(baseX + xOffset + (names.Length > 1 ? 1 : 0) + prevDir.Length, baseY);
                 string text = names[^1];
                 buttonsList.Insert(0, new Button(position, text, "settings.folderButton", text.Length));
 
@@ -661,35 +662,35 @@ namespace PPR.GUI {
 
         static void DrawSettingsList(bool pauseMenu = false) {
             if(pauseMenu) {
-                musicVolumeSlider.position = new Vector2(78, 55);
+                musicVolumeSlider.position = new Vector2i(78, 55);
                 musicVolumeSlider.align = Renderer.Alignment.Right;
                 musicVolumeSlider.swapTexts = true;
 
-                soundsVolumeSlider.position = new Vector2(78, 57);
+                soundsVolumeSlider.position = new Vector2i(78, 57);
                 soundsVolumeSlider.align = Renderer.Alignment.Right;
                 soundsVolumeSlider.swapTexts = true;
             }
             else {
-                Renderer.instance.DrawText(audioGroupTextPos, "[ AUDIO ]", ColorScheme.GetColor("settings_header_audio"));
-                musicVolumeSlider.position = new Vector2(4, 15);
+                Core.renderer.DrawText(audioGroupTextPos, "[ AUDIO ]", ColorScheme.GetColor("settings_header_audio"));
+                musicVolumeSlider.position = new Vector2i(4, 15);
                 musicVolumeSlider.align = Renderer.Alignment.Left;
                 musicVolumeSlider.swapTexts = false;
 
-                soundsVolumeSlider.position = new Vector2(4, 17);
+                soundsVolumeSlider.position = new Vector2i(4, 17);
                 soundsVolumeSlider.align = Renderer.Alignment.Left;
                 soundsVolumeSlider.swapTexts = false;
 
-                Renderer.instance.DrawText(audioSwitchPos, "SOUNDS", ColorScheme.GetColor("settings"));
+                Core.renderer.DrawText(audioSwitchPos, "SOUNDS", ColorScheme.GetColor("settings"));
                 for(int i = audioSwitchButtonsList.Count - 1; i >= 0; i--)
                     if(audioSwitchButtonsList[i].Draw()) {
                         Settings.SetPath("audio",
                             IncreaseFolderSwitchDirectory(Settings.GetPath("audio"),
                                 Path.Join("resources", "audio"), i));
-                        UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.GetPath("audio"), audioSwitchPos.x,
-                            audioSwitchPos.y, 7);
+                        UpdateFolderSwitchButtons(audioSwitchButtonsList, Settings.GetPath("audio"), audioSwitchPos.X,
+                            audioSwitchPos.Y, 7);
                     }
 
-                Renderer.instance.DrawText(graphicsGroupTextPos, "[ GRAPHICS ]", ColorScheme.GetColor("settings_header_graphics"));
+                Core.renderer.DrawText(graphicsGroupTextPos, "[ GRAPHICS ]", ColorScheme.GetColor("settings_header_graphics"));
                 if(bloomSwitch.Draw()) Settings.SetBool("bloom", bloomSwitch.selected = !bloomSwitch.selected);
                 if(fullscreenSwitch.Draw())
                     Settings.SetBool("fullscreen", fullscreenSwitch.selected = !fullscreenSwitch.selected);
@@ -698,27 +699,27 @@ namespace PPR.GUI {
                 if(fpsLimitSlider.Draw()) Settings.SetInt("fpsLimit", fpsLimitSlider.value);
                 if(uppercaseSwitch.Draw())
                     Settings.SetBool("uppercaseNotes", uppercaseSwitch.selected = !uppercaseSwitch.selected);
-                Renderer.instance.DrawText(fontSwitchPos, "FONT", ColorScheme.GetColor("settings"));
+                Core.renderer.DrawText(fontSwitchPos, "FONT", ColorScheme.GetColor("settings"));
                 for(int i = fontSwitchButtonsList.Count - 1; i >= 0; i--)
                     if(fontSwitchButtonsList[i].Draw()) {
                         Settings.SetPath("font",
                             IncreaseFolderSwitchDirectory(Settings.GetPath("font"),
                                 Path.Join("resources", "fonts"), i));
-                        UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.GetPath("font"), fontSwitchPos.x,
-                            fontSwitchPos.y, 5);
+                        UpdateFolderSwitchButtons(fontSwitchButtonsList, Settings.GetPath("font"), fontSwitchPos.X,
+                            fontSwitchPos.Y, 5);
                     }
 
-                Renderer.instance.DrawText(colorSchemeSwitchPos, "COLOR SCHEME", ColorScheme.GetColor("settings"));
+                Core.renderer.DrawText(colorSchemeSwitchPos, "COLOR SCHEME", ColorScheme.GetColor("settings"));
                 for(int i = colorSchemeSwitchButtonsList.Count - 1; i >= 0; i--)
                     if(colorSchemeSwitchButtonsList[i].Draw()) {
                         Settings.SetPath("colorScheme",
                             IncreaseFolderSwitchDirectory(Settings.GetPath("colorScheme"),
                                 Path.Join("resources", "colors"), i));
                         UpdateFolderSwitchButtons(colorSchemeSwitchButtonsList, Settings.GetPath("colorScheme"),
-                            colorSchemeSwitchPos.x, colorSchemeSwitchPos.y, 13);
+                            colorSchemeSwitchPos.X, colorSchemeSwitchPos.Y, 13);
                     }
 
-                Renderer.instance.DrawText(advancedGroupTextPos, "[ ADVANCED ]", ColorScheme.GetColor("settings_header_advanced"));
+                Core.renderer.DrawText(advancedGroupTextPos, "[ ADVANCED ]", ColorScheme.GetColor("settings_header_advanced"));
                 if(showFpsSwitch.Draw()) Settings.SetBool("showFps", showFpsSwitch.selected = !showFpsSwitch.selected);
             }
 
@@ -728,13 +729,13 @@ namespace PPR.GUI {
         static Button _keybindsButton;
         static void DrawSettings() {
             DrawMenusAnim();
-            Renderer.instance.DrawText(zero, settingsText);
+            Core.renderer.DrawText(zero, settingsText);
             DrawSettingsList();
             if(_keybindsButton.Draw()) Game.currentMenu = Menu.KeybindsEditor;
         }
         static void DrawKeybindsEditor() {
             DrawMenusAnim();
-            Renderer.instance.DrawText(zero, keybindsEditorText);
+            Core.renderer.DrawText(zero, keybindsEditorText);
 
             Dictionary<string, InputKey>.Enumerator enumerator = Bindings.keys.GetEnumerator();
             for(int y = 17; enumerator.MoveNext(); y += 2) {
@@ -743,9 +744,9 @@ namespace PPR.GUI {
                 string[] primAndSec = key.asString.Split(',');
                 string primary = primAndSec[0];
                 string secondary = primAndSec.Length > 1 ? primAndSec[1] : "<NONE>";
-                Renderer.instance.DrawText(new Vector2(2, y), name, ColorScheme.GetColor("settings_keybind_name"));
-                Renderer.instance.DrawText(new Vector2(37, y), primary, ColorScheme.GetColor("settings_keybind_primary"));
-                Renderer.instance.DrawText(new Vector2(59, y), secondary, ColorScheme.GetColor("settings_keybind_secondary"));
+                Core.renderer.DrawText(new Vector2i(2, y), name, ColorScheme.GetColor("settings_keybind_name"));
+                Core.renderer.DrawText(new Vector2i(37, y), primary, ColorScheme.GetColor("settings_keybind_primary"));
+                Core.renderer.DrawText(new Vector2i(59, y), secondary, ColorScheme.GetColor("settings_keybind_secondary"));
             }
         }
         public static void Draw() {
@@ -771,10 +772,10 @@ namespace PPR.GUI {
             }
             onDraw?.Invoke(null, EventArgs.Empty);
             if(Settings.GetBool("showFps"))
-                Renderer.instance.DrawText(fpsPos, $"{fps.ToString()} FPS", fps >= 60 ?
+                Core.renderer.DrawText(fpsPos, $"{fps.ToString()} FPS", fps >= 60 ?
                     ColorScheme.GetColor("fps_good") : fps > 20 ? ColorScheme.GetColor("fps_ok") : 
                         ColorScheme.GetColor("fps_bad"), Renderer.Alignment.Right);
         }
-        static readonly Vector2 fpsPos = new Vector2(79, 59);
+        static readonly Vector2i fpsPos = new Vector2i(79, 59);
     }
 }

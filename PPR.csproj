@@ -33,6 +33,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="com.github.ppr-game.PRR" Version="0.1.1-beta" />
     <PackageReference Include="DiscordRichPresence" Version="1.0.150" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.7.0" />
     <PackageReference Include="NLog" Version="4.7.2" />

@@ -1,11 +1,15 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 
 using NLog;
 
 using PPR.GUI;
 using PPR.Main;
-using PPR.Rendering;
+using PPR.Main.Levels;
+using PPR.Properties;
+
+using PRR;
 
 using SFML.System;
 
@@ -19,11 +23,24 @@ namespace PPR {
 
         public static float deltaTime;
         public static readonly Game game = new Game();
-        public static readonly Renderer renderer = new Renderer(80, 60, 0);
+        public static readonly Renderer renderer = new Renderer("Press Press Revolution", 80, 60, 0,
+            Settings.GetBool("fullscreen"), Path.Join("resources", "fonts", Settings.GetPath("font")));
 
         // bruh Rider wth
         // ReSharper disable once UnusedMember.Local
         static void Main() {
+            renderer.UpdateFramerateSetting();
+            //renderer.onWindowRecreated += (_, __) => {
+                renderer.window.KeyPressed += Game.KeyPressed;
+                renderer.window.MouseWheelScrolled += Game.MouseWheelScrolled;
+                renderer.window.LostFocus += Game.LostFocus;
+                renderer.window.GainedFocus += Game.GainedFocus;
+                renderer.window.Closed += (___, ____) => Game.End();
+            //};
+            Bindings.Reload();
+            ColorScheme.Reload();
+            Game.ReloadSounds();
+            
             Game.Start(); // Start the game
 
             logger.Info("Loading finished");
@@ -34,8 +51,10 @@ namespace PPR {
 
                 game.Update();
 
-                renderer.Update();
-                renderer.Draw();
+                renderer.Clear();
+                Map.Draw();
+                UI.Draw();
+                renderer.Draw(ColorScheme.GetColor("background"), Settings.GetBool("bloom"));
 
                 renderer.window.Display();
 
