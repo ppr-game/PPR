@@ -6,11 +6,13 @@ Inspired by [osu!](https://osu.ppy.sh), [Beatmania](https://en.wikipedia.org/wik
 ## Screenshots
 <details>
  <summary>hinkik - Time Leaper</summary>
+ 
  ![hinkik - Time Leaper](screenshots/Screenshot-0.png)
 </details>
 
 <details>
  <summary>LeaF - Aleph-0</summary>
+ 
  ![LeaF - Aleph-0](screenshots/Screenshot-1.png)
 </details>
 
