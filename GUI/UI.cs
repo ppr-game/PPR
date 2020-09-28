@@ -194,7 +194,8 @@ namespace PPR.GUI {
         static void DrawMainMenu() {
             DrawMenusAnim();
             Core.renderer.DrawText(zero, mainMenuText);
-            Core.renderer.DrawText(new Vector2i(1, 3), $"PPR v{Core.version}");
+            Core.renderer.DrawText(new Vector2i(1, 2), $"PPR v{Core.version}");
+            Core.renderer.DrawText(new Vector2i(1, 3), $"PRR v{Core.prrVersion}");
             DrawNowPlaying(true);
             // ReSharper disable once HeapView.ObjectAllocation
             // ReSharper disable once HeapView.ObjectAllocation.Possible

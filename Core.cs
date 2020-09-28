@@ -20,6 +20,9 @@ namespace PPR {
         public static readonly string version = Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
             ?.InformationalVersion;
+        public static readonly string prrVersion = Assembly.GetAssembly(typeof(Renderer))?
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion;
 
         public static float deltaTime;
         public static readonly Game game = new Game();
