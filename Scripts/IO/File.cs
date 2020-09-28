@@ -2,7 +2,6 @@
 using System.IO;
 using System.Text;
 
-using PPR.GUI;
 using PPR.Main.Levels;
 
 namespace PPR.Scripts.IO {
