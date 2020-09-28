@@ -71,10 +71,9 @@ namespace PPR.Properties {
                 File.AppendAllText(PATH, "\n# Integers\n");
                 File.AppendAllLines(PATH, strInts);
             }
-            if(strStrings.Length > 0) {
-                File.AppendAllText(PATH, "\n# Strings\n");
-                File.AppendAllLines(PATH, strStrings);
-            }
+            if(strStrings.Length <= 0) return;
+            File.AppendAllText(PATH, "\n# Strings\n");
+            File.AppendAllLines(PATH, strStrings);
         }
 
         public static bool GetBool(string key) {

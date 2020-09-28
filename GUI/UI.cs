@@ -89,9 +89,9 @@ namespace PPR.GUI {
                 new Button(new Vector2i(40, 27), "EDIT", "mainMenu.edit", 4, new InputKey("LShift,RShift"), center),
                 new Button(new Vector2i(40, 29), "SETTINGS", "mainMenu.settings", 8, new InputKey("Tab"), center),
                 new Button(new Vector2i(40, 31), "EXIT", "mainMenu.exit", 4, new InputKey("Tilde"), center),
-                new Button(new Vector2i(1, 1), "SFML", "mainMenu.sfml", 4, null),
-                new Button(new Vector2i(6, 1), "GITHUB", "mainMenu.github", 6, null),
-                new Button(new Vector2i(13, 1), "DISCORD", "mainMenu.discord", 7, null)
+                new Button(new Vector2i(1, 1), "SFML", "mainMenu.sfml", 4),
+                new Button(new Vector2i(6, 1), "GITHUB", "mainMenu.github", 6),
+                new Button(new Vector2i(13, 1), "DISCORD", "mainMenu.discord", 7)
             };
             _pauseMusicButton = new Button(new Vector2i(1, 58), "►", "mainMenu.music.pause", 1,
                 new InputKey("Space"));

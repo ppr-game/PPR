@@ -166,7 +166,7 @@ namespace PPR.Main {
         public static bool editing = false;
         public static bool auto = false;
         static bool _usedAuto;
-        public static bool changed = false;
+        public static bool changed;
         float _accumulator;
         public event EventHandler onUpdate;
         public event EventHandler onTick;
@@ -859,7 +859,7 @@ namespace PPR.Main {
             return bpm;
         }
         public static IEnumerable<int> GetBPMsBetweenSteps(int start, int end, IEnumerable<LevelSpeed> sortedSpeeds) {
-            return (from speed in sortedSpeeds where speed.step > start && speed.step < end select speed.speed);
+            return from speed in sortedSpeeds where speed.step > start && speed.step < end select speed.speed;
         }
         public static List<LevelSpeed> GetSpeedsBetweenSteps(int start, int end, List<LevelSpeed> sortedSpeeds) {
             return sortedSpeeds.FindAll(speed => speed.step >= start && speed.step <= end);
