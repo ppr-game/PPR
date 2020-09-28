@@ -144,7 +144,7 @@ namespace PPR.GUI {
 
             showFpsSwitch = new Button(new Vector2i(4, 39), "SHOW FPS", "settings.showFPS", 8);
 
-            _keybindsButton = new Button(new Vector2i(2, 57), "KEYBINDS", "settings.keybinds", 8);
+            //_keybindsButton = new Button(new Vector2i(2, 57), "KEYBINDS", "settings.keybinds", 8);
 
             UpdateAllFolderSwitchButtons();
         }
@@ -727,27 +727,27 @@ namespace PPR.GUI {
             if(musicVolumeSlider.Draw()) Settings.SetInt("musicVolume", musicVolumeSlider.value);
             if(soundsVolumeSlider.Draw()) Settings.SetInt("soundsVolume", soundsVolumeSlider.value);
         }
-        static Button _keybindsButton;
+        //static Button _keybindsButton;
         static void DrawSettings() {
             DrawMenusAnim();
             Core.renderer.DrawText(zero, settingsText);
             DrawSettingsList();
-            if(_keybindsButton.Draw()) Game.currentMenu = Menu.KeybindsEditor;
+            //if(_keybindsButton.Draw()) Game.currentMenu = Menu.KeybindsEditor;
         }
         static void DrawKeybindsEditor() {
             DrawMenusAnim();
             Core.renderer.DrawText(zero, keybindsEditorText);
 
-            Dictionary<string, InputKey>.Enumerator enumerator = Bindings.keys.GetEnumerator();
-            for(int y = 17; enumerator.MoveNext(); y += 2) {
-                (string name, InputKey key) = enumerator.Current;
-                name = name.AddSpaces().ToUpper();
+            int y = 17;
+            foreach((string origName, InputKey key) in Bindings.keys) {
+                string name = origName.AddSpaces().ToUpper();
                 string[] primAndSec = key.asString.Split(',');
                 string primary = primAndSec[0];
                 string secondary = primAndSec.Length > 1 ? primAndSec[1] : "<NONE>";
                 Core.renderer.DrawText(new Vector2i(2, y), name, ColorScheme.GetColor("settings_keybind_name"));
                 Core.renderer.DrawText(new Vector2i(37, y), primary, ColorScheme.GetColor("settings_keybind_primary"));
                 Core.renderer.DrawText(new Vector2i(59, y), secondary, ColorScheme.GetColor("settings_keybind_secondary"));
+                y += 2;
             }
         }
         public static void Draw() {
