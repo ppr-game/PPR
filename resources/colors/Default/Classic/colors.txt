@@ -98,6 +98,10 @@ button_mainMenu.discord_idle=background
 button_mainMenu.discord_hover=114,137,218
 button_mainMenu.discord_click=35,39,42
 
+button_mainMenu.notifications_idle=background
+button_mainMenu.notifications_hover=foreground
+button_mainMenu.notifications_click=gray
+
 button_mainMenu.music.pause_idle=background
 button_mainMenu.music.pause_hover=green
 button_mainMenu.music.pause_click=dark_green
