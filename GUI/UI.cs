@@ -175,6 +175,23 @@ namespace PPR.GUI {
 
             if(_switchMusicButton.Draw()) Game.SwitchMusic();
         }
+
+        static float _fadeInTime = 1f;
+        static bool _fadeInFinished;
+        public static void FadeIn(float speed = 1f) {
+            int randomVal = random.Next(int.MinValue, int.MaxValue);
+            Core.renderer.charactersModifier = (position, character) => {
+                float posRandom = new Random(position.X * position.Y * randomVal).NextFloat(0.5f, 4f);
+                if(_fadeInTime * speed * posRandom < 1f) _fadeInFinished = false;
+                return (position, new RenderCharacter(Renderer.AnimateColor(_fadeInTime,
+                        ColorScheme.GetColor("background"), character.background, speed * posRandom),
+                    Renderer.AnimateColor(_fadeInTime,
+                        ColorScheme.GetColor("background"), character.foreground, speed * posRandom),
+                    character));
+            };
+            _fadeInTime = 0f;
+        }
+        
         static float _menusAnimTime;
         public static int menusAnimBPM = 120;
         static void DrawMenusAnim() {
@@ -800,6 +817,11 @@ namespace PPR.GUI {
                 Core.renderer.DrawText(fpsPos, $"{fps.ToString()} FPS", fps >= 60 ?
                     ColorScheme.GetColor("fps_good") : fps > 20 ? ColorScheme.GetColor("fps_ok") : 
                         ColorScheme.GetColor("fps_bad"), Renderer.Alignment.Right);
+            if(_fadeInFinished) Core.renderer.charactersModifier = null;
+            else {
+                _fadeInFinished = true;
+                _fadeInTime += Core.deltaTime;
+            }
         }
         static readonly Vector2i fpsPos = new Vector2i(79, 59);
     }

@@ -188,6 +188,8 @@ namespace PPR.Main {
 
             music.Volume = Settings.GetInt("musicVolume");
             music.Play();
+
+            UI.FadeIn(0.5f);
         }
         public static void UpdateSettings() {
             UI.RecreateButtons();
