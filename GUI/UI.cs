@@ -184,16 +184,27 @@ namespace PPR.GUI {
                     float noiseX = (float)perlin.Get(x / 10f, y / 10f, _menusAnimTime / 2f) - 0.5f;
                     float noiseY = (float)perlin.Get(x / 10f, y / 10f, _menusAnimTime / 2f + 100f) - 0.5f;
                     float noise = MathF.Abs(noiseX * noiseY);
-                    int xOffset = (int)((Core.renderer.mousePositionF.X / Core.renderer.width - 0.5f) * noise * -100f);
-                    int yOffset = (int)((Core.renderer.mousePositionF.Y / Core.renderer.width - 0.5f) * noise * -100f);
+                    float xOffset = (Core.renderer.mousePositionF.X / Core.renderer.width - 0.5f) * noise * -100f;
+                    float yOffset = (Core.renderer.mousePositionF.Y / Core.renderer.width - 0.5f) * noise * -100f;
                     Color useColor = Renderer.AnimateColor(noise, ColorScheme.GetColor("background"),
                         ColorScheme.GetColor("menus_anim_max"), 30f);
-                    Core.renderer.SetCellColor(
-                        new Vector2i(x + (int)(noiseX * 10f) + xOffset, y + (int)(noiseY * 10f) + yOffset),
-                        ColorScheme.GetColor("foreground"), useColor);
+                    float xPos = x + noiseX * 10f + xOffset;
+                    float yPos = y + noiseY * 10f + yOffset;
+                    int flooredX = (int)xPos;
+                    int flooredY = (int)yPos;
+                    for(int useX = flooredX; useX <= flooredX + 1; useX++) {
+                        for(int useY = flooredY; useY <= flooredY + 1; useY++) {
+                            float percentX = 1f - MathF.Abs(xPos - useX);
+                            float percentY = 1f - MathF.Abs(yPos - useY);
+                            float percent = percentX * percentY;
+                            Color posColor = Renderer.LerpColors(ColorScheme.GetColor("background"), useColor, percent);
+                            Core.renderer.SetCellColor(new Vector2i(useX, useY),
+                                ColorScheme.GetColor("transparent"), posColor);
+                        }
+                    }
                 }
             }
-            _menusAnimTime += Core.deltaTime * menusAnimBPM / 60f;
+            _menusAnimTime += Core.deltaTime * menusAnimBPM / 120f;
         }
         static Button _notificationsMenuButton;
         static void DrawMainMenu() {

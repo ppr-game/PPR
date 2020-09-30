@@ -67,7 +67,7 @@ dark_settings=dark_blue
 health=red
 dark_health=dark_red
 
-menus_anim_max=7,7,7
+menus_anim_max=15,15,15
 
 # Main menu buttons
 button_mainMenu.play_idle=background
