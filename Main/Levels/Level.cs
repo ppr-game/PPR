@@ -113,10 +113,12 @@ namespace PPR.Main.Levels {
             return combinedSpeeds;
         }
         public static float GetDifficulty(List<LevelObject> objects, List<LevelSpeed> sortedSpeeds, int lengthMins) {
-            return GetDifficulty(objects.Select(obj => new LightLevelObject(obj.character, obj.step)), sortedSpeeds,
+            return GetDifficulty(objects.Select(obj => new LightLevelObject(obj.character, obj.step)).ToList(), sortedSpeeds,
                 lengthMins);
         }
-        static float GetDifficulty(IEnumerable<LightLevelObject> lightObjects, List<LevelSpeed> sortedSpeeds, int lengthMins) {
+        static float GetDifficulty(List<LightLevelObject> lightObjects, List<LevelSpeed> sortedSpeeds, int lengthMins) {
+            if (lightObjects.Count == 0 || sortedSpeeds.Count == 0) return 0f;
+
             List<LightLevelObject> sortedObjects = new List<LightLevelObject>(lightObjects);
             sortedObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
             for(int i = 1; i < sortedObjects.Count; i++) if(sortedObjects[i].character == LevelObject.HOLD_CHAR) sortedObjects.RemoveAt(i - 1);
