@@ -98,7 +98,7 @@ Note: These are just guidelines and you don't _have_ to follow them but it's rec
 For example, if the *perfect* BPM at the current place is 120, then make it 240, 360, 480 etc.
 to make this place fit the speed of the song and (sometimes) make it easier to read
 
-#### Use the keyboard "lines" for (at least obviously) different parts and keys/"positions" for the current note
+#### Use the keyboard "lines" for (at least obviously) different parts and keys/"positions" for the current note (or just draw pars that seem to fit to the current place)
 ##### Lines
 
 For example, if the current part of the song/level is going on the ASDF line and then the instrument changes, 
