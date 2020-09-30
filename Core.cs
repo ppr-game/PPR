@@ -33,13 +33,15 @@ namespace PPR {
         // ReSharper disable once UnusedMember.Local
         static void Main() {
             renderer.UpdateFramerateSetting();
-            //renderer.onWindowRecreated += (_, __) => {
+            static void SubscribeEvents() {
                 renderer.window.KeyPressed += Game.KeyPressed;
                 renderer.window.MouseWheelScrolled += Game.MouseWheelScrolled;
                 renderer.window.LostFocus += Game.LostFocus;
                 renderer.window.GainedFocus += Game.GainedFocus;
                 renderer.window.Closed += (___, ____) => Game.End();
-            //};
+            }
+            SubscribeEvents();
+            renderer.onWindowRecreated += (_, __) => SubscribeEvents();
             Bindings.Reload();
             ColorScheme.Reload();
             Game.ReloadSounds();
