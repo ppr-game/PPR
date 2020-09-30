@@ -1,13 +1,11 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Configuration;
 using System.Globalization;
 
 using SFML.Window;
 
 namespace PPR.Properties {
     [TypeConverter(typeof(InputKeyConverter))]
-    [SettingsSerializeAs(SettingsSerializeAs.String)]
     public class InputKey {
         public string asString {
             get {
@@ -85,7 +83,8 @@ namespace PPR.Properties {
             return value is string @string ? new InputKey(@string) : base.ConvertFrom(context, culture, value);
         }
         public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) {
-            return destinationType == typeof(string) ? (value as InputKey).asString : base.ConvertTo(context, culture, value, destinationType);
+            return destinationType == typeof(string) ? (value as InputKey)?.asString :
+                base.ConvertTo(context, culture, value, destinationType);
         }
     }
 }
