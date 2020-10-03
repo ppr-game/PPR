@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using MoonSharp.Interpreter;
+
+using NLog;
+
 using PPR.GUI.Elements;
 using PPR.Main;
 using PPR.Main.Levels;
@@ -16,9 +20,9 @@ using SFML.System;
 
 namespace PPR.GUI {
     public static class UI {
+        static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        
         public static int fps = 0;
-
-        public static EventHandler onDraw;
         
         static readonly Random random = new Random();
         static readonly Perlin perlin = new Perlin();
@@ -258,9 +262,7 @@ namespace PPR.GUI {
             _notificationsMenuButton.selected = _showNotificationsMenu;
             DrawNotificationsMenu();
         }
-        static void DrawNotificationsMenu() {
-            Core.renderer.DrawText(new Vector2i(79, 0), notificationsText, Renderer.Alignment.Right, true);
-        }
+        static void DrawNotificationsMenu() => Core.renderer.DrawText(new Vector2i(79, 0), notificationsText, Renderer.Alignment.Right, true);
         public static readonly Vector2i scoresPos = new Vector2i(1, 12);
         static void DrawLevelSelect() {
             DrawMenusAnim();
@@ -271,8 +273,7 @@ namespace PPR.GUI {
                 if(button.Draw()) {
                     _lastLevel = button.text;
                     string path = Path.Join("levels", _lastLevel);
-                    Map.LoadLevelFromLines(File.ReadAllLines(Path.Join(path, "level.txt")), _lastLevel,
-                        Game.GetSoundFilePath(Path.Join(path, "music")), Path.Join(path, "Script.csx"));
+                    Map.LoadLevelFromPath(path, _lastLevel);
                     Game.currentMenu = Menu.Game;
                     Game.RecalculatePosition();
                 }
@@ -297,8 +298,7 @@ namespace PPR.GUI {
                 switch(button.text) {
                     case "NEW" when Game.editing && button.Draw():
                         _lastLevel = "unnamed";
-                        Map.LoadLevelFromLines(File.ReadAllLines(Path.Join("levels", "_template", "level.txt")),
-                            _lastLevel, "", Path.Join("levels", "_template", "Script.csx"));
+                        Map.LoadLevelFromPath(Path.Join("levels", "_template"), _lastLevel, false);
                         Game.currentMenu = Menu.Game;
                         Game.RecalculatePosition();
                         break;
@@ -475,10 +475,8 @@ namespace PPR.GUI {
 
             prevScore = Game.score;
         }
-        static void DrawAccuracy(Vector2i position) {
-            Core.renderer.DrawText(position, $"ACCURACY: {Game.accuracy.ToString()}%",
-                Game.GetAccuracyColor(Game.accuracy));
-        }
+        static void DrawAccuracy(Vector2i position) => Core.renderer.DrawText(position, $"ACCURACY: {Game.accuracy.ToString()}%",
+            Game.GetAccuracyColor(Game.accuracy));
         static void DrawCombo(Vector2i position, bool maxCombo = false) {
             string prefix = Game.accuracy >= 100 ? "PERFECT " : Game.scores[0] <= 0 ? "FULL " : maxCombo ? "MAX " : "";
             Color color = Game.GetComboColor(Game.accuracy, Game.scores[0]);
@@ -518,21 +516,17 @@ namespace PPR.GUI {
                 ColorScheme.GetColor("background"),
                 ColorScheme.GetColor("perfect_hit"));
         }
-        static void DrawLevelName(Vector2i position, Color color, bool invertOnDarkBG = true) {
-            Core.renderer.DrawText(position,
-                $"{Map.currentLevel.metadata.name} : {Map.currentLevel.metadata.author}", color,
-                Renderer.Alignment.Left, false, invertOnDarkBG);
-        }
+        static void DrawLevelName(Vector2i position, Color color, bool invertOnDarkBG = true) => Core.renderer.DrawText(position,
+            $"{Map.currentLevel.metadata.name} : {Map.currentLevel.metadata.author}", color,
+            Renderer.Alignment.Left, false, invertOnDarkBG);
         static void DrawMusicTime(Vector2i position, Color color) {
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
             string at = $"{(timeSpan < TimeSpan.Zero ? "-" : "")}{timeSpan.ToString($"{(timeSpan.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
             Core.renderer.DrawText(position, $"{at}/{Map.currentLevel.metadata.length}", color,
                 Renderer.Alignment.Right, false, true);
         }
-        static void DrawEditorDifficulty(Vector2i position, Color color) {
-            Core.renderer.DrawText(position, $"DIFFICULTY: {Map.currentLevel.metadata.difficulty}", color,
-                Renderer.Alignment.Right, false, true);
-        }
+        static void DrawEditorDifficulty(Vector2i position, Color color) => Core.renderer.DrawText(position, $"DIFFICULTY: {Map.currentLevel.metadata.difficulty}", color,
+            Renderer.Alignment.Right, false, true);
         static readonly Vector2i passFailText = new Vector2i(40, 5);
         static readonly Vector2i lastLevelPos = new Vector2i(2, 13);
         static readonly Vector2i lastScorePos = new Vector2i(2, 16);
@@ -602,8 +596,7 @@ namespace PPR.GUI {
                             if(!Game.editing && button.Draw()) {
                                 Game.currentMenu = Menu.Game;
                                 string path = Path.Join("levels", _lastLevel);
-                                Map.LoadLevelFromLines(File.ReadAllLines(Path.Join(path, "level.txt")), _lastLevel,
-                                    Game.GetSoundFilePath(Path.Join(path, "music")), Path.Join(path, "Script.csx"));
+                                Map.LoadLevelFromPath(path, _lastLevel);
                             }
                             break;
                         case "lastStats.auto":
@@ -621,7 +614,7 @@ namespace PPR.GUI {
             Game.currentMenu = Menu.LevelSelect;
             Game.music.Pitch = 1f;
             _musicSpeedSlider.value = 100;
-            Game.ClearAllCustomScriptEvents();
+            Game.ClearScript();
         }
 
         static readonly Vector2i audioGroupTextPos = new Vector2i(2, 13);
@@ -812,7 +805,14 @@ namespace PPR.GUI {
                     DrawLastStats();
                     break;
             }
-            onDraw?.Invoke(null, EventArgs.Empty);
+
+            try {
+                Game.drawUI?.Call();
+            }
+            catch(InterpreterException ex) {
+                logger.Error(ex.DecoratedMessage);
+            }
+            
             if(Settings.GetBool("showFps"))
                 Core.renderer.DrawText(fpsPos, $"{fps.ToString()} FPS", fps >= 60 ?
                     ColorScheme.GetColor("fps_good") : fps > 20 ? ColorScheme.GetColor("fps_ok") : 

@@ -45,15 +45,9 @@ namespace PPR.Properties {
         public Keyboard.Key? mainKey { get; private set; }
         public Keyboard.Key? secondaryModifier { get; private set; }
         public Keyboard.Key? secondaryKey { get; private set; }
-        public InputKey(string fromString) {
-            asString = fromString;
-        }
-        public bool IsPressed(Keyboard.Key key) {
-            return mainKey == key || secondaryKey == key;
-        }
-        public bool IsPressed(Keyboard.Key modifier, Keyboard.Key key) {
-            return (mainModifier == modifier && mainKey == key) || (secondaryModifier == modifier && secondaryKey == key);
-        }
+        public InputKey(string fromString) => asString = fromString;
+        public bool IsPressed(Keyboard.Key key) => mainKey == key || secondaryKey == key;
+        public bool IsPressed(Keyboard.Key modifier, Keyboard.Key key) => (mainModifier == modifier && mainKey == key) || (secondaryModifier == modifier && secondaryKey == key);
         public bool IsPressed(KeyEventArgs key) {
             if(mainKey == key.Code) {
                 bool modifierIsAlt = mainModifier == Keyboard.Key.LAlt || mainModifier == Keyboard.Key.RAlt;
@@ -76,15 +70,9 @@ namespace PPR.Properties {
         }
     }
     public class InputKeyConverter : TypeConverter {
-        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) {
-            return sourceType == typeof(string);
-        }
-        public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value) {
-            return value is string @string ? new InputKey(@string) : base.ConvertFrom(context, culture, value);
-        }
-        public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) {
-            return destinationType == typeof(string) ? (value as InputKey)?.asString :
-                base.ConvertTo(context, culture, value, destinationType);
-        }
+        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) => sourceType == typeof(string);
+        public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value) => value is string @string ? new InputKey(@string) : base.ConvertFrom(context, culture, value);
+        public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) => destinationType == typeof(string) ? (value as InputKey)?.asString :
+            base.ConvertTo(context, culture, value, destinationType);
     }
 }

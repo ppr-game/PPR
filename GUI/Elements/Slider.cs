@@ -28,10 +28,10 @@ namespace PPR.GUI.Elements {
         public bool swapTexts;
         Color _currentColor;
         Color _prevColor;
-        public State currentState = State.Clicked;
+        public State currentState { get; private set; } = State.Clicked;
         State _prevState = State.Hovered;
         // ReSharper disable once NotAccessedField.Global
-        public State prevFrameState = State.Hovered;
+        public State prevFrameState { get; private set; } = State.Hovered;
         readonly float[] _animTimes;
         readonly float[] _animRateOffsets;
         int _posX;

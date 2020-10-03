@@ -32,40 +32,47 @@ namespace PPR {
         // bruh Rider wth
         // ReSharper disable once UnusedMember.Local
         static void Main() {
-            renderer.UpdateFramerateSetting();
-            static void SubscribeEvents() {
-                renderer.window.KeyPressed += Game.KeyPressed;
-                renderer.window.MouseWheelScrolled += Game.MouseWheelScrolled;
-                renderer.window.LostFocus += Game.LostFocus;
-                renderer.window.GainedFocus += Game.GainedFocus;
-                renderer.window.Closed += (___, ____) => Game.End();
+            try {
+                renderer.UpdateFramerateSetting();
+
+                static void SubscribeEvents() {
+                    renderer.window.KeyPressed += Game.KeyPressed;
+                    renderer.window.MouseWheelScrolled += Game.MouseWheelScrolled;
+                    renderer.window.LostFocus += Game.LostFocus;
+                    renderer.window.GainedFocus += Game.GainedFocus;
+                    renderer.window.Closed += (___, ____) => Game.End();
+                }
+
+                SubscribeEvents();
+                renderer.onWindowRecreated += (_, __) => SubscribeEvents();
+                Bindings.Reload();
+                ColorScheme.Reload();
+                Game.ReloadSounds();
+
+                Game.Start(); // Start the game
+
+                logger.Info("Loading finished");
+
+                Clock fpsClock = new Clock();
+                while(renderer.window.IsOpen) { // Executes every frame
+                    renderer.window.DispatchEvents();
+
+                    game.Update();
+
+                    renderer.Clear();
+                    Map.Draw();
+                    UI.Draw();
+                    renderer.Draw(ColorScheme.GetColor("background"), Settings.GetBool("bloom"));
+
+                    renderer.window.Display();
+
+                    deltaTime = fpsClock.Restart().AsSeconds();
+                    UI.fps = (int)MathF.Round(1f / deltaTime);
+                    //if(UI.fps < 30 && renderer.window.HasFocus()) logger.Warn("Lag detected: too low fps ({0})", UI.fps);
+                }
             }
-            SubscribeEvents();
-            renderer.onWindowRecreated += (_, __) => SubscribeEvents();
-            Bindings.Reload();
-            ColorScheme.Reload();
-            Game.ReloadSounds();
-            
-            Game.Start(); // Start the game
-
-            logger.Info("Loading finished");
-
-            Clock fpsClock = new Clock();
-            while(renderer.window.IsOpen) { // Executes every frame
-                renderer.window.DispatchEvents();
-
-                game.Update();
-
-                renderer.Clear();
-                Map.Draw();
-                UI.Draw();
-                renderer.Draw(ColorScheme.GetColor("background"), Settings.GetBool("bloom"));
-
-                renderer.window.Display();
-
-                deltaTime = fpsClock.Restart().AsSeconds();
-                UI.fps = (int)MathF.Round(1f / deltaTime);
-                //if(UI.fps < 30 && renderer.window.HasFocus()) logger.Warn("Lag detected: too low fps ({0})", UI.fps);
+            catch(Exception ex) {
+                logger.Fatal(ex);
             }
         }
     }

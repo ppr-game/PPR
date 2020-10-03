@@ -12,14 +12,10 @@ using SFML.System;
 
 namespace PPR.Main {
     public static class Random_Extensions {
-        public static float NextFloat(this Random rng, float min, float max) {
-            return (float)rng.NextDouble() * (max - min) + min;
-        }
+        public static float NextFloat(this Random rng, float min, float max) => (float)rng.NextDouble() * (max - min) + min;
     }
     public static class IEnumerable_Extensions {
-        public static T ElementAtOrDefault<T>(this IList<T> list, int index, Func<T> @default) {
-            return index >= 0 && index < list.Count ? list[index] : @default();
-        }
+        public static T ElementAtOrDefault<T>(this IList<T> list, int index, Func<T> @default) => index >= 0 && index < list.Count ? list[index] : @default();
     }
     public static class String_Extensions {
         public static string AddSpaces(this string text) {
@@ -36,82 +32,54 @@ namespace PPR.Main {
         }
     }
     public static class Vector2i_Extensions {
-        public static bool InBounds(this Vector2i vector, int minX, int minY, int maxX, int maxY) {
-            return vector.X >= minX && vector.X <= maxX && vector.Y >= minY && vector.Y <= maxY;
-        }
+        public static bool InBounds(this Vector2i vector, int minX, int minY, int maxX, int maxY) => vector.X >= minX && vector.X <= maxX && vector.Y >= minY && vector.Y <= maxY;
     }
     public static class Renderer_Extensions {
-        public static void UpdateFramerateSetting(this Renderer renderer) {
-            renderer.SetFramerateSetting(Settings.GetInt("fpsLimit"));
-        }
-        public static void UpdateWindow(this Renderer renderer) {
-            renderer.UpdateWindow(Settings.GetBool("fullscreen"), Settings.GetInt("fpsLimit"));
-        }
+        public static void UpdateFramerateSetting(this Renderer renderer) => renderer.SetFramerateSetting(Settings.GetInt("fpsLimit"));
+        public static void UpdateWindow(this Renderer renderer) => renderer.UpdateWindow(Settings.GetBool("fullscreen"), Settings.GetInt("fpsLimit"));
         public static void DrawText(this Renderer renderer, Vector2i position, string text,
             Renderer.Alignment align = Renderer.Alignment.Left, bool replacingSpaces = false,
             bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) {
-            renderer.DrawText(position, text, ColorScheme.GetColor("foreground"), align,
-                replacingSpaces, invertOnDarkBG, charactersModifier);
-        }
+            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawText(position, text, ColorScheme.GetColor("foreground"), align,
+            replacingSpaces, invertOnDarkBG, charactersModifier);
         public static void DrawText(this Renderer renderer, Vector2i position, string text, Color color,
             Renderer.Alignment align = Renderer.Alignment.Left, bool replacingSpaces = false,
             bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) {
-            renderer.DrawText(position, text, color, ColorScheme.GetColor("transparent"), align, replacingSpaces,
-                invertOnDarkBG, charactersModifier);
-        }
+            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawText(position, text, color, ColorScheme.GetColor("transparent"), align, replacingSpaces,
+            invertOnDarkBG, charactersModifier);
         public static void DrawText(this Renderer renderer, Vector2i position, string text, Color foregroundColor, Color backgroundColor,
             Renderer.Alignment align = Renderer.Alignment.Left, bool replacingSpaces = false,
             bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) {
-            renderer.DrawText(position, text, foregroundColor, backgroundColor,
-                ColorScheme.GetColor("background"), align, replacingSpaces, invertOnDarkBG, charactersModifier);
-        }
+            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawText(position, text, foregroundColor, backgroundColor,
+            ColorScheme.GetColor("background"), align, replacingSpaces, invertOnDarkBG, charactersModifier);
         public static void DrawText(this Renderer renderer, Vector2i position, string[] lines, Renderer.Alignment align = Renderer.Alignment.Left,
             bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) {
-            renderer.DrawLines(position, lines, align, replacingSpaces, invertOnDarkBG, charactersModifier);
-        }
-        
+            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawLines(position, lines, align, replacingSpaces, invertOnDarkBG, charactersModifier);
+
         public static void DrawText(this Renderer renderer, Vector2i position, string[] lines, Color color, Renderer.Alignment align = Renderer.Alignment.Left,
             bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) {
-            renderer.DrawLines(position, lines, color, align, replacingSpaces, invertOnDarkBG, charactersModifier);
-        }
+            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawLines(position, lines, color, align, replacingSpaces, invertOnDarkBG, charactersModifier);
         public static void DrawText(this Renderer renderer, Vector2i position, string[] lines, Color foregroundColor, Color backgroundColor,
             Renderer.Alignment align = Renderer.Alignment.Left,
             bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) {
-            renderer.DrawLines(position, lines, foregroundColor, backgroundColor, align, replacingSpaces,
-                invertOnDarkBG, charactersModifier);
-        }
+            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawLines(position, lines, foregroundColor, backgroundColor, align, replacingSpaces,
+            invertOnDarkBG, charactersModifier);
         public static void DrawLines(this Renderer renderer, Vector2i position, string[] lines, Renderer.Alignment align = Renderer.Alignment.Left,
             bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) {
-            renderer.DrawLines(position, lines, ColorScheme.GetColor("foreground"), align, replacingSpaces,
-                invertOnDarkBG, charactersModifier);
-        }
+            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawLines(position, lines, ColorScheme.GetColor("foreground"), align, replacingSpaces,
+            invertOnDarkBG, charactersModifier);
         public static void DrawLines(this Renderer renderer, Vector2i position, string[] lines, Color color, Renderer.Alignment align = Renderer.Alignment.Left,
             bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) {
-            renderer.DrawLines(position, lines, color, ColorScheme.GetColor("transparent"), align, replacingSpaces,
-                invertOnDarkBG, charactersModifier);
-        }
+            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawLines(position, lines, color, ColorScheme.GetColor("transparent"), align, replacingSpaces,
+            invertOnDarkBG, charactersModifier);
         public static void DrawLines(this Renderer renderer, Vector2i position, string[] lines, Color foregroundColor,
             Color backgroundColor, Renderer.Alignment align = Renderer.Alignment.Left, bool replacingSpaces = false,
             bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) {
-            renderer.DrawLines(position, lines, foregroundColor, backgroundColor,
-                ColorScheme.GetColor("background"), align, replacingSpaces,
-                invertOnDarkBG, charactersModifier);
-        }
-        public static void SetCharacter(this Renderer renderer, Vector2i position, RenderCharacter character) {
-            renderer.SetCharacter(position, character, ColorScheme.GetColor("background"));
-        }
+            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawLines(position, lines, foregroundColor, backgroundColor,
+            ColorScheme.GetColor("background"), align, replacingSpaces,
+            invertOnDarkBG, charactersModifier);
+        public static void SetCharacter(this Renderer renderer, Vector2i position, RenderCharacter character) => renderer.SetCharacter(position, character, ColorScheme.GetColor("background"));
         public static void SetCellColor(this Renderer renderer, Vector2i position, Color foregroundColor,
-            Color backgroundColor) {
-            renderer.SetCellColor(position, foregroundColor, backgroundColor, ColorScheme.GetColor("background"));
-        }
+            Color backgroundColor) => renderer.SetCellColor(position, foregroundColor, backgroundColor, ColorScheme.GetColor("background"));
     }
 }

@@ -2,7 +2,7 @@ namespace PPR.Main {
     public class Perlin {
         readonly int _repeat;
 
-        public Perlin(int repeat = -1) { _repeat = repeat; }
+        public Perlin(int repeat = -1) => _repeat = repeat;
 
         static readonly int[] permutation = {
             151, 160, 137, 91, 90, 15, // Hash lookup table as defined by Ken Perlin.  This is a randomly
@@ -99,13 +99,12 @@ namespace PPR.Main {
                     -v); // Use the last 2 bits to decide if u and v are positive or negative.  Then return their addition.
         }
 
-        static double fade(double t) {
+        static double fade(double t) =>
             // Fade function as defined by Ken Perlin.  This eases coordinate values
             // so that they will "ease" towards integral values.  This ends up smoothing
             // the final output.
-            return t * t * t * (t * (t * 6 - 15) + 10); // 6t^5 - 15t^4 + 10t^3
-        }
+            t * t * t * (t * (t * 6 - 15) + 10); // 6t^5 - 15t^4 + 10t^3
 
-        static double lerp(double a, double b, double x) { return a + x * (b - a); }
+        static double lerp(double a, double b, double x) => a + x * (b - a);
     }
 }

@@ -9,9 +9,7 @@ using NLog;
 namespace PPR.Properties {
     public sealed class SettingChangedEventArgs : EventArgs {
         public string settingName { get; }
-        public SettingChangedEventArgs(string settingName) {
-            this.settingName = settingName;
-        }
+        public SettingChangedEventArgs(string settingName) => this.settingName = settingName;
     }
     public static class Settings {
         static readonly Logger logger = LogManager.GetCurrentClassLogger();
@@ -76,22 +74,12 @@ namespace PPR.Properties {
             File.AppendAllLines(PATH, strStrings);
         }
 
-        public static bool GetBool(string key) {
-            return _booleans.TryGetValue(key, out bool value) && value;
-        }
-        public static int GetInt(string key) {
-            return _integers.TryGetValue(key, out int value) ? value : 0;
-        }
-        public static string GetString(string key) {
-            return _strings.TryGetValue(key, out string value) ? value : "";
-        }
-        public static string[] GetPathArray(string key) {
-            return GetString(key).Split(Path.AltDirectorySeparatorChar);
-        }
-        public static string GetPath(string key) {
-            return string.Join(Path.DirectorySeparatorChar, GetPathArray(key));
-        }
-        
+        public static bool GetBool(string key) => _booleans.TryGetValue(key, out bool value) && value;
+        public static int GetInt(string key) => _integers.TryGetValue(key, out int value) ? value : 0;
+        public static string GetString(string key) => _strings.TryGetValue(key, out string value) ? value : "";
+        public static string[] GetPathArray(string key) => GetString(key).Split(Path.AltDirectorySeparatorChar);
+        public static string GetPath(string key) => string.Join(Path.DirectorySeparatorChar, GetPathArray(key));
+
         public static void SetBool(string key, bool value) {
             _booleans[key] = value;
             settingChanged?.Invoke(null, new SettingChangedEventArgs(key));
@@ -104,8 +92,6 @@ namespace PPR.Properties {
             _strings[key] = value;
             settingChanged?.Invoke(null, new SettingChangedEventArgs(key));
         }
-        public static void SetPath(string key, string value) {
-            SetString(key, value.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-        }
+        public static void SetPath(string key, string value) => SetString(key, value.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
     }
 }

@@ -112,11 +112,10 @@ namespace PPR.Main.Levels {
             combinedSpeeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
             return combinedSpeeds;
         }
-        public static float GetDifficulty(List<LevelObject> objects, List<LevelSpeed> sortedSpeeds, int lengthMins) {
-            return GetDifficulty(objects.Select(obj => new LightLevelObject(obj.character, obj.step)).ToList(), sortedSpeeds,
-                lengthMins);
-        }
-        static float GetDifficulty(List<LightLevelObject> lightObjects, List<LevelSpeed> sortedSpeeds, int lengthMins) {
+        public static float GetDifficulty(List<LevelObject> objects, List<LevelSpeed> sortedSpeeds, int lengthMins) => GetDifficulty(objects.Select(obj => new LightLevelObject(obj.character, obj.step)).ToList(), sortedSpeeds,
+            lengthMins);
+        static float GetDifficulty(IReadOnlyCollection<LightLevelObject> lightObjects, List<LevelSpeed> sortedSpeeds,
+            int lengthMins) {
             if (lightObjects.Count == 0 || sortedSpeeds.Count == 0) return 0f;
 
             List<LightLevelObject> sortedObjects = new List<LightLevelObject>(lightObjects);
@@ -255,7 +254,7 @@ namespace PPR.Main.Levels {
         float _removeAnimationTime;
         public bool toDestroy;
 
-        public bool ignore;
+        public bool ignore { get; private set; }
 
         public static int GetXPosForCharacter(char character) {
             character = char.ToLower(character);
@@ -367,9 +366,7 @@ namespace PPR.Main.Levels {
             _nextDirLayerColor = linesDarkColors[_line];
         }
 
-        Color NormalColor() {
-            return NormalColor(_directionLayer, Game.currentDirectionLayer, _color, _nextDirLayerColor);
-        }
+        Color NormalColor() => NormalColor(_directionLayer, Game.currentDirectionLayer, _color, _nextDirLayerColor);
         static Color NormalColor(int noteDirLayer, int curDirLayer, Color color, Color nextDirLayerColor) {
             int difference = Math.Abs(noteDirLayer - curDirLayer);
             return difference switch {
@@ -450,21 +447,14 @@ namespace PPR.Main.Levels {
         }
 
 
-        public override bool Equals(object obj) {
-            return obj is LevelObject @object &&
-                   EqualityComparer<Vector2i>.Default.Equals(_position, @object._position) &&
-                   character == @object.character &&
-                   step == @object.step;
-        }
-        public override int GetHashCode() {
+        public override bool Equals(object obj) => obj is LevelObject @object &&
+                                                   EqualityComparer<Vector2i>.Default.Equals(_position, @object._position) &&
+                                                   character == @object.character &&
+                                                   step == @object.step;
+        public override int GetHashCode() =>
             // ReSharper disable NonReadonlyMemberInGetHashCode
-            return HashCode.Combine(_position, character, step);
-        }
-        public static bool operator ==(LevelObject left, LevelObject right) {
-            return left?.Equals(right) ?? right is null;
-        }
-        public static bool operator !=(LevelObject left, LevelObject right) {
-            return !(left == right);
-        }
+            HashCode.Combine(_position, character, step);
+        public static bool operator ==(LevelObject left, LevelObject right) => left?.Equals(right) ?? right is null;
+        public static bool operator !=(LevelObject left, LevelObject right) => !(left == right);
     }
 }

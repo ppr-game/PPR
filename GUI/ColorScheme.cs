@@ -108,8 +108,6 @@ namespace PPR.GUI {
                 values.Length == 4 ? values[3] : byte.MaxValue) : (Color?)null;
         }
 
-        public static Color GetColor(string key) {
-            return colors.ContainsKey(key) ? colors[key] : Color.Transparent;
-        }
+        public static Color GetColor(string key) => colors.ContainsKey(key) ? colors[key] : Color.Transparent;
     }
 }

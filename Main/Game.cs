@@ -3,11 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.Scripting;
+using MoonSharp.Interpreter;
 
 using NLog;
 
@@ -159,17 +156,20 @@ namespace PPR.Main {
                 UI.health = value;
             }
         }
-        public static int accuracy = 100;
+        public static int accuracy { get; private set; } = 100;
         public static int[] scores = new int[3]; // score / 5 = index
         public static int combo;
         public static int maxCombo;
-        public static bool editing = false;
-        public static bool auto = false;
+        public static bool editing;
+        public static bool auto;
         static bool _usedAuto;
         public static bool changed;
         float _accumulator;
-        public event EventHandler onUpdate;
-        public event EventHandler onTick;
+        public static Script script;
+        public static Closure update;
+        public static Closure tick;
+        public static Closure drawMap;
+        public static Closure drawUI;
         public Game() {
             Settings.settingChanged += SettingChanged;
             Settings.Reload();
@@ -366,25 +366,73 @@ namespace PPR.Main {
 
             if(Map.currentLevel.script != null)
                 try {
-                    string testScript = Map.currentLevel.script.ToLowerInvariant()
-                        .Replace(" ", "")
-                        .Replace("\n", "")
-                        .Replace("\r", "");
-                    if(testScript.Contains("system.io")) logger.Error("System.IO is not allowed");
-                    else CSharpScript.EvaluateAsync(Map.currentLevel.script, ScriptOptions.Default
-                        .WithOptimizationLevel(OptimizationLevel.Release)
-                        .WithReferences(Assembly.GetExecutingAssembly()));
+                    Script.WarmUp();
+                    
+                    UserData.RegisterType<Scripts.Core>();
+                    UserData.RegisterType<Scripts.Main.Game>();
+                    UserData.RegisterType<Scripts.Main.Levels.Level>();
+                    UserData.RegisterType<Scripts.Main.Levels.Map>();
+                    UserData.RegisterType<Scripts.Rendering.Renderer>();
+                    UserData.RegisterType<Scripts.IO.File>();
+
+                    UserData.RegisterType<Renderer.Alignment>();
+                    UserData.RegisterType<Vector2i>();
+                    UserData.RegisterType<Vector2f>();
+                    UserData.RegisterType<Color>();
+                    UserData.RegisterType<RenderCharacter>();
+                    
+                    script = new Script(CoreModules.Preset_SoftSandbox);
+
+                    DynValue core = UserData.Create(new Scripts.Core());
+                    DynValue game = UserData.Create(new Scripts.Main.Game());
+                    DynValue level = UserData.Create(new Scripts.Main.Levels.Level());
+                    DynValue map = UserData.Create(new Scripts.Main.Levels.Map());
+                    DynValue renderer = UserData.Create(new Scripts.Rendering.Renderer());
+                    DynValue file = UserData.Create(new Scripts.IO.File());
+                    
+                    script.Globals["core"] = core;
+                    script.Globals["game"] = game;
+                    script.Globals["level"] = level;
+                    script.Globals["map"] = map;
+                    script.Globals["renderer"] = renderer;
+                    script.Globals["file"] = file;
+
+                    script.Globals["alignment"] = UserData.CreateStatic<Renderer.Alignment>();
+                    
+                    script.Globals["vector2i"] = (Func<int, int, Vector2i>)((x, y) => new Vector2i(x, y));
+                    script.Globals["vector2f"] = (Func<float, float, Vector2f>)((x, y) => new Vector2f(x, y));
+                    
+                    script.Globals["rgb"] = (Func<byte, byte, byte, Color>)((r, g, b) => new Color(r, g, b));
+                    script.Globals["rgba"] =
+                        (Func<byte, byte, byte, byte, Color>)((r, g, b, a) => new Color(r, g, b, a));
+                    script.Globals["black"] = Color.Black;
+                    script.Globals["white"] = Color.White;
+                    script.Globals["red"] = Color.Red;
+                    script.Globals["green"] = Color.Green;
+                    script.Globals["blue"] = Color.Blue;
+                    script.Globals["yellow"] = Color.Yellow;
+                    script.Globals["magenta"] = Color.Magenta;
+                    script.Globals["cyan"] = Color.Cyan;
+                    script.Globals["transparent"] = Color.Transparent;
+                    
+                    script.Globals["renderCharacter"] =
+                        (Func<char, Color, Color, RenderCharacter>)((character, background, foreground) =>
+                            new RenderCharacter(character, background, foreground));
+
+                    script.Options.DebugPrint = message => {
+                        Console.WriteLine(message);
+                        logger.Debug(message);
+                    };
+                    
+                    script.DoFile(Map.currentLevel.script);
+
+                    update = DynValue.FromObject(script, script.Globals["update"]).Function;
+                    tick = DynValue.FromObject(script, script.Globals["tick"]).Function;
+                    drawMap = DynValue.FromObject(script, script.Globals["drawMap"]).Function;
+                    drawUI = DynValue.FromObject(script, script.Globals["drawUI"]).Function;
                 }
-                catch(CompilationErrorException ex) {
-                    foreach(Diagnostic diagnostic in ex.Diagnostics)
-                        switch(diagnostic.Severity) {
-                            case DiagnosticSeverity.Error: logger.Error(diagnostic);
-                                break;
-                            case DiagnosticSeverity.Warning: logger.Warn(diagnostic);
-                                break;
-                            case DiagnosticSeverity.Info: logger.Info(diagnostic);
-                                break;
-                        }
+                catch(InterpreterException ex) {
+                    logger.Error(ex.DecoratedMessage);
                 }
 
             if(File.Exists(musicPath)) {
@@ -398,13 +446,12 @@ namespace PPR.Main {
 
             logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
         }
-        public static void ClearAllCustomScriptEvents() {
-            Core.game.ClearCustomScriptEvents();
-            Map.ClearCustomScriptEvents();
-        }
-        void ClearCustomScriptEvents() {
-            onTick = null;
-            onUpdate = null;
+        public static void ClearScript() {
+            script = null;
+            update = null;
+            tick = null;
+            drawMap = null;
+            drawUI = null;
         }
         public static void SwitchMusic() {
             string newPath = currentMusicPath;
@@ -472,10 +519,17 @@ namespace PPR.Main {
                     _accumulator -= fixedDeltaTime;
                 }
             }
-            onUpdate?.Invoke(this, EventArgs.Empty);
+
+            try {
+                update?.Call();
+            }
+            catch(InterpreterException ex) {
+                logger.Error(ex.DecoratedMessage);
+            }
+            
             _prevFramePlayingOffset = music.PlayingOffset;
         }
-        void FixedUpdate() {
+        static void FixedUpdate() {
             if(_interpolatedPlayingOffset != _prevPlayingOffset) {
                 timeFromStart = _interpolatedPlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMs);
                 steps = MillisecondsToSteps(timeFromStart.AsMicroseconds() / 1000f);
@@ -511,7 +565,12 @@ namespace PPR.Main {
 
             Map.SimulateAll();
 
-            onTick?.Invoke(this, EventArgs.Empty);
+            try {
+                tick?.Call();
+            }
+            catch(InterpreterException ex) {
+                logger.Error(ex.DecoratedMessage);
+            }
 
             if(statsState != StatsState.Pause) currentMenu = Menu.LastStats;
         }
@@ -541,57 +600,55 @@ namespace PPR.Main {
             //logger.Debug(previousSpeedMS + " , " + currentSpeedMS);
         }
 
-        public static char GetNoteBinding(Keyboard.Key key) {
-            return key switch
-            {
-                Keyboard.Key.Num1 => '1',
-                Keyboard.Key.Num2 => '2',
-                Keyboard.Key.Num3 => '3',
-                Keyboard.Key.Num4 => '4',
-                Keyboard.Key.Num5 => '5',
-                Keyboard.Key.Num6 => '6',
-                Keyboard.Key.Num7 => '7',
-                Keyboard.Key.Num8 => '8',
-                Keyboard.Key.Num9 => '9',
-                Keyboard.Key.Num0 => '0',
-                Keyboard.Key.Hyphen => '-',
-                Keyboard.Key.Equal => '=',
-                Keyboard.Key.Q => 'q',
-                Keyboard.Key.W => 'w',
-                Keyboard.Key.E => 'e',
-                Keyboard.Key.R => 'r',
-                Keyboard.Key.T => 't',
-                Keyboard.Key.Y => 'y',
-                Keyboard.Key.U => 'u',
-                Keyboard.Key.I => 'i',
-                Keyboard.Key.O => 'o',
-                Keyboard.Key.P => 'p',
-                Keyboard.Key.LBracket => '[',
-                Keyboard.Key.RBracket => ']',
-                Keyboard.Key.A => 'a',
-                Keyboard.Key.S => 's',
-                Keyboard.Key.D => 'd',
-                Keyboard.Key.F => 'f',
-                Keyboard.Key.G => 'g',
-                Keyboard.Key.H => 'h',
-                Keyboard.Key.J => 'j',
-                Keyboard.Key.K => 'k',
-                Keyboard.Key.L => 'l',
-                Keyboard.Key.Semicolon => ';',
-                Keyboard.Key.Quote => '\'',
-                Keyboard.Key.Z => 'z',
-                Keyboard.Key.X => 'x',
-                Keyboard.Key.C => 'c',
-                Keyboard.Key.V => 'v',
-                Keyboard.Key.B => 'b',
-                Keyboard.Key.N => 'n',
-                Keyboard.Key.M => 'm',
-                Keyboard.Key.Comma => ',',
-                Keyboard.Key.Period => '.',
-                Keyboard.Key.Slash => '/',
-                _ => '\0'
-            };
-        }
+        public static char GetNoteBinding(Keyboard.Key key) => key switch
+        {
+            Keyboard.Key.Num1 => '1',
+            Keyboard.Key.Num2 => '2',
+            Keyboard.Key.Num3 => '3',
+            Keyboard.Key.Num4 => '4',
+            Keyboard.Key.Num5 => '5',
+            Keyboard.Key.Num6 => '6',
+            Keyboard.Key.Num7 => '7',
+            Keyboard.Key.Num8 => '8',
+            Keyboard.Key.Num9 => '9',
+            Keyboard.Key.Num0 => '0',
+            Keyboard.Key.Hyphen => '-',
+            Keyboard.Key.Equal => '=',
+            Keyboard.Key.Q => 'q',
+            Keyboard.Key.W => 'w',
+            Keyboard.Key.E => 'e',
+            Keyboard.Key.R => 'r',
+            Keyboard.Key.T => 't',
+            Keyboard.Key.Y => 'y',
+            Keyboard.Key.U => 'u',
+            Keyboard.Key.I => 'i',
+            Keyboard.Key.O => 'o',
+            Keyboard.Key.P => 'p',
+            Keyboard.Key.LBracket => '[',
+            Keyboard.Key.RBracket => ']',
+            Keyboard.Key.A => 'a',
+            Keyboard.Key.S => 's',
+            Keyboard.Key.D => 'd',
+            Keyboard.Key.F => 'f',
+            Keyboard.Key.G => 'g',
+            Keyboard.Key.H => 'h',
+            Keyboard.Key.J => 'j',
+            Keyboard.Key.K => 'k',
+            Keyboard.Key.L => 'l',
+            Keyboard.Key.Semicolon => ';',
+            Keyboard.Key.Quote => '\'',
+            Keyboard.Key.Z => 'z',
+            Keyboard.Key.X => 'x',
+            Keyboard.Key.C => 'c',
+            Keyboard.Key.V => 'v',
+            Keyboard.Key.B => 'b',
+            Keyboard.Key.N => 'n',
+            Keyboard.Key.M => 'm',
+            Keyboard.Key.Comma => ',',
+            Keyboard.Key.Period => '.',
+            Keyboard.Key.Slash => '/',
+            _ => '\0'
+        };
 
         static void ChangeSpeed(int delta) {
             // Create a new speed if we don't have a speed at the current position
@@ -775,9 +832,7 @@ namespace PPR.Main {
             UpdateTime();
         }
         // ReSharper disable once MemberCanBePrivate.Global
-        public static float StepsToMilliseconds(float steps) {
-            return StepsToMilliseconds(steps, Map.currentLevel.speeds);
-        }
+        public static float StepsToMilliseconds(float steps) => StepsToMilliseconds(steps, Map.currentLevel.speeds);
         public static float StepsToMilliseconds(float steps, List<LevelSpeed> sortedSpeeds) {
             float useSteps = steps;
 
@@ -791,9 +846,7 @@ namespace PPR.Main {
             return time;
         }
         // ReSharper disable once MemberCanBePrivate.Global
-        public static float MillisecondsToSteps(float time) {
-            return MillisecondsToSteps(time, Map.currentLevel.speeds);
-        }
+        public static float MillisecondsToSteps(float time) => MillisecondsToSteps(time, Map.currentLevel.speeds);
         // ReSharper disable once MemberCanBePrivate.Global
         public static float MillisecondsToSteps(float time, List<LevelSpeed> sortedSpeeds) {
             float useTime = time;
@@ -814,9 +867,7 @@ namespace PPR.Main {
             return steps;
         }
         // ReSharper disable once MemberCanBePrivate.Global
-        public static float StepsToOffset(float steps) {
-            return StepsToOffset(steps, Map.currentLevel.speeds);
-        }
+        public static float StepsToOffset(float steps) => StepsToOffset(steps, Map.currentLevel.speeds);
         public static float StepsToOffset(float steps, List<LevelSpeed> sortedSpeeds) {
             float useSteps = steps;
 
@@ -836,9 +887,7 @@ namespace PPR.Main {
             return offset;
         }
         // ReSharper disable once MemberCanBePrivate.Global
-        public static int StepsToDirectionLayer(float steps) {
-            return StepsToDirectionLayer(steps, Map.currentLevel.speeds);
-        }
+        public static int StepsToDirectionLayer(float steps) => StepsToDirectionLayer(steps, Map.currentLevel.speeds);
         public static int StepsToDirectionLayer(float steps, List<LevelSpeed> sortedSpeeds) {
             int speedIndex = 0;
             for(int i = 0; i < sortedSpeeds.Count; i++)
@@ -849,9 +898,7 @@ namespace PPR.Main {
                 if(MathF.Sign(sortedSpeeds[i].speed) != MathF.Sign(sortedSpeeds[i - 1].speed)) directionLayer++;
             return directionLayer;
         }
-        public static bool StepPassedLine(int step, int lineOffset = 0) {
-            return roundedSteps >= step + lineOffset;
-        }
+        public static bool StepPassedLine(int step, int lineOffset = 0) => roundedSteps >= step + lineOffset;
 
         public static int GetBPMAtStep(int step, IEnumerable<LevelSpeed> sortedSpeeds) {
             int bpm = 0;
@@ -860,12 +907,10 @@ namespace PPR.Main {
                 else break;
             return bpm;
         }
-        public static IEnumerable<int> GetBPMsBetweenSteps(int start, int end, IEnumerable<LevelSpeed> sortedSpeeds) {
-            return from speed in sortedSpeeds where speed.step > start && speed.step < end select speed.speed;
-        }
-        public static List<LevelSpeed> GetSpeedsBetweenSteps(int start, int end, List<LevelSpeed> sortedSpeeds) {
-            return sortedSpeeds.FindAll(speed => speed.step >= start && speed.step <= end);
-        }
+        public static IEnumerable<int> GetBPMsBetweenSteps(int start, int end, IEnumerable<LevelSpeed> sortedSpeeds) =>
+            from speed in sortedSpeeds where speed.step > start && speed.step < end select speed.speed;
+        public static List<LevelSpeed> GetSpeedsBetweenSteps(int start, int end, List<LevelSpeed> sortedSpeeds) =>
+            sortedSpeeds.FindAll(speed => speed.step >= start && speed.step <= end);
 
         static int GetInitialOffset(IReadOnlyList<string> lines) {
             string[] meta = lines[4].Split(':');
@@ -880,12 +925,12 @@ namespace PPR.Main {
         }
 
         static void GenerateLevelList() {
-            string[] directories = Directory.GetDirectories("levels");
+            string[] directories = Directory.GetDirectories("levels")
+                .Where(path => Path.GetFileName(path) != "_template").ToArray();
             List<Button> buttons = new List<Button>();
             List<LevelMetadata?> metadatas = new List<LevelMetadata?>();
             for(int i = 0; i < directories.Length; i++) {
                 string name = Path.GetFileName(directories[i]);
-                if(name == "_template") continue;
                 buttons.Add(new Button(new Vector2i(25, 12 + i), name, "levelSelect.level", 30));
                 metadatas.Add(new LevelMetadata(File.ReadAllLines(Path.Join(directories[i], "level.txt")), name));
                 logger.Info("Loaded metadata for level {0}", name);
@@ -893,13 +938,10 @@ namespace PPR.Main {
             UI.levelSelectLevels = buttons;
             UI.levelSelectMetadatas = metadatas;
 
-            List<List<LevelScore>> scores = new List<List<LevelScore>> {
-                Capacity = buttons.Count
-            };
+            List<List<LevelScore>> scores = new List<List<LevelScore>> { Capacity = buttons.Count };
             if(Directory.Exists("scores"))
                 for(int i = 0; i < directories.Length; i++) {
                     string name = Path.GetFileName(directories[i]);
-                    if(name == "_template") continue;
                     string scoresPath = Path.Join("scores", $"{name}.txt");
                     if(File.Exists(scoresPath)) {
                         scores.Add(Map.ScoresFromLines(File.ReadAllLines(scoresPath), UI.scoresPos));
@@ -917,13 +959,9 @@ namespace PPR.Main {
             float mulSum = scores[1] * 0.5f + scores[2];
             accuracy = (int)MathF.Floor(mulSum / sum * 100f);
         }
-        public static Color GetAccuracyColor(int accuracy) {
-            return accuracy >= 100 ? ColorScheme.GetColor("accuracy_good") :
-                accuracy >= 70 ? ColorScheme.GetColor("accuracy_ok") : ColorScheme.GetColor("accuracy_bad");
-        }
-        public static Color GetComboColor(int accuracy, int misses) {
-            return accuracy >= 100 ? ColorScheme.GetColor("perfect_combo") :
-                misses <= 0 ? ColorScheme.GetColor("full_combo") : ColorScheme.GetColor("combo");
-        }
+        public static Color GetAccuracyColor(int accuracy) => accuracy >= 100 ? ColorScheme.GetColor("accuracy_good") :
+            accuracy >= 70 ? ColorScheme.GetColor("accuracy_ok") : ColorScheme.GetColor("accuracy_bad");
+        public static Color GetComboColor(int accuracy, int misses) => accuracy >= 100 ? ColorScheme.GetColor("perfect_combo") :
+            misses <= 0 ? ColorScheme.GetColor("full_combo") : ColorScheme.GetColor("combo");
     }
 }

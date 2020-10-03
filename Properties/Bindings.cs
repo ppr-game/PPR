@@ -58,12 +58,8 @@ namespace PPR.Properties {
                 keys[key] = new InputKey(value);
             }
         }
-        public static void SaveBindings() {
-            File.WriteAllLines(PATH, keys.Select(value => $"{value.Key}={value.Value.asString}").ToArray());
-        }
-        
-        public static InputKey GetBinding(string name) {
-            return keys.TryGetValue(name, out InputKey key) ? key : null;
-        }
+        public static void SaveBindings() => File.WriteAllLines(PATH, keys.Select(value => $"{value.Key}={value.Value.asString}").ToArray());
+
+        public static InputKey GetBinding(string name) => keys.TryGetValue(name, out InputKey key) ? key : null;
     }
 }

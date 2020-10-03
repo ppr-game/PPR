@@ -33,9 +33,9 @@ namespace PPR.GUI.Elements {
         bool _prevFrameHotkeyPressed;
         Color _currentColor;
         Color _prevColor;
-        public State currentState = State.Hovered;
+        public State currentState { get; private set; } = State.Hovered;
         State _prevState = State.Hovered;
-        public State prevFrameState = State.Hovered;
+        public State prevFrameState { get; private set; } = State.Hovered;
         float[] _animTimes;
         float[] _animRateOffsets;
         public bool selected = false;

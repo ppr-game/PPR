@@ -1,7 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
+using MoonSharp.Interpreter;
+
+using NLog;
 
 using PPR.GUI;
 
@@ -11,15 +14,16 @@ using SFML.System;
 
 namespace PPR.Main.Levels {
     public static class Map {
+        static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        
         public static Level currentLevel;
         public static readonly Vector2i gameLinePos = new Vector2i(0, 54);
         public static readonly Vector2i editorLinePos = new Vector2i(0, 44);
-        public static Vector2i linePos;
+        public static Vector2i linePos { get; private set; }
         static readonly float[] lineFlashTimes = new float[Core.renderer.width];
         public static int flashLine {
             set => lineFlashTimes[value] = 1f;
         }
-        public static event EventHandler onDraw;
         public static void Draw() {
             if(Game.currentMenu != Menu.Game) return;
 
@@ -59,11 +63,13 @@ namespace PPR.Main.Levels {
 
             DestroyToDestroy();
             foreach(LevelObject obj in currentLevel.objects) obj.Draw();
-            
-            onDraw?.Invoke(null, EventArgs.Empty);
-        }
-        public static void ClearCustomScriptEvents() {
-            onDraw = null;
+
+            try {
+                Game.drawMap?.Call();
+            }
+            catch(InterpreterException ex) {
+                logger.Error(ex.DecoratedMessage);
+            }
         }
 
         static void DestroyToDestroy() {
@@ -85,9 +91,12 @@ namespace PPR.Main.Levels {
             foreach(LevelObject obj in currentLevel.objects) obj.Simulate();
             DestroyToDestroy();
         }
+        public static void LoadLevelFromPath(string path, string name, bool loadMusic = true) => LoadLevelFromLines(File.ReadAllLines(Path.Join(path, "level.txt")), name,
+            loadMusic ? Game.GetSoundFilePath(Path.Join(path, "music")) : "",
+            Path.Join(path, "script.lua"));
         public static void LoadLevelFromLines(string[] lines, string name, string musicPath, string scriptPath) {
             linePos = Game.editing ? editorLinePos : gameLinePos;
-            currentLevel = new Level(lines, name, File.Exists(scriptPath) ? File.ReadAllText(scriptPath) : null);
+            currentLevel = new Level(lines, name, File.Exists(scriptPath) ? scriptPath : null);
             Game.GameStart(musicPath);
         }
         public static string TextFromLevel(Level level) {
@@ -107,16 +116,19 @@ namespace PPR.Main.Levels {
             return string.Join('\n', lines);
         }
         public static List<LevelScore> ScoresFromLines(string[] lines, Vector2i position) {
-            return lines.Select(t => t.Split(':')).Select((data, i) =>
-                    new LevelScore(new Vector2i(position.X, position.Y + i * 4), int.Parse(data[0]), int.Parse(data[1]),
-                        int.Parse(data[2]), new int[] { int.Parse(data[3]), int.Parse(data[4]), int.Parse(data[5]) }))
-                .ToList();
+            List<LevelScore> list = new List<LevelScore>();
+            for(int i = 0; i < lines.Length; i++) {
+                string[] data = lines[i].Split(':');
+                list.Add(new LevelScore(new Vector2i(position.X, position.Y + i * 4), int.Parse(data[0]),
+                    int.Parse(data[1]), int.Parse(data[2]),
+                    new int[] { int.Parse(data[3]), int.Parse(data[4]), int.Parse(data[5]) }));
+            }
+
+            return list;
         }
-        public static string TextFromScore(LevelScore score) {
-            return string.Join(':',
-                new int[] {
-                    score.score, score.accuracy, score.maxCombo, score.scores[0], score.scores[1], score.scores[2]
-                });
-        }
+        public static string TextFromScore(LevelScore score) => string.Join(':',
+            new int[] {
+                score.score, score.accuracy, score.maxCombo, score.scores[0], score.scores[1], score.scores[2]
+            });
     }
 }
