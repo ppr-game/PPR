@@ -185,7 +185,8 @@ namespace PPR.GUI {
         public static void FadeIn(float speed = 1f) {
             int randomVal = random.Next(int.MinValue, int.MaxValue);
             Core.renderer.charactersModifier = (position, character) => {
-                float posRandom = new Random(position.X * position.Y * randomVal).NextFloat(0.5f, 4f);
+                float posRandom =
+                    new Random(position.X + position.Y * Core.renderer.width * randomVal).NextFloat(0.5f, 4f);
                 if(_fadeInTime * speed * posRandom < 1f) _fadeInFinished = false;
                 return (position, new RenderCharacter(Renderer.AnimateColor(_fadeInTime,
                         ColorScheme.GetColor("background"), character.background, speed * posRandom),
