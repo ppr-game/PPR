@@ -165,6 +165,7 @@ namespace PPR.Main {
         static bool _usedAuto;
         public static bool changed;
         float _accumulator;
+        public static bool exiting;
         public static Script script;
         public static Closure update;
         public static Closure tick;
@@ -188,6 +189,8 @@ namespace PPR.Main {
 
             music.Volume = Settings.GetInt("musicVolume");
             music.Play();
+            
+            UI.RegenPositionRandoms();
 
             UI.FadeIn(0.5f);
         }
@@ -272,6 +275,9 @@ namespace PPR.Main {
         public static void End() {
             logger.Info("Exiting");
             
+            UI.FadeOut(0.5f);
+            logger.Info("Started shutdown animation");
+            
             music.Stop();
             logger.Info("Stopped music");
 
@@ -285,7 +291,7 @@ namespace PPR.Main {
             logger.Info("F to the logger");
             LogManager.Shutdown();
 
-            Core.renderer.window.Close();
+            exiting = true;
         }
 
         public static void SettingChanged(object caller, SettingChangedEventArgs e) {
@@ -454,6 +460,8 @@ namespace PPR.Main {
             drawUI = null;
         }
         public static void SwitchMusic() {
+            if(exiting) return;
+            
             string newPath = currentMusicPath;
             string[] paths = Directory.GetDirectories("levels")
                 .Where(path => Path.GetFileName(Path.GetDirectoryName(path)) != "_template")

@@ -180,14 +180,23 @@ namespace PPR.GUI {
             if(_switchMusicButton.Draw()) Game.SwitchMusic();
         }
 
+        public static Dictionary<Vector2i, float> positionRandoms;
+        public static void RegenPositionRandoms() {
+            positionRandoms = new Dictionary<Vector2i, float>(Core.renderer.width * Core.renderer.height);
+            for(int x = 0; x < Core.renderer.width; x++)
+                for(int y = 0; y < Core.renderer.height; y++)
+                    positionRandoms[new Vector2i(x, y)] = random.NextFloat(0f, 1f);
+        }
+        
         static float _fadeInTime = 1f;
-        static bool _fadeInFinished;
+        public static bool fadeInFinished { get; private set; }
         public static void FadeIn(float speed = 1f) {
-            int randomVal = random.Next(int.MinValue, int.MaxValue);
+            fadeInFinished = false;
+            const float min = 0.5f;
+            const float max = 4f;
             Core.renderer.charactersModifier = (position, character) => {
-                float posRandom =
-                    new Random(position.X + position.Y * Core.renderer.width * randomVal).NextFloat(0.5f, 4f);
-                if(_fadeInTime * speed * posRandom < 1f) _fadeInFinished = false;
+                float posRandom = positionRandoms[position] * (max - min) + min;
+                if(_fadeInTime * speed * posRandom < 1f) fadeInFinished = false;
                 return (position, new RenderCharacter(Renderer.AnimateColor(_fadeInTime,
                         ColorScheme.GetColor("background"), character.background, speed * posRandom),
                     Renderer.AnimateColor(_fadeInTime,
@@ -195,6 +204,23 @@ namespace PPR.GUI {
                     character));
             };
             _fadeInTime = 0f;
+        }
+        static float _fadeOutTime = 1f;
+        public static bool fadeOutFinished { get; private set; }
+        public static void FadeOut(float speed = 1f) {
+            fadeOutFinished = false;
+            const float min = 0.5f;
+            const float max = 4f;
+            Core.renderer.charactersModifier = (position, character) => {
+                float posRandom = positionRandoms[position] * (max - min) + min;
+                if(_fadeOutTime * speed * posRandom < 1f) fadeOutFinished = false;
+                return (position, new RenderCharacter(Renderer.AnimateColor(_fadeOutTime,
+                        character.background, ColorScheme.GetColor("background"), speed * posRandom),
+                    Renderer.AnimateColor(_fadeOutTime,
+                        character.foreground, ColorScheme.GetColor("background"), speed * posRandom),
+                    character));
+            };
+            _fadeOutTime = 0f;
         }
         
         static float _menusAnimTime;
@@ -818,10 +844,15 @@ namespace PPR.GUI {
                 Core.renderer.DrawText(fpsPos, $"{fps.ToString()} FPS", fps >= 60 ?
                     ColorScheme.GetColor("fps_good") : fps > 20 ? ColorScheme.GetColor("fps_ok") : 
                         ColorScheme.GetColor("fps_bad"), Renderer.Alignment.Right);
-            if(_fadeInFinished) Core.renderer.charactersModifier = null;
+            if(fadeInFinished && fadeOutFinished) Core.renderer.charactersModifier = null;
             else {
-                _fadeInFinished = true;
-                _fadeInTime += Core.deltaTime;
+                if(!fadeInFinished) {
+                    fadeInFinished = true;
+                    _fadeInTime += Core.deltaTime;
+                }
+                if(fadeOutFinished) return;
+                fadeOutFinished = true;
+                _fadeOutTime += Core.deltaTime;
             }
         }
         static readonly Vector2i fpsPos = new Vector2i(79, 59);
