@@ -13,7 +13,7 @@ namespace PPR.Scripts.Rendering {
         public static int height => PPR.Core.renderer.height;
         public static Vector2i mousePosition => PPR.Core.renderer.mousePosition;
         public static Vector2f mousePositionF => PPR.Core.renderer.mousePositionF;
-        public static Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)>
+        public static Func<Vector2i, RenderCharacter, (Vector2f position, RenderCharacter character)>
             charactersModifier {
             get => PPR.Core.renderer.charactersModifier;
             set => PPR.Core.renderer.charactersModifier = value;

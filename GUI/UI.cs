@@ -197,7 +197,7 @@ namespace PPR.GUI {
             Core.renderer.charactersModifier = (position, character) => {
                 float posRandom = positionRandoms[position] * (max - min) + min;
                 if(_fadeInTime * speed * posRandom < 1f) fadeInFinished = false;
-                return (position, new RenderCharacter(Renderer.AnimateColor(_fadeInTime,
+                return ((Vector2f)position, new RenderCharacter(Renderer.AnimateColor(_fadeInTime,
                         ColorScheme.GetColor("background"), character.background, speed * posRandom),
                     Renderer.AnimateColor(_fadeInTime,
                         ColorScheme.GetColor("background"), character.foreground, speed * posRandom),
@@ -214,7 +214,7 @@ namespace PPR.GUI {
             Core.renderer.charactersModifier = (position, character) => {
                 float posRandom = positionRandoms[position] * (max - min) + min;
                 if(_fadeOutTime * speed * posRandom < 1f) fadeOutFinished = false;
-                return (position, new RenderCharacter(Renderer.AnimateColor(_fadeOutTime,
+                return ((Vector2f)position, new RenderCharacter(Renderer.AnimateColor(_fadeOutTime,
                         character.background, ColorScheme.GetColor("background"), speed * posRandom),
                     Renderer.AnimateColor(_fadeOutTime,
                         character.foreground, ColorScheme.GetColor("background"), speed * posRandom),
