@@ -126,7 +126,7 @@ namespace PPR.GUI {
                 new Button(new Vector2i(2, 57), "EXIT", "lastStats.exit", 4, new InputKey("Tilde"))
             };
             _levelEditorButtons = new List<Button> {
-                new Button(new Vector2i(78, 58), "►", "editor.playPause", 1, new InputKey("Enter")),
+                new Button(new Vector2i(78, 58), "►", "editor.playPause", 1, new InputKey("Space")),
                 new Button(hpDrainPos, "<", "editor.hp.drain.down", 1),
                 new Button(hpDrainPos + new Vector2i(2, 0), ">", "editor.hp.drain.up", 1),
                 new Button(hpRestoragePos, "<", "editor.hp.restorage.down", 1),
