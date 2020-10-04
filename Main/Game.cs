@@ -96,6 +96,9 @@ namespace PPR.Main {
                                 Map.currentLevel.metadata.name);
                         break;
                 }
+
+                Core.pauseDrawing = true;
+                UI.FadeOut(value == Menu.Game ? 10f : 7f);
             }
         }
         public static Time timeFromStart;
@@ -490,6 +493,10 @@ namespace PPR.Main {
             music.Play();
         }
         public void Update() {
+            if(Core.pauseDrawing && UI.fadeOutFinished) {
+                Core.pauseDrawing = false;
+                UI.FadeIn(currentMenu == Menu.Game ? 10f : 7f);
+            }
             if(currentMenu == Menu.Main && music.Status == SoundStatus.Stopped) SwitchMusic();
             if(currentMenu != Menu.Game) {
                 if(Path.GetFileName(Path.GetDirectoryName(currentMusicPath)) == "Default" ||

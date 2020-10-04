@@ -226,6 +226,9 @@ namespace PPR.GUI {
         static float _menusAnimTime;
         public static int menusAnimBPM = 120;
         static void DrawMenusAnim() {
+            Color background = ColorScheme.GetColor("background");
+            Color menusAnimMax = ColorScheme.GetColor("menus_anim_max");
+            Color transparent = ColorScheme.GetColor("transparent");
             for(int x = -3; x < Core.renderer.width + 3; x++) {
                 for(int y = -3; y < Core.renderer.height + 3; y++) {
                     if(x % 3 != 0 || y % 3 != 0) continue;
@@ -234,8 +237,7 @@ namespace PPR.GUI {
                     float noise = MathF.Abs(noiseX * noiseY);
                     float xOffset = (Core.renderer.mousePositionF.X / Core.renderer.width - 0.5f) * noise * -100f;
                     float yOffset = (Core.renderer.mousePositionF.Y / Core.renderer.width - 0.5f) * noise * -100f;
-                    Color useColor = Renderer.AnimateColor(noise, ColorScheme.GetColor("background"),
-                        ColorScheme.GetColor("menus_anim_max"), 30f);
+                    Color useColor = Renderer.AnimateColor(noise, background, menusAnimMax, 30f);
                     float xPos = x + noiseX * 10f + xOffset;
                     float yPos = y + noiseY * 10f + yOffset;
                     int flooredX = (int)xPos;
@@ -245,9 +247,8 @@ namespace PPR.GUI {
                             float percentX = 1f - MathF.Abs(xPos - useX);
                             float percentY = 1f - MathF.Abs(yPos - useY);
                             float percent = percentX * percentY;
-                            Color posColor = Renderer.LerpColors(ColorScheme.GetColor("background"), useColor, percent);
-                            Core.renderer.SetCellColor(new Vector2i(useX, useY),
-                                ColorScheme.GetColor("transparent"), posColor);
+                            Color posColor = Renderer.LerpColors(background, useColor, percent);
+                            Core.renderer.SetCellColor(new Vector2i(useX, useY), transparent, posColor);
                         }
                     }
                 }
@@ -844,6 +845,10 @@ namespace PPR.GUI {
                 Core.renderer.DrawText(fpsPos, $"{fps.ToString()} FPS", fps >= 60 ?
                     ColorScheme.GetColor("fps_good") : fps > 20 ? ColorScheme.GetColor("fps_ok") : 
                         ColorScheme.GetColor("fps_bad"), Renderer.Alignment.Right);
+        }
+        static readonly Vector2i fpsPos = new Vector2i(79, 59);
+
+        public static void UpdateAnims() {
             if(fadeInFinished && fadeOutFinished) Core.renderer.charactersModifier = null;
             else {
                 if(!fadeInFinished) {
@@ -855,6 +860,5 @@ namespace PPR.GUI {
                 _fadeOutTime += Core.deltaTime;
             }
         }
-        static readonly Vector2i fpsPos = new Vector2i(79, 59);
     }
 }
