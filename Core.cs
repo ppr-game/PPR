@@ -73,6 +73,13 @@ namespace PPR {
 
                     deltaTime = fpsClock.Restart().AsSeconds();
                     UI.fps = (int)MathF.Round(1f / deltaTime);
+                    UI.tempAvgFPS += UI.fps;
+                    UI.tempAvgFPSCounter++;
+                    if(UI.tempAvgFPSCounter >= 100) {
+                        UI.avgFPS = UI.tempAvgFPS / UI.tempAvgFPSCounter;
+                        UI.tempAvgFPS = 0;
+                        UI.tempAvgFPSCounter = 0;
+                    }
                     
                     if(Game.exiting && UI.fadeOutFinished) renderer.window.Close();
                 }

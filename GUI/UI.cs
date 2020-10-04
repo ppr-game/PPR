@@ -23,6 +23,9 @@ namespace PPR.GUI {
         static readonly Logger logger = LogManager.GetCurrentClassLogger();
         
         public static int fps = 0;
+        public static int avgFPS = 0;
+        public static int tempAvgFPS = 0;
+        public static int tempAvgFPSCounter = 0;
         
         static readonly Random random = new Random();
         static readonly Perlin perlin = new Perlin();
@@ -842,7 +845,7 @@ namespace PPR.GUI {
             }
             
             if(Settings.GetBool("showFps"))
-                Core.renderer.DrawText(fpsPos, $"{fps.ToString()} FPS", fps >= 60 ?
+                Core.renderer.DrawText(fpsPos, $"{fps.ToString()}/{avgFPS.ToString()} FPS", fps >= 60 ?
                     ColorScheme.GetColor("fps_good") : fps > 20 ? ColorScheme.GetColor("fps_ok") : 
                         ColorScheme.GetColor("fps_bad"), Renderer.Alignment.Right);
         }
