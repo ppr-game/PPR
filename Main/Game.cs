@@ -75,6 +75,10 @@ namespace PPR.Main {
                     string name = Path.GetFileName(Path.GetDirectoryName(currentMusicPath));
                     if(name == "Default" || name == Settings.GetPath("audio")) SwitchMusic();
                 }
+                if(_currentMenu != value) {
+                    Core.pauseDrawing = true;
+                    UI.FadeOut(value == Menu.Game ? 10f : 7f);
+                }
                 _currentMenu = value;
                 switch(value) {
                     case Menu.Main:
@@ -96,9 +100,6 @@ namespace PPR.Main {
                                 Map.currentLevel.metadata.name);
                         break;
                 }
-
-                Core.pauseDrawing = true;
-                UI.FadeOut(value == Menu.Game ? 10f : 7f);
             }
         }
         public static Time timeFromStart;
