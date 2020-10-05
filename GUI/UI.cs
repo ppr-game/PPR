@@ -320,6 +320,8 @@ namespace PPR.GUI {
                         };
                         Game.music.Play();
                     }
+                    string scriptPath = Path.Join(levelPath, "script.lua");
+                    _showLuaPrompt = File.Exists(scriptPath);
 
                     currentLevelSelectIndex = i;
                 }
@@ -354,6 +356,9 @@ namespace PPR.GUI {
         static readonly Vector2i metaDiffPos = new Vector2i(56, 13);
         static readonly Vector2i metaBPMPos = new Vector2i(56, 14);
         static readonly Vector2i metaAuthorPos = new Vector2i(56, 15);
+        
+        static bool _showLuaPrompt;
+        static readonly Vector2i luaPromptPos = new Vector2i(56, 46);
 
         static readonly Vector2i metaObjCountPos = new Vector2i(56, 48);
         static readonly Vector2i metaSpdCountPos = new Vector2i(56, 49);
@@ -363,6 +368,9 @@ namespace PPR.GUI {
             Core.renderer.DrawText(metaDiffPos, $"DIFFICULTY:{metadata.Value.difficulty}");
             Core.renderer.DrawText(metaBPMPos, $"BPM:{metadata.Value.bpm}");
             Core.renderer.DrawText(metaAuthorPos, $"AUTHOR:{metadata.Value.author}");
+            
+            if(_showLuaPrompt)
+                Core.renderer.DrawText(luaPromptPos, "○ Contains Lua", ColorScheme.GetColor("lua_prompt"));
 
             Core.renderer.DrawText(metaObjCountPos, $"objects:{metadata.Value.objectCount.ToString()}");
             Core.renderer.DrawText(metaSpdCountPos, $"speeds:{metadata.Value.speedsCount.ToString()}");

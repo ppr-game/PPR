@@ -133,6 +133,9 @@ button_game.skip_idle=background
 button_game.skip_hover=orange
 button_game.skip_click=dark_orange
 
+# Level select
+lua_prompt=blue
+
 # Level select buttons
 button_levelSelect.level_idle=background
 button_levelSelect.level_hover=white
