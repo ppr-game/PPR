@@ -71,7 +71,7 @@ namespace PPR.GUI {
         static readonly string[] keybindsEditorText = File.ReadAllLines(Path.Join("resources", "ui", "keybinds.txt"));
         static readonly string[] levelSelectText = File.ReadAllLines(Path.Join("resources", "ui", "levelSelect.txt"));
         static readonly string[] lastStatsText = File.ReadAllLines(Path.Join("resources", "ui", "lastStats.txt"));
-        static readonly string[] notificationsText = File.ReadAllLines(Path.Join("resources", "ui", "notifications.txt"));
+        //static readonly string[] notificationsText = File.ReadAllLines(Path.Join("resources", "ui", "notifications.txt"));
         static List<Button> _mainMenuButtons;
 
         public static int currentLevelSelectIndex;
@@ -88,7 +88,7 @@ namespace PPR.GUI {
 
         static Button _skipButton;
 
-        static bool _showNotificationsMenu;
+        //static bool _showNotificationsMenu;
 
         static readonly Vector2i zero = new Vector2i();
         public static void RecreateButtons() {
@@ -135,7 +135,7 @@ namespace PPR.GUI {
                 new Button(musicOffsetPos + new Vector2i(2, 0), ">", "editor.music.offset.up", 1)
             };
 
-            _notificationsMenuButton = new Button(new Vector2i(78, 1), "□", "mainMenu.notifications", 1);
+            //_notificationsMenuButton = new Button(new Vector2i(78, 1), "□", "mainMenu.notifications", 1);
             
             _musicSpeedSlider = new Slider(new Vector2i(78, 58), 25, 100, 16, 100,
                 "[value]%", "", "editor.music.speed", Renderer.Alignment.Right);
@@ -258,7 +258,7 @@ namespace PPR.GUI {
             }
             _menusAnimTime += Core.deltaTime * menusAnimBPM / 120f;
         }
-        static Button _notificationsMenuButton;
+        //static Button _notificationsMenuButton;
         static void DrawMainMenu() {
             DrawMenusAnim();
             Core.renderer.DrawText(zero, mainMenuText);
@@ -287,13 +287,13 @@ namespace PPR.GUI {
                     case "mainMenu.discord": Helper.OpenURL("https://discord.gg/AuYUVs5");
                         break;
                 }
-            if(_showNotificationsMenu) DrawNotificationsMenu();
-            /*if(!_notificationsMenuButton.Draw()) return;
+            /*if(_showNotificationsMenu) DrawNotificationsMenu();
+            if(!_notificationsMenuButton.Draw()) return;
             _showNotificationsMenu = !_showNotificationsMenu;
             _notificationsMenuButton.selected = _showNotificationsMenu;
             DrawNotificationsMenu();*/
         }
-        static void DrawNotificationsMenu() => Core.renderer.DrawText(new Vector2i(79, 0), notificationsText, Renderer.Alignment.Right, true);
+        //static void DrawNotificationsMenu() => Core.renderer.DrawText(new Vector2i(79, 0), notificationsText, Renderer.Alignment.Right, true);
         public static readonly Vector2i scoresPos = new Vector2i(1, 12);
         static void DrawLevelSelect() {
             DrawMenusAnim();
