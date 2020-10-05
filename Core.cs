@@ -43,6 +43,7 @@ namespace PPR {
                     renderer.window.LostFocus += Game.LostFocus;
                     renderer.window.GainedFocus += Game.GainedFocus;
                     renderer.window.Closed += (___, ____) => Game.End();
+                    ColorScheme.Reload();
                 }
 
                 SubscribeEvents();
