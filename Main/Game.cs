@@ -536,13 +536,14 @@ namespace PPR.Main {
                 }
             }
 
-            try {
-                update?.Call();
-            }
-            catch(InterpreterException ex) {
-                logger.Error(ex.DecoratedMessage);
-            }
-            
+            if(update != null)
+                try {
+                    update.Call();
+                }
+                catch(InterpreterException ex) {
+                    logger.Error(ex.DecoratedMessage);
+                }
+
             _prevFramePlayingOffset = music.PlayingOffset;
         }
         static void FixedUpdate() {
@@ -581,12 +582,13 @@ namespace PPR.Main {
 
             Map.SimulateAll();
 
-            try {
-                tick?.Call();
-            }
-            catch(InterpreterException ex) {
-                logger.Error(ex.DecoratedMessage);
-            }
+            if(tick != null)
+                try {
+                    tick.Call();
+                }
+                catch(InterpreterException ex) {
+                    logger.Error(ex.DecoratedMessage);
+                }
 
             if(statsState != StatsState.Pause) currentMenu = Menu.LastStats;
         }

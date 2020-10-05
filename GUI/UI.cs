@@ -845,12 +845,13 @@ namespace PPR.GUI {
                     break;
             }
 
-            try {
-                Game.drawUI?.Call();
-            }
-            catch(InterpreterException ex) {
-                logger.Error(ex.DecoratedMessage);
-            }
+            if(Game.drawUI != null)
+                try {
+                    Game.drawUI.Call();
+                }
+                catch(InterpreterException ex) {
+                    logger.Error(ex.DecoratedMessage);
+                }
             
             if(Settings.GetBool("showFps"))
                 Core.renderer.DrawText(fpsPos, $"{fps.ToString()}/{avgFPS.ToString()} FPS", fps >= 60 ?

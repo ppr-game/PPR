@@ -64,8 +64,9 @@ namespace PPR.Main.Levels {
             DestroyToDestroy();
             foreach(LevelObject obj in currentLevel.objects) obj.Draw();
 
+            if(Game.drawMap == null) return;
             try {
-                Game.drawMap?.Call();
+                Game.drawMap.Call();
             }
             catch(InterpreterException ex) {
                 logger.Error(ex.DecoratedMessage);
