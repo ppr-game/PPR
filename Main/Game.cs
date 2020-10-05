@@ -278,7 +278,7 @@ namespace PPR.Main {
         public static void End() {
             logger.Info("Exiting");
             
-            UI.FadeOut(0.5f);
+            UI.FadeOut(0.75f);
             logger.Info("Started shutdown animation");
             
             music.Stop();
