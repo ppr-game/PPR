@@ -47,74 +47,7 @@
     <None Update="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Properties\Settings1.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings1.Designer.cs</LastGenOutput>
-    </None>
-    <None Update="resources\colors\Default\Classic\*">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\colors\Default\Classic (Lighter Blue)\*">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\colors\Default\White\*">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\*">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\audio\*">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-      <None Update="resources\audio\Default\*">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-    <None Update="resources\fonts\Codepage 437\8x8\x1\*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\fonts\Codepage 437\8x8\x2\*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\fonts\Codepage 437\10x10\x1\*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\fonts\Codepage 437\10x10\x2\*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\fonts\Codepage 437\12x12\x1\*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\fonts\Codepage 437\12x12\x2\*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\fonts\Codepage 437\14x14\x1\*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\fonts\Codepage 437\14x14\x2\*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\fonts\Codepage 437\16x16\x1\*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\fonts\Codepage 437\16x16\x2\*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\fonts\Codepage 437\18x18\x1\*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\fonts\Codepage 437\20x20\x2\*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\fonts\Codepage 437\20x20\x2\*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\ui\*">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\colors\Default\Classic\bloom-blend_frag.glsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\colors\Default\White\bloom-blend_frag.glsl">
+    <None Update="resources\**\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
