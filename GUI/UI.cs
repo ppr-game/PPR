@@ -288,10 +288,10 @@ namespace PPR.GUI {
                         break;
                 }
             if(_showNotificationsMenu) DrawNotificationsMenu();
-            if(!_notificationsMenuButton.Draw()) return;
+            /*if(!_notificationsMenuButton.Draw()) return;
             _showNotificationsMenu = !_showNotificationsMenu;
             _notificationsMenuButton.selected = _showNotificationsMenu;
-            DrawNotificationsMenu();
+            DrawNotificationsMenu();*/
         }
         static void DrawNotificationsMenu() => Core.renderer.DrawText(new Vector2i(79, 0), notificationsText, Renderer.Alignment.Right, true);
         public static readonly Vector2i scoresPos = new Vector2i(1, 12);
