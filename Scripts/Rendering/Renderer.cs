@@ -38,7 +38,7 @@ namespace PPR.Scripts.Rendering {
         public int RandomInt(int min, int max) => random.Next(min, max);
         public double RandomDouble(double min, double max) => random.NextDouble() * (max - min) + min;
     }
-    class CharacterModifier {
+    internal class CharacterModifier {
         public Func<CharModExCtx, bool> condition;
         public Func<CharModExCtx, float> x;
         public Func<CharModExCtx, float> y;
