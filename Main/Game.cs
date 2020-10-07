@@ -194,6 +194,8 @@ namespace PPR.Main {
             music.Volume = Settings.GetInt("musicVolume");
             music.Play();
             
+            ScriptSetup();
+            
             UI.RegenPositionRandoms();
 
             UI.FadeIn(0.5f);
@@ -346,6 +348,22 @@ namespace PPR.Main {
             music.Volume = Settings.GetInt("musicVolume");
             Core.renderer.UpdateFramerateSetting();
         }
+        static void ScriptSetup() {
+            Script.WarmUp();
+                    
+            UserData.RegisterType<Scripts.Core>();
+            UserData.RegisterType<Scripts.Main.Game>();
+            UserData.RegisterType<Scripts.Main.Levels.Level>();
+            UserData.RegisterType<Scripts.Main.Levels.Map>();
+            UserData.RegisterType<Scripts.Rendering.Renderer>();
+            UserData.RegisterType<Scripts.IO.File>();
+
+            UserData.RegisterType<Renderer.Alignment>();
+            UserData.RegisterType<Vector2i>();
+            UserData.RegisterType<Vector2f>();
+            UserData.RegisterType<Color>();
+            UserData.RegisterType<RenderCharacter>();
+        }
         public static void GameStart(string musicPath) {
             // Reset everything when we enter the level or bad things will happen
 
@@ -376,21 +394,6 @@ namespace PPR.Main {
 
             if(Map.currentLevel.script != null)
                 try {
-                    Script.WarmUp();
-                    
-                    UserData.RegisterType<Scripts.Core>();
-                    UserData.RegisterType<Scripts.Main.Game>();
-                    UserData.RegisterType<Scripts.Main.Levels.Level>();
-                    UserData.RegisterType<Scripts.Main.Levels.Map>();
-                    UserData.RegisterType<Scripts.Rendering.Renderer>();
-                    UserData.RegisterType<Scripts.IO.File>();
-
-                    UserData.RegisterType<Renderer.Alignment>();
-                    UserData.RegisterType<Vector2i>();
-                    UserData.RegisterType<Vector2f>();
-                    UserData.RegisterType<Color>();
-                    UserData.RegisterType<RenderCharacter>();
-                    
                     script = new Script(CoreModules.Preset_SoftSandbox);
 
                     DynValue core = UserData.Create(new Scripts.Core());
@@ -462,6 +465,7 @@ namespace PPR.Main {
             tick = null;
             drawMap = null;
             drawUI = null;
+            Scripts.Rendering.Renderer.scriptCharactersModifier = null;
         }
         public static void SwitchMusic() {
             if(exiting) return;

@@ -861,7 +861,10 @@ namespace PPR.GUI {
         static readonly Vector2i fpsPos = new Vector2i(79, 59);
 
         public static void UpdateAnims() {
-            if(fadeInFinished && fadeOutFinished) Core.renderer.charactersModifier = null;
+            bool useScriptCharMod =
+                Scripts.Rendering.Renderer.scriptCharactersModifier != null && Game.currentMenu == Menu.Game;
+            if(useScriptCharMod) Core.renderer.charactersModifier = Scripts.Rendering.Renderer.scriptCharactersModifier;
+            if(fadeInFinished && fadeOutFinished) { if(!useScriptCharMod) Core.renderer.charactersModifier = null; }
             else {
                 if(!fadeInFinished) {
                     fadeInFinished = true;

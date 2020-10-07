@@ -33,6 +33,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CoreCLR-NCalc" Version="2.2.88" />
     <PackageReference Include="PRR" Version="0.1.4-beta" />
     <PackageReference Include="DiscordRichPresence" Version="1.0.150" />
     <PackageReference Include="MoonSharp" Version="2.0.0" />

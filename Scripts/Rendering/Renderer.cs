@@ -1,4 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+
+using MoonSharp.Interpreter;
+
+using NCalc;
 
 using PPR.Main;
 
@@ -8,17 +15,154 @@ using SFML.Graphics;
 using SFML.System;
 
 namespace PPR.Scripts.Rendering {
+    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
+    internal struct CharModExCtx {
+        public int x { get; set; }
+        public int y { get; set; }
+        public string character { get; set; }
+        public byte bgR { get; set; }
+        public byte bgG { get; set; }
+        public byte bgB { get; set; }
+        public byte bgA { get; set; }
+        public byte fgR { get; set; }
+        public byte fgG { get; set; }
+        public byte fgB { get; set; }
+        public byte fgA { get; set; }
+        public float time { get; set; }
+        public float startTime { get; set; }
+        public float levelTime { get; set; }
+        public float roundedSteps { get; set; }
+        public float steps { get; set; }
+        public float offset { get; set; }
+        static readonly Random random = new Random();
+        public int RandomInt(int min, int max) => random.Next(min, max);
+        public double RandomDouble(double min, double max) => random.NextDouble() * (max - min) + min;
+    }
+    class CharacterModifier {
+        public Func<CharModExCtx, bool> condition;
+        public Func<CharModExCtx, float> x;
+        public Func<CharModExCtx, float> y;
+        public Func<CharModExCtx, string> character;
+        public Func<CharModExCtx, byte> bgR;
+        public Func<CharModExCtx, byte> bgG;
+        public Func<CharModExCtx, byte> bgB;
+        public Func<CharModExCtx, byte> bgA;
+        public Func<CharModExCtx, byte> fgR;
+        public Func<CharModExCtx, byte> fgG;
+        public Func<CharModExCtx, byte> fgB;
+        public Func<CharModExCtx, byte> fgA;
+        public float creationTime;
+    }
+    [MoonSharpHideMember("scriptCharactersModifier")]
     public class Renderer {
-        public static int width => PPR.Core.renderer.width;
-        public static int height => PPR.Core.renderer.height;
-        public static Vector2i mousePosition => PPR.Core.renderer.mousePosition;
-        public static Vector2f mousePositionF => PPR.Core.renderer.mousePositionF;
-        public static Func<Vector2i, RenderCharacter, (Vector2f position, RenderCharacter character)>
-            charactersModifier {
-            get => PPR.Core.renderer.charactersModifier;
-            set => PPR.Core.renderer.charactersModifier = value;
+        public static int getWidth => PPR.Core.renderer.width;
+        public static int getHeight => PPR.Core.renderer.height;
+        public static Vector2i getMousePosition => PPR.Core.renderer.mousePosition;
+        public static Vector2f getMousePositionF => PPR.Core.renderer.mousePositionF;
+        public static Func<Vector2i, RenderCharacter, (Vector2f, RenderCharacter)> scriptCharactersModifier;
+        public static List<Dictionary<string, DynValue>> charactersModifier {
+            set {
+                if(value == null) {
+                    scriptCharactersModifier = null;
+                    return;
+                }
+                
+                List<CharacterModifier> charMods = new List<CharacterModifier>(value.Count);
+                foreach(Dictionary<string, DynValue> modifier in value) {
+                    CharacterModifier charMod = new CharacterModifier();
+                    foreach((string key, DynValue dynValue) in modifier)
+                        switch(key) {
+                            case "condition":
+                                charMod.condition = new Expression(dynValue.String).ToLambda<CharModExCtx, bool>();
+                                continue;
+                            case "x": charMod.x = new Expression(dynValue.String).ToLambda<CharModExCtx, float>();
+                                continue;
+                            case "y": charMod.y = new Expression(dynValue.String).ToLambda<CharModExCtx, float>();
+                                continue;
+                            case "character":
+                                charMod.character = new Expression(dynValue.String).ToLambda<CharModExCtx, string>();
+                                continue;
+                            default: {
+                                if(dynValue.Type == DataType.Table)
+                                    foreach(TablePair pair in dynValue.Table.Pairs) {
+                                        Func<CharModExCtx, byte> exp =
+                                            new Expression(pair.Value.String).ToLambda<CharModExCtx, byte>();
+                                        switch(key) {
+                                            case "background":
+                                                switch(pair.Key.Number) {
+                                                    case 1: charMod.bgR = exp;
+                                                        continue;
+                                                    case 2: charMod.bgG = exp;
+                                                        continue;
+                                                    case 3: charMod.bgB = exp;
+                                                        continue;
+                                                    case 4: charMod.bgA = exp;
+                                                        continue;
+                                                }
+                                                break;
+                                            case "foreground":
+                                                switch(pair.Key.Number) {
+                                                    case 1: charMod.fgR = exp;
+                                                        continue;
+                                                    case 2: charMod.fgG = exp;
+                                                        continue;
+                                                    case 3: charMod.fgB = exp;
+                                                        continue;
+                                                    case 4: charMod.fgA = exp;
+                                                        continue;
+                                                }
+                                                break;
+                                        }
+                                    }
+                                break;
+                            }
+                        }
+                    charMod.creationTime = Game.timeFromStart.AsSeconds();
+                    charMods.Add(charMod);
+                }
+                
+                scriptCharactersModifier = (pos, character) => {
+                    CharModExCtx context = new CharModExCtx {
+                        x = pos.X,
+                        y = pos.Y,
+                        character = character.character.ToString(),
+                        bgR = character.background.R,
+                        bgG = character.background.G,
+                        bgB = character.background.B,
+                        bgA = character.background.A,
+                        fgR = character.foreground.R,
+                        fgG = character.foreground.G,
+                        fgB = character.foreground.B,
+                        fgA = character.foreground.A,
+                        roundedSteps = Game.roundedSteps,
+                        steps = Game.steps,
+                        offset = Game.roundedOffset
+                    };
+                    Vector2f modPos = (Vector2f)pos;
+                    RenderCharacter modChar = character;
+                    // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
+                    foreach(CharacterModifier modifier in charMods) {
+                        context.levelTime = Game.timeFromStart.AsSeconds();
+                        context.startTime = modifier.creationTime;
+                        context.time = context.levelTime - modifier.creationTime;
+                        if(!modifier.condition(context)) continue;
+                        modPos = new Vector2f(modifier.x?.Invoke(context) ?? modPos.X,
+                            modifier.y?.Invoke(context) ?? modPos.Y);
+                        modChar = new RenderCharacter(modifier.character?.Invoke(context)[0] ?? modChar.character,
+                            new Color(modifier.bgR?.Invoke(context) ?? modChar.background.R,
+                                modifier.bgG?.Invoke(context) ?? modChar.background.G,
+                                modifier.bgB?.Invoke(context) ?? modChar.background.B,
+                                modifier.bgA?.Invoke(context) ?? modChar.background.A),
+                            new Color(modifier.fgR?.Invoke(context) ?? modChar.foreground.R,
+                                modifier.fgG?.Invoke(context) ?? modChar.foreground.G,
+                                modifier.fgB?.Invoke(context) ?? modChar.foreground.B,
+                                modifier.fgA?.Invoke(context) ?? modChar.foreground.A));
+                    }
+                    return (modPos, modChar);
+                };
+            }
         }
-
+        
         public static void DrawText(Vector2i position, string text, Color foregroundColor, Color backgroundColor,
             Color defaultBackground, PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left,
             bool replacingSpaces = false, bool invertOnDarkBG = false,
