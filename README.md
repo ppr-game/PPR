@@ -1,7 +1,9 @@
 # ![Press Press Revolution](banner.png)
 A rhythm game where you need to use your whole keyboard to play
 
-Inspired by [osu!](https://osu.ppy.sh), [Beatmania](https://en.wikipedia.org/wiki/Beatmania) and [Dance Dance Revolution](https://en.wikipedia.org/wiki/Dance_Dance_Revolution)
+Gameplay inspired by [osu!](https://osu.ppy.sh), [Beatmania](https://en.wikipedia.org/wiki/Beatmania) and [Dance Dance Revolution](https://en.wikipedia.org/wiki/Dance_Dance_Revolution)
+
+Visuals inspired by [Cogmind](https://store.steampowered.com/app/722730/Cogmind)
 
 ## Screenshots
 <details>
@@ -26,28 +28,26 @@ Unpack levels in `game's folder/levels` to play them
 ### Gameplay
 Press the corresponding buttons when they hit a white line at the bottom
 
-There are also **holdable notes**, that are indicated with the `│` symbol and that you should **hold**, instead of just pressing,
-also they only register **perfect hits** and **misses**
+There are also **hold notes** (`│`) that you should **hold** instead of just pressing
 
 The blue arrows on the left indicate the speed changes and can be ignored
 
-When you hit the note when it's perfectly on the line (or near it, depending on the current BPM), you get a **perfect hit**, 1 **combo** point and 10 **score** points multiplied by your current **combo**,
- when you hit it right before or after it has passed the line, you get a **hit**, 1 **combo** point and 5 **score** points multiplied by your current **combo**,
- when you hit it too early or don't hit it at all, you get a **miss** and you break your **combo** *(the **combo** counter resets to 0)*
- 
-When you get a **hit** or **perfect hit**, you gain some amount of **health**, specified by the creator of the level
+When you hit the note when it's perfectly on the line (or near it, depending on the current BPM), you get a **perfect hit** and 10 **score** points,
+ when you hit it right before or after it has passed the line, you get a **hit** and 5 **score** points,
+ when you hit it too early or don't hit it at all, you get a **miss** and you break your **combo** *(the combo counter resets to 0)*
 
-When you get a **miss**, you lose some amount of **health**, specified by the creator of the level
+When you hit, you get 1 combo point, the score you get gets multiplied by yor new combo
+and you gain some amount of **health** (depends on the level)
+
+When you miss, you lose some amount of **health** (depends on the level)
 
 When your **health** hits 0, you fail
 
 Your **health** is indicated with a red bar at the top of your screen
 
-There's **perfect combo** and **full combo**
+**Perfect combo** (PF for short) means that you only have **perfect hits** (you've hit all the notes perfectly)
 
-**Perfect combo** is when you don't have any **hits** and/or **misses** and only have **perfect hits**
-
-**Full combo** is when you don't have any **misses**, but you have some **hits**
+**Full combo** (FC for short) means that you didn't hit all the notes perfectly but you didn't **miss** any
 
 ### Statistics
 The stuff below the line is your **statistics**
