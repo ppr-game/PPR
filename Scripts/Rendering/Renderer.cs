@@ -36,6 +36,7 @@ namespace PPR.Scripts.Rendering {
         static readonly Random random = new Random();
         public int RandomInt(int min, int max) => random.Next(min, max);
         public double RandomDouble(double min, double max) => random.NextDouble() * (max - min) + min;
+        public double Lerp(double a, double b, double t) => t <= 0 ? a : t >= 1 ? b : a + (b - a) * t;
     }
     internal class CharacterModifier {
         public Func<CharModExCtx, bool> condition;
