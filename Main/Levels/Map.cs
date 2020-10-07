@@ -2,10 +2,6 @@
 using System.IO;
 using System.Linq;
 
-using MoonSharp.Interpreter;
-
-using NLog;
-
 using PPR.GUI;
 
 using PRR;
@@ -14,8 +10,6 @@ using SFML.System;
 
 namespace PPR.Main.Levels {
     public static class Map {
-        static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        
         public static Level currentLevel;
         public static readonly Vector2i gameLinePos = new Vector2i(0, 54);
         public static readonly Vector2i editorLinePos = new Vector2i(0, 44);
@@ -64,13 +58,7 @@ namespace PPR.Main.Levels {
             DestroyToDestroy();
             foreach(LevelObject obj in currentLevel.objects) obj.Draw();
 
-            if(Game.drawMap == null) return;
-            try {
-                Game.drawMap.Call();
-            }
-            catch(InterpreterException ex) {
-                logger.Error(ex.DecoratedMessage);
-            }
+            Lua.DrawMap();
         }
 
         static void DestroyToDestroy() {

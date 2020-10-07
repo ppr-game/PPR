@@ -3,10 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using MoonSharp.Interpreter;
-
-using NLog;
-
 using PPR.GUI.Elements;
 using PPR.Main;
 using PPR.Main.Levels;
@@ -20,8 +16,6 @@ using SFML.System;
 
 namespace PPR.GUI {
     public static class UI {
-        static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        
         public static int fps = 0;
         public static int avgFPS = 0;
         public static int tempAvgFPS = 0;
@@ -653,7 +647,7 @@ namespace PPR.GUI {
             Game.currentMenu = Menu.LevelSelect;
             Game.music.Pitch = 1f;
             _musicSpeedSlider.value = 100;
-            Game.ClearScript();
+            Lua.ClearScript();
         }
 
         static readonly Vector2i audioGroupTextPos = new Vector2i(2, 13);
@@ -845,13 +839,7 @@ namespace PPR.GUI {
                     break;
             }
 
-            if(Game.drawUI != null)
-                try {
-                    Game.drawUI.Call();
-                }
-                catch(InterpreterException ex) {
-                    logger.Error(ex.DecoratedMessage);
-                }
+            Lua.DrawUI();
             
             if(Settings.GetBool("showFps"))
                 Core.renderer.DrawText(fpsPos, $"{fps.ToString()}/{avgFPS.ToString()} FPS", fps >= 60 ?
