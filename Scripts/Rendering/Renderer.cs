@@ -33,10 +33,24 @@ namespace PPR.Scripts.Rendering {
         public float roundedSteps { get; set; }
         public float steps { get; set; }
         public float offset { get; set; }
-        static readonly Random random = new Random();
-        public int RandomInt(int min, int max) => random.Next(min, max);
-        public double RandomDouble(double min, double max) => random.NextDouble() * (max - min) + min;
-        public double Lerp(double a, double b, double t) => t <= 0 ? a : t >= 1 ? b : a + (b - a) * t;
+        // ReSharper disable once InconsistentNaming
+        static readonly Random _random = new Random();
+        public int randomInt(int min, int max) => _random.Next(min, max);
+        public double random(double min, double max) => _random.NextDouble() * (max - min) + min;
+        public double lerp(double a, double b, double t) => t <= 0 ? a : t >= 1 ? b : a + (b - a) * t;
+        public double abs(double value) => Math.Abs(value);
+        public double ceil(double value) => ceiling(value);
+        // ReSharper disable once MemberCanBeMadeStatic.Global
+        // ReSharper disable once MemberCanBePrivate.Global
+        public double ceiling(double value) => Math.Ceiling(value);
+        public double clamp(double value, double min, double max) => Math.Clamp(value, min, max);
+        public double floor(double value) => Math.Floor(value);
+        public double max(double a, double b) => Math.Max(a, b);
+        public double min(double a, double b) => Math.Min(a, b);
+        public double pow(double a, double b) => Math.Pow(a, b);
+        public double round(double value) => Math.Round(value);
+        public double sign(double value) => Math.Sign(value);
+        public double sqrt(double value) => Math.Sqrt(value);
     }
     internal class CharacterModifier {
         public Func<CharModExCtx, bool> condition;
