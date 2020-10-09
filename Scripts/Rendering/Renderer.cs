@@ -6,6 +6,7 @@ using MoonSharp.Interpreter;
 
 using NCalc;
 
+using PPR.GUI;
 using PPR.Main;
 
 using PRR;
@@ -37,6 +38,9 @@ namespace PPR.Scripts.Rendering {
         static readonly Random _random = new Random();
         public int randomInt(int min, int max) => _random.Next(min, max);
         public double random(double min, double max) => _random.NextDouble() * (max - min) + min;
+        public static double posRandom(int x, int y) => posRandom(x, y, 0d);
+        public static double posRandom(int x, int y, double @default) =>
+            UI.positionRandoms.TryGetValue(new Vector2i(x, y), out float value) ? value : @default;
         public double lerp(double a, double b, double t) => t <= 0 ? a : t >= 1 ? b : a + (b - a) * t;
         public double abs(double value) => Math.Abs(value);
         public double ceil(double value) => ceiling(value);
@@ -176,6 +180,9 @@ namespace PPR.Scripts.Rendering {
                 };
             }
         }
+
+        public static Dictionary<Vector2i, float> positionRandoms => UI.positionRandoms;
+        public static void RegenPositionRandoms() => UI.RegenPositionRandoms();
         
         public static void DrawText(Vector2i position, string text, Color foregroundColor, Color backgroundColor,
             Color defaultBackground, PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left,
