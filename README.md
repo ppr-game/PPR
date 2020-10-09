@@ -61,15 +61,24 @@ The "COMBO" line displays your current **combo** and if you have **perfect** or 
 The numbers on the **green**, **yellow** and **red** backgrounds are your current amount of **perfect hits**, **hits** and **misses** respectively
 
 ## How to create levels
-1. To begin creating a level go to `game's folder/levels`,
-2. Put your music in that folder (supported formats: `ogg`, `wav` and `flac`),
-3. Rename the music to whatever you'd want your level to be called,
-4. Create a new text (`.txt`) file with the same name and open it,
-5. Specify the difficulties you want to create for your level separated by new lines in the following format: `Difficulty name:Level author`, if you don't specify the author, the game will use the default author (you can edit it in the template (`levels/_template`) level by replacing `<unknown>` there), save the file,
-6. Open the game and press "EDIT" (or go to the main menu and go back to the editor level select menu, if you already were there),
+1. To begin creating a level go to `game's folder/levels`
+2. Put your music in that folder (supported formats: `ogg`, `wav` and `flac`)
+3. Rename the music to whatever you'd want your level to be called
+4. Create a new text (`.txt`) file with the same name and open it
+5. Specify the difficulties you want to create for your level separated by new lines in the following format: `Difficulty name:Level author`, if you don't specify the author, the game will use the default author (you can edit it in the template (`levels/_template`) level by replacing `<unknown>` there), save the file
+6. Open the game and press "EDIT" (or go to the main menu and go back to the editor level select menu, if you already were there)
 7. Select your new level and the difficulty you'd want to edit, now you can begin editing your level
 
 If you want to add more difficulties to your level than you originally created, repeat steps 4-7
+
+Example text file:
+```
+Very easy:coolDUDE420
+Easy:anotherguy
+Medium:YEP
+Hard
+Very hard omg noscope 360 pro:ConfiG
+```
 
 *You can publish your levels in the Discord server linked above*
 
