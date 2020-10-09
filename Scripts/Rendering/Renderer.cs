@@ -18,7 +18,7 @@ namespace PPR.Scripts.Rendering {
     internal struct CharModExCtx {
         public int x { get; set; }
         public int y { get; set; }
-        public string character { get; set; }
+        public char character { get; set; }
         public byte bgR { get; set; }
         public byte bgG { get; set; }
         public byte bgB { get; set; }
@@ -139,7 +139,7 @@ namespace PPR.Scripts.Rendering {
                     CharModExCtx context = new CharModExCtx {
                         x = pos.X,
                         y = pos.Y,
-                        character = character.character.ToString(),
+                        character = character.character,
                         bgR = character.background.R,
                         bgG = character.background.G,
                         bgB = character.background.B,
