@@ -49,11 +49,15 @@ namespace PPR.Main {
                         break;
                     }
                     case Menu.LastStats when !_usedAuto && statsState == StatsState.Pass && Map.currentLevel != null: {
-                        string path = Path.Join("scores", $"{Map.currentLevel.metadata.name}.txt");
+                        string path = Map.currentLevel.metadata.diff == "level" ?
+                            Path.Join("scores", $"{Map.currentLevel.metadata.name}.txt") : Path.Join("scores",
+                                Map.currentLevel.metadata.name, $"{Map.currentLevel.metadata.diff}.txt");
                         string text = File.Exists(path) ? File.ReadAllText(path) : "";
                         text =
                             $"{Map.TextFromScore(new LevelScore(new Vector2i(), score, accuracy, maxCombo, scores))}\n{text}";
-                        _ = Directory.CreateDirectory("scores");
+                        Directory.CreateDirectory("scores");
+                        if(Path.GetFileName(Path.GetDirectoryName(path)) == Map.currentLevel.metadata.name)
+                            Directory.CreateDirectory(Path.GetDirectoryName(path));
                         File.WriteAllText(path, text);
                         break;
                     }
@@ -127,8 +131,17 @@ namespace PPR.Main {
             set {
                 _currentMusicPath = value;
                 if(currentMusicName == "Waterflame - Cove") return;
-                string[] menusAnimLines =
-                    File.ReadAllLines(Path.Join(Path.GetDirectoryName(value)!, "level.txt"));
+                string[] menusAnimLines = Array.Empty<string>();
+                float prevDiff = -1f;
+                foreach(string file in Directory.GetFiles(Path.GetDirectoryName(value)!)) {
+                    if(!file.EndsWith(".txt")) continue;
+                    string currDiffName = Path.GetFileNameWithoutExtension(file);
+                    string[] lines = File.ReadAllLines(Path.Join(Path.GetDirectoryName(value)!, $"{currDiffName}.txt"));
+                    if(!Level.IsLevelValid(lines)) continue;
+                    LevelMetadata metadata = new LevelMetadata(lines, currentMusicName, currDiffName);
+                    if(metadata.actualDiff > prevDiff) menusAnimLines = lines;
+                    prevDiff = metadata.actualDiff;
+                }
                 menusAnimInitialOffset = GetInitialOffset(menusAnimLines);
                 menusAnimSpeeds = GetSpeeds(menusAnimLines);
             }
@@ -390,21 +403,17 @@ namespace PPR.Main {
                 .Where(path => Path.GetFileName(Path.GetDirectoryName(path)) != "_template")
                 .Select(path => GetSoundFilePath(Path.Join(path, "music")))
                 .Where(path => !string.IsNullOrEmpty(path)).ToArray();
-            int index = 0;
             switch(paths.Length) {
                 case 0 when music.Status != SoundStatus.Stopped: return;
                 case 0 when music.Status == SoundStatus.Stopped:
                 case 1: newPath = currentMusicPath;
                     break;
                 default: {
-                    while(currentMusicPath == newPath) {
-                        index = random.Next(0, paths.Length);
-                        newPath = paths[index];
-                    }
+                    while(currentMusicPath == newPath) newPath = paths[random.Next(0, paths.Length)];
                     break;
                 }
             }
-            UI.currentLevelSelectIndex = index;
+            UI.currSelectedLevel = Path.GetFileName(Path.GetDirectoryName(newPath));
             currentMusicPath = newPath;
             music.Stop();
             music = new Music(currentMusicPath) {
@@ -722,25 +731,46 @@ namespace PPR.Main {
                     Vector2i mousePos = Core.renderer.mousePosition;
                     if(mousePos.Y >= 12 && mousePos.Y <= 49) {
                         if(mousePos.X >= 28 && mousePos.X <= 51) {
-                            if(scroll.Delta > 0 && UI.levelSelectLevels.First().position.Y >= 12) return;
-                            if(scroll.Delta < 0 && UI.levelSelectLevels.Last().position.Y <= 49) return;
-                            foreach(Button button in UI.levelSelectLevels) button.position += new Vector2i(0, (int)scroll.Delta);
+                            if(mousePos.Y <= 38) {
+                                if(scroll.Delta > 0 && UI.levelSelectLevels.First().Value.button.position.Y >= 12)
+                                    return;
+                                if(scroll.Delta < 0 && UI.levelSelectLevels.Last().Value.button.position.Y <= 38)
+                                    return;
+                                // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
+                                foreach(LevelSelectLevel level in UI.levelSelectLevels.Values)
+                                    level.button.position += new Vector2i(0, (int)scroll.Delta);
+                            }
+                            else if(mousePos.Y >= 40) {
+                                IOrderedEnumerable<KeyValuePair<string, LevelSelectDiff>> sortedDiffs =
+                                    UI.levelSelectLevels[UI.currSelectedLevel].diffs
+                                        .OrderBy(pair => pair.Value.metadata.actualDiff);
+                                if(scroll.Delta > 0 && sortedDiffs.First().Value.button.position.Y >= 40)
+                                    return;
+                                if(scroll.Delta < 0 && sortedDiffs.Last().Value.button.position.Y <= 49)
+                                    return;
+                                // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
+                                foreach(LevelSelectDiff diff in UI.levelSelectLevels[UI.currSelectedLevel].diffs.Values)
+                                    diff.button.position += new Vector2i(0, (int)scroll.Delta);
+                            }
                         }
-                        else if(mousePos.X >= 1 && mousePos.X <= 26 &&
-                                UI.levelSelectScores[UI.currentLevelSelectIndex] != null &&
-                                UI.levelSelectScores[UI.currentLevelSelectIndex].Count > 0) {
-                            if(scroll.Delta > 0 && UI.levelSelectScores[UI.currentLevelSelectIndex].First().scorePosition.Y >= 12) return;
-                            if(scroll.Delta < 0 && UI.levelSelectScores[UI.currentLevelSelectIndex].Last().scoresPosition.Y <= 49) return;
-                            for(int i = 0; i < UI.levelSelectScores[UI.currentLevelSelectIndex].Count; i++) {
-                                int increment = (int)scroll.Delta;
-                                LevelScore score = UI.levelSelectScores[UI.currentLevelSelectIndex][i];
-                                score.scorePosition += new Vector2i(0, increment);
-                                score.accComboPosition += new Vector2i(0, increment);
-                                score.accComboDividerPosition += new Vector2i(0, increment);
-                                score.maxComboPosition += new Vector2i(0, increment);
-                                score.scoresPosition += new Vector2i(0, increment);
-                                score.linePosition += new Vector2i(0, increment);
-                                UI.levelSelectScores[UI.currentLevelSelectIndex][i] = score;
+                        else if(mousePos.X >= 1 && mousePos.X <= 25 && !string.IsNullOrEmpty(UI.currSelectedLevel) &&
+                                !string.IsNullOrEmpty(UI.currSelectedDiff)) {
+                            LevelSelectDiff currentDiff =
+                                UI.levelSelectLevels[UI.currSelectedLevel].diffs[UI.currSelectedDiff];
+                            if(currentDiff.scores != null && currentDiff.scores.Count > 0) {
+                                if(scroll.Delta > 0 && currentDiff.scores.First().scorePosition.Y >= 12) return;
+                                if(scroll.Delta < 0 && currentDiff.scores.Last().scoresPosition.Y <= 49) return;
+                                for(int i = 0; i < currentDiff.scores.Count; i++) {
+                                    int increment = (int)scroll.Delta;
+                                    LevelScore score = currentDiff.scores[i];
+                                    score.scorePosition += new Vector2i(0, increment);
+                                    score.accComboPosition += new Vector2i(0, increment);
+                                    score.accComboDividerPosition += new Vector2i(0, increment);
+                                    score.maxComboPosition += new Vector2i(0, increment);
+                                    score.scoresPosition += new Vector2i(0, increment);
+                                    score.linePosition += new Vector2i(0, increment);
+                                    currentDiff.scores[i] = score;
+                                }
                             }
                         }
                     }
@@ -852,32 +882,50 @@ namespace PPR.Main {
         static void GenerateLevelList() {
             string[] directories = Directory.GetDirectories("levels")
                 .Where(path => Path.GetFileName(path) != "_template").ToArray();
-            List<Button> buttons = new List<Button>();
-            List<LevelMetadata?> metadatas = new List<LevelMetadata?>();
+            UI.levelSelectLevels = new Dictionary<string, LevelSelectLevel>(directories.Length);
             for(int i = 0; i < directories.Length; i++) {
-                string name = Path.GetFileName(directories[i]);
-                buttons.Add(new Button(new Vector2i(25, 12 + i), name, "levelSelect.level", 30));
-                metadatas.Add(new LevelMetadata(File.ReadAllLines(Path.Join(directories[i], "level.txt")), name));
-                logger.Info("Loaded metadata for level {0}", name);
-            }
-            UI.levelSelectLevels = buttons;
-            UI.levelSelectMetadatas = metadatas;
-
-            List<List<LevelScore>> scores = new List<List<LevelScore>> { Capacity = buttons.Count };
-            if(Directory.Exists("scores"))
-                for(int i = 0; i < directories.Length; i++) {
-                    string name = Path.GetFileName(directories[i]);
-                    string scoresPath = Path.Join("scores", $"{name}.txt");
-                    if(File.Exists(scoresPath)) {
-                        scores.Add(Map.ScoresFromLines(File.ReadAllLines(scoresPath), UI.scoresPos));
-                        logger.Info("Loaded scores for level {0}, total scores count: {1}", name, scores[i].Count);
-                    }
-                    else scores.Add(null);
+                string levelName = Path.GetFileName(directories[i]);
+                LevelSelectLevel level = new LevelSelectLevel {
+                    button = new Button(new Vector2i(25, 12 + i), levelName, "levelSelect.level", 30)
+                };
+                string[] diffFiles = Directory.GetFiles(directories[i]).Where(file => file.EndsWith(".txt")).ToArray();
+                level.diffs = new Dictionary<string, LevelSelectDiff>(diffFiles.Length);
+                for(int j = 0; j < diffFiles.Length; j++) {
+                    string diffName = Path.GetFileNameWithoutExtension(diffFiles[j]);
+                    string[] diffLines = File.ReadAllLines(Path.Join(directories[i], $"{diffName}.txt"));
+                    if(!Level.IsLevelValid(diffLines)) continue;
+                    string diffDisplayName = diffName == "level" || diffName == null ? "DEFAULT" : diffName.ToUpper();
+                    LevelMetadata metadata = new LevelMetadata(diffLines, levelName, diffName);
+                    LevelSelectDiff diff = new LevelSelectDiff {
+                        button = new Button(new Vector2i(),
+                            $"{diffDisplayName} ({metadata.difficulty})",
+                            "levelSelect.difficulty", 30),
+                        metadata = metadata
+                    };
+                    
+                    logger.Info("Loaded metadata for level '{0}' diff '{1}'", levelName, diffName);
+                    
+                    string scoresPath = diffName == "level" ? Path.Join("scores", $"{levelName}.txt") :
+                        Path.Join("scores", $"{levelName}", $"{diffName}.txt");
+                    diff.scores = Map.ScoresFromLines(
+                        File.Exists(scoresPath) ? File.ReadAllLines(scoresPath) : Array.Empty<string>(), UI.scoresPos);
+                    
+                    logger.Info("Loaded scores for level '{0}' diff '{1}', total scores count: {2}",
+                        levelName, diffName, diff.scores.Count);
+                    
+                    level.diffs.Add(diffName ?? j.ToString(), diff);
                 }
+                List<KeyValuePair<string, LevelSelectDiff>> sortedDiffs =
+                    level.diffs.OrderBy(pair => pair.Value.metadata.actualDiff).ToList();
+                for(int j = 0; j < sortedDiffs.Count; j++)
+                    level.diffs[sortedDiffs[j].Key].button.position = new Vector2i(25, 40 + j);
 
-            UI.levelSelectScores = scores;
+                logger.Info("Loaded diffs for level '{0}', total diffs count: {1}", levelName, level.diffs.Count);
+                
+                UI.levelSelectLevels.Add(levelName, level);
+            }
 
-            logger.Info("Loaded levels, total level count: {0}", buttons.Count);
+            logger.Info("Loaded levels, total level count: {0}", UI.levelSelectLevels.Count);
         }
         public static void RecalculateAccuracy() {
             float sum = scores[0] + scores[1] + scores[2];

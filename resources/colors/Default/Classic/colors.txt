@@ -140,6 +140,9 @@ lua_prompt=blue
 button_levelSelect.level_idle=background
 button_levelSelect.level_hover=white
 button_levelSelect.level_click=dark_gray
+button_levelSelect.difficulty_idle=button_levelSelect.level_idle
+button_levelSelect.difficulty_hover=button_levelSelect.level_hover
+button_levelSelect.difficulty_click=button_levelSelect.level_click
 
 button_levelSelect.auto_idle=background
 button_levelSelect.auto_hover=blue

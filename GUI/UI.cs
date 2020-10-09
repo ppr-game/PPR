@@ -68,13 +68,13 @@ namespace PPR.GUI {
         //static readonly string[] notificationsText = File.ReadAllLines(Path.Join("resources", "ui", "notifications.txt"));
         static List<Button> _mainMenuButtons;
 
-        public static int currentLevelSelectIndex;
-        public static List<Button> levelSelectLevels;
-        public static List<List<LevelScore>> levelSelectScores;
-        public static List<LevelMetadata?> levelSelectMetadatas;
+        public static string currSelectedLevel;
+        public static string currSelectedDiff;
+        public static Dictionary<string, LevelSelectLevel> levelSelectLevels;
         static List<Button> _levelSelectButtons;
 
         static string _lastLevel = "";
+        static string _lastDiff = "";
         static List<Button> _gameLastStatsButtons;
         static List<Button> _editorLastStatsButtons;
 
@@ -292,40 +292,59 @@ namespace PPR.GUI {
         static void DrawLevelSelect() {
             DrawMenusAnim();
             Core.renderer.DrawText(zero, levelSelectText);
-            for(int i = 0; i < levelSelectLevels.Count; i++) {
-                Button button = levelSelectLevels[i];
-                if(button.position.Y < 12 || button.position.Y > 49) continue;
-                if(button.Draw()) {
-                    _lastLevel = button.text;
-                    string path = Path.Join("levels", _lastLevel);
-                    Map.LoadLevelFromPath(path, _lastLevel);
-                    Game.currentMenu = Menu.Game;
-                    Game.RecalculatePosition();
-                }
-                if((button.currentState == Button.State.Hovered || button.currentState == Button.State.Clicked) &&
-                    button.prevFrameState != Button.State.Hovered && button.prevFrameState != Button.State.Clicked) {
-                    string levelPath = Path.Join("levels", button.text);
+            foreach((string levelName, LevelSelectLevel level) in levelSelectLevels) {
+                if(level.button.position.Y < 12 || level.button.position.Y > 38) continue;
+                if(level.button.Draw()) {
+                    string levelPath = Path.Join("levels", levelName);
                     string musicPath = Game.GetSoundFilePath(Path.Join(levelPath, "music"));
                     if(File.Exists(musicPath)) {
                         Game.currentMusicPath = musicPath;
                         Game.music.Stop();
-                        Game.music = new Music(musicPath) {
-                            Volume = Settings.GetInt("musicVolume")
-                        };
+                        Game.music = new Music(musicPath) { Volume = Settings.GetInt("musicVolume") };
                         Game.music.Play();
                     }
-                    string scriptPath = Path.Join(levelPath, "script.lua");
-                    _showLuaPrompt = File.Exists(scriptPath);
 
-                    currentLevelSelectIndex = i;
+                    currSelectedLevel = levelName;
                 }
-                button.selected = i == currentLevelSelectIndex;
+
+                level.button.selected = levelName == currSelectedLevel;
+
+                if(!level.button.selected) continue;
+                foreach((string diffName, LevelSelectDiff diff) in level.diffs) {
+                    if(diff.button.position.Y < 40 || diff.button.position.Y > 49) continue;
+                    if(diff.button.Draw()) {
+                        _lastLevel = levelName;
+                        _lastDiff = diffName;
+                        string path = Path.Join("levels", _lastLevel);
+                        Map.LoadLevelFromPath(path, _lastLevel, _lastDiff);
+                        Game.currentMenu = Menu.Game;
+                        Game.RecalculatePosition();
+                    }
+                        
+                    if((diff.button.currentState == Button.State.Hovered ||
+                        diff.button.currentState == Button.State.Clicked) &&
+                       diff.button.prevFrameState != Button.State.Hovered &&
+                       diff.button.prevFrameState != Button.State.Clicked) {
+                        string globalScriptPath = Path.Join("levels", levelName, "script.lua");
+                        string diffScriptPath = Path.Join("levels", levelName, $"{diffName}.lua");
+                        _showLuaPrompt = File.Exists(globalScriptPath) || File.Exists(diffScriptPath);
+
+                        currSelectedDiff = diffName;
+                    }
+                    
+                    diff.button.selected = diffName == currSelectedDiff;
+
+                    if(!diff.button.selected) continue;
+                    DrawMetadata(diff.metadata);
+                    DrawScores(diff.scores);
+                }
             }
             foreach(Button button in _levelSelectButtons)
                 switch(button.text) {
                     case "NEW" when Game.editing && button.Draw():
                         _lastLevel = "unnamed";
-                        Map.LoadLevelFromPath(Path.Join("levels", "_template"), _lastLevel, false);
+                        _lastDiff = "level";
+                        Map.LoadLevelFromPath(Path.Join("levels", "_template"), _lastLevel, _lastDiff, false);
                         Game.currentMenu = Menu.Game;
                         Game.RecalculatePosition();
                         break;
@@ -337,13 +356,7 @@ namespace PPR.GUI {
                     case "BACK" when button.Draw(): Game.currentMenu = Menu.Main;
                         break;
                 }
-
-            if(_levelSelectButtons.Count > 0) {
-                if(levelSelectMetadatas.Count > currentLevelSelectIndex)
-                    DrawMetadata(levelSelectMetadatas[currentLevelSelectIndex]);
-                if(levelSelectScores.Count > currentLevelSelectIndex)
-                    DrawScores(levelSelectScores[currentLevelSelectIndex]);
-            }
+            
             DrawNowPlaying();
         }
         static readonly Vector2i metaLengthPos = new Vector2i(56, 12);
@@ -382,8 +395,8 @@ namespace PPR.GUI {
                 }
                 if(score.scoresPosition.Y >= 12 && score.scoresPosition.Y <= 49)
                     DrawMiniScores(score.scoresPosition, score.scores);
-                if(score.linePosition.Y >= 12 && score.linePosition.Y <= 49)
-                    Core.renderer.DrawText(score.linePosition, "├───────────────────────┤");
+                if(score.linePosition.Y >= 12 && score.linePosition.Y <= 49) Core.renderer.DrawText(score.linePosition,
+                        score.linePosition.Y == 39 ? "├───────────────────────┼" : "├───────────────────────┤");
             }
         }
 
@@ -550,8 +563,8 @@ namespace PPR.GUI {
                 ColorScheme.GetColor("perfect_hit"));
         }
         static void DrawLevelName(Vector2i position, Color color, bool invertOnDarkBG = true) => Core.renderer.DrawText(position,
-            $"{Map.currentLevel.metadata.name} : {Map.currentLevel.metadata.author}", color,
-            Renderer.Alignment.Left, false, invertOnDarkBG);
+            $"{Map.currentLevel.metadata.name} [{Map.currentLevel.metadata.displayDiff}] : {Map.currentLevel.metadata.author}",
+            color, Renderer.Alignment.Left, false, invertOnDarkBG);
         static void DrawMusicTime(Vector2i position, Color color) {
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
             string at = $"{(timeSpan < TimeSpan.Zero ? "-" : "")}{timeSpan.ToString($"{(timeSpan.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
@@ -601,7 +614,7 @@ namespace PPR.GUI {
                                 Game.changed = false;
                                 string path = Path.Join("levels", _lastLevel);
                                 _ = Directory.CreateDirectory(path);
-                                File.WriteAllText(Path.Join(path, "level.txt"), Map.TextFromLevel(Map.currentLevel));
+                                File.WriteAllText(Path.Join(path, $"{_lastDiff}.txt"), Map.TextFromLevel(Map.currentLevel));
                                 if(button.id == "lastStats.saveAndExit") LastStatsExit();
                             }
                             if(button.text.EndsWith('*') && !Game.changed) {
@@ -629,7 +642,7 @@ namespace PPR.GUI {
                             if(!Game.editing && button.Draw()) {
                                 Game.currentMenu = Menu.Game;
                                 string path = Path.Join("levels", _lastLevel);
-                                Map.LoadLevelFromPath(path, _lastLevel);
+                                Map.LoadLevelFromPath(path, _lastLevel, _lastDiff);
                             }
                             break;
                         case "lastStats.auto":

@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 
 using PPR.GUI;
+using PPR.GUI.Elements;
 using PPR.Properties;
 
 using PRR;
@@ -14,6 +15,24 @@ using SFML.System;
 using SFML.Window;
 
 namespace PPR.Main.Levels {
+    public struct LevelSelectLevel {
+        public Button button;
+        public Dictionary<string, LevelSelectDiff> diffs;
+        public LevelSelectLevel(Button button, Dictionary<string, LevelSelectDiff> diffs) {
+            this.button = button;
+            this.diffs = diffs;
+        }
+    }
+    public struct LevelSelectDiff {
+        public Button button;
+        public List<LevelScore> scores;
+        public LevelMetadata metadata;
+        public LevelSelectDiff(Button button, List<LevelScore> scores, LevelMetadata metadata) {
+            this.button = button;
+            this.scores = scores;
+            this.metadata = metadata;
+        }
+    }
     public struct LevelScore {
         public Vector2i scorePosition;
         public readonly int score;
@@ -51,8 +70,18 @@ namespace PPR.Main.Levels {
     }
     public struct LevelMetadata {
         public readonly string name;
+        public readonly string diff;
+        public readonly string displayDiff;
         public int hpDrain;
         public int hpRestorage;
+        float _actualDiff;
+        public float actualDiff {
+            get => _actualDiff;
+            set {
+                _actualDiff = value;
+                difficulty = value.ToString("0.00", CultureInfo.InvariantCulture);
+            }
+        }
         public string difficulty;
         public readonly string author;
         public string length;
@@ -65,8 +94,10 @@ namespace PPR.Main.Levels {
         public readonly int objectCount;
         public readonly int speedsCount;
 
-        LevelMetadata(string name, IReadOnlyList<string> meta, int objectCount, IReadOnlyList<char> chars, IReadOnlyList<int> steps, List<LevelSpeed> speeds) {
+        LevelMetadata(string name, string diff, IReadOnlyList<string> meta, int objectCount, IReadOnlyList<char> chars, IReadOnlyList<int> steps, List<LevelSpeed> speeds) {
             this.name = name;
+            this.diff = diff;
+            displayDiff = diff == "level" || diff == null ? "DEFAULT" : diff.ToUpper();
             hpDrain = int.Parse(meta[0]);
             hpRestorage = int.Parse(meta[1]);
             //difficulty = meta[2];
@@ -84,8 +115,8 @@ namespace PPR.Main.Levels {
             List<LightLevelObject> objects = new List<LightLevelObject>();
             for(int i = 0; i < Math.Min(chars.Count, steps.Count); i++)
                 objects.Add(new LightLevelObject(chars[i], steps[i]));
-            difficulty = GetDifficulty(objects, speeds, (int)timeSpan.TotalMinutes)
-                .ToString("0.00", CultureInfo.InvariantCulture);
+            _actualDiff = GetDifficulty(objects, speeds, (int)timeSpan.TotalMinutes);
+            difficulty = _actualDiff.ToString("0.00", CultureInfo.InvariantCulture);
 
             int minStep = steps.Count > 0 ? steps.Min() : 0;
             int minTime = (int)Game.StepsToMilliseconds(minStep, speeds) + initialOffsetMs;
@@ -103,7 +134,7 @@ namespace PPR.Main.Levels {
             this.objectCount = objectCount;
             speedsCount = speeds.Count;
         }
-        public LevelMetadata(Level level, IReadOnlyList<string> meta, string name) : this(name, meta,
+        public LevelMetadata(Level level, IReadOnlyList<string> meta, string name, string diff) : this(name, diff, meta,
             level.objects.FindAll(obj => obj.character != LevelObject.HOLD_CHAR).Count,
             level.objects.FindAll(obj => obj.character != LevelObject.SPEED_CHAR).Select(obj => obj.character).ToList(),
             level.objects.FindAll(obj => obj.character != LevelObject.SPEED_CHAR).Select(obj => obj.step).ToList(), level.speeds) { }
@@ -171,13 +202,14 @@ namespace PPR.Main.Levels {
             // ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
             foreach(LevelSpeed speed in sortedSpeeds) bpm.Add(Math.Abs(speed.speed) / 60f);
             
-            diffFactors.Add(speeds.Average());
+            diffFactors.Add(speeds.Count > 0 ? speeds.Average() : 0f);
             diffFactors.Add(bpm.Average());
             diffFactors.Add(lengthMins);
 
             return diffFactors.Count > 0 ? diffFactors.Average() : 0f;
         }
-        public LevelMetadata(IReadOnlyList<string> lines, string name) : this(name, lines[4].Split(':'),
+        public LevelMetadata(IReadOnlyList<string> lines, string name, string diff) : this(name, diff,
+            lines[4].Split(':'),
             lines[0].ToList().FindAll(obj => obj != LevelObject.HOLD_CHAR).Count, lines[0].ToList(),
             lines[1].Length > 0 ? lines[1].Split(':').Select(int.Parse).ToList() : new List<int>(),
             SpeedsFromLists(
@@ -190,7 +222,19 @@ namespace PPR.Main.Levels {
         public readonly List<LevelSpeed> speeds = new List<LevelSpeed>();
         public readonly string script;
 
-        public Level(IReadOnlyList<string> lines, string name, string script = null) {
+        public static bool IsLevelValid(IReadOnlyList<string> lines) {
+            bool any;
+            try {
+                any = lines[1].Split(':').Select(int.Parse).Any();
+                any = any && lines[2].Split(':').Select(int.Parse).Any();
+                any = any && lines[3].Split(':').Select(int.Parse).Any();
+            }
+            catch(Exception) {
+                return false;
+            }
+            return any;
+        }
+        public Level(IReadOnlyList<string> lines, string name, string diff, string script = null) {
             int[] objectsSteps = lines[1].Length > 0 ? lines[1].Split(':').Select(int.Parse).ToArray() : new int[0];
             int[] speeds = lines[2].Length > 0 ? lines[2].Split(':').Select(int.Parse).ToArray() : new int[0];
             int[] speedsStarts = lines[3].Length > 0 ? lines[3].Split(':').Select(int.Parse).ToArray() : new int[0];
@@ -204,7 +248,7 @@ namespace PPR.Main.Levels {
             }
             this.speeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
             string[] meta = lines[4].Split(':');
-            metadata = new LevelMetadata(this, meta, name);
+            metadata = new LevelMetadata(this, meta, name, diff);
             this.script = script;
         }
     }

@@ -80,12 +80,15 @@ namespace PPR.Main.Levels {
             foreach(LevelObject obj in currentLevel.objects) obj.Simulate();
             DestroyToDestroy();
         }
-        public static void LoadLevelFromPath(string path, string name, bool loadMusic = true) => LoadLevelFromLines(File.ReadAllLines(Path.Join(path, "level.txt")), name,
-            loadMusic ? Game.GetSoundFilePath(Path.Join(path, "music")) : "",
-            Path.Join(path, "script.lua"));
-        public static void LoadLevelFromLines(string[] lines, string name, string musicPath, string scriptPath) {
+        public static void LoadLevelFromPath(string path, string name, string diff, bool loadMusic = true) {
+            string scriptPath = Path.Join(path, $"{diff}.lua");
+            if(!File.Exists(scriptPath)) scriptPath = Path.Join(path, "script.lua");
+            LoadLevelFromLines(File.ReadAllLines(Path.Join(path, $"{diff}.txt")), name, diff,
+                loadMusic ? Game.GetSoundFilePath(Path.Join(path, "music")) : "", scriptPath);
+        }
+        public static void LoadLevelFromLines(string[] lines, string name, string diff, string musicPath, string scriptPath) {
             linePos = Game.editing ? editorLinePos : gameLinePos;
-            currentLevel = new Level(lines, name, File.Exists(scriptPath) ? scriptPath : null);
+            currentLevel = new Level(lines, name, diff, File.Exists(scriptPath) ? scriptPath : null);
             Game.GameStart(musicPath);
         }
         public static string TextFromLevel(Level level) {
