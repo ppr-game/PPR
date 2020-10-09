@@ -609,6 +609,8 @@ namespace PPR.Main {
             List<LevelObject> speedObjects = Map.currentLevel.objects.FindAll(obj => obj.character == LevelObject.SPEED_CHAR);
             foreach(LevelObject obj in speedObjects) obj.toDestroy = true;
             foreach(LevelSpeed speed in Map.currentLevel.speeds) Map.currentLevel.objects.Add(new LevelObject(LevelObject.SPEED_CHAR, speed.step, Map.currentLevel.speeds));
+            
+            changed = true;
         }
         public static void KeyPressed(object caller, KeyEventArgs key) {
             // Back
@@ -636,10 +638,14 @@ namespace PPR.Main {
                     }
 
                     // Lines
-                    else if(Bindings.GetBinding("linesFrequencyUp").IsPressed(key))
+                    else if(Bindings.GetBinding("linesFrequencyUp").IsPressed(key)) {
                         Map.currentLevel.metadata.linesFrequency++;
-                    else if(Bindings.GetBinding("linesFrequencyDown").IsPressed(key))
+                        changed = true;
+                    }
+                    else if(Bindings.GetBinding("linesFrequencyDown").IsPressed(key)) {
                         Map.currentLevel.metadata.linesFrequency--;
+                        changed = true;
+                    }
 
                     // Speed
                     else if(Bindings.GetBinding("speedUpSlow").IsPressed(key)) ChangeSpeed(1);
@@ -648,24 +654,40 @@ namespace PPR.Main {
                     else if(Bindings.GetBinding("speedDown").IsPressed(key)) ChangeSpeed(-10);
 
                     // HP Drain/Restorage
-                    else if(Bindings.GetBinding("hpRestorageUp").IsPressed(key))
+                    else if(Bindings.GetBinding("hpRestorageUp").IsPressed(key)) {
                         Map.currentLevel.metadata.hpRestorage++;
-                    else if(Bindings.GetBinding("hpRestorageDown").IsPressed(key))
+                        changed = true;
+                    }
+                    else if(Bindings.GetBinding("hpRestorageDown").IsPressed(key)) {
                         Map.currentLevel.metadata.hpRestorage--;
-                    else if(Bindings.GetBinding("hpDrainUp").IsPressed(key))
+                        changed = true;
+                    }
+                    else if(Bindings.GetBinding("hpDrainUp").IsPressed(key)) {
                         Map.currentLevel.metadata.hpDrain++;
-                    else if(Bindings.GetBinding("hpDrainDown").IsPressed(key))
+                        changed = true;
+                    }
+                    else if(Bindings.GetBinding("hpDrainDown").IsPressed(key)) {
                         Map.currentLevel.metadata.hpDrain--;
+                        changed = true;
+                    }
 
                     // Initial offset
-                    else if(Bindings.GetBinding("initialOffsetUpBoost").IsPressed(key))
+                    else if(Bindings.GetBinding("initialOffsetUpBoost").IsPressed(key)) {
                         Map.currentLevel.metadata.initialOffsetMs += 10;
-                    else if(Bindings.GetBinding("initialOffsetDownBoost").IsPressed(key))
+                        changed = true;
+                    }
+                    else if(Bindings.GetBinding("initialOffsetDownBoost").IsPressed(key)) {
                         Map.currentLevel.metadata.initialOffsetMs -= 10;
-                    else if(Bindings.GetBinding("initialOffsetUp").IsPressed(key))
+                        changed = true;
+                    }
+                    else if(Bindings.GetBinding("initialOffsetUp").IsPressed(key)) {
                         Map.currentLevel.metadata.initialOffsetMs++;
-                    else if(Bindings.GetBinding("initialOffsetDown").IsPressed(key))
+                        changed = true;
+                    }
+                    else if(Bindings.GetBinding("initialOffsetDown").IsPressed(key)) {
                         Map.currentLevel.metadata.initialOffsetMs--;
+                        changed = true;
+                    }
 
                     // Fast scroll
                     else if(Bindings.GetBinding("fastScrollUp").IsPressed(key)) ScrollTime(10);
