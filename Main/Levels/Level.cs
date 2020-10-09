@@ -225,8 +225,7 @@ namespace PPR.Main.Levels {
         public static bool IsLevelValid(IReadOnlyList<string> lines) {
             bool any;
             try {
-                any = lines[1].Split(':').Select(int.Parse).Any();
-                any = any && lines[2].Split(':').Select(int.Parse).Any();
+                any = lines[2].Split(':').Select(int.Parse).Any();
                 any = any && lines[3].Split(':').Select(int.Parse).Any();
             }
             catch(Exception) {

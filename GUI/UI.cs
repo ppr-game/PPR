@@ -103,8 +103,6 @@ namespace PPR.GUI {
                 new InputKey("Right"));
             _levelSelectButtons = new List<Button> {
                 new Button(new Vector2i(25, 10), "AUTO", "levelSelect.auto", 4, new InputKey("Tab")),
-                new Button(new Vector2i(25, 10), "NEW", "levelSelect.new", 3,
-                    new InputKey("LControl+N,RControl+N")),
                 new Button(new Vector2i(39, 52), "BACK", "levelSelect.back", 4, new InputKey("Escape"), center)
             };
             _gameLastStatsButtons = new List<Button> {
@@ -341,13 +339,6 @@ namespace PPR.GUI {
             }
             foreach(Button button in _levelSelectButtons)
                 switch(button.text) {
-                    case "NEW" when Game.editing && button.Draw():
-                        _lastLevel = "unnamed";
-                        _lastDiff = "level";
-                        Map.LoadLevelFromPath(Path.Join("levels", "_template"), _lastLevel, _lastDiff, false);
-                        Game.currentMenu = Menu.Game;
-                        Game.RecalculatePosition();
-                        break;
                     case "AUTO" when !Game.editing: {
                         if(button.Draw()) Game.auto = !Game.auto;
                         button.selected = Game.auto;

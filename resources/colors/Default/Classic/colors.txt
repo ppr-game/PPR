@@ -148,10 +148,6 @@ button_levelSelect.auto_idle=background
 button_levelSelect.auto_hover=blue
 button_levelSelect.auto_click=dark_blue
 
-button_levelSelect.new_idle=background
-button_levelSelect.new_hover=green
-button_levelSelect.new_click=dark_green
-
 button_levelSelect.back_idle=background
 button_levelSelect.back_hover=back
 button_levelSelect.back_click=dark_back

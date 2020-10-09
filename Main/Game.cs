@@ -868,18 +868,60 @@ namespace PPR.Main {
             sortedSpeeds.FindAll(speed => speed.step >= start && speed.step <= end);
 
         static int GetInitialOffset(IReadOnlyList<string> lines) {
-            string[] meta = lines[4].Split(':');
+            string[] meta = lines.Count > 4 ? lines[4].Split(':') : Array.Empty<string>();
             return meta.Length > 5 ? int.Parse(meta[5]) : 0;
         }
         static List<LevelSpeed> GetSpeeds(IReadOnlyList<string> lines) {
-            int[] speeds = lines[2].Length > 0 ? lines[2].Split(':').Select(int.Parse).ToArray() : new int[0];
-            int[] speedsStarts = lines[3].Length > 0 ? lines[3].Split(':').Select(int.Parse).ToArray() : new int[0];
+            int[] speeds = lines.Count > 2 && lines[2].Length > 0 ? lines[2].Split(':').Select(int.Parse).ToArray() :
+                Array.Empty<int>();
+            int[] speedsStarts = lines.Count > 3 && lines[3].Length > 0 ?
+                lines[3].Split(':').Select(int.Parse).ToArray() : Array.Empty<int>();
             List<LevelSpeed> levelSpeeds = speedsStarts.Select((step, i) => new LevelSpeed(speeds[i], step)).ToList();
             levelSpeeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
             return levelSpeeds;
         }
 
+        static void RescanCreatedLevels() {
+            string[] infoFiles = Directory.GetFiles("levels").Where(file => Path.GetExtension(file) == ".txt").ToArray();
+            foreach(string infoFile in infoFiles) {
+                string musicPath = GetSoundFilePath(Path.Join(Path.GetDirectoryName(infoFile),
+                    Path.GetFileNameWithoutExtension(infoFile)));
+                string levelName = Path.GetFileNameWithoutExtension(infoFile);
+                
+                if(musicPath == "" && !Directory.Exists(Path.Join("levels", levelName))) continue;
+                
+                string musicExtension = Path.GetExtension(musicPath);
+                string[] diffsStr = File.ReadAllLines(infoFile);
+                string levelFolder = Directory.CreateDirectory(Path.Join("levels", levelName)).FullName;
+                
+                if(musicPath != "") File.Move(musicPath, Path.Join(levelFolder, $"music{musicExtension}"));
+                
+                foreach(string diffStr in diffsStr) {
+                    // Format the diff info
+                    string[] diffInfo = diffStr.Split(':');
+                    
+                    // Save the diff info
+                    string diffName = diffInfo[0].ToLowerInvariant();
+                    string diffAuthor = diffInfo.Length > 1 ? diffInfo[1] : "";
+                    
+                    // Copy the template level
+                    string[] levelLines = File.ReadAllLines(Path.Join("levels", "_template", "level.txt"));
+                    
+                    // Change the level author
+                    string[] meta = levelLines[4].Split(':');
+                    meta[3] = diffAuthor == "" ? meta[3] : diffAuthor;
+                    levelLines[4] = string.Join(':', meta);
+                    
+                    // Save the diff to the level folder
+                    File.WriteAllLines(Path.Join(levelFolder, $"{diffName}.txt"), levelLines);
+                }
+                
+                File.Delete(infoFile);
+            }
+        }
         static void GenerateLevelList() {
+            RescanCreatedLevels();
+            
             string[] directories = Directory.GetDirectories("levels")
                 .Where(path => Path.GetFileName(path) != "_template").ToArray();
             UI.levelSelectLevels = new Dictionary<string, LevelSelectLevel>(directories.Length);

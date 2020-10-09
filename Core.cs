@@ -34,7 +34,7 @@ namespace PPR {
         // bruh Rider wth
         // ReSharper disable once UnusedMember.Local
         static void Main() {
-            try {
+            //try {
                 renderer.UpdateFramerateSetting();
 
                 static void SubscribeEvents() {
@@ -84,10 +84,10 @@ namespace PPR {
                     
                     if(Game.exiting && UI.fadeOutFinished) renderer.window.Close();
                 }
-            }
+            /*}
             catch(Exception ex) {
                 logger.Fatal(ex);
-            }
+            }*/
         }
     }
 }
