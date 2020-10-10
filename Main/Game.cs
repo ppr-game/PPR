@@ -925,9 +925,20 @@ namespace PPR.Main {
                     // Save the diff info
                     string diffName = diffInfo[0].ToLowerInvariant();
                     string diffAuthor = diffInfo.Length > 1 ? diffInfo[1] : "";
+                    string newDiffName = diffInfo.Length > 2 && diffInfo[2] != "" ? diffInfo[2] : diffName;
+
+                    string diffPath = Path.Join(levelFolder, $"{diffName}.txt");
+                    string newDiffPath = Path.Join(levelFolder, $"{newDiffName}.txt");
+
+                    bool canUpdate = File.Exists(diffPath);
+                    bool updatingAuthor = canUpdate && diffAuthor != "";
+                    bool updatingName = canUpdate && newDiffName != diffName;
+                    bool updating = updatingAuthor || updatingName;
                     
                     // Copy the template level
-                    string[] levelLines = File.ReadAllLines(Path.Join("levels", "_template", "level.txt"));
+                    string[] levelLines = updating ?
+                        File.ReadAllLines(diffPath) :
+                        File.ReadAllLines(Path.Join("levels", "_template", "level.txt"));
                     
                     // Change the level author
                     string[] meta = levelLines[4].Split(':');
@@ -935,7 +946,10 @@ namespace PPR.Main {
                     levelLines[4] = string.Join(':', meta);
                     
                     // Save the diff to the level folder
-                    File.WriteAllLines(Path.Join(levelFolder, $"{diffName}.txt"), levelLines);
+                    File.WriteAllLines(newDiffPath, levelLines);
+                    
+                    // Delete the old diff file if we're updating the level name
+                    if(updatingName) File.Delete(diffPath);
                 }
                 
                 File.Delete(infoFile);
@@ -957,8 +971,9 @@ namespace PPR.Main {
                 for(int j = 0; j < diffFiles.Length; j++) {
                     string diffName = Path.GetFileNameWithoutExtension(diffFiles[j]);
                     string[] diffLines = File.ReadAllLines(Path.Join(directories[i], $"{diffName}.txt"));
-                    if(!Level.IsLevelValid(diffLines)) continue;
-                    string diffDisplayName = diffName == "level" || diffName == null ? "DEFAULT" : diffName.ToUpper();
+                    if(!Level.IsLevelValid(diffLines) || diffName == null ||
+                       diffName != diffName.ToLowerInvariant()) continue;
+                    string diffDisplayName = diffName == "level" ? "DEFAULT" : diffName.ToUpper();
                     LevelMetadata metadata = new LevelMetadata(diffLines, levelName, diffName);
                     LevelSelectDiff diff = new LevelSelectDiff {
                         button = new Button(new Vector2i(),
@@ -977,7 +992,7 @@ namespace PPR.Main {
                     logger.Info("Loaded scores for level '{0}' diff '{1}', total scores count: {2}",
                         levelName, diffName, diff.scores.Count);
                     
-                    level.diffs.Add(diffName ?? j.ToString(), diff);
+                    level.diffs.Add(diffName, diff);
                 }
                 List<KeyValuePair<string, LevelSelectDiff>> sortedDiffs =
                     level.diffs.OrderBy(pair => pair.Value.metadata.actualDiff).ToList();
