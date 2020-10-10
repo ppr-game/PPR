@@ -331,14 +331,12 @@ namespace PPR.Main.Levels {
             int x = GetXPosForCharacter(character);
             if(character == HOLD_CHAR && objects != null) {
                 List<LevelObject> existingObjects = new List<LevelObject>(objects);
-                existingObjects.Sort((obj1, obj2) => -obj1.step.CompareTo(obj2.step));
-                foreach(LevelObject obj in existingObjects.Where(obj =>
-                    obj.step <= step && obj.character != SPEED_CHAR && obj.character != HOLD_CHAR)) {
-                    x = obj._position.X;
-                    _key = obj._key;
-                    obj.ignore = true;
-                    break;
-                }
+                existingObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
+                LevelObject keyObject = existingObjects.Last(obj =>
+                obj.step <= step && obj.character != SPEED_CHAR && obj.character != HOLD_CHAR);
+                x = keyObject._position.X;
+                _key = keyObject._key;
+                keyObject.ignore = true;
             }
             List<LevelSpeed> existingSpeeds = new List<LevelSpeed>(speeds);
             existingSpeeds.Sort((spd1, spd2) => spd1.step.CompareTo(spd2.step));
