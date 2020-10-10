@@ -295,7 +295,7 @@ namespace PPR.Main.Levels {
         public int xPos => _startPosition.X;
         readonly Vector2i _startPosition;
         public readonly char character;
-        readonly Keyboard.Key _key;
+        public readonly Keyboard.Key key;
         public readonly int step;
         readonly int _directionLayer;
         Color _hitColor;
@@ -346,7 +346,7 @@ namespace PPR.Main.Levels {
                 LevelObject keyObject = existingObjects.Last(obj =>
                 obj.step <= step && obj.character != SPEED_CHAR && obj.character != HOLD_CHAR);
                 x = keyObject._position.X;
-                _key = keyObject._key;
+                key = keyObject.key;
                 keyObject.ignore = true;
             }
             List<LevelSpeed> existingSpeeds = new List<LevelSpeed>(speeds);
@@ -354,7 +354,7 @@ namespace PPR.Main.Levels {
             _startPosition = new Vector2i(x, Map.linePos.Y - (int)Game.StepsToOffset(step, existingSpeeds));
             _position = _startPosition;
             this.character = character;
-            char lineChar = character == HOLD_CHAR ? Game.GetNoteBinding(_key) : character;
+            char lineChar = character == HOLD_CHAR ? Game.GetNoteBinding(key) : character;
             lineChar = char.ToLower(lineChar);
             foreach(string line in lines) {
                 if(line.Contains(lineChar)) break;
@@ -363,7 +363,7 @@ namespace PPR.Main.Levels {
             UpdateColors();
             this.step = step;
             _directionLayer = Game.StepsToDirectionLayer(step, existingSpeeds);
-            _key = char.ToUpper(character) switch {
+            key = char.ToUpper(character) switch {
                 '1' => Keyboard.Key.Num1,
                 '2' => Keyboard.Key.Num2,
                 '3' => Keyboard.Key.Num3,
@@ -409,7 +409,7 @@ namespace PPR.Main.Levels {
                 ',' => Keyboard.Key.Comma,
                 '.' => Keyboard.Key.Period,
                 '/' => Keyboard.Key.Slash,
-                _ => _key
+                _ => key
             };
         }
         public void UpdateColors() {
@@ -470,7 +470,7 @@ namespace PPR.Main.Levels {
         }
         public void CheckPress() {
             if(removed || toDestroy || ignore) return;
-            if(Game.auto || Keyboard.IsKeyPressed(_key)) CheckHit();
+            if(Game.auto || Keyboard.IsKeyPressed(key)) CheckHit();
         }
         void PlayHitsound() {
             if(character == SPEED_CHAR || ignore || removed || toDestroy) return;

@@ -629,12 +629,12 @@ namespace PPR.Main {
             if(currentMenu != Menu.Game) return;
             char character = GetNoteBinding(key.Code);
             if(editing) {
-                if(character == '\0' || key.System || key.Control || key.Alt) {
+                if(character == '\0' || key.Control) {
                     // Erase
                     if(Bindings.GetBinding("erase").IsPressed(key)) {
                         List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj =>
-                            obj.character != LevelObject.SPEED_CHAR && Map.selecting ?
-                                Map.OffsetSelected(StepsToOffset(obj.step)) : obj.step == (int)steps);
+                            obj.character != LevelObject.SPEED_CHAR && (Map.selecting ?
+                                Map.OffsetSelected(StepsToOffset(obj.step)) : obj.step == (int)steps));
                         foreach(LevelObject obj in objects) {
                             obj.toDestroy = true;
                             
@@ -743,16 +743,30 @@ namespace PPR.Main {
                     else if(Bindings.GetBinding("fastScrollDown").IsPressed(key)) ScrollTime(-10);
                 }
                 else {
-                    if(Map.currentLevel.objects.FindAll(obj => obj.character == character && obj.step == (int)steps).Count <= 0) {
+                    if(key.Alt) {
+                        List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj =>
+                            obj.character != LevelObject.SPEED_CHAR && (Map.selecting ?
+                                Map.OffsetSelected(StepsToOffset(obj.step)) : obj.step == (int)steps) &&
+                            obj.key == key.Code);
+                        foreach(LevelObject obj in objects) {
+                            obj.toDestroy = true;
+                            
+                            changed = true;
+                            Map.selecting = false;
+                        }
+                    }
+                    else if(Map.currentLevel.objects.FindAll(obj => obj.character == character && obj.step == (int)steps)
+                        .Count <= 0) {
                         Map.currentLevel.objects.Add(new LevelObject(character, (int)steps, Map.currentLevel.speeds));
                         if(key.Shift) {
                             character = LevelObject.HOLD_CHAR;
-                            Map.currentLevel.objects.Add(new LevelObject(character, (int)steps, Map.currentLevel.speeds, Map.currentLevel.objects));
+                            Map.currentLevel.objects.Add(new LevelObject(character, (int)steps, Map.currentLevel.speeds,
+                                Map.currentLevel.objects));
                         }
-                    }
 
-                    changed = true;
-                    Map.selecting = false;
+                        changed = true;
+                        Map.selecting = false;
+                    }
                 }
 
                 if(changed) {
