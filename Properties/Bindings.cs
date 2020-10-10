@@ -35,7 +35,10 @@ namespace PPR.Properties {
                 { "speedDownSlow", new InputKey("LShift+Down,RShift+Down") },
                 { "fastScrollUp", new InputKey("PageUp") },
                 { "fastScrollDown", new InputKey("PageDown") },
-                { "fullscreen", new InputKey("F11") }
+                { "fullscreen", new InputKey("F11") },
+                { "cut", new InputKey("LControl+X,RControl+X") },
+                { "copy", new InputKey("LControl+C,RControl+C") },
+                { "paste", new InputKey("LControl+V,RControl+V") }
             };
             
             LoadBindings();

@@ -210,6 +210,11 @@ dark_music_offset=darker_gray
 guidelines=8,8,8
 light_guidelines=12,12,12
 
+selection=foreground
+selected_guidelines=243,243,243
+selected_light_guidelines=231,231,231
+selected_note=background
+
 # Level editor buttons
 button_editor.playPause_idle=background
 button_editor.playPause_hover=green

@@ -18,6 +18,13 @@ namespace PPR.Main.Levels {
         public static int flashLine {
             set => lineFlashTimes[value] = 1f;
         }
+        public static readonly List<ClipboardLevelObject> clipboard = new List<ClipboardLevelObject>();
+        public static bool selecting;
+        static int _selectionStart;
+        static int _selectionEnd;
+        static bool lmb => Core.renderer.leftButtonPressed;
+        static bool _prevLMB;
+        static Vector2f _prevMPosF;
         public static void Draw() {
             if(Game.currentMenu != Menu.Game) return;
 
@@ -31,18 +38,39 @@ namespace PPR.Main.Levels {
             Core.renderer.DrawText(linePos,
                 "────────────────────────────────────────────────────────────────────────────────");
             if(Game.editing) {
+                if(Core.renderer.mousePosition.Y >= 1 && Core.renderer.mousePosition.Y <= gameLinePos.Y)
+                    if(lmb) {
+                        _selectionEnd = linePos.Y - Core.renderer.mousePosition.Y + Game.roundedOffset;
+                        
+                        if(lmb != _prevLMB) {
+                            selecting = false;
+                            _selectionStart = _selectionEnd;
+                        }
+
+                        if(Core.renderer.mousePositionF.Y != _prevMPosF.Y) selecting = true;
+                    }
+
                 int doubleFrequency = currentLevel.metadata.linesFrequency * 2;
                 for(int y = -linePos.Y; y < 30 + currentLevel.metadata.linesFrequency; y++) {
-                    int useY = y + Game.roundedOffset % doubleFrequency - doubleFrequency + linePos.Y;
+                    int offsetY = y + Game.roundedOffset % doubleFrequency - doubleFrequency;
+                    int useY = offsetY + linePos.Y;
+                    bool selected = OffsetSelected(Game.roundedOffset - offsetY);
                     if(useY > gameLinePos.Y) continue;
                     if(y % currentLevel.metadata.linesFrequency == 0)
                         for(int x = 0; x < 80; x++)
-                            Core.renderer.SetCellColor(new Vector2i(x, useY), ColorScheme.GetColor("foreground"),
-                                ColorScheme.GetColor("light_guidelines"));
+                            Core.renderer.SetCellColor(new Vector2i(x, useY),
+                                ColorScheme.GetColor("foreground"),
+                                ColorScheme.GetColor(selected ? "selected_light_guidelines" : "light_guidelines"));
                     else if(y % 2 == 0)
                         for(int x = 0; x < 80; x++)
-                            Core.renderer.SetCellColor(new Vector2i(x, useY), ColorScheme.GetColor("foreground"),
-                                ColorScheme.GetColor("guidelines"));
+                            Core.renderer.SetCellColor(new Vector2i(x, useY),
+                                ColorScheme.GetColor("foreground"),
+                                ColorScheme.GetColor(selected ? "selected_guidelines" : "guidelines"));
+                    else if(selected)
+                        for(int x = 0; x < 80; x++)
+                            Core.renderer.SetCellColor(new Vector2i(x, useY),
+                                ColorScheme.GetColor("foreground"),
+                                ColorScheme.GetColor("selection"));
                 }
 
                 /*for(int x = 0; x < 80; x++) {
@@ -59,7 +87,19 @@ namespace PPR.Main.Levels {
             foreach(LevelObject obj in currentLevel.objects) obj.Draw();
 
             Lua.DrawMap();
+
+            _prevLMB = Core.renderer.leftButtonPressed;
+            _prevMPosF = Core.renderer.mousePositionF;
         }
+
+        public static bool OffsetSelected(float offset) {
+            if(!selecting) return false;
+            int selA = _selectionStart <= _selectionEnd ? _selectionStart : _selectionEnd;
+            int selB = _selectionStart >= _selectionEnd ? _selectionStart : _selectionEnd;
+            return offset >= selA && offset <= selB;
+        }
+        public static List<LevelObject> GetSelectedObjects() => currentLevel.objects.FindAll(obj =>
+            OffsetSelected(Game.StepsToOffset(obj.step)) && obj.character != LevelObject.SPEED_CHAR);
 
         static void DestroyToDestroy() {
             int destroyIndex = 0;

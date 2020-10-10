@@ -28,3 +28,6 @@ stats_level_name=black
 
 guidelines=243,243,243
 light_guidelines=231,231,231
+
+selected_guidelines=8,8,8
+selected_light_guidelines=12,12,12

@@ -267,6 +267,16 @@ namespace PPR.Main.Levels {
             this.step = step;
         }
     }
+    public struct ClipboardLevelObject {
+        public readonly char character;
+        public readonly int step;
+        public readonly int xPos;
+        public ClipboardLevelObject(char character, int step, int xPos) {
+            this.character = character;
+            this.step = step;
+            this.xPos = xPos;
+        }
+    }
     public class LevelObject {
         static readonly string[] lines = new string[] {
             "1234567890-=", // ReSharper disable once StringLiteralTypo
@@ -282,6 +292,7 @@ namespace PPR.Main.Levels {
         public static int hitRange;
         public static int missRange;
         Vector2i _position;
+        public int xPos => _startPosition.X;
         readonly Vector2i _startPosition;
         public readonly char character;
         readonly Keyboard.Key _key;
@@ -407,9 +418,11 @@ namespace PPR.Main.Levels {
             _nextDirLayerColor = linesDarkColors[_line];
         }
 
-        Color NormalColor() => NormalColor(_directionLayer, Game.currentDirectionLayer, _color, _nextDirLayerColor);
-        static Color NormalColor(int noteDirLayer, int curDirLayer, Color color, Color nextDirLayerColor) {
+        Color NormalColor() => NormalColor(_directionLayer, Game.currentDirectionLayer, _color, _nextDirLayerColor,
+            Map.OffsetSelected(Game.StepsToOffset(step)));
+        static Color NormalColor(int noteDirLayer, int curDirLayer, Color color, Color nextDirLayerColor, bool selected) {
             int difference = Math.Abs(noteDirLayer - curDirLayer);
+            if(selected && difference <= 1) return ColorScheme.GetColor("selected_note");
             return difference switch {
                 0 => color,
                 1 => nextDirLayerColor,

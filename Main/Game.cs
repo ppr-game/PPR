@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -80,6 +81,7 @@ namespace PPR.Main {
                 if(_currentMenu != value) {
                     Core.pauseDrawing = true;
                     UI.FadeOut(value == Menu.Game ? 10f : 7f);
+                    Map.selecting = false;
                 }
                 _currentMenu = value;
                 switch(value) {
@@ -627,14 +629,61 @@ namespace PPR.Main {
             if(currentMenu != Menu.Game) return;
             char character = GetNoteBinding(key.Code);
             if(editing) {
-                if(character == '\0') {
+                if(character == '\0' || key.System || key.Control || key.Alt) {
                     // Erase
                     if(Bindings.GetBinding("erase").IsPressed(key)) {
-                        List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.step == (int)steps &&
-                                                                                            obj.character != LevelObject.SPEED_CHAR);
-                        foreach(LevelObject obj in objects) obj.toDestroy = true;
+                        List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj =>
+                            obj.character != LevelObject.SPEED_CHAR && Map.selecting ?
+                                Map.OffsetSelected(StepsToOffset(obj.step)) : obj.step == (int)steps);
+                        foreach(LevelObject obj in objects) {
+                            obj.toDestroy = true;
+                            
+                            changed = true;
+                            Map.selecting = false;
+                        }
+                    }
+                    
+                    else if(Bindings.GetBinding("cut").IsPressed(key)) {
+                        Map.clipboard.Clear();
+                        List<LevelObject> selectedObjects = Map.GetSelectedObjects();
+                        if(selectedObjects.Count > 0) {
+                            selectedObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
+                            LevelObject firstObj = selectedObjects.First();
+                            foreach(LevelObject obj in Map.GetSelectedObjects()) {
+                                Map.clipboard.Add(new ClipboardLevelObject(obj.character, obj.step - firstObj.step,
+                                    obj.xPos));
+                                Map.currentLevel.objects.Remove(obj);
 
-                        changed = true;
+                                changed = true;
+                                Map.selecting = false;
+                            }
+                        }
+                    }
+                    else if(Bindings.GetBinding("copy").IsPressed(key)) {
+                        Map.clipboard.Clear();
+                        List<LevelObject> selectedObjects = Map.GetSelectedObjects();
+                        if(selectedObjects.Count > 0) {
+                            selectedObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
+                            LevelObject firstObj = selectedObjects.First();
+                            foreach(LevelObject obj in Map.GetSelectedObjects()) {
+                                Map.clipboard.Add(new ClipboardLevelObject(obj.character, obj.step - firstObj.step,
+                                    obj.xPos));
+                                
+                                Map.selecting = false;
+                            }
+                        }
+                    }
+                    else if(Bindings.GetBinding("paste").IsPressed(key)) {
+                        foreach(ClipboardLevelObject obj in Map.clipboard)
+                            if(Map.currentLevel.objects.All(mapObj => mapObj.character != obj.character ||
+                                                                      mapObj.xPos != obj.xPos ||
+                                                                      mapObj.step != obj.step + roundedSteps)) {
+                                Map.currentLevel.objects.Add(new LevelObject(obj.character, obj.step + roundedSteps,
+                                    Map.currentLevel.speeds, Map.currentLevel.objects));
+                                
+                                changed = true;
+                                Map.selecting = false;
+                            }
                     }
 
                     // Lines
@@ -703,6 +752,7 @@ namespace PPR.Main {
                     }
 
                     changed = true;
+                    Map.selecting = false;
                 }
 
                 if(changed) {
