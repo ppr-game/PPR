@@ -303,6 +303,7 @@ namespace PPR.Main.Levels {
         Color _color;
         Color _nextDirLayerColor;
         public static Color speedColor;
+        public static Color nextDirLayerSpeedColor;
 
         public bool removed;
         float _removeAnimationTime;
@@ -418,6 +419,8 @@ namespace PPR.Main.Levels {
             _nextDirLayerColor = linesDarkColors[_line];
         }
 
+        Color SpeedColor() => NormalColor(_directionLayer, Game.currentDirectionLayer, speedColor,
+            nextDirLayerSpeedColor, Map.OffsetSelected(Game.StepsToOffset(step)));
         Color NormalColor() => NormalColor(_directionLayer, Game.currentDirectionLayer, _color, _nextDirLayerColor,
             Map.OffsetSelected(Game.StepsToOffset(step)));
         static Color NormalColor(int noteDirLayer, int curDirLayer, Color color, Color nextDirLayerColor, bool selected) {
@@ -447,7 +450,7 @@ namespace PPR.Main.Levels {
                (!Game.editing || (_position.Y <= Map.gameLinePos.Y && _directionLayer - Game.currentDirectionLayer >= 0)) &&
                (_directionLayer == Game.currentDirectionLayer || Core.renderer.GetDisplayedCharacter(_position) == '\0'))
                 Core.renderer.SetCharacter(_position, new RenderCharacter(character,
-                    ColorScheme.GetColor("transparent"), character == SPEED_CHAR ? speedColor : NormalColor()));
+                    ColorScheme.GetColor("transparent"), character == SPEED_CHAR ? SpeedColor() : NormalColor()));
         }
         public void Simulate() {
             if(removed || toDestroy || Game.editing || !Game.StepPassedLine(step)) return;

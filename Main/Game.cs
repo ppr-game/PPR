@@ -231,6 +231,7 @@ namespace PPR.Main {
             };
             if(Map.currentLevel != null) foreach(LevelObject obj in Map.currentLevel.objects) obj.UpdateColors();
             LevelObject.speedColor = ColorScheme.GetColor("speed");
+            LevelObject.nextDirLayerSpeedColor = ColorScheme.GetColor("next_dir_layer_speed");
         }
 
         public static string GetSoundFilePath(string pathWithoutExtension) {

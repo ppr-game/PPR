@@ -125,6 +125,7 @@ line_3_bg_color=dark_green
 line_4_bg_color=dark_blue
 
 speed=blue
+next_dir_layer_speed=dark_blue
 
 game_level_name=black
 game_music_time=black
