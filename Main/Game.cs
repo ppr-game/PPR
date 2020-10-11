@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -605,7 +604,13 @@ namespace PPR.Main {
             Map.currentLevel.speeds[index].speed += delta;
             
             // Remove the current speed if it's the same as the previous one
-            if(index >= 1 && Map.currentLevel.speeds[index].speed == Map.currentLevel.speeds[index - 1].speed) Map.currentLevel.speeds.RemoveAt(index);
+            if(index >= 1 && Map.currentLevel.speeds[index].speed == Map.currentLevel.speeds[index - 1].speed)
+                Map.currentLevel.speeds.RemoveAt(index);
+            
+            // Remove the next speed if it's the same as the current one
+            if(index < Map.currentLevel.speeds.Count - 1 &&
+               Map.currentLevel.speeds[index].speed == Map.currentLevel.speeds[index + 1].speed)
+                Map.currentLevel.speeds.RemoveAt(index + 1);
 
             // Recreate the objects that show the speeds
             List<LevelObject> speedObjects = Map.currentLevel.objects.FindAll(obj => obj.character == LevelObject.SPEED_CHAR);
