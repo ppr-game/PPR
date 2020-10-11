@@ -259,7 +259,7 @@ namespace PPR.Main.Levels {
             this.step = step;
         }
     }
-    public class LightLevelObject {
+    public readonly struct LightLevelObject {
         public readonly char character;
         public readonly int step;
         public LightLevelObject(char character, int step) {
@@ -267,7 +267,7 @@ namespace PPR.Main.Levels {
             this.step = step;
         }
     }
-    public struct ClipboardLevelObject {
+    public readonly struct ClipboardLevelObject {
         public readonly char character;
         public readonly int step;
         public readonly int xPos;

@@ -22,6 +22,8 @@ namespace PPR.Main.Levels {
         public static bool selecting;
         static int _selectionStart;
         static int _selectionEnd;
+        public static int selectionStart => _selectionStart <= _selectionEnd ? _selectionStart : _selectionEnd;
+        public static int selectionEnd => _selectionStart >= _selectionEnd ? _selectionStart : _selectionEnd;
         static bool lmb => Core.renderer.leftButtonPressed;
         static bool _prevLMB;
         static Vector2f _prevMPosF;
@@ -94,9 +96,7 @@ namespace PPR.Main.Levels {
 
         public static bool OffsetSelected(float offset) {
             if(!selecting) return false;
-            int selA = _selectionStart <= _selectionEnd ? _selectionStart : _selectionEnd;
-            int selB = _selectionStart >= _selectionEnd ? _selectionStart : _selectionEnd;
-            return offset >= selA && offset <= selB;
+            return offset >= selectionStart && offset <= selectionEnd;
         }
         public static List<LevelObject> GetSelectedObjects() => currentLevel.objects.FindAll(obj =>
             OffsetSelected(Game.StepsToOffset(obj.step)) && obj.character != LevelObject.SPEED_CHAR);

@@ -755,17 +755,37 @@ namespace PPR.Main {
                             Map.selecting = false;
                         }
                     }
-                    else if(Map.currentLevel.objects.FindAll(obj => obj.character == character && obj.step == (int)steps)
-                        .Count <= 0) {
-                        Map.currentLevel.objects.Add(new LevelObject(character, (int)steps, Map.currentLevel.speeds));
-                        if(key.Shift) {
+                    // Map.currentLevel.objects.FindAll(obj => obj.character == character && obj.step == (int)steps)
+                    //     .Count <= 0
+                    else {
+                        List<LightLevelObject> toCreate = new List<LightLevelObject>();
+                        
+                        if(Map.selecting)
+                            for(int i = Map.selectionStart; i <= Map.selectionEnd; i++) {
+                                float step = OffsetToSteps(i, currentDirectionLayer);
+                                if(float.IsNaN(step) || Map.currentLevel.objects.Any(obj =>
+                                    obj.character != LevelObject.SPEED_CHAR && obj.step == step &&
+                                    obj.key == key.Code)) continue;
+                                toCreate.Add(new LightLevelObject(character, (int)step));
+                            }
+                        else if(!Map.currentLevel.objects.Any(obj =>
+                            obj.character != LevelObject.SPEED_CHAR && obj.step == (int)steps &&
+                            obj.key == key.Code)) toCreate.Add(new LightLevelObject(character, (int)steps));
+
+                        foreach(LightLevelObject obj in toCreate) {
+                            Map.currentLevel.objects.Add(new LevelObject(obj.character, obj.step,
+                                Map.currentLevel.speeds));
+                            if(!key.Shift) continue;
                             character = LevelObject.HOLD_CHAR;
-                            Map.currentLevel.objects.Add(new LevelObject(character, (int)steps, Map.currentLevel.speeds,
+                            Map.currentLevel.objects.Add(new LevelObject(character, obj.step,
+                                Map.currentLevel.speeds,
                                 Map.currentLevel.objects));
                         }
 
-                        changed = true;
-                        Map.selecting = false;
+                        if(toCreate.Count > 0) {
+                            changed = true;
+                            Map.selecting = false;
+                        }
                     }
                 }
 
@@ -926,6 +946,19 @@ namespace PPR.Main {
                 }
 
             return offset;
+        }
+        // ReSharper disable once MemberCanBePrivate.Global
+        public static float OffsetToSteps(float offset, int directionLayer) =>
+            OffsetToSteps(offset, directionLayer, Map.currentLevel.speeds);
+        public static float OffsetToSteps(float offset, int directionLayer, List<LevelSpeed> sortedSpeeds) {
+            for(int i = sortedSpeeds.Count - 1; i >= 0; i--) {
+                float currentOffset = StepsToOffset(sortedSpeeds[i].step);
+                if(currentOffset <= offset &&
+                   StepsToDirectionLayer(sortedSpeeds[i].step) == directionLayer)
+                    return sortedSpeeds[i].step + offset - currentOffset;
+            }
+
+            return float.NaN;
         }
         // ReSharper disable once MemberCanBePrivate.Global
         public static int StepsToDirectionLayer(float steps) => StepsToDirectionLayer(steps, Map.currentLevel.speeds);
