@@ -789,7 +789,7 @@ namespace PPR.Main {
 
                         if(toCreate.Count > 0) {
                             changed = true;
-                            Map.selecting = false;
+                            if(!Core.renderer.leftButtonPressed) Map.selecting = false;
                         }
                     }
                 }
@@ -797,9 +797,9 @@ namespace PPR.Main {
                 if(changed) {
                     List<int> objSteps = Map.currentLevel.objects.Select(obj => obj.step).ToList();
                     Map.currentLevel.metadata.maxStep = objSteps.Count > 0 ? objSteps.Max() : 0;
-                    TimeSpan timeSpan = TimeSpan.FromMilliseconds(
-                        StepsToMilliseconds(Map.currentLevel.metadata.maxStep) -
-                        Map.currentLevel.metadata.initialOffsetMs);
+                    float ms = StepsToMilliseconds(Map.currentLevel.metadata.maxStep) -
+                               Map.currentLevel.metadata.initialOffsetMs;
+                    TimeSpan timeSpan = TimeSpan.FromMilliseconds(float.IsNaN(ms) ? 0d : ms);
                     Map.currentLevel.metadata.length =
                         $"{(timeSpan < TimeSpan.Zero ? "-" : "")}{timeSpan.ToString($"{(timeSpan.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
                     Map.currentLevel.metadata.difficulty = LevelMetadata.GetDifficulty(Map.currentLevel.objects,
@@ -907,8 +907,12 @@ namespace PPR.Main {
                 if(sortedSpeeds[i].step <= useSteps) speedIndex = i;
             float time = 0;
             for(int i = 0; i <= speedIndex; i++)
-                if(i == speedIndex) time += (useSteps - sortedSpeeds[i].step) * (60000f / Math.Abs(sortedSpeeds[i].speed));
-                else time += (sortedSpeeds[i + 1].step - sortedSpeeds[i].step) * (60000f / Math.Abs(sortedSpeeds[i].speed));
+                if(i == speedIndex)
+                    time += (useSteps - sortedSpeeds[i].step) *
+                            (sortedSpeeds[i].speed == 0 ? 0 : 60000f / Math.Abs(sortedSpeeds[i].speed));
+                else
+                    time += (sortedSpeeds[i + 1].step - sortedSpeeds[i].step) *
+                            (sortedSpeeds[i].speed == 0 ? 0 : 60000f / Math.Abs(sortedSpeeds[i].speed));
             return time;
         }
         // ReSharper disable once MemberCanBePrivate.Global
@@ -923,11 +927,13 @@ namespace PPR.Main {
                 else break;
             float steps = 0;
             for(int i = 0; i <= speedIndex; i++)
-                if(i == speedIndex) steps += useTime / (60000f / Math.Abs(sortedSpeeds[i].speed));
+                if(i == speedIndex)
+                    steps += sortedSpeeds[i].speed == 0 ? 0 : useTime / (60000f / Math.Abs(sortedSpeeds[i].speed));
                 else {
                     int stepsIncrement = sortedSpeeds[i + 1].step - sortedSpeeds[i].step;
                     steps += stepsIncrement;
-                    useTime -= stepsIncrement * (60000f / Math.Abs(sortedSpeeds[i].speed));
+                    useTime -= stepsIncrement *
+                               (sortedSpeeds[i].speed == 0 ? 0 : 60000f / Math.Abs(sortedSpeeds[i].speed));
                 }
 
             return steps;
