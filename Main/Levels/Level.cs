@@ -341,10 +341,10 @@ namespace PPR.Main.Levels {
             character = Settings.GetBool("uppercaseNotes") ? char.ToUpper(character) : char.ToLower(character);
             int x = GetXPosForCharacter(character);
             if(character == HOLD_CHAR && objects != null) {
-                List<LevelObject> existingObjects = new List<LevelObject>(objects);
-                existingObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
+                List<LevelObject> existingObjects = objects.Where(obj =>
+                    obj.step == step && obj.character != SPEED_CHAR && obj.character != HOLD_CHAR).ToList();
                 LevelObject keyObject = existingObjects.Last(obj =>
-                obj.step <= step && obj.character != SPEED_CHAR && obj.character != HOLD_CHAR);
+                    obj.step == step && obj.character != SPEED_CHAR && obj.character != HOLD_CHAR);
                 x = keyObject._position.X;
                 key = keyObject.key;
                 keyObject.ignore = true;
