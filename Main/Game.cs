@@ -770,7 +770,7 @@ namespace PPR.Main {
                                 float step = OffsetToSteps(i, currentDirectionLayer);
                                 if(float.IsNaN(step) || Map.currentLevel.objects.Any(obj =>
                                     obj.character != LevelObject.SPEED_CHAR && obj.step == step &&
-                                    obj.key == key.Code)) continue;
+                                    obj.key == key.Code) || StepsToDirectionLayer(step) != currentDirectionLayer) continue;
                                 toCreate.Add(new LightLevelObject(character, (int)step));
                             }
                         else if(!Map.currentLevel.objects.Any(obj =>
