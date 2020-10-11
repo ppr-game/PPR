@@ -71,6 +71,9 @@ The numbers on the **green**, **yellow** and **red** backgrounds are your curren
 
 If you want to add more difficulties to your level than you originally created, repeat steps 4-7
 
+If you want to rename the difficulty or change it's author, use the following format: `Old difficulty name:New author:New difficulty name`
+(you can also only rename or only change the author: `Old difficulty name::New difficulty name`, `Difficulty name:New author`)
+
 Example text file:
 ```
 Very easy:coolDUDE420
@@ -89,11 +92,20 @@ Very hard omg noscope 360 pro:ConfiG
 
 - `Drag the progress bar line at the top` - scroll the time with your mouse
 
-- `Any English letter`, `any number` or `-`, `=`, `[`, `]`, `;`, `'`, `,`, `.`, `/` - place a corresponding note on the line (`+ Shift` - place a hold note)
+- `Any English letter`, `any number` or `-`, `=`, `[`, `]`, `;`, `'`, `,`, `.`, `/` - place a corresponding note on the line or selection
+(`+ Shift` - place a hold note, `+ Alt` - remove only this note on the line or selection)
 
-- `Backspace` - remove all the notes on the line
+- `Backspace` - remove all the notes on the line or selection
 
 - `Up/down arrows` - increase/decrease the speed by 10 BPM (`+ Shift` - 1 BPM) (`+ Alt` - increase/decrease the guide lines spacing)
+
+- `Hold left mouse button` - select
+
+- `Ctrl + C` - copy selection
+
+- `Ctrl + X` - cut selection
+
+- `Ctrl + V` - paste selection
 
 #### *In case you want to use the keyboard instead of the UI buttons*
 - `Left/right arrows` - decrease/increase the health drain *(the value which will be subtracted from the **health** on **misses**)* (`+ Shift` - restorage (the opposite of drain))
