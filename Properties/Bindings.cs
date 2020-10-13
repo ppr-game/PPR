@@ -8,7 +8,7 @@ namespace PPR.Properties {
     public static class Bindings {
         static readonly Logger logger = LogManager.GetCurrentClassLogger();
         
-        const string PATH = "keybinds.txt";
+        const string Path = "keybinds.txt";
 
         public static Dictionary<string, InputKey> keys;
         
@@ -45,11 +45,11 @@ namespace PPR.Properties {
         }
         
         static void LoadBindings() {
-            if(!File.Exists(PATH)) {
+            if(!File.Exists(Path)) {
                 logger.Info("The bindings file was not found, using default bindings");
                 return;
             }
-            string[] lines = File.ReadAllLines(PATH);
+            string[] lines = File.ReadAllLines(Path);
             
             foreach(string line in lines) {
                 string usableLine = line.Split('#')[0].Replace(' ', '\0');
@@ -61,7 +61,7 @@ namespace PPR.Properties {
                 keys[key] = new InputKey(value);
             }
         }
-        public static void SaveBindings() => File.WriteAllLines(PATH, keys.Select(value => $"{value.Key}={value.Value.asString}").ToArray());
+        public static void SaveBindings() => File.WriteAllLines(Path, keys.Select(value => $"{value.Key}={value.Value.asString}").ToArray());
 
         public static InputKey GetBinding(string name) => keys.TryGetValue(name, out InputKey key) ? key : null;
     }

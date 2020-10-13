@@ -83,6 +83,8 @@ namespace PPR.Main {
                     Map.selecting = false;
                 }
                 _currentMenu = value;
+                
+                // Update Rich Presence
                 switch(value) {
                     case Menu.Main:
                         RPC.SetPresence("In main menu");
@@ -614,9 +616,9 @@ namespace PPR.Main {
                 Map.currentLevel.speeds.RemoveAt(index + 1);
 
             // Recreate the objects that show the speeds
-            List<LevelObject> speedObjects = Map.currentLevel.objects.FindAll(obj => obj.character == LevelObject.SPEED_CHAR);
+            List<LevelObject> speedObjects = Map.currentLevel.objects.FindAll(obj => obj.character == LevelObject.SpeedChar);
             foreach(LevelObject obj in speedObjects) obj.toDestroy = true;
-            foreach(LevelSpeed speed in Map.currentLevel.speeds) Map.currentLevel.objects.Add(new LevelObject(LevelObject.SPEED_CHAR, speed.step, Map.currentLevel.speeds));
+            foreach(LevelSpeed speed in Map.currentLevel.speeds) Map.currentLevel.objects.Add(new LevelObject(LevelObject.SpeedChar, speed.step, Map.currentLevel.speeds));
             
             changed = true;
         }
@@ -639,7 +641,7 @@ namespace PPR.Main {
                     // Erase
                     if(Bindings.GetBinding("erase").IsPressed(key)) {
                         List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj =>
-                            obj.character != LevelObject.SPEED_CHAR && (Map.selecting ?
+                            obj.character != LevelObject.SpeedChar && (Map.selecting ?
                                 Map.OffsetSelected(StepsToOffset(obj.step)) : obj.step == (int)steps));
                         foreach(LevelObject obj in objects) {
                             obj.toDestroy = true;
@@ -751,7 +753,7 @@ namespace PPR.Main {
                 else {
                     if(key.Alt) {
                         List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj =>
-                            obj.character != LevelObject.SPEED_CHAR && (Map.selecting ?
+                            obj.character != LevelObject.SpeedChar && (Map.selecting ?
                                 Map.OffsetSelected(StepsToOffset(obj.step)) : obj.step == (int)steps) &&
                             obj.key == key.Code);
                         foreach(LevelObject obj in objects) {
@@ -770,19 +772,19 @@ namespace PPR.Main {
                             for(int i = Map.selectionStart; i <= Map.selectionEnd; i++) {
                                 float step = OffsetToSteps(i, currentDirectionLayer);
                                 if(float.IsNaN(step) || Map.currentLevel.objects.Any(obj =>
-                                    obj.character != LevelObject.SPEED_CHAR && obj.step == step &&
+                                    obj.character != LevelObject.SpeedChar && obj.step == step &&
                                     obj.key == key.Code) || StepsToDirectionLayer(step) != currentDirectionLayer) continue;
                                 toCreate.Add(new LightLevelObject(character, (int)step));
                             }
                         else if(!Map.currentLevel.objects.Any(obj =>
-                            obj.character != LevelObject.SPEED_CHAR && obj.step == (int)steps &&
+                            obj.character != LevelObject.SpeedChar && obj.step == (int)steps &&
                             obj.key == key.Code)) toCreate.Add(new LightLevelObject(character, (int)steps));
 
                         foreach(LightLevelObject obj in toCreate) {
                             Map.currentLevel.objects.Add(new LevelObject(obj.character, obj.step,
                                 Map.currentLevel.speeds));
                             if(!key.Shift) continue;
-                            character = LevelObject.HOLD_CHAR;
+                            character = LevelObject.HoldChar;
                             Map.currentLevel.objects.Add(new LevelObject(character, obj.step,
                                 Map.currentLevel.speeds,
                                 Map.currentLevel.objects));
@@ -824,8 +826,8 @@ namespace PPR.Main {
         }
 
         static bool CheckLine(int step) {
-            List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != LevelObject.SPEED_CHAR &&
-                                                                                obj.character != LevelObject.HOLD_CHAR &&
+            List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != LevelObject.SpeedChar &&
+                                                                                obj.character != LevelObject.HoldChar &&
                                                                                 !obj.removed &&
                                                                                 !obj.toDestroy &&
                                                                                 !obj.ignore &&
@@ -993,7 +995,7 @@ namespace PPR.Main {
                 else break;
             return bpm;
         }
-        public static IEnumerable<int> GetBPMsBetweenSteps(int start, int end, IEnumerable<LevelSpeed> sortedSpeeds) =>
+        public static IEnumerable<int> GetBPMBetweenSteps(int start, int end, IEnumerable<LevelSpeed> sortedSpeeds) =>
             from speed in sortedSpeeds where speed.step > start && speed.step < end select speed.speed;
         public static List<LevelSpeed> GetSpeedsBetweenSteps(int start, int end, List<LevelSpeed> sortedSpeeds) =>
             sortedSpeeds.FindAll(speed => speed.step >= start && speed.step <= end);

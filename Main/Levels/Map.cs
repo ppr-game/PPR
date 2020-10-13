@@ -99,7 +99,7 @@ namespace PPR.Main.Levels {
             return offset >= selectionStart && offset <= selectionEnd;
         }
         public static List<LevelObject> GetSelectedObjects() => currentLevel.objects.FindAll(obj =>
-            OffsetSelected(Game.StepsToOffset(obj.step)) && obj.character != LevelObject.SPEED_CHAR);
+            OffsetSelected(Game.StepsToOffset(obj.step)) && obj.character != LevelObject.SpeedChar);
 
         static void DestroyToDestroy() {
             int destroyIndex = 0;
@@ -139,7 +139,7 @@ namespace PPR.Main.Levels {
             string author = level.metadata.author;
             string linesFreq = level.metadata.linesFrequency.ToString();
             string initialOffset = level.metadata.initialOffsetMs.ToString();
-            List<LevelObject> objects = level.objects.FindAll(obj => obj.character != LevelObject.SPEED_CHAR);
+            List<LevelObject> objects = level.objects.FindAll(obj => obj.character != LevelObject.SpeedChar);
             lines[0] = string.Join("", objects.Select(obj => obj.character.ToString().ToLower()));
             lines[1] = string.Join(':', objects.Select(obj => obj.step));
             lines[2] = string.Join(':', level.speeds.Select(speed => speed.speed));

@@ -28,8 +28,8 @@ namespace PPR.Scripts.Main {
         public static bool StepPassedLine(int step, int lineOffset = 0) =>
             PPR.Main.Game.StepPassedLine(step, lineOffset);
         public static int GetBPMAtStep(int step) => PPR.Main.Game.GetBPMAtStep(step, Map.currentLevel.speeds);
-        public static IEnumerable<int> GetBPMsBetweenSteps(int start, int end) =>
-            PPR.Main.Game.GetBPMsBetweenSteps(start, end, Map.currentLevel.speeds);
+        public static IEnumerable<int> GetBPMBetweenSteps(int start, int end) =>
+            PPR.Main.Game.GetBPMBetweenSteps(start, end, Map.currentLevel.speeds);
         public static List<LevelSpeed> GetSpeedsBetweenSteps(int start, int end) =>
             PPR.Main.Game.GetSpeedsBetweenSteps(start, end, Map.currentLevel.speeds);
         public static Color GetAccuracyColor(int accuracy) => PPR.Main.Game.GetAccuracyColor(accuracy);
