@@ -11,13 +11,13 @@ using SFML.System;
 
 namespace PPR.Main {
     public static class Lua {
-        static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         
         public static Script script;
-        static Closure _update;
-        static Closure _tick;
-        static Closure _drawMap;
-        static Closure _drawUI;
+        private static Closure _update;
+        private static Closure _tick;
+        private static Closure _drawMap;
+        private static Closure _drawUI;
         
         public static void ScriptSetup() {
             Script.WarmUp();

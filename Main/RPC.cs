@@ -4,7 +4,7 @@ using NLog;
 
 namespace PPR.Main {
     public static class RPC {
-        static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public static DiscordRpcClient client;
         public static void Initialize() {

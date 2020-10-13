@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
 using PPR.GUI;
+using PPR.Main.Managers;
 
 using PRR;
 
@@ -14,22 +16,23 @@ namespace PPR.Main.Levels {
         public static readonly Vector2i gameLinePos = new Vector2i(0, 54);
         public static readonly Vector2i editorLinePos = new Vector2i(0, 44);
         public static Vector2i linePos { get; private set; }
-        static readonly float[] lineFlashTimes = new float[Core.renderer.width];
+        private static readonly float[] lineFlashTimes = new float[Core.renderer.width];
         public static int flashLine {
             set => lineFlashTimes[value] = 1f;
         }
         public static readonly List<ClipboardLevelObject> clipboard = new List<ClipboardLevelObject>();
         public static bool selecting;
-        static int _selectionStart;
-        static int _selectionEnd;
+        private static int _selectionStart;
+        private static int _selectionEnd;
         public static int selectionStart => _selectionStart <= _selectionEnd ? _selectionStart : _selectionEnd;
         public static int selectionEnd => _selectionStart >= _selectionEnd ? _selectionStart : _selectionEnd;
-        static bool lmb => Core.renderer.leftButtonPressed;
-        static bool _prevLMB;
-        static Vector2f _prevMPosF;
+        private static bool lmb => Core.renderer.leftButtonPressed;
+        private static bool _prevLMB;
+        private static Vector2f _prevMPosF;
         public static void Draw() {
             if(Game.currentMenu != Menu.Game) return;
 
+            // Handle line flashing
             for(int x = 0; x < Core.renderer.width; x++) {
                 Vector2i pos = new Vector2i(x, linePos.Y);
                 Core.renderer.SetCellColor(pos, ColorScheme.GetColor("foreground"),
@@ -37,9 +40,11 @@ namespace PPR.Main.Levels {
                         ColorScheme.GetColor("foreground"), 1f));
                 lineFlashTimes[x] -= Core.deltaTime * 3f;
             }
+            //   L     I     N     E
             Core.renderer.DrawText(linePos,
                 "────────────────────────────────────────────────────────────────────────────────");
             if(Game.editing) {
+                // Selection
                 if(Core.renderer.mousePosition.Y >= 1 && Core.renderer.mousePosition.Y <= gameLinePos.Y)
                     if(lmb) {
                         _selectionEnd = linePos.Y - Core.renderer.mousePosition.Y + Game.roundedOffset;
@@ -52,6 +57,7 @@ namespace PPR.Main.Levels {
                         if(Core.renderer.mousePositionF.Y != _prevMPosF.Y) selecting = true;
                     }
 
+                // Draw the editor lines
                 int doubleFrequency = currentLevel.metadata.linesFrequency * 2;
                 for(int y = -linePos.Y; y < 30 + currentLevel.metadata.linesFrequency; y++) {
                     int offsetY = y + Game.roundedOffset % doubleFrequency - doubleFrequency;
@@ -74,15 +80,6 @@ namespace PPR.Main.Levels {
                                 ColorScheme.GetColor("foreground"),
                                 ColorScheme.GetColor("selection"));
                 }
-
-                /*for(int x = 0; x < 80; x++) {
-                    Core.renderer.SetCharacter(new Vector2(x, 1), ((x - 6) / 12).ToString()[0],
-                        ColorScheme.GetColor("foreground"), ColorScheme.GetColor("transparent"));
-                    if((x - 6) % 12 != 0) continue;
-                    for(int y = 0; y < 60; y++)
-                        Core.renderer.SetCellColor(new Vector2(x, y), ColorScheme.GetColor("foreground"),
-                            ColorScheme.GetColor("guidelines"));
-                }*/
             }
 
             DestroyToDestroy();
@@ -99,9 +96,9 @@ namespace PPR.Main.Levels {
             return offset >= selectionStart && offset <= selectionEnd;
         }
         public static List<LevelObject> GetSelectedObjects() => currentLevel.objects.FindAll(obj =>
-            OffsetSelected(Game.StepsToOffset(obj.step)) && obj.character != LevelObject.SpeedChar);
+            OffsetSelected(Calc.StepsToOffset(obj.step)) && obj.character != LevelObject.SpeedChar);
 
-        static void DestroyToDestroy() {
+        private static void DestroyToDestroy() {
             int destroyIndex = 0;
             while(destroyIndex < currentLevel.objects.Count) {
                 LevelObject obj = currentLevel.objects[destroyIndex];
@@ -124,12 +121,12 @@ namespace PPR.Main.Levels {
             string scriptPath = Path.Join(path, $"{diff}.lua");
             if(!File.Exists(scriptPath)) scriptPath = Path.Join(path, "script.lua");
             LoadLevelFromLines(File.ReadAllLines(Path.Join(path, $"{diff}.txt")), name, diff,
-                loadMusic ? Game.GetSoundFilePath(Path.Join(path, "music")) : "", scriptPath);
+                loadMusic ? SoundManager.GetSoundFilePath(Path.Join(path, "music")) : "", scriptPath);
         }
         public static void LoadLevelFromLines(string[] lines, string name, string diff, string musicPath, string scriptPath) {
             linePos = Game.editing ? editorLinePos : gameLinePos;
             currentLevel = new Level(lines, name, diff, File.Exists(scriptPath) ? scriptPath : null);
-            Game.GameStart(musicPath);
+            Game.StartGame(musicPath);
         }
         public static string TextFromLevel(Level level) {
             string[] lines = new string[5];
@@ -162,5 +159,74 @@ namespace PPR.Main.Levels {
             new int[] {
                 score.score, score.accuracy, score.maxCombo, score.scores[0], score.scores[1], score.scores[2]
             });
+        public static void SaveScore(string name, string diff, int score, int accuracy, int maxCombo, int[] scores) {
+            accuracy = Math.Clamp(accuracy, 0, 100);
+            
+            string path = diff == "level" ? Path.Join("scores", $"{name}.txt") :
+                Path.Join("scores", name, $"{diff}.txt");
+            string text = File.Exists(path) ? File.ReadAllText(path) : "";
+            text = $"{TextFromScore(new LevelScore(score, accuracy, maxCombo, scores))}\n{text}";
+            Directory.CreateDirectory("scores");
+            if(Path.GetFileName(Path.GetDirectoryName(path)) == currentLevel.metadata.name)
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.WriteAllText(path, text);
+        }
+        public static bool Cut() => Copy(true);
+        public static bool Copy() => Copy(false);
+        private static bool Copy(bool cut) {
+            bool changed = false;
+
+            clipboard.Clear();
+
+            List<LevelObject> selectedObjects = GetSelectedObjects();
+
+            if(selectedObjects.Count <= 0) return false;
+
+            selectedObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
+            LevelObject firstObj = selectedObjects.First();
+
+            foreach(LevelObject obj in GetSelectedObjects()) {
+                clipboard.Add(new ClipboardLevelObject(obj.character, obj.step - firstObj.step,
+                    obj.xPos));
+
+                if(!cut) continue;
+
+                currentLevel.objects.Remove(obj);
+
+                changed = true;
+            }
+
+            return changed;
+        }
+        public static bool Paste() {
+            bool changed = false;
+
+            foreach(ClipboardLevelObject obj in clipboard)
+                if(currentLevel.objects.All(mapObj => mapObj.character != obj.character ||
+                                                          mapObj.xPos != obj.xPos ||
+                                                          mapObj.step != obj.step + Game.roundedSteps)) {
+                    currentLevel.objects.Add(new LevelObject(obj.character, obj.step + Game.roundedSteps,
+                        currentLevel.speeds, currentLevel.objects));
+
+                    changed = true;
+                }
+
+            return changed;
+        }
+        public static bool Erase() {
+            bool changed = false;
+            
+            List<LevelObject> objects = currentLevel.objects.FindAll(obj =>
+                obj.character != LevelObject.SpeedChar && (selecting ?
+                    OffsetSelected(Calc.StepsToOffset(obj.step)) : obj.step == (int)Game.steps));
+            
+            foreach(LevelObject obj in objects) {
+                obj.toDestroy = true;
+                            
+                changed = true;
+            }
+
+            return changed;
+        }
     }
 }

@@ -6,9 +6,9 @@ using NLog;
 
 namespace PPR.Properties {
     public static class Bindings {
-        static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        
-        const string Path = "keybinds.txt";
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
+        private const string Path = "keybinds.txt";
 
         public static Dictionary<string, InputKey> keys;
         
@@ -43,8 +43,8 @@ namespace PPR.Properties {
             
             LoadBindings();
         }
-        
-        static void LoadBindings() {
+
+        private static void LoadBindings() {
             if(!File.Exists(Path)) {
                 logger.Info("The bindings file was not found, using default bindings");
                 return;

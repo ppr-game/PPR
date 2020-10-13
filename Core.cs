@@ -7,6 +7,7 @@ using NLog;
 using PPR.GUI;
 using PPR.Main;
 using PPR.Main.Levels;
+using PPR.Main.Managers;
 using PPR.Properties;
 
 using PRR;
@@ -15,7 +16,7 @@ using SFML.System;
 
 namespace PPR {
     public static class Core {
-        static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public static readonly string version = Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
@@ -33,8 +34,8 @@ namespace PPR {
 
         // bruh Rider wth
         // ReSharper disable once UnusedMember.Local
-        static void Main() {
-            //try {
+        private static void Main() {
+            try {
                 renderer.UpdateFramerateSetting();
 
                 static void SubscribeEvents() {
@@ -42,7 +43,7 @@ namespace PPR {
                     renderer.window.MouseWheelScrolled += Game.MouseWheelScrolled;
                     renderer.window.LostFocus += Game.LostFocus;
                     renderer.window.GainedFocus += Game.GainedFocus;
-                    renderer.window.Closed += (___, ____) => Game.End();
+                    renderer.window.Closed += (___, ____) => Game.Exit();
                     ColorScheme.Reload();
                 }
 
@@ -50,7 +51,7 @@ namespace PPR {
                 renderer.onWindowRecreated += (_, __) => SubscribeEvents();
                 Bindings.Reload();
                 ColorScheme.Reload();
-                Game.ReloadSounds();
+                SoundManager.ReloadSounds();
 
                 Game.Start(); // Start the game
 
@@ -84,10 +85,10 @@ namespace PPR {
                     
                     if(Game.exiting && UI.fadeOutFinished) renderer.window.Close();
                 }
-            /*}
+            }
             catch(Exception ex) {
                 logger.Fatal(ex);
-            }*/
+            }
         }
     }
 }

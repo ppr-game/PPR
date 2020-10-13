@@ -1,10 +1,10 @@
 namespace PPR.Main {
     public class Perlin {
-        readonly int _repeat;
+        private readonly int _repeat;
 
         public Perlin(int repeat = -1) => _repeat = repeat;
 
-        static readonly int[] permutation = {
+        private static readonly int[] permutation = {
             151, 160, 137, 91, 90, 15, // Hash lookup table as defined by Ken Perlin.  This is a randomly
             131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10,
             23, // arranged array of all numbers from 0-255 inclusive.
@@ -20,7 +20,7 @@ namespace PPR.Main {
             141, 128, 195, 78, 66, 215, 61, 156, 180
         };
 
-        static readonly int[] p; // Doubled permutation to avoid overflow
+        private static readonly int[] p; // Doubled permutation to avoid overflow
 
         static Perlin() {
             p = new int[512];
@@ -70,14 +70,14 @@ namespace PPR.Main {
             return (lerp(y1, y2, w) + 1) / 2; // For convenience we bound it to 0 - 1 (theoretical min/max before is -1 - 1)
         }
 
-        int inc(int num) {
+        private int inc(int num) {
             num++;
             if(_repeat > 0) num %= _repeat;
 
             return num;
         }
 
-        static double grad(int hash, double x, double y, double z) {
+        private static double grad(int hash, double x, double y, double z) {
             int h = hash & 15; // Take the hashed value and take the first 4 bits of it (15 == 0b1111)
             double
                 u = h < 8 /* 0b1000 */ ? x :
@@ -99,12 +99,12 @@ namespace PPR.Main {
                     -v); // Use the last 2 bits to decide if u and v are positive or negative.  Then return their addition.
         }
 
-        static double fade(double t) =>
+        private static double fade(double t) =>
             // Fade function as defined by Ken Perlin.  This eases coordinate values
             // so that they will "ease" towards integral values.  This ends up smoothing
             // the final output.
             t * t * t * (t * (t * 6 - 15) + 10); // 6t^5 - 15t^4 + 10t^3
 
-        static double lerp(double a, double b, double x) => a + x * (b - a);
+        private static double lerp(double a, double b, double x) => a + x * (b - a);
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 
@@ -9,6 +8,7 @@ using NLog;
 using PPR.GUI;
 using PPR.GUI.Elements;
 using PPR.Main.Levels;
+using PPR.Main.Managers;
 using PPR.Properties;
 
 using PRR;
@@ -18,70 +18,58 @@ using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
-using LoadingFailedException = SFML.LoadingFailedException;
-
 namespace PPR.Main {
     public enum StatsState { Pause, Fail, Pass }
     public enum Menu { Main, LevelSelect, Settings, KeybindsEditor, LastStats, Game }
+    public enum SoundType { Hit, Hold, Fail, Pass, Click, Slider }
     public class Game {
-        static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public static StatsState statsState { get; private set; }
-        static Menu _currentMenu = Menu.Main;
+        private static Menu _currentMenu = Menu.Main;
         public static Menu currentMenu {
             get => _currentMenu;
             set {
+                // Pause/Continue
                 if(Map.currentLevel != null && statsState == StatsState.Pause) {
-                    if(_currentMenu == Menu.Game && value == Menu.LastStats) music.Pause();
+                    if(_currentMenu == Menu.Game && value == Menu.LastStats) SoundManager.music.Pause();
                     else if(!editing && _currentMenu == Menu.LastStats && value == Menu.Game) {
-                        music.Play();
+                        SoundManager.music.Play();
                         if(!auto) {
-                            music.PlayingOffset =
-                                Time.FromMicroseconds(Math.Max(0, music.PlayingOffset.AsMicroseconds() - 3000000));
-                            _prevFramePlayingOffset = music.PlayingOffset;
+                            SoundManager.music.PlayingOffset =
+                                Time.FromMicroseconds(Math.Max(0, SoundManager.music.PlayingOffset.AsMicroseconds() - 3000000));
+                            _prevFramePlayingOffset = SoundManager.music.PlayingOffset;
                         }
                     }
                 }
 
                 switch(value) {
-                    case Menu.Game: {
-                        if(auto) _usedAuto = true;
+                    case Menu.LevelSelect:
+                        GenerateLevelList();
+                        string name = Path.GetFileName(Path.GetDirectoryName(SoundManager.currentMusicPath));
+                        if(name == "Default" || name == Settings.GetPath("audio")) SoundManager.SwitchMusic();
                         break;
-                    }
-                    case Menu.LastStats when !_usedAuto && statsState == StatsState.Pass && Map.currentLevel != null: {
-                        string path = Map.currentLevel.metadata.diff == "level" ?
-                            Path.Join("scores", $"{Map.currentLevel.metadata.name}.txt") : Path.Join("scores",
-                                Map.currentLevel.metadata.name, $"{Map.currentLevel.metadata.diff}.txt");
-                        string text = File.Exists(path) ? File.ReadAllText(path) : "";
-                        text =
-                            $"{Map.TextFromScore(new LevelScore(new Vector2i(), score, accuracy, maxCombo, scores))}\n{text}";
-                        Directory.CreateDirectory("scores");
-                        if(Path.GetFileName(Path.GetDirectoryName(path)) == Map.currentLevel.metadata.name)
-                            Directory.CreateDirectory(Path.GetDirectoryName(path));
-                        File.WriteAllText(path, text);
+                    case Menu.Game when auto: _usedAuto = true;
                         break;
-                    }
-                    case Menu.LastStats:
-                        switch(statsState) {
-                            case StatsState.Fail: failSound.Play();
-                                break;
-                            case StatsState.Pass: passSound.Play();
-                                break;
-                        }
+                    case Menu.LastStats when !_usedAuto && statsState == StatsState.Pass && Map.currentLevel != null:
+                        Map.SaveScore(Map.currentLevel.metadata.name, Map.currentLevel.metadata.diff,
+                            ScoreManager.score, ScoreManager.accuracy, ScoreManager.maxCombo, ScoreManager.scores);
+                        break;
+                    case Menu.LastStats when statsState != StatsState.Pause:
+                        SoundManager.PlaySound(statsState == StatsState.Fail ? SoundType.Fail : SoundType.Pass);
                         break;
                 }
 
-                if((value == Menu.Main || value == Menu.LevelSelect) && music.Status == SoundStatus.Paused) music.Play();
-                if(value == Menu.LevelSelect) {
-                    GenerateLevelList();
-                    string name = Path.GetFileName(Path.GetDirectoryName(currentMusicPath));
-                    if(name == "Default" || name == Settings.GetPath("audio")) SwitchMusic();
-                }
+                if(value == Menu.LevelSelect && SoundManager.music.Status == SoundStatus.Paused)
+                    SoundManager.music.Play();
+                
+                // Fade out when switch menus
                 if(_currentMenu != value) {
                     Core.pauseDrawing = true;
                     UI.FadeOut(value == Menu.Game ? 10f : 7f);
                     Map.selecting = false;
                 }
+                
                 _currentMenu = value;
                 
                 // Update Rich Presence
@@ -90,82 +78,37 @@ namespace PPR.Main {
                         RPC.SetPresence("In main menu");
                         break;
                     case Menu.LevelSelect:
-                        RPC.SetPresence($"Choosing what to {(editing ? "edit" : "play")}");
+                        RPC.SetPresence($"Selecting a level to {(editing ? "edit" : "play")}");
                         break;
-                    case Menu.Game:
-                        if(Map.currentLevel != null)
-                            RPC.SetPresence(editing ? "Editing" : auto ? "Watching" : "Playing",
-                                Map.currentLevel.metadata.name);
+                    case Menu.Game when Map.currentLevel != null:
+                        RPC.SetPresence(editing ? "Editing" : auto ? "Watching" : "Playing",
+                            Map.currentLevel.metadata.name);
                         break;
-                    case Menu.LastStats:
-                        if(Map.currentLevel != null)
-                            RPC.SetPresence(editing ? "Paused Editing" :
-                                statsState == StatsState.Pause ? "Paused" :
-                                statsState == StatsState.Pass ? "Passed" : "Failed",
-                                Map.currentLevel.metadata.name);
+                    case Menu.LastStats when Map.currentLevel != null:
+                        RPC.SetPresence(editing ? "Paused Editing" :
+                            statsState == StatsState.Pause ? "Paused" :
+                            statsState == StatsState.Pass ? "Passed" : "Failed",
+                            Map.currentLevel.metadata.name);
                         break;
                 }
             }
         }
-        public static Time timeFromStart;
-        static Time _prevPlayingOffset;
-        static Time _prevFramePlayingOffset;
-        static Time _interpolatedPlayingOffset;
-        static float _offset;
-        public static int roundedOffset;
-        static float _steps;
+        public static Time timeFromStart { get; private set; }
+        private static float _offset;
+        public static int roundedOffset { get; private set; }
+        private static float _steps;
         public static float steps {
             get => _steps;
-            set {
+            private set {
                 _steps = value;
                 if(!editing) UI.progress = (int)(value / Map.currentLevel.metadata.maxStep * 80f);
             }
         }
-        public static int roundedSteps;
-        static float _prevSteps;
-        public static int currentDirectionLayer;
-        public static int currentBPM = 1;
-        static float _currentSpeedSec = 60f;
-        static float _absoluteCurrentSpeedSec = 60f;
-        static readonly Random random = new Random();
-        static string _currentMusicPath;
-        public static string currentMusicPath {
-            get => _currentMusicPath;
-            set {
-                _currentMusicPath = value;
-                if(currentMusicName == "Waterflame - Cove") return;
-                string[] menusAnimLines = Array.Empty<string>();
-                float prevDiff = -1f;
-                foreach(string file in Directory.GetFiles(Path.GetDirectoryName(value)!)) {
-                    if(!file.EndsWith(".txt")) continue;
-                    string currDiffName = Path.GetFileNameWithoutExtension(file);
-                    string[] lines = File.ReadAllLines(Path.Join(Path.GetDirectoryName(value)!, $"{currDiffName}.txt"));
-                    if(!Level.IsLevelValid(lines)) continue;
-                    LevelMetadata metadata = new LevelMetadata(lines, currentMusicName, currDiffName);
-                    if(metadata.actualDiff > prevDiff) menusAnimLines = lines;
-                    prevDiff = metadata.actualDiff;
-                }
-                menusAnimInitialOffset = GetInitialOffset(menusAnimLines);
-                menusAnimSpeeds = GetSpeeds(menusAnimLines);
-            }
-        }
-        public static string currentMusicName {
-            get {
-                string name = Path.GetFileName(Path.GetDirectoryName(currentMusicPath));
-                return name == "Default" || name == Settings.GetPath("audio") ? "Waterflame - Cove" : name;
-            }
-        }
-        public static int menusAnimInitialOffset;
-        public static List<LevelSpeed> menusAnimSpeeds;
-        public static Music music;
-        public static Sound hitSound;
-        public static Sound tickSound;
-        public static Sound failSound;
-        public static Sound passSound;
-        public static Sound buttonClickSound;
-        public static Sound sliderSound;
-        public static int score;
-        static int _health = 80;
+        public static int roundedSteps { get; private set; }
+        public static int currentDirectionLayer { get; private set; }
+        public static int currentBPM { get; private set; } = 1;
+
+        private static int _health = 80;
         public static int health {
             get => _health;
             set {
@@ -174,16 +117,20 @@ namespace PPR.Main {
                 UI.health = value;
             }
         }
-        public static int accuracy { get; private set; } = 100;
-        public static int[] scores = new int[3]; // score / 5 = index
-        public static int combo;
-        public static int maxCombo;
-        public static bool editing;
-        public static bool auto;
-        static bool _usedAuto;
-        public static bool changed;
-        float _accumulator;
-        public static bool exiting;
+
+        public static bool editing { get; set; }
+        public static bool auto { get; set; }
+        public static bool changed { get; set; }
+        public static bool exiting { get; private set; }
+        public static int menusAnimInitialOffset;
+        public static List<LevelSpeed> menusAnimSpeeds;
+        private static Time _prevPlayingOffset;
+        private static Time _prevFramePlayingOffset;
+        private static Time _interpolatedPlayingOffset;
+        private static float _prevSteps;
+        private static float _absoluteCurrentSpeedSec = 60f;
+        private static bool _usedAuto;
+        private float _tickAccumulator;
         public Game() {
             Settings.settingChanged += SettingChanged;
             Settings.Reload();
@@ -192,16 +139,16 @@ namespace PPR.Main {
             RPC.Initialize();
 
             try {
-                currentMusicPath = GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "mainMenu"));
-                music = new Music(currentMusicPath);
+                SoundManager.currentMusicPath = SoundManager.GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "mainMenu"));
+                SoundManager.music = new Music(SoundManager.currentMusicPath);
             }
-            catch(LoadingFailedException) {
-                currentMusicPath = GetSoundFilePath(Path.Join("resources", "audio", "Default", "mainMenu"));
-                music = new Music(currentMusicPath);
+            catch(SFML.LoadingFailedException) {
+                SoundManager.currentMusicPath = SoundManager.GetSoundFilePath(Path.Join("resources", "audio", "Default", "mainMenu"));
+                SoundManager.music = new Music(SoundManager.currentMusicPath);
             }
 
-            music.Volume = Settings.GetInt("musicVolume");
-            music.Play();
+            SoundManager.music.Volume = Settings.GetInt("musicVolume");
+            SoundManager.music.Play();
             
             Lua.ScriptSetup();
             
@@ -209,6 +156,28 @@ namespace PPR.Main {
 
             UI.FadeIn(0.5f);
         }
+        public static void Exit() {
+            logger.Info("Exiting");
+            
+            UI.FadeOut(0.75f);
+            logger.Info("Started shutdown animation");
+
+            SoundManager.music.Stop();
+            logger.Info("Stopped music");
+
+            Settings.SaveConfig();
+            logger.Info("Saved settings");
+
+            RPC.client.ClearPresence();
+            RPC.client.Dispose();
+            logger.Info("Removed Discord RPC");
+
+            logger.Info("F to the logger");
+            LogManager.Shutdown();
+
+            exiting = true;
+        }
+        
         public static void UpdateSettings() {
             UI.RecreateButtons();
             UI.musicVolumeSlider.value = Settings.GetInt("musicVolume");
@@ -232,94 +201,22 @@ namespace PPR.Main {
                 ColorScheme.GetColor("line_4_bg_color")
             };
             if(Map.currentLevel != null) foreach(LevelObject obj in Map.currentLevel.objects) obj.UpdateColors();
+            
             LevelObject.speedColor = ColorScheme.GetColor("speed");
             LevelObject.nextDirLayerSpeedColor = ColorScheme.GetColor("next_dir_layer_speed");
         }
-
-        public static string GetSoundFilePath(string pathWithoutExtension) {
-            string[] extensions = { ".ogg", ".wav", ".flac" };
-
-            foreach(string extension in extensions) {
-                string path = $"{pathWithoutExtension}{extension}";
-                if(File.Exists(path)) return path;
-            }
-
-            return "";
-        }
-
-        static bool TryLoadSoundBuffer(string path, out SoundBuffer buffer) {
-            try {
-                buffer = new SoundBuffer(path);
-            }
-            catch(Exception ex) {
-                logger.Error(ex);
-                buffer = null;
-                return false;
-            }
-            return true;
-        }
-        static bool TryLoadSound(string path, out Sound sound) {
-            if(TryLoadSoundBuffer(path, out SoundBuffer buffer)) {
-                sound = new Sound(buffer);
-                return true;
-            }
-            logger.Warn("Tried loading a sound at {0} but no success :(", path);
-            sound = null;
-            return false;
-        }
-
-        public static void ReloadSounds() {
-            if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "hit")), out hitSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "hit")), out hitSound))
-                hitSound.Volume = Settings.GetInt("soundsVolume");
-            if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "tick")), out tickSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "tick")), out tickSound))
-                tickSound.Volume = Settings.GetInt("soundsVolume");
-            if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "fail")), out failSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "fail")), out failSound))
-                failSound.Volume = Settings.GetInt("soundsVolume");
-            if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "pass")), out passSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "pass")), out passSound))
-                passSound.Volume = Settings.GetInt("soundsVolume");
-            if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "buttonClick")), out buttonClickSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "buttonClick")), out buttonClickSound))
-                buttonClickSound.Volume = Settings.GetInt("soundsVolume");
-            if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "slider")), out sliderSound) ||
-                TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "slider")), out sliderSound))
-                sliderSound.Volume = Settings.GetInt("soundsVolume");
-        }
-        public static void End() {
-            logger.Info("Exiting");
-            
-            UI.FadeOut(0.75f);
-            logger.Info("Started shutdown animation");
-            
-            music.Stop();
-            logger.Info("Stopped music");
-
-            Settings.SaveConfig();
-            logger.Info("Saved settings");
-
-            RPC.client.ClearPresence();
-            RPC.client.Dispose();
-            logger.Info("Removed Discord RPC");
-
-            logger.Info("F to the logger");
-            LogManager.Shutdown();
-
-            exiting = true;
-        }
-
-        public static void SettingChanged(object caller, SettingChangedEventArgs e) {
+        private static void SettingChanged(object caller, SettingChangedEventArgs e) {
             switch (e.settingName) {
                 case "font": {
-                    string[] fontMappingsLines = File.ReadAllLines(Path.Join("resources", "fonts", Settings.GetPath("font"), "mappings.txt"));
+                    string[] fontMappingsLines = File.ReadAllLines(Path.Join("resources", "fonts",
+                        Settings.GetPath("font"), "mappings.txt"));
                     string[] fontSizeStr = fontMappingsLines[0].Split(',');
                     Core.renderer.fontSize = new Vector2i(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
                     Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.X;
                     Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.Y;
 
-                    BitmapFont font = new BitmapFont(new Image(Path.Join("resources", "fonts", Settings.GetPath("font"), "font.png")),
+                    BitmapFont font = new BitmapFont(
+                        new Image(Path.Join("resources", "fonts", Settings.GetPath("font"), "font.png")),
                         fontMappingsLines[1], Core.renderer.fontSize);
                     Core.renderer.text = new BitmapText(font, new Vector2i(Core.renderer.width, Core.renderer.height)) {
                         text = Core.renderer.display
@@ -332,33 +229,32 @@ namespace PPR.Main {
                     break;
                 case "fullscreen": Core.renderer.SetFullscreen(Settings.GetBool("fullscreen"));
                     break;
-                case "musicVolume": music.Volume = Settings.GetInt("musicVolume");
+                case "musicVolume":
+                    SoundManager.music.Volume = Settings.GetInt("musicVolume");
                     break;
                 case "soundsVolume":
-                    hitSound.Volume = Settings.GetInt("soundsVolume");
-                    tickSound.Volume = Settings.GetInt("soundsVolume");
-                    failSound.Volume = Settings.GetInt("soundsVolume");
-                    passSound.Volume = Settings.GetInt("soundsVolume");
-                    buttonClickSound.Volume = Settings.GetInt("soundsVolume");
-                    sliderSound.Volume = Settings.GetInt("soundsVolume");
+                    SoundManager.UpdateSoundsVolume();
                     break;
-                case "audio": ReloadSounds();
+                case "audio":
+                    SoundManager.ReloadSounds();
                     break;
                 case "fpsLimit":
                     Core.renderer.UpdateFramerateSetting();
                     break;
             }
         }
+        
         public static void LostFocus(object caller, EventArgs args) {
             if(currentMenu == Menu.Game) currentMenu = Menu.LastStats;
-            music.Volume = 0;
+            SoundManager.music.Volume = 0;
             Core.renderer.UpdateFramerateSetting();
         }
         public static void GainedFocus(object caller, EventArgs args) {
-            music.Volume = Settings.GetInt("musicVolume");
+            SoundManager.music.Volume = Settings.GetInt("musicVolume");
             Core.renderer.UpdateFramerateSetting();
         }
-        public static void GameStart(string musicPath) {
+        
+        public static void StartGame(string musicPath) {
             // Reset everything when we enter the level or bad things will happen
 
             statsState = StatsState.Pause;
@@ -371,74 +267,47 @@ namespace PPR.Main {
             _prevSteps = 0;
             currentDirectionLayer = 0;
             currentBPM = Map.currentLevel.speeds[0].speed;
-            _currentSpeedSec = 60f / currentBPM;
             timeFromStart = Time.Zero;
             _interpolatedPlayingOffset = Time.Zero;
             _prevFramePlayingOffset = Time.Zero;
             _prevPlayingOffset = Time.Zero;
             UI.health = 0;
             health = 80;
-            score = 0;
-            UI.prevScore = 0;
-            scores = new int[3];
-            accuracy = 100;
-            combo = 0;
-            maxCombo = 0;
-            music.Stop();
+            ScoreManager.ResetScore();
+            SoundManager.music.Stop();
 
             if(Map.currentLevel.script != null) Lua.TryLoadScript(Map.currentLevel.script);
 
+            // Load music
             if(File.Exists(musicPath)) {
-                currentMusicPath = musicPath;
-                music = new Music(musicPath) {
+                SoundManager.currentMusicPath = musicPath;
+                SoundManager.music = new Music(musicPath) {
                     Volume = Settings.GetInt("musicVolume"),
                     PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMs)
                 };
-                if(!editing) music.Play();
+                if(!editing) SoundManager.music.Play();
             }
 
             logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
         }
-        public static void SwitchMusic() {
-            if(exiting) return;
-            
-            string newPath = currentMusicPath;
-            string[] paths = Directory.GetDirectories("levels")
-                .Where(path => Path.GetFileName(Path.GetDirectoryName(path)) != "_template")
-                .Select(path => GetSoundFilePath(Path.Join(path, "music")))
-                .Where(path => !string.IsNullOrEmpty(path)).ToArray();
-            switch(paths.Length) {
-                case 0 when music.Status != SoundStatus.Stopped: return;
-                case 0 when music.Status == SoundStatus.Stopped:
-                case 1: newPath = currentMusicPath;
-                    break;
-                default: {
-                    while(currentMusicPath == newPath) newPath = paths[random.Next(0, paths.Length)];
-                    break;
-                }
-            }
-            UI.currSelectedLevel = Path.GetFileName(Path.GetDirectoryName(newPath));
-            currentMusicPath = newPath;
-            music.Stop();
-            music = new Music(currentMusicPath) {
-                Volume = Core.renderer.window.HasFocus() ? Settings.GetInt("musicVolume") : 0f
-            };
-            music.Play();
-        }
+        
         public void Update() {
+            // Fade in after fading out when switching menus
             if(Core.pauseDrawing && UI.fadeOutFinished) {
                 Core.pauseDrawing = false;
                 UI.FadeIn(currentMenu == Menu.Game ? 10f : 7f);
             }
-            if(currentMenu == Menu.Main && music.Status == SoundStatus.Stopped) SwitchMusic();
+            
+            if(currentMenu == Menu.Main && SoundManager.music.Status == SoundStatus.Stopped) SoundManager.SwitchMusic();
+            
+            // Update the menus background animation BPM
             if(currentMenu != Menu.Game) {
-                if(Path.GetFileName(Path.GetDirectoryName(currentMusicPath)) == "Default" ||
-                   music.Status != SoundStatus.Playing)
-                    UI.menusAnimBPM = 60;
+                if(Path.GetFileName(Path.GetDirectoryName(SoundManager.currentMusicPath)) == "Default" ||
+                   SoundManager.music.Status != SoundStatus.Playing) UI.menusAnimBPM = 60;
                 else {
-                    int step = (int)MillisecondsToSteps(music.PlayingOffset.AsMilliseconds() - menusAnimInitialOffset,
-                        menusAnimSpeeds);
-                    UI.menusAnimBPM = Math.Abs(GetBPMAtStep(step, menusAnimSpeeds));
+                    int step = (int)Calc.MillisecondsToSteps(
+                        SoundManager.music.PlayingOffset.AsMilliseconds() - menusAnimInitialOffset, menusAnimSpeeds);
+                    UI.menusAnimBPM = Math.Abs(Calc.GetBPMAtStep(step, menusAnimSpeeds));
                 }
 
                 return;
@@ -447,39 +316,43 @@ namespace PPR.Main {
             // If we're in the editor, update logic every frame
             // instead of using a fixed time step to remove bugs that happen when scrolling
             if(editing) {
-                _interpolatedPlayingOffset = music.PlayingOffset;
+                _interpolatedPlayingOffset = SoundManager.music.PlayingOffset;
                 FixedUpdate();
             }
+            // Some magic tick execution stuff
             else {
                 float fixedDeltaTime = _absoluteCurrentSpeedSec / 16f;
 
-                _accumulator += Core.deltaTime;
+                _tickAccumulator += Core.deltaTime;
                 float totalTimesToExec = 0f;
-                if(_accumulator >= fixedDeltaTime)
-                    totalTimesToExec = MathF.Ceiling((_accumulator - fixedDeltaTime) / fixedDeltaTime);
-                while(_accumulator >= fixedDeltaTime) {
-                    float interpT = 1f - MathF.Ceiling((_accumulator - fixedDeltaTime) / fixedDeltaTime) /
+                if(_tickAccumulator >= fixedDeltaTime)
+                    totalTimesToExec = MathF.Ceiling((_tickAccumulator - fixedDeltaTime) / fixedDeltaTime);
+                while(_tickAccumulator >= fixedDeltaTime) {
+                    float interpT = 1f - MathF.Ceiling((_tickAccumulator - fixedDeltaTime) / fixedDeltaTime) /
                         totalTimesToExec;
-                    _interpolatedPlayingOffset =
-                        music.PlayingOffset * interpT + _prevFramePlayingOffset * (1f - interpT);
-                    //if(interpT > 0f) logger.Debug(interpT);
+                    _interpolatedPlayingOffset = SoundManager.music.PlayingOffset * interpT +
+                                                 _prevFramePlayingOffset * (1f - interpT);
                     FixedUpdate();
-                    _accumulator -= fixedDeltaTime;
+                    _tickAccumulator -= fixedDeltaTime;
                 }
             }
 
             Lua.Update();
 
-            _prevFramePlayingOffset = music.PlayingOffset;
+            _prevFramePlayingOffset = SoundManager.music.PlayingOffset;
         }
-        static void FixedUpdate() {
+        private static void FixedUpdate() {
+            #region Update steps and offset
+
             if(_interpolatedPlayingOffset != _prevPlayingOffset) {
                 timeFromStart = _interpolatedPlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMs);
-                steps = MillisecondsToSteps(timeFromStart.AsMicroseconds() / 1000f);
-                if(music.Status != SoundStatus.Playing) steps = MathF.Round(steps);
-                _offset = StepsToOffset(steps);
+                steps = Calc.MillisecondsToSteps(timeFromStart.AsMicroseconds() / 1000f);
+                if(SoundManager.music.Status != SoundStatus.Playing) steps = MathF.Round(steps);
+                _offset = Calc.StepsToOffset(steps);
             }
             _prevPlayingOffset = _interpolatedPlayingOffset;
+
+            #endregion
 
             //if(steps - prevSteps > 1f) logger.Warn("Lag detected: steps increased too quickly ({0})", steps - prevSteps);
 
@@ -492,15 +365,15 @@ namespace PPR.Main {
 
             if(editing) {
                 float initialOffset = Map.currentLevel.metadata.initialOffsetMs / 1000f;
-                float duration = music.Duration.AsSeconds() - initialOffset;
+                float duration = SoundManager.music.Duration.AsSeconds() - initialOffset;
                 if(Core.renderer.mousePosition.Y == 0 && Core.renderer.leftButtonPressed) {
                     float mouseProgress = Math.Clamp(Core.renderer.mousePositionF.X / 80f, 0f, 1f);
-                    music.PlayingOffset = Time.FromSeconds(duration * mouseProgress + initialOffset);
-                    timeFromStart = music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMs);
-                    steps = MathF.Round(MillisecondsToSteps(timeFromStart.AsMilliseconds()));
-                    _offset = StepsToOffset(steps);
+                    SoundManager.music.PlayingOffset = Time.FromSeconds(duration * mouseProgress + initialOffset);
+                    timeFromStart = SoundManager.music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMs);
+                    steps = MathF.Round(Calc.MillisecondsToSteps(timeFromStart.AsMilliseconds()));
+                    _offset = Calc.StepsToOffset(steps);
                 }
-                UI.progress = (int)(music.PlayingOffset.AsSeconds() / duration * 80f);
+                UI.progress = (int)(SoundManager.music.PlayingOffset.AsSeconds() / duration * 80f);
             }
 
             statsState = health > 0 ? Map.currentLevel.objects.Count(obj => !obj.ignore) > 0 ? StatsState.Pause :
@@ -512,18 +385,19 @@ namespace PPR.Main {
 
             if(statsState != StatsState.Pause) currentMenu = Menu.LastStats;
         }
+        
+        public static void RoundSteps() => steps = roundedSteps;
+        
         public static void UpdateTime() {
-            long useMicrosecs = (long)((MathF.Round(StepsToMilliseconds(steps)) + Map.currentLevel.metadata.initialOffsetMs) * 1000f);
-            music.PlayingOffset = Time.FromMicroseconds(useMicrosecs);
+            long useMicrosecs = (long)((MathF.Round(Calc.StepsToMilliseconds(steps)) + Map.currentLevel.metadata.initialOffsetMs) * 1000f);
+            SoundManager.music.PlayingOffset = Time.FromMicroseconds(useMicrosecs);
         }
-
-        static void UpdateSpeeds() {
+        private static void UpdateSpeeds() {
             foreach (LevelSpeed speed in Map.currentLevel.speeds)
                 if(speed.step <= steps) {
                     currentBPM = speed.speed;
-                    _currentSpeedSec = 60f / currentBPM;
-                    _absoluteCurrentSpeedSec = Math.Abs(_currentSpeedSec);
-                    currentDirectionLayer = StepsToDirectionLayer(roundedSteps);
+                    _absoluteCurrentSpeedSec = Math.Abs(60f / currentBPM);
+                    currentDirectionLayer = Calc.StepsToDirectionLayer(roundedSteps);
 
                     int rangeModifier = (int)(Math.Abs(currentBPM) / 600f);
                     LevelObject.perfectRange = 1 + rangeModifier;
@@ -535,8 +409,9 @@ namespace PPR.Main {
         public static void RecalculatePosition() {
             UpdateSpeeds();
             Map.StepAll();
-            //logger.Debug(previousSpeedMS + " , " + currentSpeedMS);
         }
+
+        #region Unfoldable (for some reason) fricking 50 lines long switch (key -> char bindings), thanks, Rider
 
         public static char GetNoteBinding(Keyboard.Key key) => key switch
         {
@@ -588,7 +463,9 @@ namespace PPR.Main {
             _ => '\0'
         };
 
-        static void ChangeSpeed(int delta) {
+        #endregion
+
+        private static void ChangeSpeed(int delta) {
             // Create a new speed if we don't have a speed at the current position
             List<int> flooredSpeedsSteps = Map.currentLevel.speeds.Select(speed => speed.step).ToList();
             if(!flooredSpeedsSteps.Contains((int)steps)) {
@@ -597,7 +474,6 @@ namespace PPR.Main {
                     if(Map.currentLevel.speeds[i].step <= steps) speedIndex = i;
                 Map.currentLevel.speeds.Add(new LevelSpeed(Map.currentLevel.speeds[speedIndex].speed, (int)steps));
                 Map.currentLevel.speeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
-                //Map.currentLevel.speeds = SortLevelSpeeds(Map.currentLevel.speeds);
             }
 
             // Get the index of the speed we want to change
@@ -605,23 +481,31 @@ namespace PPR.Main {
             int index = flooredSpeedsSteps.IndexOf((int)steps);
 
             Map.currentLevel.speeds[index].speed += delta;
-            
-            // Remove the current speed if it's the same as the previous one
-            if(index >= 1 && Map.currentLevel.speeds[index].speed == Map.currentLevel.speeds[index - 1].speed)
-                Map.currentLevel.speeds.RemoveAt(index);
-            
+
+            #region Remove redundant speeds
+
             // Remove the next speed if it's the same as the current one
             if(index < Map.currentLevel.speeds.Count - 1 &&
                Map.currentLevel.speeds[index].speed == Map.currentLevel.speeds[index + 1].speed)
                 Map.currentLevel.speeds.RemoveAt(index + 1);
+            
+            // Remove the current speed if it's the same as the previous one
+            if(index >= 1 && Map.currentLevel.speeds[index].speed == Map.currentLevel.speeds[index - 1].speed)
+                Map.currentLevel.speeds.RemoveAt(index);
+
+            #endregion
 
             // Recreate the objects that show the speeds
-            List<LevelObject> speedObjects = Map.currentLevel.objects.FindAll(obj => obj.character == LevelObject.SpeedChar);
+            List<LevelObject> speedObjects =
+                Map.currentLevel.objects.FindAll(obj => obj.character == LevelObject.SpeedChar);
             foreach(LevelObject obj in speedObjects) obj.toDestroy = true;
-            foreach(LevelSpeed speed in Map.currentLevel.speeds) Map.currentLevel.objects.Add(new LevelObject(LevelObject.SpeedChar, speed.step, Map.currentLevel.speeds));
+            foreach(LevelSpeed speed in Map.currentLevel.speeds)
+                Map.currentLevel.objects.Add(
+                    new LevelObject(LevelObject.SpeedChar, speed.step, Map.currentLevel.speeds));
             
             changed = true;
         }
+        
         public static void KeyPressed(object caller, KeyEventArgs key) {
             // Back
             if(Bindings.GetBinding("back").IsPressed(key) &&
@@ -631,70 +515,51 @@ namespace PPR.Main {
                     Menu.KeybindsEditor => Menu.Settings,
                     _ => Menu.Main
                 };
+            
             // Fullscreen
             if(Bindings.GetBinding("fullscreen").IsPressed(key))
                 Settings.SetBool("fullscreen", !Settings.GetBool("fullscreen"));
+            
             if(currentMenu != Menu.Game) return;
+            
             char character = GetNoteBinding(key.Code);
+            
             if(editing) {
+                // Handle keybinds
                 if(character == '\0' || key.Control) {
-                    // Erase
+                    #region Erase
+
                     if(Bindings.GetBinding("erase").IsPressed(key)) {
-                        List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj =>
-                            obj.character != LevelObject.SpeedChar && (Map.selecting ?
-                                Map.OffsetSelected(StepsToOffset(obj.step)) : obj.step == (int)steps));
-                        foreach(LevelObject obj in objects) {
-                            obj.toDestroy = true;
-                            
+                        if(Map.Erase()) {
                             changed = true;
                             Map.selecting = false;
                         }
                     }
-                    
-                    else if(Bindings.GetBinding("cut").IsPressed(key)) {
-                        Map.clipboard.Clear();
-                        List<LevelObject> selectedObjects = Map.GetSelectedObjects();
-                        if(selectedObjects.Count > 0) {
-                            selectedObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
-                            LevelObject firstObj = selectedObjects.First();
-                            foreach(LevelObject obj in Map.GetSelectedObjects()) {
-                                Map.clipboard.Add(new ClipboardLevelObject(obj.character, obj.step - firstObj.step,
-                                    obj.xPos));
-                                Map.currentLevel.objects.Remove(obj);
 
-                                changed = true;
-                                Map.selecting = false;
-                            }
+                    #endregion
+
+                    #region Cut/Copy/Paste
+
+                    else if(Bindings.GetBinding("cut").IsPressed(key)) {
+                        if(Map.Cut()) {
+                            changed = true;
+                            Map.selecting = false;
                         }
                     }
                     else if(Bindings.GetBinding("copy").IsPressed(key)) {
-                        Map.clipboard.Clear();
-                        List<LevelObject> selectedObjects = Map.GetSelectedObjects();
-                        if(selectedObjects.Count > 0) {
-                            selectedObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
-                            LevelObject firstObj = selectedObjects.First();
-                            foreach(LevelObject obj in Map.GetSelectedObjects()) {
-                                Map.clipboard.Add(new ClipboardLevelObject(obj.character, obj.step - firstObj.step,
-                                    obj.xPos));
-                                
-                                Map.selecting = false;
-                            }
-                        }
+                        Map.Copy();
                     }
                     else if(Bindings.GetBinding("paste").IsPressed(key)) {
-                        foreach(ClipboardLevelObject obj in Map.clipboard)
-                            if(Map.currentLevel.objects.All(mapObj => mapObj.character != obj.character ||
-                                                                      mapObj.xPos != obj.xPos ||
-                                                                      mapObj.step != obj.step + roundedSteps)) {
-                                Map.currentLevel.objects.Add(new LevelObject(obj.character, obj.step + roundedSteps,
-                                    Map.currentLevel.speeds, Map.currentLevel.objects));
-                                
-                                changed = true;
-                                Map.selecting = false;
-                            }
+                        if(Map.Paste()) {
+                            changed = true;
+                            Map.selecting = false;
+                        }
                     }
 
-                    // Lines
+                    #endregion
+
+                    #region Lines
+
                     else if(Bindings.GetBinding("linesFrequencyUp").IsPressed(key)) {
                         Map.currentLevel.metadata.linesFrequency++;
                         changed = true;
@@ -704,13 +569,19 @@ namespace PPR.Main {
                         changed = true;
                     }
 
-                    // Speed
+                    #endregion
+
+                    #region Speed
+
                     else if(Bindings.GetBinding("speedUpSlow").IsPressed(key)) ChangeSpeed(1);
                     else if(Bindings.GetBinding("speedDownSlow").IsPressed(key)) ChangeSpeed(-1);
                     else if(Bindings.GetBinding("speedUp").IsPressed(key)) ChangeSpeed(10);
                     else if(Bindings.GetBinding("speedDown").IsPressed(key)) ChangeSpeed(-10);
 
-                    // HP Drain/Restorage
+                    #endregion
+
+                    #region HP Drain/Restorage
+
                     else if(Bindings.GetBinding("hpRestorageUp").IsPressed(key)) {
                         Map.currentLevel.metadata.hpRestorage++;
                         changed = true;
@@ -728,7 +599,10 @@ namespace PPR.Main {
                         changed = true;
                     }
 
-                    // Initial offset
+                    #endregion
+
+                    #region Initial offset
+
                     else if(Bindings.GetBinding("initialOffsetUpBoost").IsPressed(key)) {
                         Map.currentLevel.metadata.initialOffsetMs += 10;
                         changed = true;
@@ -746,16 +620,24 @@ namespace PPR.Main {
                         changed = true;
                     }
 
-                    // Fast scroll
+                    #endregion
+
+                    #region Fast scroll
+
                     else if(Bindings.GetBinding("fastScrollUp").IsPressed(key)) ScrollTime(10);
                     else if(Bindings.GetBinding("fastScrollDown").IsPressed(key)) ScrollTime(-10);
+
+                    #endregion
                 }
+                // Handle placing/removing individual notes
                 else {
+                    // Removing individual notes
                     if(key.Alt) {
                         List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj =>
                             obj.character != LevelObject.SpeedChar && (Map.selecting ?
-                                Map.OffsetSelected(StepsToOffset(obj.step)) : obj.step == (int)steps) &&
+                                Map.OffsetSelected(Calc.StepsToOffset(obj.step)) : obj.step == (int)steps) &&
                             obj.key == key.Code);
+                        
                         foreach(LevelObject obj in objects) {
                             obj.toDestroy = true;
                             
@@ -763,17 +645,16 @@ namespace PPR.Main {
                             Map.selecting = false;
                         }
                     }
-                    // Map.currentLevel.objects.FindAll(obj => obj.character == character && obj.step == (int)steps)
-                    //     .Count <= 0
+                    // Placing notes
                     else {
                         List<LightLevelObject> toCreate = new List<LightLevelObject>();
                         
                         if(Map.selecting)
                             for(int i = Map.selectionStart; i <= Map.selectionEnd; i++) {
-                                float step = OffsetToSteps(i, currentDirectionLayer);
+                                float step = Calc.OffsetToSteps(i, currentDirectionLayer);
                                 if(float.IsNaN(step) || Map.currentLevel.objects.Any(obj =>
                                     obj.character != LevelObject.SpeedChar && obj.step == step &&
-                                    obj.key == key.Code) || StepsToDirectionLayer(step) != currentDirectionLayer) continue;
+                                    obj.key == key.Code) || Calc.StepsToDirectionLayer(step) != currentDirectionLayer) continue;
                                 toCreate.Add(new LightLevelObject(character, (int)step));
                             }
                         else if(!Map.currentLevel.objects.Any(obj =>
@@ -800,14 +681,13 @@ namespace PPR.Main {
                 if(changed) {
                     List<int> objSteps = Map.currentLevel.objects.Select(obj => obj.step).ToList();
                     Map.currentLevel.metadata.maxStep = objSteps.Count > 0 ? objSteps.Max() : 0;
-                    float ms = StepsToMilliseconds(Map.currentLevel.metadata.maxStep) -
+                    float ms = Calc.StepsToMilliseconds(Map.currentLevel.metadata.maxStep) -
                                Map.currentLevel.metadata.initialOffsetMs;
                     TimeSpan timeSpan = TimeSpan.FromMilliseconds(float.IsNaN(ms) ? 0d : ms);
                     Map.currentLevel.metadata.length =
                         $"{(timeSpan < TimeSpan.Zero ? "-" : "")}{timeSpan.ToString($"{(timeSpan.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
-                    Map.currentLevel.metadata.difficulty = LevelMetadata.GetDifficulty(Map.currentLevel.objects,
-                            Map.currentLevel.speeds, (int)timeSpan.TotalMinutes)
-                        .ToString("0.00", CultureInfo.InvariantCulture);
+                    Map.currentLevel.metadata.actualDiff = Calc.GetDifficulty(Map.currentLevel.objects,
+                            Map.currentLevel.speeds, (int)timeSpan.TotalMinutes);
                 }
 
                 RecalculatePosition();
@@ -821,11 +701,11 @@ namespace PPR.Main {
                         break;
                     }
 
-                if(!anythingPressed && character != '\0') Map.flashLine = LevelObject.GetXPosForCharacter(character);
+                if(!anythingPressed && character != '\0') Map.flashLine = Calc.GetXPosForCharacter(character);
             }
         }
 
-        static bool CheckLine(int step) {
+        private static bool CheckLine(int step) {
             List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != LevelObject.SpeedChar &&
                                                                                 obj.character != LevelObject.HoldChar &&
                                                                                 !obj.removed &&
@@ -845,6 +725,7 @@ namespace PPR.Main {
                     Vector2i mousePos = Core.renderer.mousePosition;
                     if(mousePos.Y >= 12 && mousePos.Y <= 49) {
                         if(mousePos.X >= 28 && mousePos.X <= 51) {
+                            // Scroll Levels
                             if(mousePos.Y <= 38) {
                                 if(scroll.Delta > 0 && UI.levelSelectLevels.First().Value.button.position.Y >= 12)
                                     return;
@@ -854,6 +735,7 @@ namespace PPR.Main {
                                 foreach(LevelSelectLevel level in UI.levelSelectLevels.Values)
                                     level.button.position += new Vector2i(0, (int)scroll.Delta);
                             }
+                            // Scrolls Diffs
                             else if(mousePos.Y >= 40) {
                                 IOrderedEnumerable<KeyValuePair<string, LevelSelectDiff>> sortedDiffs =
                                     UI.levelSelectLevels[UI.currSelectedLevel].diffs
@@ -867,6 +749,7 @@ namespace PPR.Main {
                                     diff.button.position += new Vector2i(0, (int)scroll.Delta);
                             }
                         }
+                        // Scroll Scores
                         else if(mousePos.X >= 1 && mousePos.X <= 25 && !string.IsNullOrEmpty(UI.currSelectedLevel) &&
                                 !string.IsNullOrEmpty(UI.currSelectedDiff)) {
                             LevelSelectDiff currentDiff =
@@ -874,17 +757,8 @@ namespace PPR.Main {
                             if(currentDiff.scores != null && currentDiff.scores.Count > 0) {
                                 if(scroll.Delta > 0 && currentDiff.scores.First().scorePosition.Y >= 12) return;
                                 if(scroll.Delta < 0 && currentDiff.scores.Last().scoresPosition.Y <= 49) return;
-                                for(int i = 0; i < currentDiff.scores.Count; i++) {
-                                    int increment = (int)scroll.Delta;
-                                    LevelScore score = currentDiff.scores[i];
-                                    score.scorePosition += new Vector2i(0, increment);
-                                    score.accComboPosition += new Vector2i(0, increment);
-                                    score.accComboDividerPosition += new Vector2i(0, increment);
-                                    score.maxComboPosition += new Vector2i(0, increment);
-                                    score.scoresPosition += new Vector2i(0, increment);
-                                    score.linePosition += new Vector2i(0, increment);
-                                    currentDiff.scores[i] = score;
-                                }
+                                for(int i = 0; i < currentDiff.scores.Count; i++)
+                                    currentDiff.scores[i].Move(new Vector2i(0, (int)scroll.Delta));
                             }
                         }
                     }
@@ -896,115 +770,18 @@ namespace PPR.Main {
             }
         }
 
-        static void ScrollTime(int delta) {
-            steps = Math.Clamp(steps + delta, 0, MillisecondsToSteps(music.Duration.AsMicroseconds() / 1000f));
+        private static void ScrollTime(int delta) {
+            steps = Math.Clamp(steps + delta, 0, Calc.MillisecondsToSteps(SoundManager.music.Duration.AsMicroseconds() / 1000f));
             UpdateTime();
         }
-        // ReSharper disable once MemberCanBePrivate.Global
-        public static float StepsToMilliseconds(float steps) => StepsToMilliseconds(steps, Map.currentLevel.speeds);
-        public static float StepsToMilliseconds(float steps, List<LevelSpeed> sortedSpeeds) {
-            float useSteps = steps;
-
-            int speedIndex = 0;
-            for(int i = 0; i < sortedSpeeds.Count; i++)
-                if(sortedSpeeds[i].step <= useSteps) speedIndex = i;
-            float time = 0;
-            for(int i = 0; i <= speedIndex; i++)
-                if(i == speedIndex)
-                    time += (useSteps - sortedSpeeds[i].step) *
-                            (sortedSpeeds[i].speed == 0 ? 0 : 60000f / Math.Abs(sortedSpeeds[i].speed));
-                else
-                    time += (sortedSpeeds[i + 1].step - sortedSpeeds[i].step) *
-                            (sortedSpeeds[i].speed == 0 ? 0 : 60000f / Math.Abs(sortedSpeeds[i].speed));
-            return time;
-        }
-        // ReSharper disable once MemberCanBePrivate.Global
-        public static float MillisecondsToSteps(float time) => MillisecondsToSteps(time, Map.currentLevel.speeds);
-        // ReSharper disable once MemberCanBePrivate.Global
-        public static float MillisecondsToSteps(float time, List<LevelSpeed> sortedSpeeds) {
-            float useTime = time;
-
-            int speedIndex = 0;
-            for(int i = 0; i < sortedSpeeds.Count; i++)
-                if(StepsToMilliseconds(sortedSpeeds[i].step, sortedSpeeds) <= useTime) speedIndex = i;
-                else break;
-            float steps = 0;
-            for(int i = 0; i <= speedIndex; i++)
-                if(i == speedIndex)
-                    steps += sortedSpeeds[i].speed == 0 ? 0 : useTime / (60000f / Math.Abs(sortedSpeeds[i].speed));
-                else {
-                    int stepsIncrement = sortedSpeeds[i + 1].step - sortedSpeeds[i].step;
-                    steps += stepsIncrement;
-                    useTime -= stepsIncrement *
-                               (sortedSpeeds[i].speed == 0 ? 0 : 60000f / Math.Abs(sortedSpeeds[i].speed));
-                }
-
-            return steps;
-        }
-        // ReSharper disable once MemberCanBePrivate.Global
-        public static float StepsToOffset(float steps) => StepsToOffset(steps, Map.currentLevel.speeds);
-        public static float StepsToOffset(float steps, List<LevelSpeed> sortedSpeeds) {
-            float useSteps = steps;
-
-            int speedIndex = 0;
-            for(int i = 0; i < sortedSpeeds.Count; i++)
-                if(sortedSpeeds[i].step <= useSteps) speedIndex = i;
-                else break;
-            float offset = 0;
-            for(int i = 0; i <= speedIndex; i++)
-                if(i == speedIndex) offset += useSteps * MathF.Sign(sortedSpeeds[i].speed);
-                else {
-                    int stepsDecrement = sortedSpeeds[i + 1].step - sortedSpeeds[i].step;
-                    offset += stepsDecrement * MathF.Sign(sortedSpeeds[i].speed);
-                    useSteps -= stepsDecrement;
-                }
-
-            return offset;
-        }
-        // ReSharper disable once MemberCanBePrivate.Global
-        public static float OffsetToSteps(float offset, int directionLayer) =>
-            OffsetToSteps(offset, directionLayer, Map.currentLevel.speeds);
-        public static float OffsetToSteps(float offset, int directionLayer, List<LevelSpeed> sortedSpeeds) {
-            for(int i = sortedSpeeds.Count - 1; i >= 0; i--) {
-                float currentOffset = StepsToOffset(sortedSpeeds[i].step);
-                if(currentOffset <= offset &&
-                   StepsToDirectionLayer(sortedSpeeds[i].step) == directionLayer)
-                    return sortedSpeeds[i].step + offset - currentOffset;
-            }
-
-            return float.NaN;
-        }
-        // ReSharper disable once MemberCanBePrivate.Global
-        public static int StepsToDirectionLayer(float steps) => StepsToDirectionLayer(steps, Map.currentLevel.speeds);
-        public static int StepsToDirectionLayer(float steps, List<LevelSpeed> sortedSpeeds) {
-            int speedIndex = 0;
-            for(int i = 0; i < sortedSpeeds.Count; i++)
-                if(sortedSpeeds[i].step <= steps) speedIndex = i;
-                else break;
-            int directionLayer = 0;
-            for(int i = 1; i <= speedIndex; i++)
-                if(MathF.Sign(sortedSpeeds[i].speed) != MathF.Sign(sortedSpeeds[i - 1].speed)) directionLayer++;
-            return directionLayer;
-        }
+        
         public static bool StepPassedLine(int step, int lineOffset = 0) => roundedSteps >= step + lineOffset;
 
-        public static int GetBPMAtStep(int step, IEnumerable<LevelSpeed> sortedSpeeds) {
-            int bpm = 0;
-            foreach(LevelSpeed speed in sortedSpeeds)
-                if(speed.step <= step) bpm = speed.speed;
-                else break;
-            return bpm;
-        }
-        public static IEnumerable<int> GetBPMBetweenSteps(int start, int end, IEnumerable<LevelSpeed> sortedSpeeds) =>
-            from speed in sortedSpeeds where speed.step > start && speed.step < end select speed.speed;
-        public static List<LevelSpeed> GetSpeedsBetweenSteps(int start, int end, List<LevelSpeed> sortedSpeeds) =>
-            sortedSpeeds.FindAll(speed => speed.step >= start && speed.step <= end);
-
-        static int GetInitialOffset(IReadOnlyList<string> lines) {
+        public static int GetInitialOffset(IReadOnlyList<string> lines) {
             string[] meta = lines.Count > 4 ? lines[4].Split(':') : Array.Empty<string>();
             return meta.Length > 5 ? int.Parse(meta[5]) : 0;
         }
-        static List<LevelSpeed> GetSpeeds(IReadOnlyList<string> lines) {
+        public static List<LevelSpeed> GetSpeeds(IReadOnlyList<string> lines) {
             int[] speeds = lines.Count > 2 && lines[2].Length > 0 ? lines[2].Split(':').Select(int.Parse).ToArray() :
                 Array.Empty<int>();
             int[] speedsStarts = lines.Count > 3 && lines[3].Length > 0 ?
@@ -1014,10 +791,10 @@ namespace PPR.Main {
             return levelSpeeds;
         }
 
-        static void RescanCreatedLevels() {
+        private static void RescanCreatedLevels() {
             string[] infoFiles = Directory.GetFiles("levels").Where(file => Path.GetExtension(file) == ".txt").ToArray();
             foreach(string infoFile in infoFiles) {
-                string musicPath = GetSoundFilePath(Path.Join(Path.GetDirectoryName(infoFile),
+                string musicPath = SoundManager.GetSoundFilePath(Path.Join(Path.GetDirectoryName(infoFile),
                     Path.GetFileNameWithoutExtension(infoFile)));
                 string levelName = Path.GetFileNameWithoutExtension(infoFile);
                 
@@ -1066,7 +843,7 @@ namespace PPR.Main {
                 File.Delete(infoFile);
             }
         }
-        static void GenerateLevelList() {
+        private static void GenerateLevelList() {
             RescanCreatedLevels();
             
             string[] directories = Directory.GetDirectories("levels")
@@ -1077,10 +854,13 @@ namespace PPR.Main {
                 LevelSelectLevel level = new LevelSelectLevel {
                     button = new Button(new Vector2i(25, 12 + i), levelName, "levelSelect.level", 30)
                 };
+
+                #region Load Diffs
+
                 string[] diffFiles = Directory.GetFiles(directories[i]).Where(file => file.EndsWith(".txt")).ToArray();
                 level.diffs = new Dictionary<string, LevelSelectDiff>(diffFiles.Length);
-                for(int j = 0; j < diffFiles.Length; j++) {
-                    string diffName = Path.GetFileNameWithoutExtension(diffFiles[j]);
+                foreach(string diffFile in diffFiles) {
+                    string diffName = Path.GetFileNameWithoutExtension(diffFile);
                     string[] diffLines = File.ReadAllLines(Path.Join(directories[i], $"{diffName}.txt"));
                     if(!Level.IsLevelValid(diffLines) || diffName == null ||
                        diffName != diffName.ToLowerInvariant()) continue;
@@ -1094,11 +874,15 @@ namespace PPR.Main {
                     };
                     
                     logger.Info("Loaded metadata for level '{0}' diff '{1}'", levelName, diffName);
-                    
+
+                    #region Load Scores
+
                     string scoresPath = diffName == "level" ? Path.Join("scores", $"{levelName}.txt") :
                         Path.Join("scores", $"{levelName}", $"{diffName}.txt");
                     diff.scores = Map.ScoresFromLines(
                         File.Exists(scoresPath) ? File.ReadAllLines(scoresPath) : Array.Empty<string>(), UI.scoresPos);
+
+                    #endregion
                     
                     logger.Info("Loaded scores for level '{0}' diff '{1}', total scores count: {2}",
                         levelName, diffName, diff.scores.Count);
@@ -1110,6 +894,8 @@ namespace PPR.Main {
                 for(int j = 0; j < sortedDiffs.Count; j++)
                     level.diffs[sortedDiffs[j].Key].button.position = new Vector2i(25, 40 + j);
 
+                #endregion
+
                 logger.Info("Loaded diffs for level '{0}', total diffs count: {1}", levelName, level.diffs.Count);
                 
                 UI.levelSelectLevels.Add(levelName, level);
@@ -1117,14 +903,5 @@ namespace PPR.Main {
 
             logger.Info("Loaded levels, total level count: {0}", UI.levelSelectLevels.Count);
         }
-        public static void RecalculateAccuracy() {
-            float sum = scores[0] + scores[1] + scores[2];
-            float mulSum = scores[1] * 0.5f + scores[2];
-            accuracy = (int)MathF.Floor(mulSum / sum * 100f);
-        }
-        public static Color GetAccuracyColor(int accuracy) => accuracy >= 100 ? ColorScheme.GetColor("accuracy_good") :
-            accuracy >= 70 ? ColorScheme.GetColor("accuracy_ok") : ColorScheme.GetColor("accuracy_bad");
-        public static Color GetComboColor(int accuracy, int misses) => accuracy >= 100 ? ColorScheme.GetColor("perfect_combo") :
-            misses <= 0 ? ColorScheme.GetColor("full_combo") : ColorScheme.GetColor("combo");
     }
 }

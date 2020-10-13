@@ -1,6 +1,7 @@
 ﻿using System;
 
 using PPR.Main;
+using PPR.Main.Managers;
 
 using PRR;
 
@@ -12,30 +13,30 @@ namespace PPR.GUI.Elements {
     // ReSharper disable FieldCanBeMadeReadOnly.Global
     // ReSharper disable MemberCanBePrivate.Global
     public class Slider {
-        public Vector2i position;
-        public readonly int minValue;
-        public readonly int maxValue;
-        public readonly int size;
-        public readonly int step;
-        public int value;
-        public string leftText;
-        public string rightText;
-        public string id;
-        public Color idleColor;
-        public Color hoverColor;
-        public Color clickColor;
-        public Renderer.Alignment align;
-        public bool swapTexts;
-        Color _currentColor;
-        Color _prevColor;
+        public enum State { Idle, Hovered, Clicked }
+        public Vector2i position { get; set; }
+        public int minValue { get; }
+        public int maxValue { get; }
+        public int size { get; }
+        public int step { get; }
+        public int value { get; set; }
+        public string leftText { get; set; }
+        public string rightText { get; set; }
+        public string id { get; set; }
+        public Color idleColor { get; }
+        public Color hoverColor { get; }
+        public Color clickColor { get; }
+        public Renderer.Alignment align { get; set; }
+        public bool swapTexts { get; set; }
         public State currentState { get; private set; } = State.Clicked;
-        State _prevState = State.Hovered;
-        // ReSharper disable once NotAccessedField.Global
         public State prevFrameState { get; private set; } = State.Hovered;
-        readonly float[] _animTimes;
-        readonly float[] _animRateOffsets;
-        int _posX;
-        public enum State { Idle, Hovered, Clicked };
+        
+        private readonly float[] _animTimes;
+        private readonly float[] _animRateOffsets;
+        private State _prevState = State.Hovered;
+        private Color _currentColor;
+        private Color _prevColor;
+        private int _posX;
         public Slider(Vector2i position, int minValue, int maxValue, int size, int defaultValue, string leftText,
             string rightText, string id, Renderer.Alignment align = Renderer.Alignment.Left, bool swapTexts = false) :
             this(position, minValue, maxValue, size, defaultValue, leftText, rightText, id,
@@ -63,7 +64,7 @@ namespace PPR.GUI.Elements {
             _animRateOffsets = new float[size];
             _currentColor = hoverColor;
         }
-        State DrawWithState() {
+        private State DrawBase() {
             string leftText = $"{(swapTexts ? this.rightText : this.leftText).Replace("[value]", value.ToString())} ";
             string rightText = (swapTexts ? this.leftText : this.rightText).Replace("[value]", value.ToString());
             _posX = position.X - align switch
@@ -79,7 +80,7 @@ namespace PPR.GUI.Elements {
         }
         public bool Draw() {
             prevFrameState = currentState;
-            currentState = DrawWithState();
+            currentState = DrawBase();
             if(_prevState != currentState) {
                 Color color = currentState switch {
                     State.Hovered => hoverColor,
@@ -102,7 +103,7 @@ namespace PPR.GUI.Elements {
                 int previousValue = value;
                 value = Math.Clamp((Core.renderer.mousePosition.X - _posX) * step + minValue, minValue, maxValue);
                 valueChanged = value != previousValue;
-                if(valueChanged) Game.sliderSound.Play();
+                if(valueChanged) SoundManager.PlaySound(SoundType.Slider);
             }
 
             for(int x = 0; x < size; x++) {

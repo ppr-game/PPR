@@ -11,12 +11,10 @@ using PPR.Properties;
 using SFML.Graphics;
 
 namespace PPR.GUI {
-    // ReSharper disable MemberCanBePrivate.Global
-    // ReSharper disable NotAccessedField.Global
     public static class ColorScheme {
-        static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        
-        static readonly Dictionary<string, Color> colors = new Dictionary<string, Color>();
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
+        private static readonly Dictionary<string, Color> colors = new Dictionary<string, Color>();
         public static void Reload() {
             colors.Clear();
 
@@ -40,8 +38,11 @@ namespace PPR.GUI {
             Game.UpdateSettings();
         }
 
-        static void LoadSchemes(string basePath, string priorityPath) {
-            // Get the paths
+        public static Color GetColor(string key) => colors.ContainsKey(key) ? colors[key] : Color.Transparent;
+        
+        private static void LoadSchemes(string basePath, string priorityPath) {
+            #region Get the paths
+
             string baseFilePath = Path.Join("resources", "colors", basePath, "colors.txt");
             string priorityFilePath = Path.Join("resources", "colors", priorityPath, "colors.txt");
             if(!File.Exists(priorityFilePath)) {
@@ -55,6 +56,8 @@ namespace PPR.GUI {
             }
             string[] baseLines = File.ReadAllLines(baseFilePath);
             string[] priorityLines = File.ReadAllLines(priorityFilePath);
+
+            #endregion
             
             Dictionary<string, string> tempColors = new Dictionary<string, string>();
             
@@ -93,13 +96,13 @@ namespace PPR.GUI {
                 else colors[key] = (Color)color;
             }
         }
-        static string[] ParseSchemeLine(string line) {
+        private static string[] ParseSchemeLine(string line) {
             string usableLine = line.Split('#')[0].Replace(' ', '\0');
             string[] keyValue = usableLine.Split('=');
             if(string.IsNullOrEmpty(keyValue[0].Trim()) || string.IsNullOrEmpty(keyValue[1].Trim())) return null;
             return keyValue;
         }
-        static Color? ParseSchemeColor(string color) {
+        private static Color? ParseSchemeColor(string color) {
             string[] strValues = color.Split(',');
             byte[] values = strValues.Length == 3 || strValues.Length == 4 ?
                 strValues.Select(byte.Parse).ToArray() : Array.Empty<byte>();
@@ -107,7 +110,5 @@ namespace PPR.GUI {
                 new Color(values[0], values[1], values[2],
                 values.Length == 4 ? values[3] : byte.MaxValue) : (Color?)null;
         }
-
-        public static Color GetColor(string key) => colors.ContainsKey(key) ? colors[key] : Color.Transparent;
     }
 }

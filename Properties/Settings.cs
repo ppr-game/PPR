@@ -12,15 +12,15 @@ namespace PPR.Properties {
         public SettingChangedEventArgs(string settingName) => this.settingName = settingName;
     }
     public static class Settings {
-        static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        
-        const string PATH = "config.txt";
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
+        private const string Path = "config.txt";
 
         public static EventHandler<SettingChangedEventArgs> settingChanged;
-        
-        static Dictionary<string, bool> _booleans = new Dictionary<string, bool>();
-        static Dictionary<string, int> _integers = new Dictionary<string, int>();
-        static Dictionary<string, string> _strings = new Dictionary<string, string>();
+
+        private static Dictionary<string, bool> _booleans = new Dictionary<string, bool>();
+        private static Dictionary<string, int> _integers = new Dictionary<string, int>();
+        private static Dictionary<string, string> _strings = new Dictionary<string, string>();
 
         public static void Reload() {
             _booleans = new Dictionary<string, bool> {
@@ -30,19 +30,19 @@ namespace PPR.Properties {
                 {"musicVolume", 15}, {"soundsVolume", 10}, {"fpsLimit", 480}
             };
             _strings = new Dictionary<string, string> {
-                {"audio", "Default"}, {"font", Path.Join("Codepage 437", "10x10", "x1")},
-                {"colorScheme", Path.Join("Default", "Classic")}
+                {"audio", "Default"}, {"font", System.IO.Path.Join("Codepage 437", "10x10", "x1")},
+                {"colorScheme", System.IO.Path.Join("Default", "Classic")}
             };
             
             LoadConfig();
         }
-        
-        static void LoadConfig() {
-            if(!File.Exists(PATH)) {
+
+        private static void LoadConfig() {
+            if(!File.Exists(Path)) {
                 logger.Info("The config was not found, using default config");
                 return;
             }
-            string[] lines = File.ReadAllLines(PATH);
+            string[] lines = File.ReadAllLines(Path);
             
             foreach(string line in lines) {
                 string usableLine = line.Split('#')[0];
@@ -62,23 +62,23 @@ namespace PPR.Properties {
             string[] strInts = _integers.Select(value => $"{value.Key}={value.Value.ToString(culture)}").ToArray();
             string[] strStrings = _strings.Select(value => $"{value.Key}={value.Value}").ToArray();
             if(strBools.Length > 0) {
-                File.WriteAllText(PATH, "# Booleans\n");
-                File.AppendAllLines(PATH, strBools);
+                File.WriteAllText(Path, "# Booleans\n");
+                File.AppendAllLines(Path, strBools);
             }
             if(strInts.Length > 0) {
-                File.AppendAllText(PATH, "\n# Integers\n");
-                File.AppendAllLines(PATH, strInts);
+                File.AppendAllText(Path, "\n# Integers\n");
+                File.AppendAllLines(Path, strInts);
             }
             if(strStrings.Length <= 0) return;
-            File.AppendAllText(PATH, "\n# Strings\n");
-            File.AppendAllLines(PATH, strStrings);
+            File.AppendAllText(Path, "\n# Strings\n");
+            File.AppendAllLines(Path, strStrings);
         }
 
         public static bool GetBool(string key) => _booleans.TryGetValue(key, out bool value) && value;
         public static int GetInt(string key) => _integers.TryGetValue(key, out int value) ? value : 0;
         public static string GetString(string key) => _strings.TryGetValue(key, out string value) ? value : "";
-        public static string[] GetPathArray(string key) => GetString(key).Split(Path.AltDirectorySeparatorChar);
-        public static string GetPath(string key) => string.Join(Path.DirectorySeparatorChar, GetPathArray(key));
+        public static string[] GetPathArray(string key) => GetString(key).Split(System.IO.Path.AltDirectorySeparatorChar);
+        public static string GetPath(string key) => string.Join(System.IO.Path.DirectorySeparatorChar, GetPathArray(key));
 
         public static void SetBool(string key, bool value) {
             _booleans[key] = value;
@@ -92,6 +92,6 @@ namespace PPR.Properties {
             _strings[key] = value;
             settingChanged?.Invoke(null, new SettingChangedEventArgs(key));
         }
-        public static void SetPath(string key, string value) => SetString(key, value.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        public static void SetPath(string key, string value) => SetString(key, value.Replace(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar));
     }
 }

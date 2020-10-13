@@ -35,7 +35,7 @@ namespace PPR.Scripts.Rendering {
         public float steps { get; set; }
         public float offset { get; set; }
         // ReSharper disable once InconsistentNaming
-        static readonly Random _random = new Random();
+        private static readonly Random _random = new Random();
         public int randomInt(int min, int max) => _random.Next(min, max);
         public double random(double min, double max) => _random.NextDouble() * (max - min) + min;
         public static double posRandom(int x, int y) => posRandom(x, y, 0d);
@@ -181,7 +181,7 @@ namespace PPR.Scripts.Rendering {
             }
         }
 
-        public static Dictionary<Vector2i, float> positionRandoms => UI.positionRandoms;
+        public static IReadOnlyDictionary<Vector2i, float> positionRandoms => UI.positionRandoms;
         public static void RegenPositionRandoms() => UI.RegenPositionRandoms();
         
         public static void DrawText(Vector2i position, string text, Color foregroundColor, Color backgroundColor,

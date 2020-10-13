@@ -1,6 +1,7 @@
 ﻿using System;
 
 using PPR.Main;
+using PPR.Main.Managers;
 using PPR.Properties;
 
 using PRR;
@@ -12,10 +13,12 @@ namespace PPR.GUI.Elements {
     // ReSharper disable FieldCanBeMadeReadOnly.Global
     // ReSharper disable MemberCanBePrivate.Global
     public class Button {
-        public Vector2i position;
-        public string text;
-        public string id;
-        int _width;
+        public enum State { Idle, Hovered, Clicked, Selected }
+        
+        public Vector2i position { get; set; }
+        public string text { get; set; }
+        public string id { get; }
+        private int _width;
         public int width {
             get => _width;
             set {
@@ -24,23 +27,23 @@ namespace PPR.GUI.Elements {
                 _animRateOffsets = new float[value];
             }
         }
-        public Color idleColor;
-        public Color hoverColor;
-        public Color clickColor;
-        public Renderer.Alignment align;
-        public InputKey hotkey;
-        bool _hotkeyPressed;
-        bool _prevFrameHotkeyPressed;
-        Color _currentColor;
-        Color _prevColor;
+        public Color idleColor { get; }
+        public Color hoverColor { get; }
+        public Color clickColor { get; }
+        public Renderer.Alignment align { get; }
+        public InputKey hotkey { get; }
         public State currentState { get; private set; } = State.Hovered;
-        State _prevState = State.Hovered;
         public State prevFrameState { get; private set; } = State.Hovered;
-        float[] _animTimes;
-        float[] _animRateOffsets;
         public bool selected = false;
-        int _posX;
-        public enum State { Idle, Hovered, Clicked, Selected };
+        
+        private float[] _animTimes;
+        private float[] _animRateOffsets;
+        private State _prevState = State.Hovered;
+        private bool _hotkeyPressed;
+        private bool _prevFrameHotkeyPressed;
+        private Color _currentColor;
+        private Color _prevColor;
+        private int _posX;
 
         public Button(Vector2i position, string text, string id, int width, InputKey hotkey = null,
             Renderer.Alignment align = Renderer.Alignment.Left) : this(position, text, id, width,
@@ -69,12 +72,11 @@ namespace PPR.GUI.Elements {
             };
         }
 
-        State DrawWithState() {
-            Core.renderer.DrawText(position, text.Substring(0, Math.Min(text.Length, width)), align);
+        private State GetState() {
             _posX = position.X - align switch
             {
                 Renderer.Alignment.Right => text.Length - 1,
-                Renderer.Alignment.Center => (int)MathF.Ceiling(text.Length / 2f),
+                Renderer.Alignment.Center => (int)MathF.Floor(text.Length / 2f),
                 _ => 0
             };
             return Core.renderer.mousePosition.InBounds(_posX, position.Y, _posX + width - 1, position.Y) ||
@@ -82,8 +84,9 @@ namespace PPR.GUI.Elements {
                 State.Hovered : selected ? State.Selected : State.Idle;
         }
         public bool Draw() {
+            Core.renderer.DrawText(position, text.Substring(0, Math.Min(text.Length, width)), align);
             prevFrameState = currentState;
-            currentState = DrawWithState();
+            currentState = GetState();
             if(_prevState != currentState) {
                 Color color = idleColor;
                 switch(currentState) {
@@ -118,7 +121,7 @@ namespace PPR.GUI.Elements {
 
             if(!Core.renderer.window.HasFocus() || currentState != State.Hovered ||
                prevFrameState != State.Clicked) return false;
-            Game.buttonClickSound.Play();
+            SoundManager.PlaySound(SoundType.Click);
             return true;
         }
     }

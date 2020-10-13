@@ -5,6 +5,7 @@ using System.Linq;
 
 using PPR.GUI;
 using PPR.GUI.Elements;
+using PPR.Main.Managers;
 using PPR.Properties;
 
 using PRR;
@@ -18,20 +19,11 @@ namespace PPR.Main.Levels {
     public struct LevelSelectLevel {
         public Button button;
         public Dictionary<string, LevelSelectDiff> diffs;
-        public LevelSelectLevel(Button button, Dictionary<string, LevelSelectDiff> diffs) {
-            this.button = button;
-            this.diffs = diffs;
-        }
     }
     public struct LevelSelectDiff {
         public Button button;
         public List<LevelScore> scores;
         public LevelMetadata metadata;
-        public LevelSelectDiff(Button button, List<LevelScore> scores, LevelMetadata metadata) {
-            this.button = button;
-            this.scores = scores;
-            this.metadata = metadata;
-        }
     }
     public struct LevelScore {
         public Vector2i scorePosition;
@@ -58,14 +50,24 @@ namespace PPR.Main.Levels {
             this.accuracy = accuracy;
             this.maxCombo = maxCombo;
             accuracyStr = $"{accuracy.ToString()}%";
-            accuracyColor = Game.GetAccuracyColor(accuracy);
+            accuracyColor = ScoreManager.GetAccuracyColor(accuracy);
             accComboDividerPosition = accComboPosition + new Vector2i(accuracyStr.Length, 0);
             maxComboPosition = accComboDividerPosition + new Vector2i(1, 0);
             maxComboStr = $"{maxCombo.ToString()}x";
-            maxComboColor = Game.GetComboColor(accuracy, scores[0]);
+            maxComboColor = ScoreManager.GetComboColor(accuracy, scores[0]);
             scoresPosition = new Vector2i(position.X, position.Y + 2);
             this.scores = scores;
             linePosition = new Vector2i(position.X - 1, position.Y + 3);
+        }
+        public LevelScore(int score, int accuracy, int maxCombo, int[] scores) : this(new Vector2i(), score, accuracy,
+            maxCombo, scores) { }
+        public void Move(Vector2i by) {
+            scorePosition += by;
+            accComboPosition += by;
+            accComboDividerPosition += by;
+            maxComboPosition += by;
+            scoresPosition += by;
+            linePosition += by;
         }
     }
     public struct LevelMetadata {
@@ -74,7 +76,7 @@ namespace PPR.Main.Levels {
         public readonly string displayDiff;
         public int hpDrain;
         public int hpRestorage;
-        float _actualDiff;
+        private float _actualDiff;
         public float actualDiff {
             get => _actualDiff;
             set {
@@ -82,7 +84,7 @@ namespace PPR.Main.Levels {
                 difficulty = value.ToString("0.00", CultureInfo.InvariantCulture);
             }
         }
-        public string difficulty;
+        public string difficulty { get; private set; }
         public readonly string author;
         public string length;
         public int maxStep;
@@ -94,7 +96,7 @@ namespace PPR.Main.Levels {
         public readonly int objectCount;
         public readonly int speedsCount;
 
-        LevelMetadata(string name, string diff, IReadOnlyList<string> meta, int objectCount, IReadOnlyList<char> chars, IReadOnlyList<int> steps, List<LevelSpeed> speeds) {
+        private LevelMetadata(string name, string diff, IReadOnlyList<string> meta, int objectCount, IReadOnlyList<char> chars, IReadOnlyList<int> steps, List<LevelSpeed> speeds) {
             this.name = name;
             this.diff = diff;
             displayDiff = diff == "level" || diff == null ? "DEFAULT" : diff.ToUpper();
@@ -105,21 +107,20 @@ namespace PPR.Main.Levels {
             linesFrequency = meta.Count > 4 ? int.Parse(meta[4]) : 4;
             initialOffsetMs = meta.Count > 5 ? int.Parse(meta[5]) : 0;
 
-            //speeds = Game.SortLevelSpeeds(speeds);
             speeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
 
             maxStep = steps.Count > 0 ? steps.Max() : 0;
-            TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.StepsToMilliseconds(maxStep, speeds) - initialOffsetMs);
+            TimeSpan timeSpan = TimeSpan.FromMilliseconds(Calc.StepsToMilliseconds(maxStep, speeds) - initialOffsetMs);
             length = $"{(timeSpan < TimeSpan.Zero ? "-" : "")}{timeSpan.ToString($"{(timeSpan.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
 
             List<LightLevelObject> objects = new List<LightLevelObject>();
             for(int i = 0; i < Math.Min(chars.Count, steps.Count); i++)
                 objects.Add(new LightLevelObject(chars[i], steps[i]));
-            _actualDiff = GetDifficulty(objects, speeds, (int)timeSpan.TotalMinutes);
+            _actualDiff = Calc.GetDifficulty(objects, speeds, (int)timeSpan.TotalMinutes);
             difficulty = _actualDiff.ToString("0.00", CultureInfo.InvariantCulture);
 
             int minStep = steps.Count > 0 ? steps.Min() : 0;
-            int minTime = (int)Game.StepsToMilliseconds(minStep, speeds) + initialOffsetMs;
+            int minTime = (int)Calc.StepsToMilliseconds(minStep, speeds) + initialOffsetMs;
             skipTime = minTime - 3000;
             skippable = skipTime > 3000;
 
@@ -138,75 +139,10 @@ namespace PPR.Main.Levels {
             level.objects.FindAll(obj => obj.character != LevelObject.HoldChar).Count,
             level.objects.FindAll(obj => obj.character != LevelObject.SpeedChar).Select(obj => obj.character).ToList(),
             level.objects.FindAll(obj => obj.character != LevelObject.SpeedChar).Select(obj => obj.step).ToList(), level.speeds) { }
-        static List<LevelSpeed> SpeedsFromLists(IReadOnlyList<int> speeds, IEnumerable<int> speedsSteps) {
+        private static List<LevelSpeed> SpeedsFromLists(IReadOnlyList<int> speeds, IEnumerable<int> speedsSteps) {
             List<LevelSpeed> combinedSpeeds = speedsSteps.Select((t, i) => new LevelSpeed(speeds[i], t)).ToList();
             combinedSpeeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
             return combinedSpeeds;
-        }
-        public static float GetDifficulty(List<LevelObject> objects, List<LevelSpeed> sortedSpeeds, int lengthMins) => GetDifficulty(objects.Select(obj => new LightLevelObject(obj.character, obj.step)).ToList(), sortedSpeeds,
-            lengthMins);
-        static float GetDifficulty(IReadOnlyCollection<LightLevelObject> lightObjects, List<LevelSpeed> sortedSpeeds,
-            int lengthMins) {
-            if (lightObjects.Count == 0 || sortedSpeeds.Count == 0) return 0f;
-
-            List<LightLevelObject> sortedObjects = new List<LightLevelObject>(lightObjects);
-            sortedObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
-            for(int i = 1; i < sortedObjects.Count; i++) if(sortedObjects[i].character == LevelObject.HoldChar) sortedObjects.RemoveAt(i - 1);
-            sortedObjects = sortedObjects.FindAll(obj => obj.character != LevelObject.HoldChar);
-            //for(int i = 1; i < sortedObjects.Count; i++) if(sortedObjects[i].step == sortedObjects[i - 1].step) sortedObjects.RemoveAt(i);
-
-            List<float> diffFactors = new List<float>();
-            
-            List<float> speeds = new List<float>();
-            List<float> bpm = new List<float>();
-            
-            List<LightLevelObject>[] objects = {
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>()
-            };
-            foreach(LightLevelObject obj in sortedObjects)
-                objects[(LevelObject.GetXPosForCharacter(obj.character) - 6) / 12].Add(obj);
-            //List<LightLevelObject> objs = objects[0];
-            foreach(List<LightLevelObject> objs in objects)
-                for(int i = 1; i < objs.Count; i++) {
-                    LightLevelObject prevObj = objs[i - 1];
-                    LightLevelObject currObj = objs[i];
-                    int startBPM = Math.Abs(Game.GetBPMAtStep(prevObj.step, sortedSpeeds));
-                    int endBPM = Math.Abs(Game.GetBPMAtStep(currObj.step, sortedSpeeds));
-                    int currStep = prevObj.step - startBPM / 600;
-                    int endStep = currObj.step + endBPM / 600;
-                    float time = 0;
-                    int currBPM = startBPM;
-                    foreach(LevelSpeed speed in Game.GetSpeedsBetweenSteps(prevObj.step, currObj.step,
-                        sortedSpeeds)) {
-                        time += 60f / currBPM * (speed.step - currStep);
-                        currStep = speed.step;
-                        currBPM = Math.Abs(speed.speed);
-                    }
-                    time += 60f / endBPM * (endStep - currStep);
-                    float distance = LevelObject.GetPhysicalKeyDistance(currObj.character, prevObj.character);
-                    speeds.Add(distance + 1f);
-                    if(time != 0f) speeds.Add(1f / time);
-                }
-
-            // ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
-            foreach(LevelSpeed speed in sortedSpeeds) bpm.Add(Math.Abs(speed.speed) / 60f);
-            
-            diffFactors.Add(speeds.Count > 0 ? speeds.Average() : 0f);
-            diffFactors.Add(bpm.Average());
-            diffFactors.Add(lengthMins);
-
-            return diffFactors.Count > 0 ? diffFactors.Average() : 0f;
         }
         public LevelMetadata(IReadOnlyList<string> lines, string name, string diff) : this(name, diff,
             lines[4].Split(':'),
@@ -218,9 +154,9 @@ namespace PPR.Main.Levels {
     }
     public class Level {
         public LevelMetadata metadata;
-        public readonly List<LevelObject> objects = new List<LevelObject>();
-        public readonly List<LevelSpeed> speeds = new List<LevelSpeed>();
-        public readonly string script;
+        public List<LevelObject> objects { get; } = new List<LevelObject>();
+        public List<LevelSpeed> speeds { get; } = new List<LevelSpeed>();
+        public string script { get; }
 
         public static bool IsLevelValid(IReadOnlyList<string> lines) {
             bool any;
@@ -278,69 +214,43 @@ namespace PPR.Main.Levels {
         }
     }
     public class LevelObject {
-        static readonly string[] lines = new string[] {
+        public static readonly string[] lines = {
             "1234567890-=", // ReSharper disable once StringLiteralTypo
             "qwertyuiop[]", // ReSharper disable once StringLiteralTypo
             "asdfghjkl;'", // ReSharper disable once StringLiteralTypo
             "zxcvbnm,./"
         };
-        public static Color[] linesColors;
-        public static Color[] linesDarkColors;
+        public static Color[] linesColors { get; set; }
+        public static Color[] linesDarkColors { get; set; }
         public const char SpeedChar = '>';
         public const char HoldChar = '│';
-        public static int perfectRange;
-        public static int hitRange;
-        public static int missRange;
-        Vector2i _position;
+        public static int perfectRange { get; set; }
+        public static int hitRange { get; set; }
+        public static int missRange { get; set; }
         public int xPos => _startPosition.X;
-        readonly Vector2i _startPosition;
-        public readonly char character;
-        public readonly Keyboard.Key key;
-        public readonly int step;
-        readonly int _directionLayer;
-        Color _hitColor;
-        readonly int _line;
-        Color _color;
-        Color _nextDirLayerColor;
-        public static Color speedColor;
-        public static Color nextDirLayerSpeedColor;
+        public char character { get; }
+        public Keyboard.Key key { get; }
+        public int step { get; }
+        public static Color speedColor { get; set; }
+        public static Color nextDirLayerSpeedColor { get; set; }
 
-        public bool removed;
-        float _removeAnimationTime;
-        public bool toDestroy;
+        public bool removed { get; private set; }
+        public bool toDestroy { get; set; }
 
+        private Vector2i _position;
+        private readonly Vector2i _startPosition;
+        private readonly int _directionLayer;
+        private Color _hitColor;
+        private readonly int _line;
+        private Color _color;
+        private Color _nextDirLayerColor;
+        private float _removeAnimationTime;
+        
         public bool ignore { get; private set; }
 
-        public static int GetXPosForCharacter(char character) {
-            character = char.ToLower(character);
-            int x = 0;
-            int xLineOffset = 0;
-            int mul = 90 / lines.Select(line => line.Length).Max();
-            foreach(string line in lines) {
-                if(line.Contains(character)) {
-                    x = (line.IndexOf(character) + 1) * (mul - 1) + xLineOffset * mul / 3;
-                    break;
-                }
-                xLineOffset++;
-            }
-            return x;
-        }
-        public static float GetPhysicalKeyDistance(char leftChar, char rightChar) {
-            int leftX = GetXPosForCharacter(leftChar);
-            int rightX = GetXPosForCharacter(rightChar);
-            int leftY = 0;
-            int rightY = 0;
-            int lineOffset = 0;
-            foreach(string line in lines) {
-                if(line.Contains(leftChar)) leftY = lineOffset;
-                if(line.Contains(rightChar)) rightY = lineOffset;
-                lineOffset++;
-            }
-            return MathF.Sqrt((leftX - rightX) / 6f * ((leftX - rightX) / 6f) + (leftY - rightY) * (leftY - rightY));
-        }
         public LevelObject(char character, int step, IEnumerable<LevelSpeed> speeds, IReadOnlyCollection<LevelObject> objects = null) {
             character = Settings.GetBool("uppercaseNotes") ? char.ToUpper(character) : char.ToLower(character);
-            int x = GetXPosForCharacter(character);
+            int x = Calc.GetXPosForCharacter(character);
             if(character == HoldChar && objects != null) {
                 List<LevelObject> existingObjects = objects.Where(obj =>
                     obj.step == step && obj.character != SpeedChar && obj.character != HoldChar).ToList();
@@ -352,7 +262,7 @@ namespace PPR.Main.Levels {
             }
             List<LevelSpeed> existingSpeeds = new List<LevelSpeed>(speeds);
             existingSpeeds.Sort((spd1, spd2) => spd1.step.CompareTo(spd2.step));
-            _startPosition = new Vector2i(x, Map.linePos.Y - (int)Game.StepsToOffset(step, existingSpeeds));
+            _startPosition = new Vector2i(x, Map.linePos.Y - (int)Calc.StepsToOffset(step, existingSpeeds));
             _position = _startPosition;
             this.character = character;
             char lineChar = character == HoldChar ? Game.GetNoteBinding(key) : character;
@@ -363,7 +273,10 @@ namespace PPR.Main.Levels {
             }
             UpdateColors();
             this.step = step;
-            _directionLayer = Game.StepsToDirectionLayer(step, existingSpeeds);
+            _directionLayer = Calc.StepsToDirectionLayer(step, existingSpeeds);
+
+            #region Set the key
+
             key = char.ToUpper(character) switch {
                 '1' => Keyboard.Key.Num1,
                 '2' => Keyboard.Key.Num2,
@@ -412,6 +325,8 @@ namespace PPR.Main.Levels {
                 '/' => Keyboard.Key.Slash,
                 _ => key
             };
+
+            #endregion
         }
         public void UpdateColors() {
             if(character == SpeedChar) return;
@@ -419,19 +334,6 @@ namespace PPR.Main.Levels {
             _nextDirLayerColor = linesDarkColors[_line];
         }
 
-        Color SpeedColor() => NormalColor(_directionLayer, Game.currentDirectionLayer, speedColor,
-            nextDirLayerSpeedColor, Map.OffsetSelected(Game.StepsToOffset(step)));
-        Color NormalColor() => NormalColor(_directionLayer, Game.currentDirectionLayer, _color, _nextDirLayerColor,
-            Map.OffsetSelected(Game.StepsToOffset(step)));
-        static Color NormalColor(int noteDirLayer, int curDirLayer, Color color, Color nextDirLayerColor, bool selected) {
-            int difference = Math.Abs(noteDirLayer - curDirLayer);
-            if(selected && difference <= 1) return ColorScheme.GetColor("selected_note");
-            return difference switch {
-                0 => color,
-                1 => nextDirLayerColor,
-                _ => ColorScheme.GetColor("transparent")
-            };
-        }
         public void Draw() {
             if(removed && !ignore) {
                 if(_removeAnimationTime <= 0f) {
@@ -458,51 +360,65 @@ namespace PPR.Main.Levels {
             if(character == SpeedChar || ignore) toDestroy = true;
             else if(Game.StepPassedLine(step, character == HoldChar ? hitRange : missRange)) {
                 Miss();
-                Game.RecalculateAccuracy();
+                ScoreManager.RecalculateAccuracy();
                 removed = true;
             }
             else if(Game.auto || character == HoldChar) CheckPress();
         }
 
-        void CheckHit() {
-            if(Game.StepPassedLine(step, character == HoldChar ? 0 : -hitRange)) Hit();
-            else Miss();
-            PlayHitsound();
-            Game.RecalculateAccuracy();
-            removed = true;
-        }
         public void CheckPress() {
             if(removed || toDestroy || ignore) return;
             if(Game.auto || Keyboard.IsKeyPressed(key)) CheckHit();
         }
-        void PlayHitsound() {
-            if(character == SpeedChar || ignore || removed || toDestroy) return;
-            if(character == HoldChar) Game.tickSound.Play();
-            else Game.hitSound.Play();
-        }
-        void Hit() {
-            bool perfect = Math.Abs(step - Game.roundedSteps) < perfectRange || character == HoldChar;
-            Game.health += Map.currentLevel.metadata.hpRestorage / (perfect ? 1 : 2);
-            int score = perfect ? 10 : 5;
-            Game.combo++;
-            Game.maxCombo = Math.Max(Game.combo, Game.maxCombo);
-            Game.score += score * Game.combo;
-            Game.scores[score / 5]++;
-            _hitColor = perfect ? ColorScheme.GetColor("perfect_hit") : ColorScheme.GetColor("hit");
-        }
-        void Miss() {
-            Game.health -= Map.currentLevel.metadata.hpDrain;
-            Game.combo = 0;
-            Game.scores[0]++;
-            _hitColor = ColorScheme.GetColor("miss");
-        }
         public void Step() {
             if(removed || toDestroy) return;
             _position = new Vector2i(_position.X, _startPosition.Y + Game.roundedOffset);
-            if(Game.editing && Game.music.Status == SoundStatus.Playing && step == (int)Game.steps)
+            if(Game.editing && SoundManager.music.Status == SoundStatus.Playing && step == (int)Game.steps)
                 PlayHitsound();
         }
+        
+        private void CheckHit() {
+            if(Game.StepPassedLine(step, character == HoldChar ? 0 : -hitRange)) Hit();
+            else Miss();
+            PlayHitsound();
+            ScoreManager.RecalculateAccuracy();
+            removed = true;
+        }
+        private void PlayHitsound() {
+            if(character == SpeedChar || ignore || removed || toDestroy) return;
+            SoundManager.PlaySound(character == HoldChar ? SoundType.Hold : SoundType.Hit);
+        }
+        private void Hit() {
+            bool perfect = Math.Abs(step - Game.roundedSteps) < perfectRange || character == HoldChar;
+            Game.health += Map.currentLevel.metadata.hpRestorage / (perfect ? 1 : 2);
+            int score = perfect ? 10 : 5;
+            ScoreManager.combo++;
+            ScoreManager.maxCombo = Math.Max(ScoreManager.combo, ScoreManager.maxCombo);
+            ScoreManager.score += score * ScoreManager.combo;
+            ScoreManager.scores[score / 5]++;
+            _hitColor = perfect ? ColorScheme.GetColor("perfect_hit") : ColorScheme.GetColor("hit");
+        }
+        private void Miss() {
+            Game.health -= Map.currentLevel.metadata.hpDrain;
+            ScoreManager.combo = 0;
+            ScoreManager.scores[0]++;
+            _hitColor = ColorScheme.GetColor("miss");
+        }
 
+        private Color SpeedColor() => NormalColor(_directionLayer, Game.currentDirectionLayer, speedColor,
+            nextDirLayerSpeedColor, Map.OffsetSelected(Calc.StepsToOffset(step)));
+        private Color NormalColor() => NormalColor(_directionLayer, Game.currentDirectionLayer, _color, _nextDirLayerColor,
+            Map.OffsetSelected(Calc.StepsToOffset(step)));
+        private static Color NormalColor(int noteDirLayer, int curDirLayer, Color color, Color nextDirLayerColor, bool selected) {
+            int difference = Math.Abs(noteDirLayer - curDirLayer);
+            if(selected && difference <= 1) return ColorScheme.GetColor("selected_note");
+            return difference switch {
+                0 => color,
+                1 => nextDirLayerColor,
+                _ => ColorScheme.GetColor("transparent")
+            };
+        }
+        
 
         public override bool Equals(object obj) => obj is LevelObject @object &&
                                                    EqualityComparer<Vector2i>.Default.Equals(_position, @object._position) &&
