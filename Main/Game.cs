@@ -652,14 +652,19 @@ namespace PPR.Main {
                         if(Map.selecting)
                             for(int i = Map.selectionStart; i <= Map.selectionEnd; i++) {
                                 float step = Calc.OffsetToSteps(i, currentDirectionLayer);
-                                if(float.IsNaN(step) || Map.currentLevel.objects.Any(obj =>
+                                if(float.IsNaN(step) || Calc.StepsToDirectionLayer(step) != currentDirectionLayer)
+                                    continue;
+                                Map.currentLevel.objects.FindAll(obj =>
                                     obj.character != LevelObject.SpeedChar && obj.step == step &&
-                                    obj.key == key.Code) || Calc.StepsToDirectionLayer(step) != currentDirectionLayer) continue;
+                                    obj.key == key.Code).ForEach(obj => obj.toDestroy = true);
                                 toCreate.Add(new LightLevelObject(character, (int)step));
                             }
-                        else if(!Map.currentLevel.objects.Any(obj =>
-                            obj.character != LevelObject.SpeedChar && obj.step == (int)steps &&
-                            obj.key == key.Code)) toCreate.Add(new LightLevelObject(character, (int)steps));
+                        else {
+                            Map.currentLevel.objects.FindAll(obj =>
+                                obj.character != LevelObject.SpeedChar && obj.step == (int)steps &&
+                                obj.key == key.Code).ForEach(obj => obj.toDestroy = true);
+                            toCreate.Add(new LightLevelObject(character, (int)steps));
+                        }
 
                         foreach(LightLevelObject obj in toCreate) {
                             Map.currentLevel.objects.Add(new LevelObject(obj.character, obj.step,
