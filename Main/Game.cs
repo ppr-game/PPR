@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using DiscordRPC;
+
 using NLog;
 
 using PPR.GUI;
@@ -72,25 +74,7 @@ namespace PPR.Main {
                 
                 _currentMenu = value;
                 
-                // Update Rich Presence
-                switch(value) {
-                    case Menu.Main:
-                        RPC.SetPresence("In main menu");
-                        break;
-                    case Menu.LevelSelect:
-                        RPC.SetPresence($"Selecting a level to {(editing ? "edit" : "play")}");
-                        break;
-                    case Menu.Game when Map.currentLevel != null:
-                        RPC.SetPresence(editing ? "Editing" : auto ? "Watching" : "Playing",
-                            Map.currentLevel.metadata.name);
-                        break;
-                    case Menu.LastStats when Map.currentLevel != null:
-                        RPC.SetPresence(editing ? "Paused Editing" :
-                            statsState == StatsState.Pause ? "Paused" :
-                            statsState == StatsState.Pass ? "Passed" : "Failed",
-                            Map.currentLevel.metadata.name);
-                        break;
-                }
+                UpdatePresence();
             }
         }
         public static Time timeFromStart { get; private set; }
@@ -291,6 +275,40 @@ namespace PPR.Main {
             logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
         }
         
+        public static void UpdatePresence() {
+            string lvlName = Map.currentLevel == null ? "this" : Map.currentLevel.metadata.name;
+            string lvlDiff = Map.currentLevel == null ? "doesn't" : Map.currentLevel.metadata.displayDiff;
+            string lvlDifficulty = Map.currentLevel == null ? "matter" : Map.currentLevel.metadata.displayDifficulty;
+            // anyway
+            
+            Time useTimeFromStart = SoundManager.music.PlayingOffset -
+                (Map.currentLevel == null ? Time.Zero : Time.FromMilliseconds(Map.currentLevel.metadata.musicOffset));
+            
+            switch(currentMenu) {
+                case Menu.Main:
+                    RPC.SetPresence("In main menu");
+                    break;
+                case Menu.LevelSelect:
+                    RPC.SetPresence($"Selecting a level to {(editing ? "edit" : "play")}");
+                    break;
+                case Menu.Game:
+                    RPC.SetPresence(editing ? "Editing" : auto ? "Watching" : "Playing",
+                        Map.currentLevel == null ? "wtf how do you even see this ???/?//" :
+                            $"{lvlName} [{lvlDiff} ({lvlDifficulty})]", "",
+                        Map.currentLevel == null || editing ? null : Timestamps.FromTimeSpan(
+                            Map.currentLevel.metadata.lengthSpan -
+                            TimeSpan.FromMilliseconds(useTimeFromStart.AsMilliseconds())));
+                    break;
+                case Menu.LastStats:
+                    RPC.SetPresence(editing ? "Paused Editing" :
+                        statsState == StatsState.Pause ? "Paused" :
+                        statsState == StatsState.Pass ? "Passed" : "Failed",
+                        Map.currentLevel == null ? "wtf how do you even see this ???/?//" :
+                            $"{lvlName} [{lvlDiff} ({lvlDifficulty})]");
+                    break;
+            }
+        }
+        
         public void Update() {
             // Fade in after fading out when switching menus
             if(Core.pauseDrawing && UI.fadeOutFinished) {
@@ -317,7 +335,7 @@ namespace PPR.Main {
             // instead of using a fixed time step to remove bugs that happen when scrolling
             if(editing) {
                 _interpolatedPlayingOffset = SoundManager.music.PlayingOffset;
-                FixedUpdate();
+                Tick();
             }
             // Some magic tick execution stuff
             else {
@@ -332,7 +350,7 @@ namespace PPR.Main {
                         totalTimesToExec;
                     _interpolatedPlayingOffset = SoundManager.music.PlayingOffset * interpT +
                                                  _prevFramePlayingOffset * (1f - interpT);
-                    FixedUpdate();
+                    Tick();
                     _tickAccumulator -= fixedDeltaTime;
                 }
             }
@@ -341,11 +359,12 @@ namespace PPR.Main {
 
             _prevFramePlayingOffset = SoundManager.music.PlayingOffset;
         }
-        private static void FixedUpdate() {
+        private static void Tick() {
             #region Update steps and offset
 
             if(_interpolatedPlayingOffset != _prevPlayingOffset) {
-                timeFromStart = _interpolatedPlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.musicOffset);
+                timeFromStart = _interpolatedPlayingOffset -
+                                Time.FromMilliseconds(Map.currentLevel.metadata.musicOffset);
                 steps = Calc.MillisecondsToSteps(timeFromStart.AsMicroseconds() / 1000f);
                 if(SoundManager.music.Status != SoundStatus.Playing) steps = MathF.Round(steps);
                 _offset = Calc.StepsToOffset(steps);
@@ -354,7 +373,8 @@ namespace PPR.Main {
 
             #endregion
 
-            //if(steps - prevSteps > 1f) logger.Warn("Lag detected: steps increased too quickly ({0})", steps - prevSteps);
+            //if(steps - prevSteps > 1f)
+            //    logger.Warn("Lag detected: steps increased too quickly ({0})", steps - prevSteps);
 
             if(MathF.Floor(_prevSteps) != MathF.Floor(steps)) {
                 roundedSteps = (int)MathF.Round(steps);
@@ -369,7 +389,8 @@ namespace PPR.Main {
                 if(Core.renderer.mousePosition.Y == 0 && Core.renderer.leftButtonPressed) {
                     float mouseProgress = Math.Clamp(Core.renderer.mousePositionF.X / 80f, 0f, 1f);
                     SoundManager.music.PlayingOffset = Time.FromSeconds(duration * mouseProgress + initialOffset);
-                    timeFromStart = SoundManager.music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.musicOffset);
+                    timeFromStart = SoundManager.music.PlayingOffset -
+                                    Time.FromMilliseconds(Map.currentLevel.metadata.musicOffset);
                     steps = MathF.Round(Calc.MillisecondsToSteps(timeFromStart.AsMilliseconds()));
                     _offset = Calc.StepsToOffset(steps);
                 }
@@ -686,19 +707,18 @@ namespace PPR.Main {
                 RecalculatePosition();
 
                 if(!changed) return;
+
+                List<LightLevelObject> objs = Calc.ObjectsToLightObjects(Map.currentLevel.objects);
                 
-                List<LightLevelObject> objs = Map.currentLevel.objects
-                    .Select(obj => new LightLevelObject(obj.character, obj.step)).ToList();
-                
-                TimeSpan length = Calc.GetLevelLength(objs, Map.currentLevel.speeds,
+                Map.currentLevel.metadata.lengthSpan = Calc.GetLevelLength(objs, Map.currentLevel.speeds,
                     Map.currentLevel.metadata.musicOffset);
-                Map.currentLevel.metadata.length = Calc.TimeSpanToLength(length);
+                Map.currentLevel.metadata.length = Calc.TimeSpanToLength(Map.currentLevel.metadata.lengthSpan);
                 
                 Map.currentLevel.metadata.totalLength = Calc.TimeSpanToLength(
                     Calc.GetTotalLevelLength(objs, Map.currentLevel.speeds, Map.currentLevel.metadata.musicOffset));
                 
                 Map.currentLevel.metadata.difficulty = Calc.GetDifficulty(Map.currentLevel.objects,
-                    Map.currentLevel.speeds, (int)length.TotalMinutes);
+                    Map.currentLevel.speeds, (int)Map.currentLevel.metadata.lengthSpan.TotalMinutes);
                 
                 Map.currentLevel.metadata.maxStep = Calc.GetLastObject(Map.currentLevel.objects).step;
             }

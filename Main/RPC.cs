@@ -13,14 +13,14 @@ namespace PPR.Main {
             _ = client.Initialize();
             SetPresence("In main menu");
         }
-        public static void SetPresence(string details = "", string state = "", string largeImageText = "") => client.SetPresence(new RichPresence {
+        public static void SetPresence(string details = "", string state = "", string largeImageText = "", Timestamps timestamps = null) => client.SetPresence(new RichPresence {
             Details = details,
             State = state,
             Assets = new Assets {
                 LargeImageKey = "icon",
                 LargeImageText = Core.version
             },
-            Timestamps = Timestamps.Now
+            Timestamps = timestamps ?? Timestamps.Now
         });
     }
 }

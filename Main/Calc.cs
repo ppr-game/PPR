@@ -104,9 +104,7 @@ namespace PPR.Main {
             sortedSpeeds.FindAll(speed => speed.step >= start && speed.step <= end);
         
         public static float GetDifficulty(IEnumerable<LevelObject> objects, List<LevelSpeed> sortedSpeeds,
-            int lengthMins) => GetDifficulty(
-            objects.Select(obj => new LightLevelObject(obj.character, obj.step)).ToList(), sortedSpeeds,
-                lengthMins);
+            int lengthMins) => GetDifficulty(ObjectsToLightObjects(objects).ToList(), sortedSpeeds, lengthMins);
         public static float GetDifficulty(IReadOnlyCollection<LightLevelObject> lightObjects, List<LevelSpeed> sortedSpeeds,
             int lengthMins) {
             if (lightObjects.Count == 0 || sortedSpeeds.Count == 0) return 0f;
@@ -207,6 +205,15 @@ namespace PPR.Main {
                        StepsToMilliseconds(GetFirstObject(objects).step, sortedSpeeds);
             return TimeSpan.FromMilliseconds(float.IsNaN(ms) ? 0d : ms);
         }
+
+        public static List<LightLevelObject> ObjectsToLightObjects(List<LevelObject> objects) {
+            List<LightLevelObject> objs = new List<LightLevelObject>(objects.Count);
+            // ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
+            foreach(LevelObject obj in objects) objs.Add(new LightLevelObject(obj.character, obj.step));
+            return objs;
+        }
+        public static IEnumerable<LightLevelObject> ObjectsToLightObjects(IEnumerable<LevelObject> objects) =>
+            objects.Select(obj => new LightLevelObject(obj.character, obj.step));
 
         public static int GetXPosForCharacter(char character) {
             character = char.ToLower(character);

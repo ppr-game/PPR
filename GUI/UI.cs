@@ -503,9 +503,12 @@ namespace PPR.GUI {
                 DrawMusicTime(musicTimePos, ColorScheme.GetColor("game_music_time"));
                 LevelMetadata metadata = Map.currentLevel.metadata;
 
-                if(metadata.skippable &&
-                   SoundManager.music.PlayingOffset.AsMilliseconds() < Map.currentLevel.metadata.skipTime && _skipButton.Draw())
-                    SoundManager.music.PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.skipTime);
+                if(!metadata.skippable ||
+                   SoundManager.music.PlayingOffset.AsMilliseconds() >= Map.currentLevel.metadata.skipTime ||
+                   !_skipButton.Draw()) return;
+                
+                SoundManager.music.PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.skipTime);
+                Game.UpdatePresence();
             }
         }
         private static void DrawHealth() {
@@ -591,8 +594,8 @@ namespace PPR.GUI {
             color, Renderer.Alignment.Left, false, invertOnDarkBG);
         private static void DrawMusicTime(Vector2i position, Color color) {
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
-            string at = $"{(timeSpan < TimeSpan.Zero ? "-" : "")}{timeSpan.ToString($"{(timeSpan.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
-            Core.renderer.DrawText(position, $"{at}/{Map.currentLevel.metadata.totalLength}", color,
+            Core.renderer.DrawText(position,
+                $"{Calc.TimeSpanToLength(timeSpan)}/{Map.currentLevel.metadata.totalLength}", color,
                 Renderer.Alignment.Right, false, true);
         }
         private static void DrawEditorDifficulty(Vector2i position, Color color) => Core.renderer.DrawText(position,

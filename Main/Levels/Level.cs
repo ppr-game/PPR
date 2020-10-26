@@ -86,6 +86,7 @@ namespace PPR.Main.Levels {
         }
         public string displayDifficulty { get; private set; }
         public readonly string author;
+        public TimeSpan lengthSpan;
         public string length;
         public string totalLength;
         public int maxStep;
@@ -114,11 +115,11 @@ namespace PPR.Main.Levels {
                 objects.Add(new LightLevelObject(chars[i], steps[i]));
             speeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
 
-            TimeSpan lengthTimeSpan = Calc.GetLevelLength(objects, speeds, musicOffset);
-            length = Calc.TimeSpanToLength(lengthTimeSpan);
+            lengthSpan = Calc.GetLevelLength(objects, speeds, musicOffset);
+            length = Calc.TimeSpanToLength(lengthSpan);
             totalLength = Calc.TimeSpanToLength(Calc.GetTotalLevelLength(objects, speeds, musicOffset));
 
-            _difficulty = Calc.GetDifficulty(objects, speeds, (int)lengthTimeSpan.TotalMinutes);
+            _difficulty = Calc.GetDifficulty(objects, speeds, (int)lengthSpan.TotalMinutes);
             displayDifficulty = _difficulty.ToString("0.00", CultureInfo.InvariantCulture);
 
             int minStep = Calc.GetFirstObject(objects).step;
