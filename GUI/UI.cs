@@ -79,7 +79,9 @@ namespace PPR.GUI {
         public static IReadOnlyDictionary<Vector2i, float> positionRandoms => _positionRandoms;
         public static bool fadeInFinished { get; private set; }
         public static bool fadeOutFinished { get; private set; }
-        
+
+        public static Vector2i prevMousePosition { get; private set; }
+
         private static readonly string[] mainMenuText = File.ReadAllLines(Path.Join("resources", "ui", "mainMenu.txt"));
         private static readonly string[] settingsText = File.ReadAllLines(Path.Join("resources", "ui", "settings.txt"));
         private static readonly string[] keybindsEditorText = File.ReadAllLines(Path.Join("resources", "ui", "keybinds.txt"));
@@ -192,6 +194,27 @@ namespace PPR.GUI {
                 fadeOutFinished = true;
                 _fadeOutTime += Core.deltaTime;
             }
+        }
+
+        public static bool LineSegmentIntersection(Vector2i a1, Vector2i a2, Vector2i b1, Vector2i b2) {
+            int o1 = Orientation(a1, a2, b1);
+            int o2 = Orientation(a1, a2, b2);
+            int o3 = Orientation(b1, b2, a1);
+            int o4 = Orientation(b1, b2, a2);
+
+            return o1 != o2 && o3 != o4 ||
+                   o1 == 0 && OnSegment(a1, b1, a2) || o2 == 0 && OnSegment(a1, b2, a2) ||
+                   o3 == 0 && OnSegment(b1, a1, b2) || o4 == 0 && OnSegment(b1, a2, b2);
+        }
+        private static bool OnSegment(Vector2i p, Vector2i q, Vector2i r) =>
+            q.X <= Math.Max(p.X, r.X) &&
+            q.X >= Math.Min(p.X, r.X) &&
+            q.Y <= Math.Max(p.Y, r.Y) &&
+            q.Y >= Math.Min(p.Y, r.Y);
+        private static int Orientation(Vector2i p, Vector2i q, Vector2i r) {
+            float val = (q.Y - p.Y) * (r.X - q.X) - (q.X - p.X) * (r.Y - q.Y);
+            if(val == 0) return 0;
+            return val > 0 ? 1 : 2;
         }
         
         private static Button _pauseMusicButton;
@@ -875,6 +898,8 @@ namespace PPR.GUI {
                 Core.renderer.DrawText(fpsPos, $"{fps.ToString()}/{avgFPS.ToString()} FPS", fps >= 60 ?
                     ColorScheme.GetColor("fps_good") : fps > 20 ? ColorScheme.GetColor("fps_ok") : 
                         ColorScheme.GetColor("fps_bad"), Renderer.Alignment.Right);
+
+            prevMousePosition = Core.renderer.mousePosition;
         }
         private static readonly Vector2i fpsPos = new Vector2i(79, 59);
     }

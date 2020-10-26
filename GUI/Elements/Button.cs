@@ -79,8 +79,11 @@ namespace PPR.GUI.Elements {
                 Renderer.Alignment.Center => (int)MathF.Floor(text.Length / 2f),
                 _ => 0
             };
-            return Core.renderer.mousePosition.InBounds(_posX, position.Y, _posX + width - 1, position.Y) ||
-                   _prevFrameHotkeyPressed ? Core.renderer.leftButtonPressed || _hotkeyPressed ? State.Clicked :
+            bool onButton = Core.renderer.mousePosition.InBounds(_posX, position.Y, _posX + width - 1, position.Y);
+            bool wasOnButton = UI.LineSegmentIntersection(UI.prevMousePosition, Core.renderer.mousePosition,
+                new Vector2i(_posX, position.Y), new Vector2i(_posX + width - 1, position.Y));
+            return wasOnButton || _prevFrameHotkeyPressed ?
+                Core.renderer.leftButtonPressed && onButton || _hotkeyPressed ? State.Clicked :
                 State.Hovered : selected ? State.Selected : State.Idle;
         }
         public bool Draw() {

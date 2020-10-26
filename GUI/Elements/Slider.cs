@@ -73,10 +73,18 @@ namespace PPR.GUI.Elements {
                 Renderer.Alignment.Center => (int)MathF.Ceiling(size / 2f),
                 _ => -leftText.Length
             };
-            if(leftText != "") Core.renderer.DrawText(new Vector2i(_posX - leftText.Length, position.Y), leftText, hoverColor, idleColor);
-            if(rightText != "") Core.renderer.DrawText(new Vector2i(_posX + size + 1, position.Y), rightText, hoverColor, idleColor);
-            return Core.renderer.mousePosition.InBounds(_posX, position.Y, _posX + size - 1, position.Y)
-                              ? Core.renderer.leftButtonPressed ? State.Clicked : State.Hovered : State.Idle;
+            if(leftText != "")
+                Core.renderer.DrawText(new Vector2i(_posX - leftText.Length, position.Y), leftText, hoverColor,
+                    idleColor);
+            if(rightText != "")
+                Core.renderer.DrawText(new Vector2i(_posX + size + 1, position.Y), rightText, hoverColor, idleColor);
+            
+            
+            bool onSlider = Core.renderer.mousePosition.InBounds(_posX, position.Y, _posX + size - 1, position.Y);
+            bool wasOnSlider = UI.LineSegmentIntersection(UI.prevMousePosition, Core.renderer.mousePosition,
+                new Vector2i(_posX, position.Y), new Vector2i(_posX + size - 1, position.Y));
+            return wasOnSlider ? Core.renderer.leftButtonPressed && onSlider ? State.Clicked :
+                State.Hovered : State.Idle;
         }
         public bool Draw() {
             prevFrameState = currentState;
