@@ -18,6 +18,8 @@ namespace PPR.Main {
         private static Closure _tick;
         private static Closure _drawMap;
         private static Closure _drawUI;
+
+        public static Script console;
         
         public static void ScriptSetup() {
             Script.WarmUp();
@@ -138,5 +140,17 @@ namespace PPR.Main {
                 logger.Error(ex.DecoratedMessage);
             }
         }
+
+        public static void InitializeConsole() {
+            console = new Script(CoreModules.Preset_HardSandbox) {
+                Options = {
+                    DebugPrint = message => {
+                        Console.WriteLine(message);
+                        logger.Debug(message);
+                    }
+                }
+            };
+        }
+        public static void ExecuteCommand(string command) => console.DoString(command);
     }
 }
