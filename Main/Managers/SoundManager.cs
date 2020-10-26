@@ -30,8 +30,8 @@ namespace PPR.Main.Managers {
                     string[] lines = File.ReadAllLines(Path.Join(Path.GetDirectoryName(value)!, $"{currDiffName}.txt"));
                     if(!Level.IsLevelValid(lines)) continue;
                     LevelMetadata metadata = new LevelMetadata(lines, currentMusicName, currDiffName);
-                    if(metadata.actualDiff > prevDiff) menusAnimLines = lines;
-                    prevDiff = metadata.actualDiff;
+                    if(metadata.difficulty > prevDiff) menusAnimLines = lines;
+                    prevDiff = metadata.difficulty;
                 }
                 Game.menusAnimInitialOffset = Game.GetInitialOffset(menusAnimLines);
                 Game.menusAnimSpeeds = Game.GetSpeeds(menusAnimLines);

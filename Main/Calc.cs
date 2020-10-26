@@ -121,24 +121,13 @@ namespace PPR.Main {
             List<float> diffFactors = new List<float>();
             
             List<float> speeds = new List<float>();
-            List<float> bpm = new List<float>();
             
             List<LightLevelObject>[] objects = {
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
-                new List<LightLevelObject>(),
                 new List<LightLevelObject>(),
                 new List<LightLevelObject>()
             };
             foreach(LightLevelObject obj in sortedObjects)
-                objects[(GetXPosForCharacter(obj.character) - 6) / 12].Add(obj);
+                objects[GetXPosForCharacter(obj.character) / 40].Add(obj);
             foreach(List<LightLevelObject> objs in objects)
                 for(int i = 1; i < objs.Count; i++) {
                     LightLevelObject prevObj = objs[i - 1];
@@ -157,20 +146,68 @@ namespace PPR.Main {
                     }
                     time += 60f / endBPM * (endStep - currStep);
                     float distance = GetPhysicalKeyDistance(currObj.character, prevObj.character);
-                    speeds.Add(distance + 1f);
-                    if(time != 0f) speeds.Add(1f / time);
+                    float spd = distance / time;
+                    if(spd > 0f && float.IsFinite(spd)) speeds.Add(spd);
                 }
 
-            // ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
-            foreach(LevelSpeed speed in sortedSpeeds) bpm.Add(Math.Abs(speed.speed) / 60f);
+            float averageBPM = GetAverageBPM(sortedSpeeds, GetLastObject(lightObjects.ToList()).step);
             
             diffFactors.Add(speeds.Count > 0 ? speeds.Average() : 0f);
-            diffFactors.Add(bpm.Average());
+            diffFactors.Add(MathF.Max((66f - 360f / (averageBPM / 6f)) / 30f, 0f));
             diffFactors.Add(lengthMins);
 
             return diffFactors.Count > 0 ? diffFactors.Average() : 0f;
         }
-        
+
+        public static float GetAverageBPM(IReadOnlyList<LevelSpeed> speeds, int endStep) {
+            float totalBPM = 0f;
+            int bpmCount = 0;
+            for(int i = 0; i < speeds.Count; i++) {
+                int secondStep = i + 1 >= speeds.Count || speeds[i + 1].step > endStep ? endStep : speeds[i + 1].step;
+                int length = secondStep - speeds[i].step;
+                totalBPM += MathF.Abs(speeds[i].speed) * length;
+                bpmCount += length;
+                if(secondStep >= endStep) break;
+            }
+            return totalBPM / bpmCount;
+        }
+
+        public static string TimeSpanToLength(TimeSpan span) =>
+            $"{(span < TimeSpan.Zero ? "-" : "")}{span.ToString($"{(span.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
+
+        public static LevelObject GetFirstObject(List<LevelObject> objects) {
+            List<LevelObject> sortedObjects = objects.FindAll(obj => obj.character != LevelObject.SpeedChar);
+            sortedObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
+            return sortedObjects[0];
+        }
+        public static LightLevelObject GetFirstObject(List<LightLevelObject> objects) {
+            List<LightLevelObject> sortedObjects = objects.FindAll(obj => obj.character != LevelObject.SpeedChar);
+            sortedObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
+            return sortedObjects[0];
+        }
+        public static LevelObject GetLastObject(List<LevelObject> objects) {
+            List<LevelObject> sortedObjects = objects.FindAll(obj => obj.character != LevelObject.SpeedChar);
+            sortedObjects.Sort((obj1, obj2) => obj2.step.CompareTo(obj1.step));
+            return sortedObjects[0];
+        }
+        public static LightLevelObject GetLastObject(List<LightLevelObject> objects) {
+            List<LightLevelObject> sortedObjects = objects.FindAll(obj => obj.character != LevelObject.SpeedChar);
+            sortedObjects.Sort((obj1, obj2) => obj2.step.CompareTo(obj1.step));
+            return sortedObjects[0];
+        }
+
+        public static TimeSpan GetTotalLevelLength(List<LightLevelObject> objects, List<LevelSpeed> sortedSpeeds,
+            int musicOffset) {
+            float ms = StepsToMilliseconds(GetLastObject(objects).step, sortedSpeeds) - musicOffset;
+            return TimeSpan.FromMilliseconds(float.IsNaN(ms) ? 0d : ms);
+        }
+        public static TimeSpan GetLevelLength(List<LightLevelObject> objects, List<LevelSpeed> sortedSpeeds,
+            int musicOffset) {
+            float ms = StepsToMilliseconds(GetLastObject(objects).step, sortedSpeeds) - musicOffset -
+                       StepsToMilliseconds(GetFirstObject(objects).step, sortedSpeeds);
+            return TimeSpan.FromMilliseconds(float.IsNaN(ms) ? 0d : ms);
+        }
+
         public static int GetXPosForCharacter(char character) {
             character = char.ToLower(character);
             int x = 0;

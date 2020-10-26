@@ -132,16 +132,16 @@ namespace PPR.Main.Levels {
             string[] lines = new string[5];
             string hpDrain = level.metadata.hpDrain.ToString();
             string hpRestorage = level.metadata.hpRestorage.ToString();
-            string diff = level.metadata.difficulty;
+            string diff = level.metadata.displayDifficulty;
             string author = level.metadata.author;
             string linesFreq = level.metadata.linesFrequency.ToString();
-            string initialOffset = level.metadata.initialOffsetMs.ToString();
+            string musicOffset = level.metadata.musicOffset.ToString();
             List<LevelObject> objects = level.objects.FindAll(obj => obj.character != LevelObject.SpeedChar);
             lines[0] = string.Join("", objects.Select(obj => obj.character.ToString().ToLower()));
             lines[1] = string.Join(':', objects.Select(obj => obj.step));
             lines[2] = string.Join(':', level.speeds.Select(speed => speed.speed));
             lines[3] = string.Join(':', level.speeds.Select(speed => speed.step));
-            lines[4] = $"{hpDrain}:{hpRestorage}:{diff}:{author}:{linesFreq}:{initialOffset}";
+            lines[4] = $"{hpDrain}:{hpRestorage}:{diff}:{author}:{linesFreq}:{musicOffset}";
             return string.Join('\n', lines);
         }
         public static List<LevelScore> ScoresFromLines(string[] lines, Vector2i position) {

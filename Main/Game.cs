@@ -283,7 +283,7 @@ namespace PPR.Main {
                 SoundManager.currentMusicPath = musicPath;
                 SoundManager.music = new Music(musicPath) {
                     Volume = Settings.GetInt("musicVolume"),
-                    PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMs)
+                    PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.musicOffset)
                 };
                 if(!editing) SoundManager.music.Play();
             }
@@ -345,7 +345,7 @@ namespace PPR.Main {
             #region Update steps and offset
 
             if(_interpolatedPlayingOffset != _prevPlayingOffset) {
-                timeFromStart = _interpolatedPlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMs);
+                timeFromStart = _interpolatedPlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.musicOffset);
                 steps = Calc.MillisecondsToSteps(timeFromStart.AsMicroseconds() / 1000f);
                 if(SoundManager.music.Status != SoundStatus.Playing) steps = MathF.Round(steps);
                 _offset = Calc.StepsToOffset(steps);
@@ -364,12 +364,12 @@ namespace PPR.Main {
             _prevSteps = steps;
 
             if(editing) {
-                float initialOffset = Map.currentLevel.metadata.initialOffsetMs / 1000f;
+                float initialOffset = Map.currentLevel.metadata.musicOffset / 1000f;
                 float duration = SoundManager.music.Duration.AsSeconds() - initialOffset;
                 if(Core.renderer.mousePosition.Y == 0 && Core.renderer.leftButtonPressed) {
                     float mouseProgress = Math.Clamp(Core.renderer.mousePositionF.X / 80f, 0f, 1f);
                     SoundManager.music.PlayingOffset = Time.FromSeconds(duration * mouseProgress + initialOffset);
-                    timeFromStart = SoundManager.music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.initialOffsetMs);
+                    timeFromStart = SoundManager.music.PlayingOffset - Time.FromMilliseconds(Map.currentLevel.metadata.musicOffset);
                     steps = MathF.Round(Calc.MillisecondsToSteps(timeFromStart.AsMilliseconds()));
                     _offset = Calc.StepsToOffset(steps);
                 }
@@ -389,7 +389,7 @@ namespace PPR.Main {
         public static void RoundSteps() => steps = roundedSteps;
         
         public static void UpdateTime() {
-            long useMicrosecs = (long)((MathF.Round(Calc.StepsToMilliseconds(steps)) + Map.currentLevel.metadata.initialOffsetMs) * 1000f);
+            long useMicrosecs = (long)((MathF.Round(Calc.StepsToMilliseconds(steps)) + Map.currentLevel.metadata.musicOffset) * 1000f);
             SoundManager.music.PlayingOffset = Time.FromMicroseconds(useMicrosecs);
         }
         private static void UpdateSpeeds() {
@@ -604,19 +604,19 @@ namespace PPR.Main {
                     #region Initial offset
 
                     else if(Bindings.GetBinding("initialOffsetUpBoost").IsPressed(key)) {
-                        Map.currentLevel.metadata.initialOffsetMs += 10;
+                        Map.currentLevel.metadata.musicOffset += 10;
                         changed = true;
                     }
                     else if(Bindings.GetBinding("initialOffsetDownBoost").IsPressed(key)) {
-                        Map.currentLevel.metadata.initialOffsetMs -= 10;
+                        Map.currentLevel.metadata.musicOffset -= 10;
                         changed = true;
                     }
                     else if(Bindings.GetBinding("initialOffsetUp").IsPressed(key)) {
-                        Map.currentLevel.metadata.initialOffsetMs++;
+                        Map.currentLevel.metadata.musicOffset++;
                         changed = true;
                     }
                     else if(Bindings.GetBinding("initialOffsetDown").IsPressed(key)) {
-                        Map.currentLevel.metadata.initialOffsetMs--;
+                        Map.currentLevel.metadata.musicOffset--;
                         changed = true;
                     }
 
@@ -683,19 +683,24 @@ namespace PPR.Main {
                     }
                 }
 
-                if(changed) {
-                    List<int> objSteps = Map.currentLevel.objects.Select(obj => obj.step).ToList();
-                    Map.currentLevel.metadata.maxStep = objSteps.Count > 0 ? objSteps.Max() : 0;
-                    float ms = Calc.StepsToMilliseconds(Map.currentLevel.metadata.maxStep) -
-                               Map.currentLevel.metadata.initialOffsetMs;
-                    TimeSpan timeSpan = TimeSpan.FromMilliseconds(float.IsNaN(ms) ? 0d : ms);
-                    Map.currentLevel.metadata.length =
-                        $"{(timeSpan < TimeSpan.Zero ? "-" : "")}{timeSpan.ToString($"{(timeSpan.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
-                    Map.currentLevel.metadata.actualDiff = Calc.GetDifficulty(Map.currentLevel.objects,
-                            Map.currentLevel.speeds, (int)timeSpan.TotalMinutes);
-                }
-
                 RecalculatePosition();
+
+                if(!changed) return;
+                
+                List<LightLevelObject> objs = Map.currentLevel.objects
+                    .Select(obj => new LightLevelObject(obj.character, obj.step)).ToList();
+                
+                TimeSpan length = Calc.GetLevelLength(objs, Map.currentLevel.speeds,
+                    Map.currentLevel.metadata.musicOffset);
+                Map.currentLevel.metadata.length = Calc.TimeSpanToLength(length);
+                
+                Map.currentLevel.metadata.totalLength = Calc.TimeSpanToLength(
+                    Calc.GetTotalLevelLength(objs, Map.currentLevel.speeds, Map.currentLevel.metadata.musicOffset));
+                
+                Map.currentLevel.metadata.difficulty = Calc.GetDifficulty(Map.currentLevel.objects,
+                    Map.currentLevel.speeds, (int)length.TotalMinutes);
+                
+                Map.currentLevel.metadata.maxStep = Calc.GetLastObject(Map.currentLevel.objects).step;
             }
             else if(!auto) {
                 bool anythingPressed = false;
@@ -744,7 +749,7 @@ namespace PPR.Main {
                             else if(mousePos.Y >= 40) {
                                 IOrderedEnumerable<KeyValuePair<string, LevelSelectDiff>> sortedDiffs =
                                     UI.levelSelectLevels[UI.currSelectedLevel].diffs
-                                        .OrderBy(pair => pair.Value.metadata.actualDiff);
+                                        .OrderBy(pair => pair.Value.metadata.difficulty);
                                 if(scroll.Delta > 0 && sortedDiffs.First().Value.button.position.Y >= 40)
                                     return;
                                 if(scroll.Delta < 0 && sortedDiffs.Last().Value.button.position.Y <= 49)
@@ -873,7 +878,7 @@ namespace PPR.Main {
                     LevelMetadata metadata = new LevelMetadata(diffLines, levelName, diffName);
                     LevelSelectDiff diff = new LevelSelectDiff {
                         button = new Button(new Vector2i(),
-                            $"{diffDisplayName} ({metadata.difficulty})",
+                            $"{diffDisplayName} ({metadata.displayDifficulty})",
                             "levelSelect.difficulty", 30),
                         metadata = metadata
                     };
@@ -895,7 +900,7 @@ namespace PPR.Main {
                     level.diffs.Add(diffName, diff);
                 }
                 List<KeyValuePair<string, LevelSelectDiff>> sortedDiffs =
-                    level.diffs.OrderBy(pair => pair.Value.metadata.actualDiff).ToList();
+                    level.diffs.OrderBy(pair => pair.Value.metadata.difficulty).ToList();
                 for(int j = 0; j < sortedDiffs.Count; j++)
                     level.diffs[sortedDiffs[j].Key].button.position = new Vector2i(25, 40 + j);
 

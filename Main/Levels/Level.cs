@@ -76,27 +76,29 @@ namespace PPR.Main.Levels {
         public readonly string displayDiff;
         public int hpDrain;
         public int hpRestorage;
-        private float _actualDiff;
-        public float actualDiff {
-            get => _actualDiff;
+        private float _difficulty;
+        public float difficulty {
+            get => _difficulty;
             set {
-                _actualDiff = value;
-                difficulty = value.ToString("0.00", CultureInfo.InvariantCulture);
+                _difficulty = value;
+                displayDifficulty = value.ToString("0.00", CultureInfo.InvariantCulture);
             }
         }
-        public string difficulty { get; private set; }
+        public string displayDifficulty { get; private set; }
         public readonly string author;
         public string length;
+        public string totalLength;
         public int maxStep;
         public int linesFrequency;
-        public int initialOffsetMs;
+        public int musicOffset;
         public readonly string bpm;
         public readonly bool skippable;
         public readonly int skipTime;
         public readonly int objectCount;
         public readonly int speedsCount;
 
-        private LevelMetadata(string name, string diff, IReadOnlyList<string> meta, int objectCount, IReadOnlyList<char> chars, IReadOnlyList<int> steps, List<LevelSpeed> speeds) {
+        private LevelMetadata(string name, string diff, IReadOnlyList<string> meta, int objectCount,
+            IReadOnlyList<char> chars, IReadOnlyList<int> steps, List<LevelSpeed> speeds) {
             this.name = name;
             this.diff = diff;
             displayDiff = diff == "level" || diff == null ? "DEFAULT" : diff.ToUpper();
@@ -105,32 +107,32 @@ namespace PPR.Main.Levels {
             //difficulty = meta[2];
             author = meta[3];
             linesFrequency = meta.Count > 4 ? int.Parse(meta[4]) : 4;
-            initialOffsetMs = meta.Count > 5 ? int.Parse(meta[5]) : 0;
-
-            speeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
-
-            maxStep = steps.Count > 0 ? steps.Max() : 0;
-            TimeSpan timeSpan = TimeSpan.FromMilliseconds(Calc.StepsToMilliseconds(maxStep, speeds) - initialOffsetMs);
-            length = $"{(timeSpan < TimeSpan.Zero ? "-" : "")}{timeSpan.ToString($"{(timeSpan.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
+            musicOffset = meta.Count > 5 ? int.Parse(meta[5]) : 0;
 
             List<LightLevelObject> objects = new List<LightLevelObject>();
             for(int i = 0; i < Math.Min(chars.Count, steps.Count); i++)
                 objects.Add(new LightLevelObject(chars[i], steps[i]));
-            _actualDiff = Calc.GetDifficulty(objects, speeds, (int)timeSpan.TotalMinutes);
-            difficulty = _actualDiff.ToString("0.00", CultureInfo.InvariantCulture);
+            speeds.Sort((speed1, speed2) => speed1.step.CompareTo(speed2.step));
 
-            int minStep = steps.Count > 0 ? steps.Min() : 0;
-            int minTime = (int)Calc.StepsToMilliseconds(minStep, speeds) + initialOffsetMs;
+            TimeSpan lengthTimeSpan = Calc.GetLevelLength(objects, speeds, musicOffset);
+            length = Calc.TimeSpanToLength(lengthTimeSpan);
+            totalLength = Calc.TimeSpanToLength(Calc.GetTotalLevelLength(objects, speeds, musicOffset));
+
+            _difficulty = Calc.GetDifficulty(objects, speeds, (int)lengthTimeSpan.TotalMinutes);
+            displayDifficulty = _difficulty.ToString("0.00", CultureInfo.InvariantCulture);
+
+            int minStep = Calc.GetFirstObject(objects).step;
+            int minTime = (int)Calc.StepsToMilliseconds(minStep, speeds) + musicOffset;
             skipTime = minTime - 3000;
             skippable = skipTime > 3000;
 
             IEnumerable<int> onlyAbsoluteSpeeds = speeds.Select(speed => Math.Abs(speed.speed));
             int minBPM = onlyAbsoluteSpeeds.Min();
             int maxBPM = onlyAbsoluteSpeeds.Max();
-            int avgBPM = (int)Math.Floor(onlyAbsoluteSpeeds.Average());
-            string avgBPMStr = avgBPM.ToString();
-            string minmaxBPMStr = $"{minBPM.ToString()}-{maxBPM.ToString()}";
-            bpm = minBPM == maxBPM ? avgBPMStr : $"{minmaxBPMStr} ({avgBPMStr})";
+            int avgBPM = (int)Calc.GetAverageBPM(speeds, Calc.GetLastObject(objects).step);
+            bpm = minBPM == maxBPM ? avgBPM.ToString() : $"{minBPM.ToString()}-{maxBPM.ToString()} ({avgBPM.ToString()})";
+
+            maxStep = Calc.GetLastObject(objects).step;
 
             this.objectCount = objectCount;
             speedsCount = speeds.Count;

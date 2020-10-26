@@ -395,7 +395,7 @@ namespace PPR.GUI {
         private static void DrawMetadata(LevelMetadata? metadata) {
             if(metadata == null) return;
             Core.renderer.DrawText(metaLengthPos, $"LENGTH:{metadata.Value.length}");
-            Core.renderer.DrawText(metaDiffPos, $"DIFFICULTY:{metadata.Value.difficulty}");
+            Core.renderer.DrawText(metaDiffPos, $"DIFFICULTY:{metadata.Value.displayDifficulty}");
             Core.renderer.DrawText(metaBPMPos, $"BPM:{metadata.Value.bpm}");
             Core.renderer.DrawText(metaAuthorPos, $"AUTHOR:{metadata.Value.author}");
             
@@ -465,9 +465,9 @@ namespace PPR.GUI {
                                 break;
                             case "editor.hp.restorage.down": Map.currentLevel.metadata.hpRestorage--;
                                 break;
-                            case "editor.music.offset.up": Map.currentLevel.metadata.initialOffsetMs++;
+                            case "editor.music.offset.up": Map.currentLevel.metadata.musicOffset++;
                                 break;
-                            case "editor.music.offset.down": Map.currentLevel.metadata.initialOffsetMs--;
+                            case "editor.music.offset.down": Map.currentLevel.metadata.musicOffset--;
                                 break;
                         }
                     }
@@ -484,7 +484,7 @@ namespace PPR.GUI {
                 Core.renderer.DrawText(hpRestoragePos, $"    HP RESTORAGE: {Map.currentLevel.metadata.hpRestorage.ToString()}", ColorScheme.GetColor("hp_restorage"));
 
                 Core.renderer.DrawText(musicOffsetPos,
-                    $"    MUSIC OFFSET: {Map.currentLevel.metadata.initialOffsetMs.ToString()} MS", ColorScheme.GetColor("music_offset"));
+                    $"    MUSIC OFFSET: {Map.currentLevel.metadata.musicOffset.ToString()} MS", ColorScheme.GetColor("music_offset"));
 
                 if(_musicSpeedSlider.Draw()) SoundManager.music.Pitch = _musicSpeedSlider.value / 100f;
 
@@ -592,11 +592,11 @@ namespace PPR.GUI {
         private static void DrawMusicTime(Vector2i position, Color color) {
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
             string at = $"{(timeSpan < TimeSpan.Zero ? "-" : "")}{timeSpan.ToString($"{(timeSpan.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
-            Core.renderer.DrawText(position, $"{at}/{Map.currentLevel.metadata.length}", color,
+            Core.renderer.DrawText(position, $"{at}/{Map.currentLevel.metadata.totalLength}", color,
                 Renderer.Alignment.Right, false, true);
         }
         private static void DrawEditorDifficulty(Vector2i position, Color color) => Core.renderer.DrawText(position,
-            $"DIFFICULTY: {Map.currentLevel.metadata.difficulty}", color,
+            $"DIFFICULTY: {Map.currentLevel.metadata.displayDifficulty}", color,
             Renderer.Alignment.Right, false, true);
         private static readonly Vector2i passFailText = new Vector2i(40, 5);
         private static readonly Vector2i lastLevelPos = new Vector2i(2, 13);
