@@ -7,13 +7,20 @@
     <StartupObject>PPR.Core</StartupObject>
     <Version>0.10.3-beta</Version>
     <Authors>ConfiG</Authors>
-    <Company />
     <PackageId>com.github.cgytrus.PPR</PackageId>
     <RepositoryUrl>https://github.com/cgytrus/PPR</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <NoWin32Manifest>true</NoWin32Manifest>
     <Title>Press Press Revolution</Title>
+    <PublishTrimmed>true</PublishTrimmed>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <PublishReadyToRunShowWarnings>true</PublishReadyToRunShowWarnings>
+    <BeautyLibsDir>libraries</BeautyLibsDir>
+    <DisableBeauty>false</DisableBeauty>
+    <ForceBeauty>false</ForceBeauty>
+    <DisablePatch>false</DisablePatch>
+    <BeautyLogLevel>Error</BeautyLogLevel>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -31,9 +38,10 @@
     <DebugSymbols>true</DebugSymbols>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="CoreCLR-NCalc" Version="2.2.88" />
+    <PackageReference Include="nulastudio.NetCoreBeauty" Version="1.2.9" />
     <PackageReference Include="PRR" Version="0.1.4-beta" />
     <PackageReference Include="DiscordRichPresence" Version="1.0.150" />
     <PackageReference Include="MoonSharp" Version="2.0.0" />
