@@ -277,7 +277,7 @@ namespace PPR.Main {
                     Volume = Settings.GetInt("musicVolume"),
                     PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.musicOffset)
                 };
-                if(!editing) playing = true;
+                if(!editing) _playing = true;
             }
 
             logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
@@ -359,6 +359,11 @@ namespace PPR.Main {
             _tpsTime += Core.deltaTime;
 
             Lua.Update();
+
+            if(!_watchNegativeTime && playing && SoundManager.music.Status != SoundStatus.Playing) {
+                UpdateMusicTime();
+                playing = true;
+            }
         }
         private static void Tick() {
             if(_watchNegativeTime && playing) {
