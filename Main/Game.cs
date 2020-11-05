@@ -37,10 +37,8 @@ namespace PPR.Main {
                     if(_currentMenu == Menu.Game && value == Menu.LastStats) playing = false;
                     else if(!editing && _currentMenu == Menu.LastStats && value == Menu.Game) {
                         playing = true;
-                        if(!auto) {
-                            levelTime = Time.FromMicroseconds(Math.Max(0, levelTime.AsMicroseconds() - 3000000));
-                            UpdateMusicTime();
-                        }
+                        if(!auto) levelTime = Time.FromMicroseconds(Math.Max(0, levelTime.AsMicroseconds() - 3000000));
+                        UpdateMusicTime();
                     }
                 }
 
