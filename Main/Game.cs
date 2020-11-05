@@ -360,10 +360,9 @@ namespace PPR.Main {
 
             Lua.Update();
 
-            if(!_watchNegativeTime && playing && SoundManager.music.Status != SoundStatus.Playing) {
-                UpdateMusicTime();
-                playing = true;
-            }
+            if(_watchNegativeTime || !playing || editing || SoundManager.music.Status == SoundStatus.Playing) return;
+            UpdateMusicTime();
+            playing = true;
         }
         private static void Tick() {
             if(_watchNegativeTime && playing) {
