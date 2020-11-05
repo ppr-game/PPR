@@ -8,6 +8,7 @@ using PPR.Main.Managers;
 
 using PRR;
 
+using SFML.Graphics;
 using SFML.System;
 
 namespace PPR.Main.Levels {
@@ -57,6 +58,9 @@ namespace PPR.Main.Levels {
                         if(Core.renderer.mousePositionF.Y != _prevMPosF.Y) selecting = true;
                     }
 
+                Color foreground = OffsetSelected(Game.roundedOffset) ? ColorScheme.GetColor("selected_note") :
+                    ColorScheme.GetColor("foreground");
+
                 // Draw the editor lines
                 int doubleFrequency = currentLevel.metadata.linesFrequency * 2;
                 for(int y = -linePos.Y; y < 30 + currentLevel.metadata.linesFrequency; y++) {
@@ -66,18 +70,15 @@ namespace PPR.Main.Levels {
                     if(useY > gameLinePos.Y) continue;
                     if(y % currentLevel.metadata.linesFrequency == 0)
                         for(int x = 0; x < 80; x++)
-                            Core.renderer.SetCellColor(new Vector2i(x, useY),
-                                ColorScheme.GetColor("foreground"),
+                            Core.renderer.SetCellColor(new Vector2i(x, useY), foreground,
                                 ColorScheme.GetColor(selected ? "selected_light_guidelines" : "light_guidelines"));
                     else if(y % 2 == 0)
                         for(int x = 0; x < 80; x++)
-                            Core.renderer.SetCellColor(new Vector2i(x, useY),
-                                ColorScheme.GetColor("foreground"),
+                            Core.renderer.SetCellColor(new Vector2i(x, useY), foreground,
                                 ColorScheme.GetColor(selected ? "selected_guidelines" : "guidelines"));
                     else if(selected)
                         for(int x = 0; x < 80; x++)
-                            Core.renderer.SetCellColor(new Vector2i(x, useY),
-                                ColorScheme.GetColor("foreground"),
+                            Core.renderer.SetCellColor(new Vector2i(x, useY), foreground,
                                 ColorScheme.GetColor("selection"));
                 }
             }
