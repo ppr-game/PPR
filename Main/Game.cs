@@ -34,13 +34,12 @@ namespace PPR.Main {
             set {
                 // Pause/Continue
                 if(Map.currentLevel != null && statsState == StatsState.Pause) {
-                    if(_currentMenu == Menu.Game && value == Menu.LastStats) SoundManager.music.Pause();
+                    if(_currentMenu == Menu.Game && value == Menu.LastStats) playing = false;
                     else if(!editing && _currentMenu == Menu.LastStats && value == Menu.Game) {
-                        SoundManager.music.Play();
+                        playing = true;
                         if(!auto) {
-                            SoundManager.music.PlayingOffset =
-                                Time.FromMicroseconds(Math.Max(0, SoundManager.music.PlayingOffset.AsMicroseconds() - 3000000));
-                            _prevFramePlayingOffset = SoundManager.music.PlayingOffset;
+                            levelTime = Time.FromMicroseconds(Math.Max(0, levelTime.AsMicroseconds() - 3000000));
+                            UpdateMusicTime();
                         }
                     }
                 }
@@ -77,7 +76,7 @@ namespace PPR.Main {
                 UpdatePresence();
             }
         }
-        public static Time timeFromStart { get; private set; }
+        public static Time levelTime { get; set; }
         private static float _offset;
         public static int roundedOffset { get; private set; }
         private static float _steps;
@@ -91,6 +90,16 @@ namespace PPR.Main {
         public static int roundedSteps { get; private set; }
         public static int currentDirectionLayer { get; private set; }
         public static int currentBPM { get; private set; } = 1;
+
+        private static bool _playing;
+        public static bool playing {
+            get => _playing;
+            set {
+                if(value) SoundManager.music.Play();
+                else SoundManager.music.Pause();
+                _playing = value;
+            }
+        }
 
         private static int _health = 80;
         public static int health {
@@ -108,13 +117,15 @@ namespace PPR.Main {
         public static bool exiting { get; private set; }
         public static int menusAnimInitialOffset;
         public static List<LevelSpeed> menusAnimSpeeds;
-        private static Time _prevPlayingOffset;
-        private static Time _prevFramePlayingOffset;
-        private static Time _interpolatedPlayingOffset;
+        private static Time _prevLevelTime;
         private static float _prevSteps;
         private static float _absoluteCurrentSpeedSec = 60f;
         private static bool _usedAuto;
         private float _tickAccumulator;
+        private int _tpsTicks;
+        private float _tpsTime;
+        private static bool _prevLeftButtonPressed;
+        private static bool _watchNegativeTime;
         public Game() {
             Settings.settingChanged += SettingChanged;
             Settings.Reload();
@@ -251,10 +262,9 @@ namespace PPR.Main {
             _prevSteps = 0;
             currentDirectionLayer = 0;
             currentBPM = Map.currentLevel.speeds[0].speed;
-            timeFromStart = Time.Zero;
-            _interpolatedPlayingOffset = Time.Zero;
-            _prevFramePlayingOffset = Time.Zero;
-            _prevPlayingOffset = Time.Zero;
+            levelTime = Time.Zero;
+            _prevLevelTime = Time.Zero;
+            playing = false;
             UI.health = 0;
             health = 80;
             ScoreManager.ResetScore();
@@ -269,7 +279,7 @@ namespace PPR.Main {
                     Volume = Settings.GetInt("musicVolume"),
                     PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.musicOffset)
                 };
-                if(!editing) SoundManager.music.Play();
+                if(!editing) playing = true;
             }
 
             logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
@@ -330,46 +340,43 @@ namespace PPR.Main {
 
                 return;
             }
+            // Everything after this line will be executed only if the player is playing a level
 
-            // If we're in the editor, update logic every frame
-            // instead of using a fixed time step to remove bugs that happen when scrolling
-            if(editing) {
-                _interpolatedPlayingOffset = SoundManager.music.PlayingOffset;
+            // Execute the ticks
+            float fixedDeltaTime = _absoluteCurrentSpeedSec / 16f;
+
+            _tickAccumulator += Core.deltaTime;
+            while(_tickAccumulator >= fixedDeltaTime) {
+                if(playing) levelTime += Time.FromSeconds(fixedDeltaTime);
                 Tick();
+                _tickAccumulator -= fixedDeltaTime;
+                ++_tpsTicks;
             }
-            // Some magic tick execution stuff
-            else {
-                float fixedDeltaTime = _absoluteCurrentSpeedSec / 16f;
-
-                _tickAccumulator += Core.deltaTime;
-                float totalTimesToExec = 0f;
-                if(_tickAccumulator >= fixedDeltaTime)
-                    totalTimesToExec = MathF.Ceiling((_tickAccumulator - fixedDeltaTime) / fixedDeltaTime);
-                while(_tickAccumulator >= fixedDeltaTime) {
-                    float interpT = 1f - MathF.Ceiling((_tickAccumulator - fixedDeltaTime) / fixedDeltaTime) /
-                        totalTimesToExec;
-                    _interpolatedPlayingOffset = SoundManager.music.PlayingOffset * interpT +
-                                                 _prevFramePlayingOffset * (1f - interpT);
-                    Tick();
-                    _tickAccumulator -= fixedDeltaTime;
-                }
+            
+            if(_tpsTime >= 1f) {
+                UI.tps = (int)(_tpsTicks / _tpsTime);
+                _tpsTicks = 0;
+                _tpsTime = 0f;
             }
+            _tpsTime += Core.deltaTime;
 
             Lua.Update();
-
-            _prevFramePlayingOffset = SoundManager.music.PlayingOffset;
         }
         private static void Tick() {
+            if(_watchNegativeTime && playing) {
+                _watchNegativeTime = false;
+                UpdateMusicTime();
+                if(!_watchNegativeTime) SoundManager.music.Play();
+            }
+            
             #region Update steps and offset
 
-            if(_interpolatedPlayingOffset != _prevPlayingOffset) {
-                timeFromStart = _interpolatedPlayingOffset -
-                                Time.FromMilliseconds(Map.currentLevel.metadata.musicOffset);
-                steps = Calc.MillisecondsToSteps(timeFromStart.AsMicroseconds() / 1000f);
+            if(levelTime != _prevLevelTime) {
+                steps = Calc.MillisecondsToSteps(levelTime.AsMicroseconds() / 1000f);
                 if(SoundManager.music.Status != SoundStatus.Playing) steps = MathF.Round(steps);
                 _offset = Calc.StepsToOffset(steps);
             }
-            _prevPlayingOffset = _interpolatedPlayingOffset;
+            _prevLevelTime = levelTime;
 
             #endregion
 
@@ -385,16 +392,24 @@ namespace PPR.Main {
 
             if(editing) {
                 float initialOffset = Map.currentLevel.metadata.musicOffset / 1000f;
-                float duration = SoundManager.music.Duration.AsSeconds() - initialOffset;
-                if(Core.renderer.mousePosition.Y == 0 && Core.renderer.leftButtonPressed) {
-                    float mouseProgress = Math.Clamp(Core.renderer.mousePositionF.X / 80f, 0f, 1f);
-                    SoundManager.music.PlayingOffset = Time.FromSeconds(duration * mouseProgress + initialOffset);
-                    timeFromStart = SoundManager.music.PlayingOffset -
-                                    Time.FromMilliseconds(Map.currentLevel.metadata.musicOffset);
-                    steps = MathF.Round(Calc.MillisecondsToSteps(timeFromStart.AsMilliseconds()));
-                    _offset = Calc.StepsToOffset(steps);
+                float duration = SoundManager.music.Duration.AsSeconds() + initialOffset;
+                
+                if(Core.renderer.mousePosition.Y == 0) {
+                    if(Core.renderer.leftButtonPressed) { // Is pressed
+                        if(!_prevLeftButtonPressed) SoundManager.music.Pause(); // Just pressed
+                        float mouseProgress = Math.Clamp(Core.renderer.mousePositionF.X / 80f, 0f, 1f);
+                        levelTime = Time.FromSeconds(duration * mouseProgress);
+                        steps = MathF.Round(Calc.MillisecondsToSteps(levelTime.AsMilliseconds()));
+                        _offset = Calc.StepsToOffset(steps);
+                    }
+                    else if(_prevLeftButtonPressed) { // Just released
+                        UpdateMusicTime();
+                        if(playing) SoundManager.music.Play();
+                    }
                 }
-                UI.progress = (int)(SoundManager.music.PlayingOffset.AsSeconds() / duration * 80f);
+
+                UI.progress = (int)(levelTime.AsSeconds() / duration * 80f);
+                _prevLeftButtonPressed = Core.renderer.leftButtonPressed;
             }
 
             statsState = health > 0 ? Map.currentLevel.objects.Count(obj => !obj.ignore) > 0 ? StatsState.Pause :
@@ -410,9 +425,16 @@ namespace PPR.Main {
         public static void RoundSteps() => steps = roundedSteps;
         
         public static void UpdateTime() {
-            long useMicrosecs = (long)((MathF.Round(Calc.StepsToMilliseconds(steps)) + Map.currentLevel.metadata.musicOffset) * 1000f);
-            SoundManager.music.PlayingOffset = Time.FromMicroseconds(useMicrosecs);
+            long useMicrosecs = (long)(MathF.Round(Calc.StepsToMilliseconds(steps)) * 1000f);
+            levelTime = Time.FromMicroseconds(useMicrosecs);
         }
+
+        public static void UpdateMusicTime() {
+            Time playingOffset = levelTime + Time.FromMilliseconds(Map.currentLevel.metadata.musicOffset);
+            if(playingOffset < Time.Zero) _watchNegativeTime = true;
+            SoundManager.music.PlayingOffset = playingOffset;
+        }
+
         private static void UpdateSpeeds() {
             foreach (LevelSpeed speed in Map.currentLevel.speeds)
                 if(speed.step <= steps) {
@@ -801,6 +823,7 @@ namespace PPR.Main {
         }
 
         private static void ScrollTime(int delta) {
+            if(playing) playing = false;
             steps = Math.Clamp(steps + delta, 0, Calc.MillisecondsToSteps(SoundManager.music.Duration.AsMicroseconds() / 1000f));
             UpdateTime();
         }

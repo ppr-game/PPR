@@ -8,7 +8,8 @@ using SFML.Window;
 
 namespace PPR.Scripts.Main {
     public class Game {
-        public static float timeFromStart => PPR.Main.Game.timeFromStart.AsSeconds();
+        public static float levelTime => PPR.Main.Game.levelTime.AsSeconds();
+        public static float timeFromStart => levelTime;
         public static int roundedOffset => PPR.Main.Game.roundedOffset;
         public static float steps => PPR.Main.Game.steps;
         public static int roundedSteps => PPR.Main.Game.roundedSteps;

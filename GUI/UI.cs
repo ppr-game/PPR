@@ -21,6 +21,7 @@ namespace PPR.GUI {
         public static int avgFPS = 0;
         public static int tempAvgFPS = 0;
         public static int tempAvgFPSCounter = 0;
+        public static int tps = 0;
 
         private static readonly Random random = new Random();
         private static readonly Perlin perlin = new Perlin();
@@ -462,18 +463,15 @@ namespace PPR.GUI {
         private static void DrawGame() {
             if(Game.editing) {
                 foreach(Button button in _levelEditorButtons) {
-                    if(button.id == "editor.playPause")
-                        button.text = SoundManager.music.Status switch {
-                            SoundStatus.Playing => "║",
-                            _ => "►"
-                        };
+                    if(button.id == "editor.playPause") button.text = Game.playing ? "║" : "►";
                     if(button.Draw()) {
                         switch(button.text) {
                             case "►":
-                                SoundManager.music.Play();
+                                Game.UpdateMusicTime();
+                                Game.playing = true;
                                 break;
                             case "║":
-                                SoundManager.music.Pause();
+                                Game.playing = false;
                                 Game.RoundSteps();
                                 Game.UpdateTime();
                                 break;
@@ -496,7 +494,7 @@ namespace PPR.GUI {
                     }
                 }
                 Core.renderer.DrawText(bpmPos, $"BPM: {Game.currentBPM.ToString()}", ColorScheme.GetColor("bpm"));
-                TimeSpan curTime = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
+                TimeSpan curTime = TimeSpan.FromMilliseconds(Game.levelTime.AsMilliseconds());
                 Core.renderer.DrawText(timePos,
                     $"TIME: {(curTime < TimeSpan.Zero ? "'-'" : "")}{curTime.ToString($"{(curTime.Hours != 0 ? "h':'mm" : "m")}':'ss'.'fff")}",
                     ColorScheme.GetColor("time"));
@@ -527,10 +525,11 @@ namespace PPR.GUI {
                 LevelMetadata metadata = Map.currentLevel.metadata;
 
                 if(!metadata.skippable ||
-                   SoundManager.music.PlayingOffset.AsMilliseconds() >= Map.currentLevel.metadata.skipTime ||
+                   Game.levelTime.AsMilliseconds() >= Map.currentLevel.metadata.skipTime ||
                    !_skipButton.Draw()) return;
                 
-                SoundManager.music.PlayingOffset = Time.FromMilliseconds(Map.currentLevel.metadata.skipTime);
+                Game.levelTime = Time.FromMilliseconds(Map.currentLevel.metadata.skipTime);
+                Game.UpdateMusicTime();
                 Game.UpdatePresence();
             }
         }
@@ -616,7 +615,7 @@ namespace PPR.GUI {
             $"{Map.currentLevel.metadata.name} [{Map.currentLevel.metadata.displayDiff}] : {Map.currentLevel.metadata.author}",
             color, Renderer.Alignment.Left, false, invertOnDarkBG);
         private static void DrawMusicTime(Vector2i position, Color color) {
-            TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.timeFromStart.AsMilliseconds());
+            TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.levelTime.AsMilliseconds());
             Core.renderer.DrawText(position,
                 $"{Calc.TimeSpanToLength(timeSpan)}/{Map.currentLevel.metadata.totalLength}", color,
                 Renderer.Alignment.Right, false, true);
@@ -709,6 +708,8 @@ namespace PPR.GUI {
         }
         private static void LastStatsExit() {
             Game.currentMenu = Menu.LevelSelect;
+            Game.playing = false;
+            SoundManager.music.Play();
             SoundManager.music.Pitch = 1f;
             _musicSpeedSlider.value = 100;
             Lua.ClearScript();
@@ -895,8 +896,8 @@ namespace PPR.GUI {
             Lua.DrawUI();
             
             if(Settings.GetBool("showFps"))
-                Core.renderer.DrawText(fpsPos, $"{fps.ToString()}/{avgFPS.ToString()} FPS", fps >= 60 ?
-                    ColorScheme.GetColor("fps_good") : fps > 20 ? ColorScheme.GetColor("fps_ok") : 
+                Core.renderer.DrawText(fpsPos, $"{fps.ToString()}/{avgFPS.ToString()} FPS , {tps.ToString()} TPS",
+                    fps >= 60 ? ColorScheme.GetColor("fps_good") : fps > 20 ? ColorScheme.GetColor("fps_ok") : 
                         ColorScheme.GetColor("fps_bad"), Renderer.Alignment.Right);
 
             prevMousePosition = Core.renderer.mousePosition;

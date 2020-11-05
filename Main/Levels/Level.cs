@@ -123,7 +123,7 @@ namespace PPR.Main.Levels {
             displayDifficulty = _difficulty.ToString("0.00", CultureInfo.InvariantCulture);
 
             int minStep = Calc.GetFirstObject(objects).step;
-            int minTime = (int)Calc.StepsToMilliseconds(minStep, speeds) + musicOffset;
+            int minTime = (int)Calc.StepsToMilliseconds(minStep, speeds);
             skipTime = minTime - 3000;
             skippable = skipTime > 3000;
 

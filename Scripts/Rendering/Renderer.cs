@@ -135,7 +135,7 @@ namespace PPR.Scripts.Rendering {
                                 break;
                             }
                         }
-                    charMod.creationTime = Game.timeFromStart.AsSeconds();
+                    charMod.creationTime = Game.levelTime.AsSeconds();
                     charMods.Add(charMod);
                 }
                 
@@ -160,7 +160,7 @@ namespace PPR.Scripts.Rendering {
                     RenderCharacter modChar = character;
                     // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
                     foreach(CharacterModifier modifier in charMods) {
-                        context.levelTime = Game.timeFromStart.AsSeconds();
+                        context.levelTime = Game.levelTime.AsSeconds();
                         context.startTime = modifier.creationTime;
                         context.time = context.levelTime - modifier.creationTime;
                         if(!modifier.condition(context)) continue;

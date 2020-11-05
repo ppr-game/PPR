@@ -141,16 +141,14 @@ namespace PPR.Main {
             }
         }
 
-        public static void InitializeConsole() {
-            console = new Script(CoreModules.Preset_HardSandbox) {
-                Options = {
-                    DebugPrint = message => {
-                        Console.WriteLine(message);
-                        logger.Debug(message);
-                    }
+        public static void InitializeConsole() => console = new Script(CoreModules.Preset_HardSandbox) {
+            Options = {
+                DebugPrint = message => {
+                    Console.WriteLine(message);
+                    logger.Debug(message);
                 }
-            };
-        }
+            }
+        };
         public static void ExecuteCommand(string command) => console.DoString(command);
     }
 }
