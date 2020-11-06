@@ -43,6 +43,7 @@ namespace PPR.Main {
                     playing = true;
                     if(!auto) levelTime = Time.FromMicroseconds(Math.Max(0, levelTime.AsMicroseconds() - 3000000));
                     UpdateMusicTime();
+                    _tickClock.Restart();
                 }
 
                 switch(value) {
@@ -137,12 +138,13 @@ namespace PPR.Main {
         public static int menusAnimInitialOffset;
         public static List<LevelSpeed> menusAnimSpeeds;
         private static Time _prevLevelTime;
+        private static Clock _tickClock = new Clock();
         private static float _prevSteps;
         private static float _absoluteCurrentSpeedSec = 60f;
         private static bool _usedAuto;
-        private float _tickAccumulator;
-        private int _tpsTicks;
-        private float _tpsTime;
+        private static float _tickAccumulator;
+        private static int _tpsTicks;
+        private static float _tpsTime;
         private static bool _prevLeftButtonPressed;
         private static bool _watchNegativeTime;
         public Game() {
@@ -286,6 +288,10 @@ namespace PPR.Main {
             playing = false;
             UI.health = 0;
             health = 80;
+            _tickAccumulator = 0f;
+            _tpsTicks = 0;
+            _tpsTime = 0f;
+            _prevLeftButtonPressed = false;
             ScoreManager.ResetScore();
             SoundManager.music.Stop();
 
@@ -300,6 +306,8 @@ namespace PPR.Main {
                 };
                 if(!editing) _playing = true;
             }
+            
+            _tickClock.Restart();
 
             logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
         }
@@ -369,7 +377,7 @@ namespace PPR.Main {
             // Execute the ticks
             float fixedDeltaTime = _absoluteCurrentSpeedSec / 16f;
 
-            _tickAccumulator += Core.deltaTime;
+            _tickAccumulator += _tickClock.Restart().AsSeconds();
             while(_tickAccumulator >= fixedDeltaTime) {
                 if(playing) levelTime += Time.FromSeconds(fixedDeltaTime);
                 Tick();
