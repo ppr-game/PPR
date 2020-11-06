@@ -24,6 +24,11 @@ namespace PPR.Main {
     public enum StatsState { Pause, Fail, Pass }
     public enum Menu { Main, LevelSelect, Settings, KeybindsEditor, LastStats, Game }
     public enum SoundType { Hit, Hold, Fail, Pass, Click, Slider }
+
+    public sealed class MenuSwitchedEventArgs : EventArgs {
+        public Menu prevMenu;
+        public MenuSwitchedEventArgs(Menu prevMenu) => this.prevMenu = prevMenu;
+    }
     public class Game {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -31,15 +36,13 @@ namespace PPR.Main {
         private static Menu _currentMenu = Menu.Main;
         public static Menu currentMenu {
             get => _currentMenu;
-            set {
-                // Pause/Continue
-                if(Map.currentLevel != null && statsState == StatsState.Pause) {
-                    if(_currentMenu == Menu.Game && value == Menu.LastStats) playing = false;
-                    else if(!editing && _currentMenu == Menu.LastStats && value == Menu.Game) {
-                        playing = true;
-                        if(!auto) levelTime = Time.FromMicroseconds(Math.Max(0, levelTime.AsMicroseconds() - 3000000));
-                        UpdateMusicTime();
-                    }
+            private set {
+                // Continue
+                if(Map.currentLevel != null && statsState == StatsState.Pause && !editing &&
+                   _currentMenu == Menu.LastStats && value == Menu.Game) {
+                    playing = true;
+                    if(!auto) levelTime = Time.FromMicroseconds(Math.Max(0, levelTime.AsMicroseconds() - 3000000));
+                    UpdateMusicTime();
                 }
 
                 switch(value) {
@@ -62,18 +65,36 @@ namespace PPR.Main {
                 if(value == Menu.LevelSelect && SoundManager.music.Status == SoundStatus.Paused)
                     SoundManager.music.Play();
                 
-                // Fade out when switch menus
-                if(_currentMenu != value) {
-                    Core.pauseDrawing = true;
-                    UI.FadeOut(value == Menu.Game ? 10f : 7f);
-                    Map.selecting = false;
-                }
-                
                 _currentMenu = value;
                 
                 UpdatePresence();
             }
         }
+
+        private static Menu _nextMenu;
+        public static Menu nextMenu {
+            get => _nextMenu;
+            set {
+                // Pause
+                if(Map.currentLevel != null && statsState == StatsState.Pause && menu == Menu.Game &&
+                   value == Menu.LastStats) playing = false;
+                
+                _nextMenu = value;
+                
+                UI.FadeOut(value == Menu.Game ? 10f : 7f);
+                Map.selecting = false;
+            }
+        }
+
+        public static Menu menu {
+            get => currentMenu;
+            set => nextMenu = value;
+        }
+
+        public static bool switchingMenus => currentMenu != nextMenu;
+
+        public static EventHandler<MenuSwitchedEventArgs> menuSwitchedCallback;
+        
         public static Time levelTime { get; set; }
         private static float _offset;
         public static int roundedOffset { get; private set; }
@@ -238,7 +259,7 @@ namespace PPR.Main {
         }
         
         public static void LostFocus(object caller, EventArgs args) {
-            if(currentMenu == Menu.Game) currentMenu = Menu.LastStats;
+            if(menu == Menu.Game) menu = Menu.LastStats;
             SoundManager.music.Volume = 0;
             Core.renderer.UpdateFramerateSetting();
         }
@@ -319,8 +340,11 @@ namespace PPR.Main {
         
         public void Update() {
             // Fade in after fading out when switching menus
-            if(Core.pauseDrawing && UI.fadeOutFinished) {
-                Core.pauseDrawing = false;
+            if(switchingMenus && UI.fadeOutFinished) {
+                Menu prevMenu = menu;
+                currentMenu = nextMenu;
+                menuSwitchedCallback?.Invoke(this, new MenuSwitchedEventArgs(prevMenu));
+                menuSwitchedCallback = null;
                 UI.FadeIn(currentMenu == Menu.Game ? 10f : 7f);
             }
             
@@ -336,9 +360,11 @@ namespace PPR.Main {
                     UI.menusAnimBPM = Math.Abs(Calc.GetBPMAtStep(step, menusAnimSpeeds));
                 }
 
-                return;
+                UI.tps = 0;
+                return; // Everything after this line will be executed only if the player is playing a level
             }
-            // Everything after this line will be executed only if the player is playing a level
+
+            if(statsState != StatsState.Pause) return;
 
             // Execute the ticks
             float fixedDeltaTime = _absoluteCurrentSpeedSec / 16f;
@@ -421,7 +447,7 @@ namespace PPR.Main {
 
             Lua.Tick();
 
-            if(statsState != StatsState.Pause) currentMenu = Menu.LastStats;
+            if(statsState != StatsState.Pause) menu = Menu.LastStats;
         }
         
         public static void RoundSteps() => steps = roundedSteps;
@@ -554,8 +580,8 @@ namespace PPR.Main {
         public static void KeyPressed(object caller, KeyEventArgs key) {
             // Back
             if(Bindings.GetBinding("back").IsPressed(key) &&
-               currentMenu != Menu.LevelSelect && currentMenu != Menu.LastStats)
-                currentMenu = currentMenu switch {
+               menu != Menu.LevelSelect && menu != Menu.LastStats)
+                menu = menu switch {
                     Menu.Game => Menu.LastStats,
                     Menu.KeybindsEditor => Menu.Settings,
                     _ => Menu.Main

@@ -30,8 +30,6 @@ namespace PPR {
         public static readonly Renderer renderer = new Renderer("Press Press Revolution", 80, 60, 0,
             Settings.GetBool("fullscreen"), Path.Join("resources", "fonts", Settings.GetPath("font")));
 
-        public static bool pauseDrawing;
-
         // bruh Rider wth
         // ReSharper disable once UnusedMember.Local
         private static void Main() {
@@ -63,11 +61,9 @@ namespace PPR {
 
                     game.Update();
 
-                    if(!pauseDrawing) {
-                        renderer.Clear();
-                        Map.Draw();
-                        UI.Draw();
-                    }
+                    renderer.Clear();
+                    Map.Draw();
+                    UI.Draw();
                     UI.UpdateAnims();
                     renderer.Draw(ColorScheme.GetColor("background"), Settings.GetBool("bloom"));
 

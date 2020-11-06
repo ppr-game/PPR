@@ -183,17 +183,12 @@ namespace PPR.GUI {
         
         public static void UpdateAnims() {
             bool useScriptCharMod =
-                Scripts.Rendering.Renderer.scriptCharactersModifier != null && Game.currentMenu == Menu.Game;
+                Scripts.Rendering.Renderer.scriptCharactersModifier != null && Game.menu == Menu.Game;
             if(useScriptCharMod) Core.renderer.charactersModifier = Scripts.Rendering.Renderer.scriptCharactersModifier;
             if(fadeInFinished && fadeOutFinished) { if(!useScriptCharMod) Core.renderer.charactersModifier = null; }
             else {
-                if(!fadeInFinished) {
-                    fadeInFinished = true;
-                    _fadeInTime += Core.deltaTime;
-                }
-                if(fadeOutFinished) return;
+                fadeInFinished = true;
                 fadeOutFinished = true;
-                _fadeOutTime += Core.deltaTime;
             }
         }
 
@@ -242,37 +237,39 @@ namespace PPR.GUI {
             if(_switchMusicButton.Draw()) SoundManager.SwitchMusic();
         }
 
-        private static float _fadeInTime = 1f;
-        private static float _fadeOutTime = 1f;
+        private static readonly Clock fadeInClock = new Clock();
+        private static readonly Clock fadeOutClock = new Clock();
         public static void FadeIn(float speed = 1f) {
             fadeInFinished = false;
             const float min = 0.5f;
             const float max = 4f;
+            fadeInClock.Restart();
             Core.renderer.charactersModifier = (position, character) => {
                 float posRandom = positionRandoms[position] * (max - min) + min;
-                if(_fadeInTime * speed * posRandom < 1f) fadeInFinished = false;
-                return ((Vector2f)position, new RenderCharacter(Renderer.AnimateColor(_fadeInTime,
+                float time = fadeInClock.ElapsedTime.AsSeconds();
+                if(time * speed * posRandom < 1f) fadeInFinished = false;
+                return ((Vector2f)position, new RenderCharacter(Renderer.AnimateColor(time,
                         ColorScheme.GetColor("background"), character.background, speed * posRandom),
-                    Renderer.AnimateColor(_fadeInTime,
+                    Renderer.AnimateColor(time,
                         ColorScheme.GetColor("background"), character.foreground, speed * posRandom),
                     character));
             };
-            _fadeInTime = 0f;
         }
         public static void FadeOut(float speed = 1f) {
             fadeOutFinished = false;
             const float min = 0.5f;
             const float max = 4f;
+            fadeOutClock.Restart();
             Core.renderer.charactersModifier = (position, character) => {
                 float posRandom = positionRandoms[position] * (max - min) + min;
-                if(_fadeOutTime * speed * posRandom < 1f) fadeOutFinished = false;
-                return ((Vector2f)position, new RenderCharacter(Renderer.AnimateColor(_fadeOutTime,
+                float time = fadeOutClock.ElapsedTime.AsSeconds();
+                if(time * speed * posRandom < 1f) fadeOutFinished = false;
+                return ((Vector2f)position, new RenderCharacter(Renderer.AnimateColor(time,
                         character.background, ColorScheme.GetColor("background"), speed * posRandom),
-                    Renderer.AnimateColor(_fadeOutTime,
+                    Renderer.AnimateColor(time,
                         character.foreground, ColorScheme.GetColor("background"), speed * posRandom),
                     character));
             };
-            _fadeOutTime = 0f;
         }
 
         private static float _menusAnimTime;
@@ -322,9 +319,9 @@ namespace PPR.GUI {
                         Game.editing = button.id == "mainMenu.edit";
                         Core.renderer.window.SetKeyRepeatEnabled(Game.editing);
                         Game.auto = false;
-                        Game.currentMenu = Menu.LevelSelect;
+                        Game.menu = Menu.LevelSelect;
                         break;
-                    case "mainMenu.settings": Game.currentMenu = Menu.Settings;
+                    case "mainMenu.settings": Game.menu = Menu.Settings;
                         break;
                     case "mainMenu.exit": Game.Exit();
                         break;
@@ -370,9 +367,11 @@ namespace PPR.GUI {
                         _lastLevel = levelName;
                         _lastDiff = diffName;
                         string path = Path.Join("levels", _lastLevel);
-                        Map.LoadLevelFromPath(path, _lastLevel, _lastDiff);
-                        Game.currentMenu = Menu.Game;
-                        Game.RecalculatePosition();
+                        Game.menu = Menu.Game;
+                        Game.menuSwitchedCallback += (_, __) => {
+                            Map.LoadLevelFromPath(path, _lastLevel, _lastDiff);
+                            Game.RecalculatePosition();
+                        };
                     }
                         
                     if((diff.button.currentState == Button.State.Hovered ||
@@ -400,7 +399,7 @@ namespace PPR.GUI {
                         button.selected = Game.auto;
                         break;
                     }
-                    case "BACK" when button.Draw(): Game.currentMenu = Menu.Main;
+                    case "BACK" when button.Draw(): Game.menu = Menu.Main;
                         break;
                 }
             
@@ -690,9 +689,9 @@ namespace PPR.GUI {
                             break;
                         case "lastStats.restart":
                             if(!Game.editing && button.Draw()) {
-                                Game.currentMenu = Menu.Game;
-                                string path = Path.Join("levels", _lastLevel);
-                                Map.LoadLevelFromPath(path, _lastLevel, _lastDiff);
+                                Game.menu = Menu.Game;
+                                Game.menuSwitchedCallback += (_, __) =>
+                                    Map.LoadLevelFromPath(Path.Join("levels", _lastLevel), _lastLevel, _lastDiff);
                             }
                             break;
                         case "lastStats.auto":
@@ -704,13 +703,15 @@ namespace PPR.GUI {
                     }
         }
         private static void LastStatsContinue(Button button) {
-            if(Map.currentLevel.objects.Count > 0 && Game.health > 0 && button.Draw()) Game.currentMenu = Menu.Game;
+            if(Map.currentLevel.objects.Count > 0 && Game.health > 0 && button.Draw()) Game.menu = Menu.Game;
         }
         private static void LastStatsExit() {
-            Game.currentMenu = Menu.LevelSelect;
+            Game.menu = Menu.LevelSelect;
+            Game.menuSwitchedCallback += (_, __) => {
+                SoundManager.music.Play();
+                SoundManager.music.Pitch = 1f;
+            };
             Game.playing = false;
-            SoundManager.music.Play();
-            SoundManager.music.Pitch = 1f;
             _musicSpeedSlider.value = 100;
             Lua.ClearScript();
         }
@@ -853,7 +854,7 @@ namespace PPR.GUI {
             DrawMenusAnim();
             Core.renderer.DrawText(zero, settingsText);
             DrawSettingsList();
-            //if(_keybindsButton.Draw()) Game.currentMenu = Menu.KeybindsEditor;
+            //if(_keybindsButton.Draw()) Game.menu = Menu.KeybindsEditor;
         }
         private static void DrawKeybindsEditor() {
             DrawMenusAnim();
@@ -872,7 +873,7 @@ namespace PPR.GUI {
             }
         }
         public static void Draw() {
-            switch(Game.currentMenu) {
+            switch(Game.menu) {
                 case Menu.Main:
                     DrawMainMenu();
                     break;
