@@ -122,7 +122,7 @@ namespace PPR.Main.Levels {
             _difficulty = Calc.GetDifficulty(objects, speeds, (int)lengthSpan.TotalMinutes);
             displayDifficulty = _difficulty.ToString("0.00", CultureInfo.InvariantCulture);
 
-            int minStep = Calc.GetFirstObject(objects).step;
+            int minStep = objects.Count > 0 ? Calc.GetFirstObject(objects).step : 0;
             int minTime = (int)Calc.StepsToMilliseconds(minStep, speeds);
             skipTime = minTime - 3000;
             skippable = skipTime > 3000;
@@ -130,10 +130,10 @@ namespace PPR.Main.Levels {
             IEnumerable<int> onlyAbsoluteSpeeds = speeds.Select(speed => Math.Abs(speed.speed));
             int minBPM = onlyAbsoluteSpeeds.Min();
             int maxBPM = onlyAbsoluteSpeeds.Max();
-            int avgBPM = (int)Calc.GetAverageBPM(speeds, Calc.GetLastObject(objects).step);
+            int avgBPM = (int)Calc.GetAverageBPM(speeds, objects.Count > 0 ? Calc.GetLastObject(objects).step : 0);
             bpm = minBPM == maxBPM ? avgBPM.ToString() : $"{minBPM.ToString()}-{maxBPM.ToString()} ({avgBPM.ToString()})";
 
-            maxStep = Calc.GetLastObject(objects).step;
+            maxStep = objects.Count > 0 ? Calc.GetLastObject(objects).step : 0;
 
             this.objectCount = objectCount;
             speedsCount = speeds.Count;

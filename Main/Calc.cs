@@ -196,11 +196,13 @@ namespace PPR.Main {
 
         public static TimeSpan GetTotalLevelLength(List<LightLevelObject> objects, List<LevelSpeed> sortedSpeeds,
             int musicOffset) {
+            if(objects.Count <= 0 || sortedSpeeds.Count <= 0) return TimeSpan.Zero;
             float ms = StepsToMilliseconds(GetLastObject(objects).step, sortedSpeeds) - musicOffset;
             return TimeSpan.FromMilliseconds(float.IsNaN(ms) ? 0d : ms);
         }
         public static TimeSpan GetLevelLength(List<LightLevelObject> objects, List<LevelSpeed> sortedSpeeds,
             int musicOffset) {
+            if(objects.Count <= 0 || sortedSpeeds.Count <= 0) return TimeSpan.Zero;
             float ms = StepsToMilliseconds(GetLastObject(objects).step, sortedSpeeds) - musicOffset -
                        StepsToMilliseconds(GetFirstObject(objects).step, sortedSpeeds);
             return TimeSpan.FromMilliseconds(float.IsNaN(ms) ? 0d : ms);
