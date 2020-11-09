@@ -261,7 +261,7 @@ namespace PPR.Main {
         }
         
         public static void LostFocus(object caller, EventArgs args) {
-            if(menu == Menu.Game) menu = Menu.LastStats;
+            //if(menu == Menu.Game) menu = Menu.LastStats;
             SoundManager.music.Volume = 0;
             Core.renderer.UpdateFramerateSetting();
         }

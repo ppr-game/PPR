@@ -65,7 +65,7 @@ namespace PPR {
                     Map.Draw();
                     UI.Draw();
                     UI.UpdateAnims();
-                    renderer.Draw(ColorScheme.GetColor("background"), Settings.GetBool("bloom"));
+                    renderer.Draw(UI.currentBackground, Settings.GetBool("bloom"));
 
                     renderer.window.Display();
 

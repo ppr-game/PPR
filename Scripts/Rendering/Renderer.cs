@@ -16,6 +16,40 @@ using SFML.System;
 
 namespace PPR.Scripts.Rendering {
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
+    internal struct BackgroundModExCtx {
+        public byte r { get; set; }
+        public byte g { get; set; }
+        public byte b { get; set; }
+        public byte a { get; set; }
+        public float time { get; set; }
+        public float startTime { get; set; }
+        public float levelTime { get; set; }
+        public float roundedSteps { get; set; }
+        public float steps { get; set; }
+        public float offset { get; set; }
+        // ReSharper disable once InconsistentNaming
+        private static readonly Random _random = new Random();
+        public int randomInt(int min, int max) => _random.Next(min, max);
+        public double random(double min, double max) => _random.NextDouble() * (max - min) + min;
+        public double lerp(double a, double b, double t) => t <= 0 ? a : t >= 1 ? b : a + (b - a) * t;
+        public double abs(double value) => Math.Abs(value);
+        public double ceil(double value) => ceiling(value);
+        // ReSharper disable once MemberCanBeMadeStatic.Global
+        // ReSharper disable once MemberCanBePrivate.Global
+        public double ceiling(double value) => Math.Ceiling(value);
+        public double clamp(double value, double min, double max) => Math.Clamp(value, min, max);
+        public double floor(double value) => Math.Floor(value);
+        public double max(double a, double b) => Math.Max(a, b);
+        public double min(double a, double b) => Math.Min(a, b);
+        public double pow(double a, double b) => Math.Pow(a, b);
+        public double round(double value) => Math.Round(value);
+        public double sign(double value) => Math.Sign(value);
+        public double sqrt(double value) => Math.Sqrt(value);
+    }
+    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     internal struct CharModExCtx {
         public int x { get; set; }
         public int y { get; set; }
@@ -56,6 +90,14 @@ namespace PPR.Scripts.Rendering {
         public double sign(double value) => Math.Sign(value);
         public double sqrt(double value) => Math.Sqrt(value);
     }
+    internal class BackgroundModifier {
+        public Func<BackgroundModExCtx, bool> condition;
+        public Func<BackgroundModExCtx, byte> r;
+        public Func<BackgroundModExCtx, byte> g;
+        public Func<BackgroundModExCtx, byte> b;
+        public Func<BackgroundModExCtx, byte> a;
+        public float creationTime;
+    }
     internal class CharacterModifier {
         public Func<CharModExCtx, bool> condition;
         public Func<CharModExCtx, float> x;
@@ -71,12 +113,74 @@ namespace PPR.Scripts.Rendering {
         public Func<CharModExCtx, byte> fgA;
         public float creationTime;
     }
+    [MoonSharpHideMember("scriptBackgroundModifier")]
     [MoonSharpHideMember("scriptCharactersModifier")]
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class Renderer {
         public static int getWidth => PPR.Core.renderer.width;
         public static int getHeight => PPR.Core.renderer.height;
         public static Vector2i getMousePosition => PPR.Core.renderer.mousePosition;
         public static Vector2f getMousePositionF => PPR.Core.renderer.mousePositionF;
+        public static Func<Color, Color> scriptBackgroundModifier;
+        public static List<Dictionary<string, DynValue>> backgroundModifier {
+            set {
+                if(value == null) {
+                    UI.levelBackground = null;
+                    scriptBackgroundModifier = null;
+                    return;
+                }
+                
+                List<BackgroundModifier> bgMods = new List<BackgroundModifier>(value.Count);
+                foreach(Dictionary<string, DynValue> modifier in value) {
+                    BackgroundModifier bgMod = new BackgroundModifier();
+                    foreach((string key, DynValue dynValue) in modifier) {
+                        switch(key) {
+                            case "condition":
+                                bgMod.condition = new Expression(dynValue.String).ToLambda<BackgroundModExCtx, bool>();
+                                continue;
+                            case "r":
+                                bgMod.r = new Expression(dynValue.String).ToLambda<BackgroundModExCtx, byte>();
+                                continue;
+                            case "g":
+                                bgMod.g = new Expression(dynValue.String).ToLambda<BackgroundModExCtx, byte>();
+                                continue;
+                            case "b":
+                                bgMod.b = new Expression(dynValue.String).ToLambda<BackgroundModExCtx, byte>();
+                                continue;
+                            case "a":
+                                bgMod.a = new Expression(dynValue.String).ToLambda<BackgroundModExCtx, byte>();
+                                continue;
+                        }
+                    }
+                    bgMod.creationTime = Game.levelTime.AsSeconds();
+                    bgMods.Add(bgMod);
+                }
+
+                scriptBackgroundModifier = color => {
+                    BackgroundModExCtx context = new BackgroundModExCtx {
+                        r = color.R,
+                        g = color.G,
+                        b = color.B,
+                        a = color.A,
+                        roundedSteps = Game.roundedSteps,
+                        steps = Game.steps,
+                        offset = Game.roundedOffset
+                    };
+                    Color modColor = color;
+                    foreach(BackgroundModifier modifier in bgMods) {
+                        context.levelTime = Game.levelTime.AsSeconds();
+                        context.startTime = modifier.creationTime;
+                        context.time = context.levelTime - modifier.creationTime;
+                        if(!modifier.condition(context)) continue;
+                        modColor = new Color(modifier.r?.Invoke(context) ?? modColor.R,
+                            modifier.g?.Invoke(context) ?? modColor.G,
+                            modifier.b?.Invoke(context) ?? modColor.B,
+                            modifier.a?.Invoke(context) ?? modColor.A);
+                    }
+                    return modColor;
+                };
+            }
+        }
         public static Func<Vector2i, RenderCharacter, (Vector2f, RenderCharacter)> scriptCharactersModifier;
         public static List<Dictionary<string, DynValue>> charactersModifier {
             set {

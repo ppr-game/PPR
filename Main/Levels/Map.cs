@@ -37,7 +37,7 @@ namespace PPR.Main.Levels {
             for(int x = 0; x < Core.renderer.width; x++) {
                 Vector2i pos = new Vector2i(x, linePos.Y);
                 Core.renderer.SetCellColor(pos, ColorScheme.GetColor("foreground"),
-                    Renderer.AnimateColor(lineFlashTimes[x], ColorScheme.GetColor("background"),
+                    Renderer.AnimateColor(lineFlashTimes[x], UI.currentBackground,
                         ColorScheme.GetColor("foreground"), 1f));
                 lineFlashTimes[x] -= Core.deltaTime * 3f;
             }

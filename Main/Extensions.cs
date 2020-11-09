@@ -51,7 +51,7 @@ namespace PPR.Main {
             Renderer.Alignment align = Renderer.Alignment.Left, bool replacingSpaces = false,
             bool invertOnDarkBG = false,
             Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawText(position, text, foregroundColor, backgroundColor,
-            ColorScheme.GetColor("background"), align, replacingSpaces, invertOnDarkBG, charactersModifier);
+            UI.currentBackground, align, replacingSpaces, invertOnDarkBG, charactersModifier);
         public static void DrawText(this Renderer renderer, Vector2i position, string[] lines, Renderer.Alignment align = Renderer.Alignment.Left,
             bool replacingSpaces = false, bool invertOnDarkBG = false,
             Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawLines(position, lines, align, replacingSpaces, invertOnDarkBG, charactersModifier);
@@ -76,10 +76,10 @@ namespace PPR.Main {
             Color backgroundColor, Renderer.Alignment align = Renderer.Alignment.Left, bool replacingSpaces = false,
             bool invertOnDarkBG = false,
             Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawLines(position, lines, foregroundColor, backgroundColor,
-            ColorScheme.GetColor("background"), align, replacingSpaces,
+            UI.currentBackground, align, replacingSpaces,
             invertOnDarkBG, charactersModifier);
-        public static void SetCharacter(this Renderer renderer, Vector2i position, RenderCharacter character) => renderer.SetCharacter(position, character, ColorScheme.GetColor("background"));
+        public static void SetCharacter(this Renderer renderer, Vector2i position, RenderCharacter character) => renderer.SetCharacter(position, character, UI.currentBackground);
         public static void SetCellColor(this Renderer renderer, Vector2i position, Color foregroundColor,
-            Color backgroundColor) => renderer.SetCellColor(position, foregroundColor, backgroundColor, ColorScheme.GetColor("background"));
+            Color backgroundColor) => renderer.SetCellColor(position, foregroundColor, backgroundColor, UI.currentBackground);
     }
 }

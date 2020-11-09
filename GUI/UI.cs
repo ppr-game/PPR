@@ -61,6 +61,12 @@ namespace PPR.GUI {
                 }
             }
         }
+
+        public static Color currentBackground {
+            get => levelBackground ?? ColorScheme.GetColor("background");
+            set => levelBackground = value;
+        }
+        public static Color? levelBackground;
         
         public static string currSelectedLevel;
         public static string currSelectedDiff;
@@ -185,6 +191,10 @@ namespace PPR.GUI {
             bool useScriptCharMod =
                 Scripts.Rendering.Renderer.scriptCharactersModifier != null && Game.menu == Menu.Game;
             if(useScriptCharMod) Core.renderer.charactersModifier = Scripts.Rendering.Renderer.scriptCharactersModifier;
+            
+            levelBackground = Game.menu == Menu.Game ?
+                Scripts.Rendering.Renderer.scriptBackgroundModifier?.Invoke(ColorScheme.GetColor("background")) : null;
+            
             if(fadeInFinished && fadeOutFinished) { if(!useScriptCharMod) Core.renderer.charactersModifier = null; }
             else {
                 fadeInFinished = true;
@@ -249,9 +259,9 @@ namespace PPR.GUI {
                 float time = fadeInClock.ElapsedTime.AsSeconds();
                 if(time * speed * posRandom < 1f) fadeInFinished = false;
                 return ((Vector2f)position, new RenderCharacter(Renderer.AnimateColor(time,
-                        ColorScheme.GetColor("background"), character.background, speed * posRandom),
+                        currentBackground, character.background, speed * posRandom),
                     Renderer.AnimateColor(time,
-                        ColorScheme.GetColor("background"), character.foreground, speed * posRandom),
+                        currentBackground, character.foreground, speed * posRandom),
                     character));
             };
         }
@@ -265,16 +275,16 @@ namespace PPR.GUI {
                 float time = fadeOutClock.ElapsedTime.AsSeconds();
                 if(time * speed * posRandom < 1f) fadeOutFinished = false;
                 return ((Vector2f)position, new RenderCharacter(Renderer.AnimateColor(time,
-                        character.background, ColorScheme.GetColor("background"), speed * posRandom),
+                        character.background, currentBackground, speed * posRandom),
                     Renderer.AnimateColor(time,
-                        character.foreground, ColorScheme.GetColor("background"), speed * posRandom),
+                        character.foreground, currentBackground, speed * posRandom),
                     character));
             };
         }
 
         private static float _menusAnimTime;
         private static void DrawMenusAnim() {
-            Color background = ColorScheme.GetColor("background");
+            Color background = currentBackground;
             Color menusAnimMax = ColorScheme.GetColor("menus_anim_max");
             Color transparent = ColorScheme.GetColor("transparent");
             for(int x = -3; x < Core.renderer.width + 3; x++) {
@@ -578,35 +588,35 @@ namespace PPR.GUI {
         }
         private static void DrawMiniScores(Vector2i position, int[] scores) {
             string scores0Str = scores[0].ToString();
-            Core.renderer.DrawText(position, scores0Str, ColorScheme.GetColor("background"),
+            Core.renderer.DrawText(position, scores0Str, currentBackground,
                 ColorScheme.GetColor("miss"));
 
             string scores1Str = scores[1].ToString();
             int x1 = position.X + scores0Str.Length + 1;
-            Core.renderer.DrawText(new Vector2i(x1, position.Y), scores1Str, ColorScheme.GetColor("background"),
+            Core.renderer.DrawText(new Vector2i(x1, position.Y), scores1Str, currentBackground,
                 ColorScheme.GetColor("hit"));
 
             Core.renderer.DrawText(new Vector2i(x1 + scores1Str.Length + 1, position.Y), scores[2].ToString(), 
-                ColorScheme.GetColor("background"),
+                currentBackground,
                 ColorScheme.GetColor("perfect_hit"));
         }
         private static void DrawScores(Vector2i position) {
             int posXOffseted = position.X + 15;
             Core.renderer.DrawText(position, "MISSES:", ColorScheme.GetColor("miss"));
             Core.renderer.DrawText(new Vector2i(posXOffseted, position.Y), ScoreManager.scores[0].ToString(),
-                ColorScheme.GetColor("background"),
+                currentBackground,
                 ColorScheme.GetColor("miss"));
 
             int posYHits = position.Y + 2;
             Core.renderer.DrawText(new Vector2i(position.X, posYHits), "HITS:", ColorScheme.GetColor("hit"));
             Core.renderer.DrawText(new Vector2i(posXOffseted, posYHits), ScoreManager.scores[1].ToString(),
-                ColorScheme.GetColor("background"),
+                currentBackground,
                 ColorScheme.GetColor("hit"));
 
             int posYPerfectHits = position.Y + 4;
             Core.renderer.DrawText(new Vector2i(position.X, posYPerfectHits), "PERFECT HITS:", ColorScheme.GetColor("perfect_hit"));
             Core.renderer.DrawText(new Vector2i(posXOffseted, posYPerfectHits), ScoreManager.scores[2].ToString(),
-                ColorScheme.GetColor("background"),
+                currentBackground,
                 ColorScheme.GetColor("perfect_hit"));
         }
         private static void DrawLevelName(Vector2i position, Color color, bool invertOnDarkBG = true) =>
