@@ -288,97 +288,33 @@ namespace PPR.Scripts.Rendering {
         public static IReadOnlyDictionary<Vector2i, float> positionRandoms => UI.positionRandoms;
         public static void RegenPositionRandoms() => UI.RegenPositionRandoms();
         
-        public static void DrawText(Vector2i position, string text, Color foregroundColor, Color backgroundColor,
-            Color defaultBackground, PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left,
+        public static void DrawText(int x, int y, string text, Color? foregroundColor = null,
+            Color? backgroundColor = null, PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left,
             bool replacingSpaces = false, bool invertOnDarkBG = false,
             Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier =
-                null) => PPR.Core.renderer.DrawText(position, text, foregroundColor, backgroundColor, defaultBackground,
-            align, replacingSpaces, invertOnDarkBG, charactersModifier);
+                null) => PPR.Core.renderer.DrawText(new Vector2i(x, y), text,
+            foregroundColor ?? ColorScheme.GetColor("foreground"),
+            backgroundColor ?? ColorScheme.GetColor("transparent"), align, replacingSpaces, invertOnDarkBG,
+            charactersModifier);
         
-        public static void DrawText(Vector2i position, string[] lines, Color foregroundColor, Color backgroundColor,
-            Color defaultBackground, PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left,
+        public static void DrawLines(int x, int y, string[] lines, Color? foregroundColor = null,
+            Color? backgroundColor = null, PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left,
             bool replacingSpaces = false, bool invertOnDarkBG = false,
             Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier =
-                null) => PPR.Core.renderer.DrawText(position, lines, foregroundColor, backgroundColor,
-            defaultBackground, align, replacingSpaces, invertOnDarkBG, charactersModifier);
-        
-        // ReSharper disable once ParameterTypeCanBeEnumerable.Global
-        public static void DrawLines(Vector2i position, string[] lines, Color foregroundColor, Color backgroundColor,
-            Color defaultBackground, PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left,
-            bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier =
-                null) => PPR.Core.renderer.DrawLines(position, lines, foregroundColor, backgroundColor,
-            defaultBackground, align, replacingSpaces, invertOnDarkBG, charactersModifier);
-        
-        public static void SetCharacter(Vector2i position, RenderCharacter character, Color defaultBackground) =>
-            PPR.Core.renderer.SetCharacter(position, character, defaultBackground);
+                null) => PPR.Core.renderer.DrawLines(new Vector2i(x, y), lines,
+            foregroundColor ?? ColorScheme.GetColor("foreground"),
+            backgroundColor ?? ColorScheme.GetColor("transparent"), align, replacingSpaces, invertOnDarkBG,
+            charactersModifier);
+
+        public static void SetCharacter(int x, int y, RenderCharacter character, Color defaultBackground) =>
+            PPR.Core.renderer.SetCharacter(new Vector2i(x, y), character, defaultBackground);
         public static RenderCharacter GetCharacter(Vector2i position) => PPR.Core.renderer.GetCharacter(position);
-        public static void SetCellColor(Vector2i position, Color foregroundColor, Color backgroundColor,
+        public static void SetCellColor(int x, int y, Color foregroundColor, Color backgroundColor,
             Color defaultBackground) =>
-            PPR.Core.renderer.SetCellColor(position, foregroundColor, backgroundColor, defaultBackground);
+            PPR.Core.renderer.SetCellColor(new Vector2i(x, y), foregroundColor, backgroundColor, defaultBackground);
         public static Color LerpColors(Color a, Color b, float t) => PRR.Renderer.LerpColors(a, b, t);
         public static Color AnimateColor(float time, Color start, Color end, float rate) =>
             PRR.Renderer.AnimateColor(time, start, end, rate);
         public static Color BlendColors(Color bottom, Color top) => PRR.Renderer.BlendColors(bottom, top);
-        
-        public static void DrawText(Vector2i position, string text,
-            PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left, bool replacingSpaces = false,
-            bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier =
-                null) => PPR.Core.renderer.DrawText(position, text, align,
-            replacingSpaces, invertOnDarkBG, charactersModifier);
-        
-        public static void DrawText(Vector2i position, string text, Color color,
-            PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left, bool replacingSpaces = false,
-            bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier =
-                null) => PPR.Core.renderer.DrawText(position, text, color, align, replacingSpaces,
-            invertOnDarkBG, charactersModifier);
-        
-        public static void DrawText(Vector2i position, string text, Color foregroundColor, Color backgroundColor,
-            PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left, bool replacingSpaces = false,
-            bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier =
-                null) => PPR.Core.renderer.DrawText(position, text, foregroundColor, backgroundColor,
-            align, replacingSpaces, invertOnDarkBG, charactersModifier);
-        
-        public static void DrawText(Vector2i position, string[] lines, PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left,
-            bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier =
-                null) => PPR.Core.renderer.DrawText(position, lines, align, replacingSpaces, invertOnDarkBG,
-            charactersModifier);
-        
-        public static void DrawText(Vector2i position, string[] lines, Color color, PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left,
-            bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier =
-                null) => PPR.Core.renderer.DrawText(position, lines, color, align, replacingSpaces, invertOnDarkBG,
-            charactersModifier);
-        
-        public static void DrawText(Vector2i position, string[] lines, Color foregroundColor, Color backgroundColor,
-            PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left,
-            bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier =
-                null) => PPR.Core.renderer.DrawText(position, lines, foregroundColor, backgroundColor, align,
-            replacingSpaces,
-            invertOnDarkBG, charactersModifier);
-        
-        public static void DrawLines(Vector2i position, string[] lines, PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left,
-            bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier =
-                null) => PPR.Core.renderer.DrawLines(position, lines, align, replacingSpaces,
-            invertOnDarkBG, charactersModifier);
-        
-        public static void DrawLines(Vector2i position, string[] lines, Color color, PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left,
-            bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier =
-                null) => PPR.Core.renderer.DrawLines(position, lines, color, align, replacingSpaces,
-            invertOnDarkBG, charactersModifier);
-        
-        public static void DrawLines(Vector2i position, string[] lines, Color foregroundColor,
-            Color backgroundColor, PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left, bool replacingSpaces = false,
-            bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier =
-                null) => PPR.Core.renderer.DrawLines(position, lines, foregroundColor, backgroundColor, align,
-            replacingSpaces, invertOnDarkBG, charactersModifier);
     }
 }
