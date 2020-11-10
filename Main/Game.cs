@@ -374,10 +374,12 @@ namespace PPR.Main {
 
             if(statsState != StatsState.Pause) return;
 
-            // Execute the ticks
-            float fixedDeltaTime = _absoluteCurrentSpeedSec / 16f;
+            float speedMultiplier = SoundManager.music.Pitch;
 
-            _tickAccumulator += _tickClock.Restart().AsSeconds();
+            // Execute the ticks
+            float fixedDeltaTime = _absoluteCurrentSpeedSec / 16f / speedMultiplier;
+
+            _tickAccumulator += _tickClock.Restart().AsSeconds() * speedMultiplier;
             while(_tickAccumulator >= fixedDeltaTime) {
                 if(playing) levelTime += Time.FromSeconds(fixedDeltaTime);
                 Tick();
