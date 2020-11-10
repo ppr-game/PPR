@@ -659,48 +659,6 @@ namespace PPR.Main {
 
                     #endregion
 
-                    #region HP Drain/Restorage
-
-                    else if(Bindings.GetBinding("hpRestorageUp").IsPressed(key)) {
-                        Map.currentLevel.metadata.hpRestorage++;
-                        changed = true;
-                    }
-                    else if(Bindings.GetBinding("hpRestorageDown").IsPressed(key)) {
-                        Map.currentLevel.metadata.hpRestorage--;
-                        changed = true;
-                    }
-                    else if(Bindings.GetBinding("hpDrainUp").IsPressed(key)) {
-                        Map.currentLevel.metadata.hpDrain++;
-                        changed = true;
-                    }
-                    else if(Bindings.GetBinding("hpDrainDown").IsPressed(key)) {
-                        Map.currentLevel.metadata.hpDrain--;
-                        changed = true;
-                    }
-
-                    #endregion
-
-                    #region Initial offset
-
-                    else if(Bindings.GetBinding("initialOffsetUpBoost").IsPressed(key)) {
-                        Map.currentLevel.metadata.musicOffset += 10;
-                        changed = true;
-                    }
-                    else if(Bindings.GetBinding("initialOffsetDownBoost").IsPressed(key)) {
-                        Map.currentLevel.metadata.musicOffset -= 10;
-                        changed = true;
-                    }
-                    else if(Bindings.GetBinding("initialOffsetUp").IsPressed(key)) {
-                        Map.currentLevel.metadata.musicOffset++;
-                        changed = true;
-                    }
-                    else if(Bindings.GetBinding("initialOffsetDown").IsPressed(key)) {
-                        Map.currentLevel.metadata.musicOffset--;
-                        changed = true;
-                    }
-
-                    #endregion
-
                     #region Fast scroll
 
                     else if(Bindings.GetBinding("fastScrollUp").IsPressed(key)) ScrollTime(10);

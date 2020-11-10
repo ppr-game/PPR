@@ -14,6 +14,7 @@ using PRR;
 using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
+using SFML.Window;
 
 namespace PPR.GUI {
     public static class UI {
@@ -486,6 +487,8 @@ namespace PPR.GUI {
                                 break;
                         }
 
+                        bool boost = Keyboard.IsKeyPressed(Keyboard.Key.LShift) ||
+                                     Keyboard.IsKeyPressed(Keyboard.Key.RShift);
                         switch(button.id) {
                             case "editor.hp.drain.up": Map.currentLevel.metadata.hpDrain++;
                                 break;
@@ -495,9 +498,9 @@ namespace PPR.GUI {
                                 break;
                             case "editor.hp.restorage.down": Map.currentLevel.metadata.hpRestorage--;
                                 break;
-                            case "editor.music.offset.up": Map.currentLevel.metadata.musicOffset++;
+                            case "editor.music.offset.up": Map.currentLevel.metadata.musicOffset += boost ? 10 : 1;
                                 break;
-                            case "editor.music.offset.down": Map.currentLevel.metadata.musicOffset--;
+                            case "editor.music.offset.down": Map.currentLevel.metadata.musicOffset += boost ? 10 : 1;
                                 break;
                         }
                     }
