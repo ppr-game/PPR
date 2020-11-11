@@ -44,6 +44,7 @@ namespace PPR.Main {
             _tick = null;
             _drawMap = null;
             _drawUI = null;
+            Scripts.Rendering.Renderer.scriptBackgroundModifier = null;
             Scripts.Rendering.Renderer.scriptCharactersModifier = null;
         }
         
