@@ -230,7 +230,7 @@ namespace PPR.Main.Levels {
         public static int perfectRange { get; set; }
         public static int hitRange { get; set; }
         public static int missRange { get; set; }
-        public int xPos => _startPosition.X;
+        public Vector2i startPosition { get; }
         public char character { get; }
         public Keyboard.Key key { get; }
         public int step { get; }
@@ -241,7 +241,6 @@ namespace PPR.Main.Levels {
         public bool toDestroy { get; set; }
 
         private Vector2i _position;
-        private readonly Vector2i _startPosition;
         private readonly int _directionLayer;
         private Color _hitColor;
         private readonly int _line;
@@ -265,8 +264,8 @@ namespace PPR.Main.Levels {
             }
             List<LevelSpeed> existingSpeeds = new List<LevelSpeed>(speeds);
             existingSpeeds.Sort((spd1, spd2) => spd1.step.CompareTo(spd2.step));
-            _startPosition = new Vector2i(x, Map.linePos.Y - (int)Calc.StepsToOffset(step, existingSpeeds));
-            _position = _startPosition;
+            startPosition = new Vector2i(x, Map.linePos.Y - (int)Calc.StepsToOffset(step, existingSpeeds));
+            _position = startPosition;
             this.character = character;
             char lineChar = character == HoldChar ? Game.GetNoteBinding(key) : character;
             lineChar = char.ToLower(lineChar);
@@ -375,7 +374,7 @@ namespace PPR.Main.Levels {
         }
         public void Step() {
             if(removed || toDestroy) return;
-            _position = new Vector2i(_position.X, _startPosition.Y + Game.roundedOffset);
+            _position = new Vector2i(_position.X, startPosition.Y + Game.roundedOffset);
             if(Game.editing && SoundManager.music.Status == SoundStatus.Playing && step == (int)Game.steps)
                 PlayHitsound();
         }
@@ -421,16 +420,5 @@ namespace PPR.Main.Levels {
                 _ => ColorScheme.GetColor("transparent")
             };
         }
-        
-
-        public override bool Equals(object obj) => obj is LevelObject @object &&
-                                                   EqualityComparer<Vector2i>.Default.Equals(_position, @object._position) &&
-                                                   character == @object.character &&
-                                                   step == @object.step;
-        public override int GetHashCode() =>
-            // ReSharper disable NonReadonlyMemberInGetHashCode
-            HashCode.Combine(_position, character, step);
-        public static bool operator ==(LevelObject left, LevelObject right) => left?.Equals(right) ?? right is null;
-        public static bool operator !=(LevelObject left, LevelObject right) => !(left == right);
     }
 }

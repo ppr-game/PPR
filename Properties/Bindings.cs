@@ -21,16 +21,22 @@ namespace PPR.Properties {
                 { "erase", new InputKey("Backspace") },
                 { "speedUp", new InputKey("Up") },
                 { "speedDown", new InputKey("Down") },
-                { "linesFrequencyUp", new InputKey("LAlt+Up,RAlt+Up") },
-                { "linesFrequencyDown", new InputKey("LAlt+Down,RAlt+Down") },
                 { "speedUpSlow", new InputKey("LShift+Up,RShift+Up") },
                 { "speedDownSlow", new InputKey("LShift+Down,RShift+Down") },
+                { "linesFrequencyUp", new InputKey("LAlt+Up,RAlt+Up") },
+                { "linesFrequencyDown", new InputKey("LAlt+Down,RAlt+Down") },
                 { "fastScrollUp", new InputKey("PageUp") },
                 { "fastScrollDown", new InputKey("PageDown") },
                 { "fullscreen", new InputKey("F11") },
                 { "cut", new InputKey("LControl+X,RControl+X") },
                 { "copy", new InputKey("LControl+C,RControl+C") },
-                { "paste", new InputKey("LControl+V,RControl+V") }
+                { "paste", new InputKey("LControl+V,RControl+V") },
+                { "moveUp", new InputKey("LControl+Up") },
+                { "moveDown", new InputKey("LControl+Down") },
+                { "moveUpFast", new InputKey("LControl+PageUp") },
+                { "moveDownFast", new InputKey("LControl+PageDown") },
+                { "moveLeft", new InputKey("LControl+Left") },
+                { "moveRight", new InputKey("LControl+Right") }
             };
             
             LoadBindings();

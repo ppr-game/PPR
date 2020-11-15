@@ -610,31 +610,37 @@ namespace PPR.Main {
                 if(character == '\0' || key.Control) {
                     #region Erase
 
-                    if(Bindings.GetBinding("erase").IsPressed(key)) {
-                        if(Map.Erase()) {
-                            changed = true;
-                            Map.selecting = false;
-                        }
-                    }
+                    if(Bindings.GetBinding("erase").IsPressed(key)) { if(Map.Erase()) SetChanged(); }
 
                     #endregion
 
                     #region Cut/Copy/Paste
 
-                    else if(Bindings.GetBinding("cut").IsPressed(key)) {
-                        if(Map.Cut()) {
-                            changed = true;
-                            Map.selecting = false;
-                        }
+                    else if(Bindings.GetBinding("cut").IsPressed(key)) { if(Map.Cut()) SetChanged(); }
+                    else if(Bindings.GetBinding("copy").IsPressed(key)) Map.Copy();
+                    else if(Bindings.GetBinding("paste").IsPressed(key)) { if(Map.Paste()) SetChanged(); }
+
+                    #endregion
+
+                    #region Move
+
+                    else if(Bindings.GetBinding("moveUp").IsPressed(key)) {
+                        if(Map.MoveVertical(1)) changed = true;
                     }
-                    else if(Bindings.GetBinding("copy").IsPressed(key)) {
-                        Map.Copy();
+                    else if(Bindings.GetBinding("moveDown").IsPressed(key)) {
+                        if(Map.MoveVertical(-1)) changed = true;
                     }
-                    else if(Bindings.GetBinding("paste").IsPressed(key)) {
-                        if(Map.Paste()) {
-                            changed = true;
-                            Map.selecting = false;
-                        }
+                    else if(Bindings.GetBinding("moveUpFast").IsPressed(key)) {
+                        if(Map.MoveVertical(10)) changed = true;
+                    }
+                    else if(Bindings.GetBinding("moveDownFast").IsPressed(key)) {
+                        if(Map.MoveVertical(-10)) changed = true;
+                    }
+                    else if(Bindings.GetBinding("moveLeft").IsPressed(key)) {
+                        if(Map.MoveHorizontal(-1)) changed = true;
+                    }
+                    else if(Bindings.GetBinding("moveRight").IsPressed(key)) {
+                        if(Map.MoveHorizontal(1)) changed = true;
                     }
 
                     #endregion
@@ -752,6 +758,10 @@ namespace PPR.Main {
                 if(!anythingPressed && character != '\0') Map.flashLine = Calc.GetXPosForCharacter(character);
             }
         }
+        private static void SetChanged() {
+            changed = true;
+            Map.selecting = false;
+        }
 
         private static bool CheckLine(int step) {
             List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != LevelObject.SpeedChar &&
@@ -818,7 +828,7 @@ namespace PPR.Main {
             }
         }
 
-        private static void ScrollTime(int delta) {
+        public static void ScrollTime(int delta) {
             if(playing) playing = false;
             steps = Math.Clamp(steps + delta, 0, Calc.MillisecondsToSteps(SoundManager.music.Duration.AsMicroseconds() / 1000f));
             UpdateTime();
