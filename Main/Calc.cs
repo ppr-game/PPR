@@ -28,20 +28,19 @@ namespace PPR.Main {
         public static float MillisecondsToSteps(float time, List<LevelSpeed> sortedSpeeds) {
             float useTime = time;
 
-            int speedIndex = 0;
-            for(int i = 0; i < sortedSpeeds.Count; i++)
-                if(StepsToMilliseconds(sortedSpeeds[i].step, sortedSpeeds) <= useTime) speedIndex = i;
-                else break;
             float steps = 0;
-            for(int i = 0; i <= speedIndex; i++)
-                if(i == speedIndex)
+            for(int i = 0; i < sortedSpeeds.Count; i++) {
+                float stepsIncrement = i < sortedSpeeds.Count - 1 ? sortedSpeeds[i + 1].step - sortedSpeeds[i].step :
+                    float.PositiveInfinity;
+                float newUseTime = useTime - stepsIncrement *
+                    (sortedSpeeds[i].speed == 0 ? 0 : 60000f / Math.Abs(sortedSpeeds[i].speed));
+                if(newUseTime <= 0f) {
                     steps += sortedSpeeds[i].speed == 0 ? 0 : useTime / (60000f / Math.Abs(sortedSpeeds[i].speed));
-                else {
-                    int stepsIncrement = sortedSpeeds[i + 1].step - sortedSpeeds[i].step;
-                    steps += stepsIncrement;
-                    useTime -= stepsIncrement *
-                               (sortedSpeeds[i].speed == 0 ? 0 : 60000f / Math.Abs(sortedSpeeds[i].speed));
+                    break;
                 }
+                steps += stepsIncrement;
+                useTime = newUseTime;
+            }
 
             return steps;
         }
@@ -49,19 +48,19 @@ namespace PPR.Main {
         public static float StepsToOffset(float steps) => StepsToOffset(steps, Map.currentLevel.speeds);
         public static float StepsToOffset(float steps, List<LevelSpeed> sortedSpeeds) {
             float useSteps = steps;
-
-            int speedIndex = 0;
-            for(int i = 0; i < sortedSpeeds.Count; i++)
-                if(sortedSpeeds[i].step <= useSteps) speedIndex = i;
-                else break;
             float offset = 0;
-            for(int i = 0; i <= speedIndex; i++)
-                if(i == speedIndex) offset += useSteps * MathF.Sign(sortedSpeeds[i].speed);
-                else {
-                    int stepsDecrement = sortedSpeeds[i + 1].step - sortedSpeeds[i].step;
-                    offset += stepsDecrement * MathF.Sign(sortedSpeeds[i].speed);
-                    useSteps -= stepsDecrement;
+            
+            for(int i = 0; i < sortedSpeeds.Count; i++) {
+                float stepsDecrement = i < sortedSpeeds.Count - 1 ? sortedSpeeds[i + 1].step - sortedSpeeds[i].step :
+                    float.PositiveInfinity;
+                float newUseSteps = useSteps - stepsDecrement;
+                if(newUseSteps <= 0f) {
+                    offset += useSteps * MathF.Sign(sortedSpeeds[i].speed);
+                    break;
                 }
+                offset += stepsDecrement * MathF.Sign(sortedSpeeds[i].speed);
+                useSteps = newUseSteps;
+            }
 
             return offset;
         }
