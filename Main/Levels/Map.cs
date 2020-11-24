@@ -294,7 +294,7 @@ namespace PPR.Main.Levels {
             foreach(LevelNote obj in toMove) {
                 obj.remove = RemoveType.NoAnimation;
 
-                LevelNote note = obj.constructor(obj.character, obj.step + steps, currentLevel.speeds);
+                LevelNote note = obj.constructor(Game.GetNoteBinding(obj.key), obj.step + steps, currentLevel.speeds);
                 currentLevel.objects.Add(note);
                 movingNotes.Add(note);
 
@@ -336,17 +336,15 @@ namespace PPR.Main.Levels {
             foreach(LevelNote obj in toMove) {
                 obj.remove = RemoveType.NoAnimation;
 
-                char character = obj.character;
+                char character = Game.GetNoteBinding(obj.key);
                 foreach(string line in LevelObject.lines) {
-                    int charIndex = line.IndexOf(obj.character);
+                    int charIndex = line.IndexOf(Game.GetNoteBinding(obj.key));
                     if(charIndex < 0) continue;
                     character = line[charIndex + characters];
                     break;
                 }
 
-                LevelNote note;
-                if(obj is LevelHoldNote) note = new LevelHoldNote(character, obj.step, currentLevel.speeds);
-                else note = new LevelHitNote(character, obj.step, currentLevel.speeds);
+                LevelNote note = obj.constructor(character, obj.step, currentLevel.speeds);
                 currentLevel.objects.Add(note);
                 movingNotes.Add(note);
 
