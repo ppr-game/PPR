@@ -719,14 +719,8 @@ namespace PPR.GUI {
             if(Map.currentLevel.objects.Count > 0 && Game.health > 0 && button.Draw()) Game.menu = Menu.Game;
         }
         private static void LastStatsExit() {
-            Game.menu = Menu.LevelSelect;
-            Game.menuSwitchedCallback += (_, __) => {
-                SoundManager.music.Play();
-                SoundManager.music.Pitch = 1f;
-            };
-            Game.playing = false;
+            Game.EndGame();
             _musicSpeedSlider.value = 100;
-            Lua.ClearScript();
         }
 
         private static readonly Vector2i audioGroupTextPos = new Vector2i(2, 13);

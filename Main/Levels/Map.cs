@@ -17,11 +17,21 @@ namespace PPR.Main.Levels {
         public static Vector2i gameLinePos { get; } = new Vector2i(0, 54);
         public static Vector2i editorLinePos { get; } = new Vector2i(0, 44);
         public static Vector2i linePos { get; private set; }
+        public const char LineCharacter = '─';
         public static int flashLine {
-            set => lineFlashTimes[value] = 1f;
+            set { if(!lineFlashLocks[value]) lineFlashTimes[value] = 1f; }
+        }
+        public static int repayLine {
+            set { if(!lineFlashLocks[value]) lineFlashTimes[value] = 0f; }
+        }
+        public static int lockLineFlash {
+            set => lineFlashLocks[value] = true;
+        }
+        public static int unlockLineFlash {
+            set => lineFlashLocks[value] = false;
         }
         // ReSharper disable once MemberCanBePrivate.Global
-        public static List<ClipboardLevelObject> clipboard { get; } = new List<ClipboardLevelObject>();
+        public static List<ClipboardLevelNote> clipboard { get; } = new List<ClipboardLevelNote>();
         public static bool selecting {
             get => _selecting;
             set {
@@ -30,11 +40,11 @@ namespace PPR.Main.Levels {
                 if(currentLevel == null) return;
                 
                 // Delete overlapping objects that can occur because of MoveVertical() and MoveHorizontal()
-                foreach(LevelObject lvlObj in currentLevel.objects.FindAll(lvlObj =>
-                    lvlObj.character != LevelObject.SpeedChar && movingNotes.Any(movObj =>
-                    movObj != lvlObj && movObj.character == lvlObj.character &&
-                    lvlObj.startPosition == movObj.startPosition)))
-                    lvlObj.toDestroy = true;
+                foreach(LevelNote lvlObj in currentLevel.notes.Where(lvlObj =>
+                    movingNotes.Any(movObj => movObj != lvlObj &&
+                                                                 movObj.character == lvlObj.character &&
+                                                                 lvlObj.startPosition == movObj.startPosition)))
+                    lvlObj.remove = RemoveType.NoAnimation;
 
                 movingNotes.Clear();
             }
@@ -42,26 +52,29 @@ namespace PPR.Main.Levels {
         public static int selectionStart => _selectionStart <= _selectionEnd ? _selectionStart : _selectionEnd;
         public static int selectionEnd => _selectionStart >= _selectionEnd ? _selectionStart : _selectionEnd;
         private static readonly float[] lineFlashTimes = new float[Core.renderer.width];
+        private static readonly bool[] lineFlashLocks = new bool[Core.renderer.width];
         private static bool _selecting;
         private static int _selectionStart;
         private static int _selectionEnd;
         private static bool _prevLMB;
         private static Vector2f _prevMPosF;
-        private static readonly List<LevelObject> movingNotes = new List<LevelObject>();
+        private static readonly List<LevelNote> movingNotes = new List<LevelNote>();
         public static void Draw() {
             if(Game.currentMenu != Menu.Game) return;
 
+            //   L     I     N     E
+            for(int x = 0; x < Core.renderer.width; x++) {
+                Core.renderer.SetCharacter(new Vector2i(linePos.X + x, linePos.Y), 
+                    new RenderCharacter(LineCharacter, UI.currentBackground, ColorScheme.GetColor("foreground")));
+            }
             // Handle line flashing
             for(int x = 0; x < Core.renderer.width; x++) {
                 Vector2i pos = new Vector2i(x, linePos.Y);
                 Core.renderer.SetCellColor(pos, ColorScheme.GetColor("foreground"),
-                    Renderer.AnimateColor(lineFlashTimes[x], UI.currentBackground,
-                        ColorScheme.GetColor("foreground"), 1f));
+                    Renderer.LerpColors(UI.currentBackground,
+                        ColorScheme.GetColor("foreground"), lineFlashTimes[x]));
                 lineFlashTimes[x] -= Core.deltaTime * 3f;
             }
-            //   L     I     N     E
-            Core.renderer.DrawText(linePos,
-                "────────────────────────────────────────────────────────────────────────────────");
             if(Game.editing) {
                 // Selection
                 if(Core.renderer.mousePosition.Y >= 1 && Core.renderer.mousePosition.Y <= gameLinePos.Y)
@@ -115,15 +128,23 @@ namespace PPR.Main.Levels {
             return offset >= selectionStart && offset <= selectionEnd;
         }
         // ReSharper disable once MemberCanBePrivate.Global
-        public static List<LevelObject> GetSelectedObjects() => currentLevel.objects.FindAll(obj =>
-            OffsetSelected(Calc.StepsToOffset(obj.step)) && obj.character != LevelObject.SpeedChar);
+        public static IEnumerable<LevelNote> GetSelectedNotes() => currentLevel.notes.Where(obj =>
+            OffsetSelected(Calc.StepsToOffset(obj.step)));
 
         private static void DestroyToDestroy() {
             int destroyIndex = 0;
             while(destroyIndex < currentLevel.objects.Count) {
                 LevelObject obj = currentLevel.objects[destroyIndex];
-                if(obj.toDestroy) _ = currentLevel.objects.Remove(obj);
-                else destroyIndex++;
+                switch(obj.remove) {
+                    case RemoveType.None: destroyIndex++;
+                        break;
+                    case RemoveType.Normal when obj.removeAnimation:
+                        currentLevel.objects.Add(obj.GetRemoveAnimation(currentLevel.speeds));
+                        currentLevel.objects.Remove(obj);
+                        break;
+                    default: currentLevel.objects.Remove(obj);
+                        break;
+                }
             }
         }
         public static void StepAll() {
@@ -131,10 +152,13 @@ namespace PPR.Main.Levels {
 
             foreach(LevelObject obj in currentLevel.objects) obj.Step();
         }
-        public static void SimulateAll() {
-            if(Game.currentMenu != Menu.Game) return;
+        public static void TickAll() {
+            if(Game.currentMenu != Menu.Game || currentLevel.objects.Count <= 0) return;
 
-            foreach(LevelObject obj in currentLevel.objects) obj.Simulate();
+            foreach(LevelObject obj in currentLevel.objects) {
+                if(!Game.editing && obj is LevelNote note) note.Input();
+                obj.Tick();
+            }
             DestroyToDestroy();
         }
         public static void LoadLevelFromPath(string path, string name, string diff, bool loadMusic = true) {
@@ -158,9 +182,8 @@ namespace PPR.Main.Levels {
             string author = level.metadata.author;
             string linesFreq = level.metadata.linesFrequency.ToString();
             string musicOffset = level.metadata.musicOffset.ToString();
-            List<LevelObject> objects = level.objects.FindAll(obj => obj.character != LevelObject.SpeedChar);
-            lines[0] = string.Join("", objects.Select(obj => obj.character.ToString().ToLower()));
-            lines[1] = string.Join(':', objects.Select(obj => obj.step));
+            lines[0] = string.Join("", level.notes.Select(obj => obj.ToString().ToLower()));
+            lines[1] = string.Join(':', level.notes.Select(obj => obj.StepToString()));
             lines[2] = string.Join(':', level.speeds.Select(speed => speed.speed));
             lines[3] = string.Join(':', level.speeds.Select(speed => speed.step));
             lines[4] = $"{hpDrain}:{hpRestorage}:{diff}:{author}:{linesFreq}:{musicOffset}";
@@ -201,16 +224,15 @@ namespace PPR.Main.Levels {
 
             clipboard.Clear();
 
-            List<LevelObject> selectedObjects = GetSelectedObjects();
+            IEnumerable<LevelNote> selectedNotes = GetSelectedNotes().OrderBy(obj => obj.step);
 
-            if(selectedObjects.Count <= 0) return false;
+            if(!selectedNotes.Any()) return false;
 
-            selectedObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
-            LevelObject firstObj = selectedObjects.First();
+            LevelNote firstNote = selectedNotes.First();
 
-            foreach(LevelObject obj in GetSelectedObjects()) {
-                clipboard.Add(new ClipboardLevelObject(obj.character, obj.step - firstObj.step,
-                    obj.startPosition.X));
+            foreach(LevelNote obj in GetSelectedNotes()) {
+                clipboard.Add(new ClipboardLevelNote(obj.character, obj.step - firstNote.step, obj.startPosition.X,
+                    obj.constructor));
 
                 if(!cut) continue;
 
@@ -225,12 +247,12 @@ namespace PPR.Main.Levels {
             bool changed = false;
 
             // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-            foreach(ClipboardLevelObject obj in clipboard)
+            foreach(ClipboardLevelNote obj in clipboard)
                 if(currentLevel.objects.All(mapObj => mapObj.character != obj.character ||
                                                           mapObj.startPosition.X != obj.xPos ||
                                                           mapObj.step != obj.step + Game.roundedSteps)) {
-                    currentLevel.objects.Add(new LevelObject(obj.character, obj.step + Game.roundedSteps,
-                        currentLevel.speeds, currentLevel.objects));
+                    currentLevel.objects.Add(obj.constructor(obj.character, obj.step + Game.roundedSteps,
+                        currentLevel.speeds));
 
                     changed = true;
                 }
@@ -240,12 +262,11 @@ namespace PPR.Main.Levels {
         public static bool Erase() {
             bool changed = false;
             
-            List<LevelObject> objects = currentLevel.objects.FindAll(obj =>
-                obj.character != LevelObject.SpeedChar && (selecting ?
-                    OffsetSelected(Calc.StepsToOffset(obj.step)) : obj.step == (int)Game.steps));
+            IEnumerable<LevelNote> objects = currentLevel.notes.Where(obj =>
+                selecting ? OffsetSelected(Calc.StepsToOffset(obj.step)) : obj.step == (int)Game.steps);
             
-            foreach(LevelObject obj in objects) {
-                obj.toDestroy = true;
+            foreach(LevelNote obj in objects) {
+                obj.remove = RemoveType.NoAnimation;
                             
                 changed = true;
             }
@@ -256,14 +277,13 @@ namespace PPR.Main.Levels {
         public static bool MoveVertical(int steps) {
             bool changed = false;
             
-            List<LevelObject> selectedObjects = GetSelectedObjects();
+            IEnumerable<LevelObject> selectedObjects = GetSelectedNotes().OrderBy(obj => obj.step);
 
-            if(selectedObjects.Count <= 0) return false;
+            if(!selectedObjects.Any()) return false;
 
-            List<LevelObject> toMove =
-                movingNotes.Count == 0 ? GetSelectedObjects() : new List<LevelObject>(movingNotes);
+            List<LevelNote> toMove =
+                movingNotes.Count == 0 ? GetSelectedNotes().ToList() : new List<LevelNote>(movingNotes);
 
-            selectedObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
             LevelObject firstObj = selectedObjects.First();
             LevelObject lastObj = selectedObjects.Last();
             int first = (int)Calc.StepsToOffset(firstObj.step, currentLevel.speeds);
@@ -271,11 +291,10 @@ namespace PPR.Main.Levels {
             int firstOff = (int)Calc.StepsToOffset(firstObj.step + steps, currentLevel.speeds);
             int lastOff = (int)Calc.StepsToOffset(lastObj.step + steps, currentLevel.speeds);
 
-            foreach(LevelObject obj in toMove) {
-                obj.toDestroy = true;
+            foreach(LevelNote obj in toMove) {
+                obj.remove = RemoveType.NoAnimation;
 
-                LevelObject note = new LevelObject(obj.character, obj.step + steps, currentLevel.speeds,
-                    currentLevel.objects);
+                LevelNote note = obj.constructor(obj.character, obj.step + steps, currentLevel.speeds);
                 currentLevel.objects.Add(note);
                 movingNotes.Add(note);
 
@@ -296,11 +315,11 @@ namespace PPR.Main.Levels {
         public static bool MoveHorizontal(int characters) {
             bool changed = false;
             
-            List<LevelObject> toMove =
-                movingNotes.Count == 0 ? GetSelectedObjects() : new List<LevelObject>(movingNotes);
+            List<LevelNote> toMove =
+                movingNotes.Count == 0 ? GetSelectedNotes().ToList() : new List<LevelNote>(movingNotes);
 
 
-            foreach(LevelObject obj in toMove) {
+            foreach(LevelNote obj in toMove) {
                 for(int i = 0; i < LevelObject.lines.Length; i++) {
                     // ReSharper disable once HeapView.BoxingAllocation
                     int charIndex = LevelObject.lines[i].IndexOf(Game.GetNoteBinding(obj.key));
@@ -314,8 +333,8 @@ namespace PPR.Main.Levels {
                 }
             }
 
-            foreach(LevelObject obj in toMove) {
-                obj.toDestroy = true;
+            foreach(LevelNote obj in toMove) {
+                obj.remove = RemoveType.NoAnimation;
 
                 char character = obj.character;
                 foreach(string line in LevelObject.lines) {
@@ -325,7 +344,9 @@ namespace PPR.Main.Levels {
                     break;
                 }
 
-                LevelObject note = new LevelObject(character, obj.step, currentLevel.speeds, currentLevel.objects);
+                LevelNote note;
+                if(obj is LevelHoldNote) note = new LevelHoldNote(character, obj.step, currentLevel.speeds);
+                else note = new LevelHitNote(character, obj.step, currentLevel.speeds);
                 currentLevel.objects.Add(note);
                 movingNotes.Add(note);
 

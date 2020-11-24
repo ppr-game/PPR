@@ -205,21 +205,20 @@ namespace PPR.Main {
             UI.uppercaseSwitch.selected = Settings.GetBool("uppercaseNotes");
 
             LevelObject.linesColors = new Color[] {
-                ColorScheme.GetColor("line_1_fg_color"),
-                ColorScheme.GetColor("line_2_fg_color"),
-                ColorScheme.GetColor("line_3_fg_color"),
-                ColorScheme.GetColor("line_4_fg_color")
+                ColorScheme.GetColor("line_1_fg_color"), // 1234
+                ColorScheme.GetColor("line_2_fg_color"), // qwer
+                ColorScheme.GetColor("line_3_fg_color"), // asdf
+                ColorScheme.GetColor("line_4_fg_color") // zxcv
             };
             LevelObject.linesDarkColors = new Color[] {
-                ColorScheme.GetColor("line_1_bg_color"),
-                ColorScheme.GetColor("line_2_bg_color"),
-                ColorScheme.GetColor("line_3_bg_color"),
-                ColorScheme.GetColor("line_4_bg_color")
+                ColorScheme.GetColor("line_1_bg_color"), // 1234
+                ColorScheme.GetColor("line_2_bg_color"), // qwer
+                ColorScheme.GetColor("line_3_bg_color"), // asdf
+                ColorScheme.GetColor("line_4_bg_color") // zxcv
             };
-            if(Map.currentLevel != null) foreach(LevelObject obj in Map.currentLevel.objects) obj.UpdateColors();
             
-            LevelObject.speedColor = ColorScheme.GetColor("speed");
-            LevelObject.nextDirLayerSpeedColor = ColorScheme.GetColor("next_dir_layer_speed");
+            LevelSpeedObject.speedColor = ColorScheme.GetColor("speed");
+            LevelSpeedObject.nextDirLayerSpeedColor = ColorScheme.GetColor("next_dir_layer_speed");
         }
         private static void SettingChanged(object caller, SettingChangedEventArgs e) {
             switch (e.settingName) {
@@ -292,6 +291,7 @@ namespace PPR.Main {
             _tpsTicks = 0;
             _tpsTime = 0f;
             _prevLeftButtonPressed = false;
+            LevelNote.closestSteps.Clear();
             ScoreManager.ResetScore();
             SoundManager.music.Stop();
 
@@ -310,6 +310,16 @@ namespace PPR.Main {
             _tickClock.Restart();
 
             logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
+        }
+
+        public static void EndGame() {
+            menu = Menu.LevelSelect;
+            menuSwitchedCallback += (_, __) => {
+                SoundManager.music.Play();
+                SoundManager.music.Pitch = 1f;
+            };
+            playing = false;
+            Lua.ClearScript();
         }
         
         public static void UpdatePresence() {
@@ -450,10 +460,10 @@ namespace PPR.Main {
                 _prevLeftButtonPressed = Core.renderer.leftButtonPressed;
             }
 
-            statsState = health > 0 ? Map.currentLevel.objects.Count(obj => !obj.ignore) > 0 ? StatsState.Pause :
-                StatsState.Pass : StatsState.Fail;
+            statsState = health > 0 ? Map.currentLevel.objects.Count > 0 ? StatsState.Pause : StatsState.Pass :
+                StatsState.Fail;
 
-            Map.SimulateAll();
+            Map.TickAll();
 
             Lua.Tick();
 
@@ -479,11 +489,6 @@ namespace PPR.Main {
                     currentBPM = speed.speed;
                     _absoluteCurrentSpeedSec = Math.Abs(60f / currentBPM);
                     currentDirectionLayer = Calc.StepsToDirectionLayer(roundedSteps);
-
-                    int rangeModifier = (int)(Math.Abs(currentBPM) / 600f);
-                    LevelObject.perfectRange = 1 + rangeModifier;
-                    LevelObject.hitRange = LevelObject.perfectRange + (int)(rangeModifier / 2f);
-                    LevelObject.missRange = LevelObject.hitRange + 1;
                 }
                 else break;
         }
@@ -577,12 +582,10 @@ namespace PPR.Main {
             #endregion
 
             // Recreate the objects that show the speeds
-            List<LevelObject> speedObjects =
-                Map.currentLevel.objects.FindAll(obj => obj.character == LevelObject.SpeedChar);
-            foreach(LevelObject obj in speedObjects) obj.toDestroy = true;
+            List<LevelObject> speedObjects = Map.currentLevel.objects.FindAll(obj => obj is LevelSpeedObject);
+            foreach(LevelObject obj in speedObjects) obj.remove = RemoveType.NoAnimation;
             foreach(LevelSpeed speed in Map.currentLevel.speeds)
-                Map.currentLevel.objects.Add(
-                    new LevelObject(LevelObject.SpeedChar, speed.step, Map.currentLevel.speeds));
+                Map.currentLevel.objects.Add(new LevelSpeedObject(speed.step, Map.currentLevel.speeds));
             
             changed = true;
         }
@@ -604,177 +607,152 @@ namespace PPR.Main {
             if(currentMenu != Menu.Game) return;
             
             char character = GetNoteBinding(key.Code);
-            
-            if(editing) {
-                // Handle keybinds
-                if(character == '\0' || key.Control) {
-                    #region Erase
 
-                    if(Bindings.GetBinding("erase").IsPressed(key)) { if(Map.Erase()) SetChanged(); }
+            if(!editing) {
+                if(auto || character == '\0') return;
+                Map.flashLine = Calc.GetXPosForCharacter(character);
+                return;
+            }
+            // Handle keybinds
+            if(character == '\0' || key.Control) {
+                #region Erase
 
-                    #endregion
+                if(Bindings.GetBinding("erase").IsPressed(key)) { if(Map.Erase()) SetChanged(); }
 
-                    #region Cut/Copy/Paste
+                #endregion
 
-                    else if(Bindings.GetBinding("cut").IsPressed(key)) { if(Map.Cut()) SetChanged(); }
-                    else if(Bindings.GetBinding("copy").IsPressed(key)) Map.Copy();
-                    else if(Bindings.GetBinding("paste").IsPressed(key)) { if(Map.Paste()) SetChanged(); }
+                #region Cut/Copy/Paste
 
-                    #endregion
+                else if(Bindings.GetBinding("cut").IsPressed(key)) { if(Map.Cut()) SetChanged(); }
+                else if(Bindings.GetBinding("copy").IsPressed(key)) Map.Copy();
+                else if(Bindings.GetBinding("paste").IsPressed(key)) { if(Map.Paste()) SetChanged(); }
 
-                    #region Move
+                #endregion
 
-                    else if(Bindings.GetBinding("moveUp").IsPressed(key)) {
-                        if(Map.MoveVertical(1)) changed = true;
-                    }
-                    else if(Bindings.GetBinding("moveDown").IsPressed(key)) {
-                        if(Map.MoveVertical(-1)) changed = true;
-                    }
-                    else if(Bindings.GetBinding("moveUpFast").IsPressed(key)) {
-                        if(Map.MoveVertical(10)) changed = true;
-                    }
-                    else if(Bindings.GetBinding("moveDownFast").IsPressed(key)) {
-                        if(Map.MoveVertical(-10)) changed = true;
-                    }
-                    else if(Bindings.GetBinding("moveLeft").IsPressed(key)) {
-                        if(Map.MoveHorizontal(-1)) changed = true;
-                    }
-                    else if(Bindings.GetBinding("moveRight").IsPressed(key)) {
-                        if(Map.MoveHorizontal(1)) changed = true;
-                    }
+                #region Move
 
-                    #endregion
-
-                    #region Lines
-
-                    else if(Bindings.GetBinding("linesFrequencyUp").IsPressed(key)) {
-                        Map.currentLevel.metadata.linesFrequency++;
-                        changed = true;
-                    }
-                    else if(Bindings.GetBinding("linesFrequencyDown").IsPressed(key)) {
-                        Map.currentLevel.metadata.linesFrequency--;
-                        changed = true;
-                    }
-
-                    #endregion
-
-                    #region Speed
-
-                    else if(Bindings.GetBinding("speedUpSlow").IsPressed(key)) ChangeSpeed(1);
-                    else if(Bindings.GetBinding("speedDownSlow").IsPressed(key)) ChangeSpeed(-1);
-                    else if(Bindings.GetBinding("speedUp").IsPressed(key)) ChangeSpeed(10);
-                    else if(Bindings.GetBinding("speedDown").IsPressed(key)) ChangeSpeed(-10);
-
-                    #endregion
-
-                    #region Fast scroll
-
-                    else if(Bindings.GetBinding("fastScrollUp").IsPressed(key)) ScrollTime(10);
-                    else if(Bindings.GetBinding("fastScrollDown").IsPressed(key)) ScrollTime(-10);
-
-                    #endregion
+                else if(Bindings.GetBinding("moveUp").IsPressed(key)) {
+                    if(Map.MoveVertical(1)) changed = true;
                 }
-                // Handle placing/removing individual notes
-                else {
-                    // Removing individual notes
-                    if(key.Alt) {
-                        List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj =>
-                            obj.character != LevelObject.SpeedChar && (Map.selecting ?
-                                Map.OffsetSelected(Calc.StepsToOffset(obj.step)) : obj.step == (int)steps) &&
-                            obj.key == key.Code);
+                else if(Bindings.GetBinding("moveDown").IsPressed(key)) {
+                    if(Map.MoveVertical(-1)) changed = true;
+                }
+                else if(Bindings.GetBinding("moveUpFast").IsPressed(key)) {
+                    if(Map.MoveVertical(10)) changed = true;
+                }
+                else if(Bindings.GetBinding("moveDownFast").IsPressed(key)) {
+                    if(Map.MoveVertical(-10)) changed = true;
+                }
+                else if(Bindings.GetBinding("moveLeft").IsPressed(key)) {
+                    if(Map.MoveHorizontal(-1)) changed = true;
+                }
+                else if(Bindings.GetBinding("moveRight").IsPressed(key)) {
+                    if(Map.MoveHorizontal(1)) changed = true;
+                }
+
+                #endregion
+
+                #region Lines
+
+                else if(Bindings.GetBinding("linesFrequencyUp").IsPressed(key)) {
+                    Map.currentLevel.metadata.linesFrequency++;
+                    changed = true;
+                }
+                else if(Bindings.GetBinding("linesFrequencyDown").IsPressed(key)) {
+                    Map.currentLevel.metadata.linesFrequency--;
+                    changed = true;
+                }
+
+                #endregion
+
+                #region Speed
+
+                else if(Bindings.GetBinding("speedUpSlow").IsPressed(key)) ChangeSpeed(1);
+                else if(Bindings.GetBinding("speedDownSlow").IsPressed(key)) ChangeSpeed(-1);
+                else if(Bindings.GetBinding("speedUp").IsPressed(key)) ChangeSpeed(10);
+                else if(Bindings.GetBinding("speedDown").IsPressed(key)) ChangeSpeed(-10);
+
+                #endregion
+
+                #region Fast scroll
+
+                else if(Bindings.GetBinding("fastScrollUp").IsPressed(key)) ScrollTime(10);
+                else if(Bindings.GetBinding("fastScrollDown").IsPressed(key)) ScrollTime(-10);
+
+                #endregion
+            }
+            // Handle placing/removing individual notes
+            else {
+                // Removing individual notes
+                if(key.Alt) {
+                    IEnumerable<LevelObject> objects = Map.currentLevel.notes.Where(obj =>
+                        (Map.selecting ? Map.OffsetSelected(Calc.StepsToOffset(obj.step)) :
+                            obj.step == (int)steps) && obj.key == key.Code);
                         
-                        foreach(LevelObject obj in objects) {
-                            obj.toDestroy = true;
+                    foreach(LevelObject obj in objects) {
+                        obj.remove = RemoveType.NoAnimation;
                             
-                            changed = true;
-                            Map.selecting = false;
-                        }
-                    }
-                    // Placing notes
-                    else {
-                        List<LightLevelObject> toCreate = new List<LightLevelObject>();
-                        
-                        if(Map.selecting)
-                            for(int i = Map.selectionStart; i <= Map.selectionEnd; i++) {
-                                float step = Calc.OffsetToSteps(i, currentDirectionLayer);
-                                if(float.IsNaN(step) || Calc.StepsToDirectionLayer(step) != currentDirectionLayer)
-                                    continue;
-                                Map.currentLevel.objects.FindAll(obj =>
-                                    obj.character != LevelObject.SpeedChar && obj.step == step &&
-                                    obj.key == key.Code).ForEach(obj => obj.toDestroy = true);
-                                toCreate.Add(new LightLevelObject(character, (int)step));
-                            }
-                        else {
-                            Map.currentLevel.objects.FindAll(obj =>
-                                obj.character != LevelObject.SpeedChar && obj.step == (int)steps &&
-                                obj.key == key.Code).ForEach(obj => obj.toDestroy = true);
-                            toCreate.Add(new LightLevelObject(character, (int)steps));
-                        }
-
-                        foreach(LightLevelObject obj in toCreate) {
-                            Map.currentLevel.objects.Add(new LevelObject(obj.character, obj.step,
-                                Map.currentLevel.speeds));
-                            if(!key.Shift) continue;
-                            character = LevelObject.HoldChar;
-                            Map.currentLevel.objects.Add(new LevelObject(character, obj.step,
-                                Map.currentLevel.speeds,
-                                Map.currentLevel.objects));
-                        }
-
-                        if(toCreate.Count > 0) {
-                            changed = true;
-                            if(!Core.renderer.leftButtonPressed) Map.selecting = false;
-                        }
+                        changed = true;
+                        Map.selecting = false;
                     }
                 }
-
-                RecalculatePosition();
-
-                if(!changed) return;
-
-                List<LightLevelObject> objs = Calc.ObjectsToLightObjects(Map.currentLevel.objects);
-                
-                Map.currentLevel.metadata.lengthSpan = Calc.GetLevelLength(objs, Map.currentLevel.speeds,
-                    Map.currentLevel.metadata.musicOffset);
-                Map.currentLevel.metadata.length = Calc.TimeSpanToLength(Map.currentLevel.metadata.lengthSpan);
-                
-                Map.currentLevel.metadata.totalLength = Calc.TimeSpanToLength(
-                    Calc.GetTotalLevelLength(objs, Map.currentLevel.speeds, Map.currentLevel.metadata.musicOffset));
-                
-                Map.currentLevel.metadata.difficulty = Calc.GetDifficulty(Map.currentLevel.objects,
-                    Map.currentLevel.speeds, (int)Map.currentLevel.metadata.lengthSpan.TotalMinutes);
-                
-                Map.currentLevel.metadata.maxStep = Calc.GetLastObject(Map.currentLevel.objects).step;
-            }
-            else if(!auto) {
-                bool anythingPressed = false;
-                for(int step = roundedSteps - LevelObject.missRange; StepPassedLine(step, -LevelObject.missRange);
-                    step++)
-                    if(CheckLine(step)) {
-                        anythingPressed = true;
-                        break;
+                // Placing notes
+                else {
+                    List<RecreatableLevelNote> toCreate = new List<RecreatableLevelNote>();
+                        
+                    Func<char, int, IEnumerable<LevelSpeed>, LevelNote> constructor = (nChar, step, speeds) =>
+                        new LevelHitNote(nChar, step, speeds);
+                    if(key.Shift)
+                        constructor = (nChar, step, speeds) => new LevelHoldNote(nChar, step, speeds);
+                        
+                    if(Map.selecting)
+                        for(int i = Map.selectionStart; i <= Map.selectionEnd; i++) {
+                            float step = Calc.OffsetToSteps(i, currentDirectionLayer);
+                            if(float.IsNaN(step) || Calc.StepsToDirectionLayer(step) != currentDirectionLayer)
+                                continue;
+                            foreach(LevelNote note in Map.currentLevel.notes.Where(obj =>
+                                obj.step == step && obj.key == key.Code)) note.remove = RemoveType.NoAnimation;
+                            toCreate.Add(new RecreatableLevelNote(character, (int)step, constructor));
+                        }
+                    else {
+                        foreach(LevelNote note in Map.currentLevel.notes.Where(obj =>
+                            obj.step == (int)steps && obj.key == key.Code)) note.remove = RemoveType.NoAnimation;
+                        toCreate.Add(new RecreatableLevelNote(character, (int)steps, constructor));
                     }
 
-                if(!anythingPressed && character != '\0') Map.flashLine = Calc.GetXPosForCharacter(character);
+                    foreach(RecreatableLevelNote obj in toCreate) {
+                        Map.currentLevel.objects.Add(obj.constructor(obj.character, obj.step,
+                            Map.currentLevel.speeds));
+                    }
+
+                    if(toCreate.Count > 0) {
+                        changed = true;
+                        if(!Core.renderer.leftButtonPressed) Map.selecting = false;
+                    }
+                }
             }
+
+            RecalculatePosition();
+
+            if(!changed) return;
+
+            List<LightLevelObject> objs = Calc.ObjectsToLightObjects(Map.currentLevel.objects);
+                
+            Map.currentLevel.metadata.lengthSpan = Calc.GetLevelLength(objs, Map.currentLevel.speeds,
+                Map.currentLevel.metadata.musicOffset);
+            Map.currentLevel.metadata.length = Calc.TimeSpanToLength(Map.currentLevel.metadata.lengthSpan);
+                
+            Map.currentLevel.metadata.totalLength = Calc.TimeSpanToLength(
+                Calc.GetTotalLevelLength(objs, Map.currentLevel.speeds, Map.currentLevel.metadata.musicOffset));
+                
+            Map.currentLevel.metadata.difficulty = Calc.GetDifficulty(Map.currentLevel.objects,
+                Map.currentLevel.speeds, (int)Map.currentLevel.metadata.lengthSpan.TotalMinutes);
+                
+            Map.currentLevel.metadata.maxStep = Calc.GetLastObject(Map.currentLevel.notes)?.step ?? 0;
         }
         private static void SetChanged() {
             changed = true;
             Map.selecting = false;
-        }
-
-        private static bool CheckLine(int step) {
-            List<LevelObject> objects = Map.currentLevel.objects.FindAll(obj => obj.character != LevelObject.SpeedChar &&
-                                                                                obj.character != LevelObject.HoldChar &&
-                                                                                !obj.removed &&
-                                                                                !obj.toDestroy &&
-                                                                                !obj.ignore &&
-                                                                                obj.step == step);
-            foreach(LevelObject obj in objects) {
-                obj.CheckPress();
-                if(obj.removed || obj.toDestroy) return true;
-            }
-            return false;
         }
 
         public static void MouseWheelScrolled(object caller, MouseWheelScrollEventArgs scroll) {

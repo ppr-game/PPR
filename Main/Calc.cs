@@ -112,9 +112,9 @@ namespace PPR.Main {
             List<LightLevelObject> sortedObjects = new List<LightLevelObject>(lightObjects);
             sortedObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
             for(int i = 1; i < sortedObjects.Count; i++)
-                if(sortedObjects[i].character == LevelObject.HoldChar)
+                if(sortedObjects[i].character == LevelHoldNote.DisplayChar)
                     sortedObjects.RemoveAt(i - 1);
-            sortedObjects = sortedObjects.FindAll(obj => obj.character != LevelObject.HoldChar);
+            sortedObjects = sortedObjects.FindAll(obj => obj.character != LevelHoldNote.DisplayChar);
 
             List<float> diffFactors = new List<float>();
             
@@ -173,25 +173,19 @@ namespace PPR.Main {
         public static string TimeSpanToLength(TimeSpan span) =>
             $"{(span < TimeSpan.Zero ? "-" : "")}{span.ToString($"{(span.Hours != 0 ? "h':'mm" : "m")}':'ss")}";
 
-        public static LevelObject GetFirstObject(List<LevelObject> objects) {
-            List<LevelObject> sortedObjects = objects.FindAll(obj => obj.character != LevelObject.SpeedChar);
-            sortedObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
-            return sortedObjects[0];
-        }
+        public static LevelNote GetFirstObject(IEnumerable<LevelNote> notes) =>
+            notes.OrderBy(note => note.step).FirstOrDefault();
         public static LightLevelObject GetFirstObject(List<LightLevelObject> objects) {
-            List<LightLevelObject> sortedObjects = objects.FindAll(obj => obj.character != LevelObject.SpeedChar);
+            List<LightLevelObject> sortedObjects = objects.FindAll(obj => obj.character != LevelSpeedObject.DisplayChar);
             sortedObjects.Sort((obj1, obj2) => obj1.step.CompareTo(obj2.step));
-            return sortedObjects[0];
+            return sortedObjects.Count > 0 ? sortedObjects[0] : new LightLevelObject('\n', -1);
         }
-        public static LevelObject GetLastObject(List<LevelObject> objects) {
-            List<LevelObject> sortedObjects = objects.FindAll(obj => obj.character != LevelObject.SpeedChar);
-            sortedObjects.Sort((obj1, obj2) => obj2.step.CompareTo(obj1.step));
-            return sortedObjects[0];
-        }
+        public static LevelNote GetLastObject(IEnumerable<LevelNote> notes) =>
+            notes.OrderBy(note => note.step).LastOrDefault();
         public static LightLevelObject GetLastObject(List<LightLevelObject> objects) {
-            List<LightLevelObject> sortedObjects = objects.FindAll(obj => obj.character != LevelObject.SpeedChar);
+            List<LightLevelObject> sortedObjects = objects.FindAll(obj => obj.character != LevelSpeedObject.DisplayChar);
             sortedObjects.Sort((obj1, obj2) => obj2.step.CompareTo(obj1.step));
-            return sortedObjects[0];
+            return sortedObjects.Count > 0 ? sortedObjects[0] : new LightLevelObject('\n', -1);
         }
 
         public static TimeSpan GetTotalLevelLength(List<LightLevelObject> objects, List<LevelSpeed> sortedSpeeds,
@@ -203,8 +197,11 @@ namespace PPR.Main {
         public static TimeSpan GetLevelLength(List<LightLevelObject> objects, List<LevelSpeed> sortedSpeeds,
             int musicOffset) {
             if(objects.Count <= 0 || sortedSpeeds.Count <= 0) return TimeSpan.Zero;
-            float ms = StepsToMilliseconds(GetLastObject(objects).step, sortedSpeeds) - musicOffset -
-                       StepsToMilliseconds(GetFirstObject(objects).step, sortedSpeeds);
+            int firstStep = GetFirstObject(objects).step;
+            int lastStep = GetLastObject(objects).step;
+            if(firstStep < 0 || lastStep < 0) return TimeSpan.Zero;
+            float ms = StepsToMilliseconds(lastStep, sortedSpeeds) - musicOffset -
+                       StepsToMilliseconds(firstStep, sortedSpeeds);
             return TimeSpan.FromMilliseconds(float.IsNaN(ms) ? 0d : ms);
         }
 
