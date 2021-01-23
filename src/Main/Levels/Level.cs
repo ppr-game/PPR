@@ -266,6 +266,7 @@ namespace PPR.Main.Levels {
         public static Color[] linesDarkColors { get; set; }
         public Vector2i startPosition { get; }
         public char character { get; }
+        public virtual char visualCharacter => character;
         public int step { get; }
         protected Color color { get; set; }
         protected Color nextDirLayerColor { get; set; }
@@ -297,7 +298,7 @@ namespace PPR.Main.Levels {
             
             if((!Game.editing || position.Y <= Map.gameLinePos.Y && onHigherOrCurrentLayer) && // Editor stuff
                (onCurrentLayer || Core.renderer.GetDisplayedCharacter(position) == '\0')) // Draw below on lower layers
-                Core.renderer.SetCharacter(position, new RenderCharacter(character,
+                Core.renderer.SetCharacter(position, new RenderCharacter(visualCharacter,
                     ColorScheme.GetColor("transparent"), Color()));
         }
 
@@ -568,6 +569,7 @@ namespace PPR.Main.Levels {
 
     public class LevelHoldNote : LevelNote {
         public const char DisplayChar = '│';
+        public override char visualCharacter => DisplayChar;
         protected override int perfectWindow => (int)windowMultiplier;
         protected override int okWindow => 1 + perfectWindow + (int)(0.5f * windowMultiplier);
         private int missStep => okWindow + 1;
@@ -577,7 +579,7 @@ namespace PPR.Main.Levels {
         private bool _prevKeyState;
 
         public LevelHoldNote(char character, int step, IEnumerable<LevelSpeed> speeds) :
-            base(DisplayChar, step, Calc.GetXPosForCharacter(character), speeds) {
+            base(character, step, Calc.GetXPosForCharacter(character), speeds) {
             key = char.ToUpper(character) switch {
                 '1' => Keyboard.Key.Num1,
                 '2' => Keyboard.Key.Num2,
@@ -680,6 +682,6 @@ namespace PPR.Main.Levels {
 
         public override string StepToString() => $"{step.ToString()}:-1";
 
-        public override string ToString() => new string(new char[]{ Game.GetNoteBinding(key), DisplayChar });
+        public override string ToString() => new string(new char[]{ character, DisplayChar });
     }
 }

@@ -231,8 +231,8 @@ namespace PPR.Main.Levels {
             LevelNote firstNote = selectedNotes.First();
 
             foreach(LevelNote obj in GetSelectedNotes()) {
-                clipboard.Add(new ClipboardLevelNote(obj.character, obj.step - firstNote.step, obj.startPosition.X,
-                    obj.constructor));
+                clipboard.Add(new ClipboardLevelNote(obj.character, obj.step - firstNote.step,
+                    obj.startPosition.X, obj.constructor));
 
                 if(!cut) continue;
 
@@ -249,8 +249,8 @@ namespace PPR.Main.Levels {
             // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
             foreach(ClipboardLevelNote obj in clipboard)
                 if(currentLevel.objects.All(mapObj => mapObj.character != obj.character ||
-                                                          mapObj.startPosition.X != obj.xPos ||
-                                                          mapObj.step != obj.step + Game.roundedSteps)) {
+                                                      mapObj.startPosition.X != obj.xPos ||
+                                                      mapObj.step != obj.step + Game.roundedSteps)) {
                     currentLevel.objects.Add(obj.constructor(obj.character, obj.step + Game.roundedSteps,
                         currentLevel.speeds));
 
