@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 
+using MoonSharp.Interpreter;
+
 using NLog;
 
 using PPR.GUI;
@@ -62,6 +64,7 @@ namespace PPR.Main.Managers {
 
             return "";
         }
+        
         private static bool TryLoadSoundBuffer(string path, out SoundBuffer buffer) {
             try {
                 buffer = new SoundBuffer(path);
@@ -73,6 +76,7 @@ namespace PPR.Main.Managers {
             }
             return true;
         }
+        
         private static bool TryLoadSound(string path, out Sound sound) {
             if(TryLoadSoundBuffer(path, out SoundBuffer buffer)) {
                 sound = new Sound(buffer);
@@ -82,6 +86,7 @@ namespace PPR.Main.Managers {
             sound = null;
             return false;
         }
+        
         public static void UpdateSoundsVolume() {
             int volume = Settings.GetInt("soundsVolume");
             _hitSound.Volume = volume;
@@ -91,6 +96,7 @@ namespace PPR.Main.Managers {
             _clickSound.Volume = volume;
             _sliderSound.Volume = volume;
         }
+        
         public static void ReloadSounds() {
             if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "hit")), out _hitSound) || TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "hit")), out _hitSound)) _hitSound.Volume = Settings.GetInt("soundsVolume");
             if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "tick")), out _holdSound) || TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "tick")), out _holdSound)) _holdSound.Volume = Settings.GetInt("soundsVolume");
@@ -99,6 +105,7 @@ namespace PPR.Main.Managers {
             if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "buttonClick")), out _clickSound) || TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "buttonClick")), out _clickSound)) _clickSound.Volume = Settings.GetInt("soundsVolume");
             if(TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "slider")), out _sliderSound) || TryLoadSound(GetSoundFilePath(Path.Join("resources", "audio", "Default", "slider")), out _sliderSound)) _sliderSound.Volume = Settings.GetInt("soundsVolume");
         }
+        
         public static void PlaySound(SoundType type) {
             switch(type) {
                 case SoundType.Hit:
@@ -121,6 +128,7 @@ namespace PPR.Main.Managers {
                     break;
             }
         }
+        
         public static void SwitchMusic() {
             if(Game.exiting) return;
             
@@ -141,11 +149,26 @@ namespace PPR.Main.Managers {
             }
             UI.currSelectedLevel = Path.GetFileName(Path.GetDirectoryName(newPath));
             currentMusicPath = newPath;
-            music.Stop();
+            StopMusic();
             music = new Music(currentMusicPath) {
                 Volume = Core.renderer.window.HasFocus() ? Settings.GetInt("musicVolume") : 0f
             };
+            PlayMusic();
+        }
+
+        public static void PlayMusic() {
             music.Play();
+            Lua.SendMessageToConsoles("onMusicStatusChange");
+        }
+        
+        public static void PauseMusic() {
+            music.Pause();
+            Lua.SendMessageToConsoles("onMusicStatusChange");
+        }
+        
+        public static void StopMusic() {
+            music.Stop();
+            Lua.SendMessageToConsoles("onMusicStatusChange");
         }
     }
 }

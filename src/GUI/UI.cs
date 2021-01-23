@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
+using MoonSharp.Interpreter;
+
+using Newtonsoft.Json;
 
 using PPR.GUI.Elements;
 using PPR.Main;
@@ -16,13 +21,39 @@ using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
+using Alignment = PRR.Renderer.Alignment;
+
 namespace PPR.GUI {
+    public sealed class TransitionEventArgs : EventArgs {
+        public string layout;
+        public TransitionEventArgs(string layout) => this.layout = layout;
+    }
+    public sealed class MenuSwitchEventArgs : EventArgs {
+        public string oldLayout;
+        public string newLayout;
+        public MenuSwitchEventArgs(string oldLayout, string newLayout) {
+            this.oldLayout = oldLayout;
+            this.newLayout = newLayout;
+        }
+    }
     public static class UI {
         public static int fps = 0;
         public static int avgFPS = 0;
         public static int tempAvgFPS = 0;
         public static int tempAvgFPSCounter = 0;
         public static int tps = 0;
+
+        public static readonly Dictionary<string, Layout> layouts = new Dictionary<string, Layout>();
+        public static readonly HashSet<string> currentLayouts = new HashSet<string>();
+        private static readonly Queue<(string layout, string transition, float speed, bool endLayoutState)>
+            transitionsQueue = new Queue<(string, string, float, bool)>();
+        private static readonly Queue<UIElement> toDraw = new Queue<UIElement>();
+
+        public static event EventHandler<TransitionEventArgs> onDisablingTransitionStarted;
+        public static event EventHandler<TransitionEventArgs> onDisablingTransitionFinished;
+        public static event EventHandler<TransitionEventArgs> onEnablingTransitionStarted;
+        public static event EventHandler<TransitionEventArgs> onEnablingTransitionFinished;
+        public static event EventHandler<MenuSwitchEventArgs> onMenuSwitch;
 
         private static readonly Random random = new Random();
         private static readonly Perlin perlin = new Perlin();
@@ -85,19 +116,16 @@ namespace PPR.GUI {
 
         public static int menusAnimBPM = 120;
         public static IReadOnlyDictionary<Vector2i, float> positionRandoms => _positionRandoms;
-        public static bool fadeInFinished { get; private set; }
-        public static bool fadeOutFinished { get; private set; }
 
         public static Vector2i prevMousePosition { get; private set; }
 
-        private static readonly string[] mainMenuText = File.ReadAllLines(Path.Join("resources", "ui", "mainMenu.txt"));
-        private static readonly string[] settingsText = File.ReadAllLines(Path.Join("resources", "ui", "settings.txt"));
+        private static bool _lastTransitionFinished;
+
+        /*private static readonly string[] settingsText = File.ReadAllLines(Path.Join("resources", "ui", "settings.txt"));
         private static readonly string[] keybindsEditorText = File.ReadAllLines(Path.Join("resources", "ui", "keybinds.txt"));
         private static readonly string[] levelSelectText = File.ReadAllLines(Path.Join("resources", "ui", "levelSelect.txt"));
-
-        private static readonly string[] lastStatsText = File.ReadAllLines(Path.Join("resources", "ui", "lastStats.txt"));
+        private static readonly string[] lastStatsText = File.ReadAllLines(Path.Join("resources", "ui", "lastStats.txt"));*/
         //static readonly string[] notificationsText = File.ReadAllLines(Path.Join("resources", "ui", "notifications.txt"));
-        private static List<Button> _mainMenuButtons;
 
         private static List<Button> _levelSelectButtons;
 
@@ -113,26 +141,94 @@ namespace PPR.GUI {
         //static bool _showNotificationsMenu;
 
         private static readonly Vector2i zero = new Vector2i();
-        public static void RecreateButtons() {
-            const Renderer.Alignment center = Renderer.Alignment.Center;
-            const Renderer.Alignment right = Renderer.Alignment.Right;
-            _mainMenuButtons = new List<Button> {
-                new Button(new Vector2i(40, 25), "PLAY", "mainMenu.play", 4, new InputKey("Enter"), center),
-                new Button(new Vector2i(40, 27), "EDIT", "mainMenu.edit", 4, new InputKey("LShift,RShift"), center),
-                new Button(new Vector2i(40, 29), "SETTINGS", "mainMenu.settings", 8, new InputKey("Tab"), center),
-                new Button(new Vector2i(40, 31), "EXIT", "mainMenu.exit", 4, new InputKey("Tilde"), center),
-                new Button(new Vector2i(1, 1), "SFML", "mainMenu.sfml", 4),
-                new Button(new Vector2i(6, 1), "GITHUB", "mainMenu.github", 6),
-                new Button(new Vector2i(13, 1), "DISCORD", "mainMenu.discord", 7)
-            };
-            _pauseMusicButton = new Button(new Vector2i(1, 58), "►", "mainMenu.music.pause", 1,
-                new InputKey("Space"));
-            _switchMusicButton = new Button(new Vector2i(3, 58), "»", "mainMenu.music.switch", 1,
-                new InputKey("Right"));
-            _levelSelectButtons = new List<Button> {
-                new Button(new Vector2i(25, 10), "AUTO", "levelSelect.auto", 4, new InputKey("Tab")),
-                new Button(new Vector2i(39, 52), "BACK", "levelSelect.back", 4, new InputKey("Escape"), center)
-            };
+
+        // don't mind this monstrosity over here
+        public static void LoadLayouts(string path) {
+            layouts.Clear();
+            
+            Script script = new Script(CoreModules.Preset_SoftSandbox);
+            Lua.InitializeConsole(script);
+            script.DoFile(Path.Join(path, "script.lua"));
+            
+            string[] menusPaths = Directory.GetDirectories(path);
+            foreach(string menuPath in menusPaths) {
+                string layoutPath = Path.Join(menuPath, "layout.json");
+                if(!File.Exists(layoutPath)) continue;
+                Dictionary<string, DeserializedUIElement> layout =
+                    JsonConvert.DeserializeObject<Dictionary<string, DeserializedUIElement>>(
+                        File.ReadAllText(layoutPath));
+                ConcurrentDictionary<string, UIElement> elements = new ConcurrentDictionary<string, UIElement>();
+                // sry for this mess, not gonna clean up :)
+                foreach((string uid, DeserializedUIElement elem) in layout) {
+                    string type = elem.type;
+
+                    string id = elem.id ?? uid;
+                    Dictionary<string, int> posDict = elem.position;
+                    Dictionary<string, int> sizeDict = elem.size;
+                    Dictionary<string, float> anchorDict = elem.anchor;
+                    Vector2i position = posDict == null ? new Vector2i() :
+                        new Vector2i(posDict.GetValueOrDefault("x", 0), posDict.GetValueOrDefault("y", 0));
+                    Vector2i size = sizeDict == null ? new Vector2i(1, 1) :
+                        new Vector2i(sizeDict.GetValueOrDefault("x", 0), sizeDict.GetValueOrDefault("y", 0));
+                    Vector2f anchor = anchorDict == null ? new Vector2f() :
+                        new Vector2f(anchorDict.GetValueOrDefault("x", 0f), anchorDict.GetValueOrDefault("y", 0f));
+                    UIElement parent = elem.parent == null ? null : elements[elem.parent];
+                    string text = elem.path == null ? elem.text : File.ReadAllText(Path.Join(menuPath, elem.path));
+                    Alignment align = (elem.align ?? "left") switch {
+                        "right" => Alignment.Right,
+                        "center" => Alignment.Center,
+                        _ => Alignment.Left
+                    };
+                    bool replacingSpaces = elem.replacingSpaces;
+                    bool invertOnDarkBackground = elem.invertOnDarkBackground;
+                    // not using GetValueOrDefault here cuz then rider's gonna scream at me and be like
+                    // "aaaAAA HERE MAY BE NULL REFERENCE AAAAAAAAA OAAOoOOAOaoa ALERT wait
+                    // OMG is that an... INT BOXING ALLOCATION???!!?! AOAOAAAOA ALEEEEERRRRRRTTTTT AAAAAA HOLY SHIT OMG"
+                    // bruh and it even screams at all these "AAAAA"s, yes, even that one,
+                    // had to add them to the dictionary
+                    int width = elem.width;
+                    int minValue = elem.minValue;
+                    int maxValue = elem.maxValue;
+                    int defaultValue = elem.defaultValue;
+                    string leftText = elem.leftText ?? "";
+                    string rightText = elem.rightText ?? "";
+                    // idk, rider suggested to convert `elem.ContainsKey("swapTexts") ? (bool)elem["swapTexts"] : false`
+                    // to this so whatever
+                    bool swapTexts = elem.swapTexts;
+
+                    UIElement element = type switch {
+                        "panel" => new Panel(uid, id, position, size, anchor, parent),
+                        "mask" => new Mask(uid, id, position, size, anchor, parent),
+                        "text" => new Elements.Text(uid, id, position, anchor, parent, text, align, replacingSpaces,
+                            invertOnDarkBackground),
+                        "button" => new Button(uid, id, position, width, anchor, parent, text, null, align),
+                        "slider" => new Slider(uid, id, position, width, anchor, parent, minValue, maxValue, defaultValue,
+                            leftText, rightText, align, swapTexts),
+                        _ => null
+                    };
+
+                    if(element != null) elements.TryAdd(uid, element);
+                }
+                
+                layouts.Add(Path.GetFileName(menuPath), new Layout(elements, script));
+            }
+        }
+
+        public static void TransitionLayouts(string previous, string next,
+            string fadeOutTransition = "fadeOut", string fadeInTransition = "fadeIn",
+            float fadeOutSpeed = 7f, float fadeInSpeed = 7f) {
+            if(string.IsNullOrWhiteSpace(previous) || currentLayouts.Contains(previous)) {
+                transitionsQueue.Enqueue((previous, fadeOutTransition, fadeOutSpeed, false));
+            }
+
+            if(!string.IsNullOrWhiteSpace(next) && !currentLayouts.Contains(next) && layouts.ContainsKey(next)) {
+                transitionsQueue.Enqueue((next, fadeInTransition, fadeInSpeed, true));
+            }
+        }
+        
+        /*public static void RecreateButtons() {
+            const Alignment center = Alignment.Center;
+            const Alignment right = Alignment.Right;
             _gameLastStatsButtons = new List<Button> {
                 new Button(new Vector2i(2, 53), "CONTINUE", "lastStats.continue", 8, new InputKey("Enter")),
                 new Button(new Vector2i(2, 55), "RESTART", "lastStats.restart", 7, new InputKey("LControl+R,RControl+R")),
@@ -178,7 +274,7 @@ namespace PPR.GUI {
             //_keybindsButton = new Button(new Vector2i(2, 57), "KEYBINDS", "settings.keybinds", 8);
 
             UpdateAllFolderSwitchButtons();
-        }
+        }*/
         
         private static Dictionary<Vector2i, float> _positionRandoms;
         public static void RegenPositionRandoms() {
@@ -190,17 +286,14 @@ namespace PPR.GUI {
         
         public static void UpdateAnims() {
             bool useScriptCharMod =
-                Scripts.Rendering.Renderer.scriptCharactersModifier != null && Game.menu == Menu.Game;
+                Scripts.Rendering.Renderer.scriptCharactersModifier != null && currentLayouts.Contains("game");
             if(useScriptCharMod) Core.renderer.charactersModifier = Scripts.Rendering.Renderer.scriptCharactersModifier;
             
-            levelBackground = Game.menu == Menu.Game ?
+            levelBackground = currentLayouts.Contains("game") ?
                 Scripts.Rendering.Renderer.scriptBackgroundModifier?.Invoke(ColorScheme.GetColor("background")) : null;
-            
-            if(fadeInFinished && fadeOutFinished) { if(!useScriptCharMod) Core.renderer.charactersModifier = null; }
-            else {
-                fadeInFinished = true;
-                fadeOutFinished = true;
-            }
+
+            if(transitionsQueue.Count > 0 || useScriptCharMod) return;
+            Core.renderer.charactersModifier = null;
         }
 
         public static bool LineSegmentIntersection(Vector2i a1, Vector2i a2, Vector2i b1, Vector2i b2) {
@@ -218,70 +311,8 @@ namespace PPR.GUI {
             q.X >= Math.Min(p.X, r.X) &&
             q.Y <= Math.Max(p.Y, r.Y) &&
             q.Y >= Math.Min(p.Y, r.Y);
-        private static int Orientation(Vector2i p, Vector2i q, Vector2i r) {
-            float val = (q.Y - p.Y) * (r.X - q.X) - (q.X - p.X) * (r.Y - q.Y);
-            if(val == 0) return 0;
-            return val > 0 ? 1 : 2;
-        }
-        
-        private static Button _pauseMusicButton;
-        private static Button _switchMusicButton;
-        private static readonly Vector2i nowPlayingCtrlPos = new Vector2i(5, 58);
-        private static readonly Vector2i nowPlayingPos = new Vector2i(1, 58);
-        private static void DrawNowPlaying(bool controls = false) {
-            string text = $"NOW PLAYING : {SoundManager.currentMusicName}";
-            Core.renderer.DrawText(controls ? nowPlayingCtrlPos : nowPlayingPos, text);
-            if(!controls) return;
-            _pauseMusicButton.text = SoundManager.music.Status switch
-            {
-                SoundStatus.Playing => "║",
-                _ => "►"
-            };
-            if(_pauseMusicButton.Draw())
-                switch(_pauseMusicButton.text) {
-                    case "►": SoundManager.music.Play();
-                        break;
-                    case "║": SoundManager.music.Pause();
-                        break;
-                }
-
-            if(_switchMusicButton.Draw()) SoundManager.SwitchMusic();
-        }
-
-        private static readonly Clock fadeInClock = new Clock();
-        private static readonly Clock fadeOutClock = new Clock();
-        public static void FadeIn(float speed = 1f) {
-            fadeInFinished = false;
-            const float min = 0.5f;
-            const float max = 4f;
-            fadeInClock.Restart();
-            Core.renderer.charactersModifier = (position, character) => {
-                float posRandom = positionRandoms[position] * (max - min) + min;
-                float time = fadeInClock.ElapsedTime.AsSeconds();
-                if(time * speed * posRandom < 1f) fadeInFinished = false;
-                return ((Vector2f)position, new RenderCharacter(Renderer.AnimateColor(time,
-                        currentBackground, character.background, speed * posRandom),
-                    Renderer.AnimateColor(time,
-                        currentBackground, character.foreground, speed * posRandom),
-                    character));
-            };
-        }
-        public static void FadeOut(float speed = 1f) {
-            fadeOutFinished = false;
-            const float min = 0.5f;
-            const float max = 4f;
-            fadeOutClock.Restart();
-            Core.renderer.charactersModifier = (position, character) => {
-                float posRandom = positionRandoms[position] * (max - min) + min;
-                float time = fadeOutClock.ElapsedTime.AsSeconds();
-                if(time * speed * posRandom < 1f) fadeOutFinished = false;
-                return ((Vector2f)position, new RenderCharacter(Renderer.AnimateColor(time,
-                        character.background, currentBackground, speed * posRandom),
-                    Renderer.AnimateColor(time,
-                        character.foreground, currentBackground, speed * posRandom),
-                    character));
-            };
-        }
+        private static int Orientation(Vector2i p, Vector2i q, Vector2i r) =>
+            Math.Sign((q.Y - p.Y) * (r.X - q.X) - (q.X - p.X) * (r.Y - q.Y));
 
         private static float _menusAnimTime;
         private static void DrawMenusAnim() {
@@ -314,150 +345,10 @@ namespace PPR.GUI {
             }
             _menusAnimTime += Core.deltaTime * menusAnimBPM / 120f;
         }
-        //static Button _notificationsMenuButton;
-        private static void DrawMainMenu() {
-            DrawMenusAnim();
-            Core.renderer.DrawText(zero, mainMenuText);
-            Core.renderer.DrawText(new Vector2i(1, 2), $"PPR v{Core.version}");
-            Core.renderer.DrawText(new Vector2i(1, 3), $"PRR v{Core.prrVersion}");
-            DrawNowPlaying(true);
-            // ReSharper disable once HeapView.ObjectAllocation
-            // ReSharper disable once HeapView.ObjectAllocation.Possible
-            foreach(Button button in _mainMenuButtons.Where(button => button.Draw()))
-                switch(button.id) {
-                    case "mainMenu.play":
-                    case "mainMenu.edit":
-                        Game.editing = button.id == "mainMenu.edit";
-                        Core.renderer.window.SetKeyRepeatEnabled(Game.editing);
-                        Game.auto = false;
-                        Game.menu = Menu.LevelSelect;
-                        break;
-                    case "mainMenu.settings": Game.menu = Menu.Settings;
-                        break;
-                    case "mainMenu.exit": Game.Exit();
-                        break;
-                    case "mainMenu.sfml": Helper.OpenURL("https://sfml-dev.org");
-                        break;
-                    case "mainMenu.github": Helper.OpenURL("https://github.com/ppr-game/PPR");
-                        break;
-                    case "mainMenu.discord": Helper.OpenURL("https://discord.gg/AuYUVs5");
-                        break;
-                }
-            /*if(_showNotificationsMenu) DrawNotificationsMenu();
-            if(!_notificationsMenuButton.Draw()) return;
-            _showNotificationsMenu = !_showNotificationsMenu;
-            _notificationsMenuButton.selected = _showNotificationsMenu;
-            DrawNotificationsMenu();*/
-        }
+        
         //static void DrawNotificationsMenu() => Core.renderer.DrawText(new Vector2i(79, 0), notificationsText, Renderer.Alignment.Right, true);
-        public static readonly Vector2i scoresPos = new Vector2i(1, 12);
-        private static void DrawLevelSelect() {
-            DrawMenusAnim();
-            Core.renderer.DrawText(zero, levelSelectText);
-            foreach((string levelName, LevelSelectLevel level) in levelSelectLevels) {
-                if(level.button.position.Y < 12 || level.button.position.Y > 38) continue;
-                if(level.button.Draw()) {
-                    string levelPath = Path.Join("levels", levelName);
-                    string musicPath = SoundManager.GetSoundFilePath(Path.Join(levelPath, "music"));
-                    if(File.Exists(musicPath)) {
-                        SoundManager.currentMusicPath = musicPath;
-                        SoundManager.music.Stop();
-                        SoundManager.music = new Music(musicPath) { Volume = Settings.GetInt("musicVolume") };
-                        SoundManager.music.Play();
-                    }
 
-                    currSelectedLevel = levelName;
-                }
-
-                level.button.selected = levelName == currSelectedLevel;
-
-                if(!level.button.selected) continue;
-                foreach((string diffName, LevelSelectDiff diff) in level.diffs) {
-                    if(diff.button.position.Y < 40 || diff.button.position.Y > 49) continue;
-                    if(diff.button.Draw()) {
-                        _lastLevel = levelName;
-                        _lastDiff = diffName;
-                        string path = Path.Join("levels", _lastLevel);
-                        Game.menu = Menu.Game;
-                        Game.menuSwitchedCallback += (_, __) => {
-                            Map.LoadLevelFromPath(path, _lastLevel, _lastDiff);
-                            Game.RecalculatePosition();
-                        };
-                    }
-                        
-                    if((diff.button.currentState == Button.State.Hovered ||
-                        diff.button.currentState == Button.State.Clicked) &&
-                       diff.button.prevFrameState != Button.State.Hovered &&
-                       diff.button.prevFrameState != Button.State.Clicked) {
-                        string globalScriptPath = Path.Join("levels", levelName, "script.lua");
-                        string diffScriptPath = Path.Join("levels", levelName, $"{diffName}.lua");
-                        _showLuaPrompt = File.Exists(globalScriptPath) || File.Exists(diffScriptPath);
-
-                        currSelectedDiff = diffName;
-                    }
-                    
-                    diff.button.selected = diffName == currSelectedDiff;
-
-                    if(!diff.button.selected) continue;
-                    DrawMetadata(diff.metadata);
-                    DrawScores(diff.scores);
-                }
-            }
-            foreach(Button button in _levelSelectButtons)
-                switch(button.text) {
-                    case "AUTO" when !Game.editing: {
-                        if(button.Draw()) Game.auto = !Game.auto;
-                        button.selected = Game.auto;
-                        break;
-                    }
-                    case "BACK" when button.Draw(): Game.menu = Menu.Main;
-                        break;
-                }
-            
-            DrawNowPlaying();
-        }
-        private static readonly Vector2i metaLengthPos = new Vector2i(56, 12);
-        private static readonly Vector2i metaDiffPos = new Vector2i(56, 13);
-        private static readonly Vector2i metaBPMPos = new Vector2i(56, 14);
-        private static readonly Vector2i metaAuthorPos = new Vector2i(56, 15);
-
-        private static bool _showLuaPrompt;
-        private static readonly Vector2i luaPromptPos = new Vector2i(56, 46);
-
-        private static readonly Vector2i metaObjCountPos = new Vector2i(56, 48);
-        private static readonly Vector2i metaSpdCountPos = new Vector2i(56, 49);
-        private static void DrawMetadata(LevelMetadata? metadata) {
-            if(metadata == null) return;
-            Core.renderer.DrawText(metaLengthPos, $"LENGTH:{metadata.Value.length}");
-            Core.renderer.DrawText(metaDiffPos, $"DIFFICULTY:{metadata.Value.displayDifficulty}");
-            Core.renderer.DrawText(metaBPMPos, $"BPM:{metadata.Value.bpm}");
-            Core.renderer.DrawText(metaAuthorPos, $"AUTHOR:{metadata.Value.author}");
-            
-            if(_showLuaPrompt)
-                Core.renderer.DrawText(luaPromptPos, "○ Contains Lua", ColorScheme.GetColor("lua_prompt"));
-
-            Core.renderer.DrawText(metaObjCountPos, $"objects:{metadata.Value.objectCount.ToString()}");
-            Core.renderer.DrawText(metaSpdCountPos, $"speeds:{metadata.Value.speedsCount.ToString()}");
-        }
-        private static void DrawScores(IReadOnlyCollection<LevelScore> scores) {
-            if(scores == null) return;
-            // ReSharper disable once HeapView.ObjectAllocation.Possible
-            foreach(LevelScore score in scores) {
-                if(score.scorePosition.Y >= 12 && score.scorePosition.Y <= 49)
-                    Core.renderer.DrawText(score.scorePosition, score.scoreStr, ColorScheme.GetColor("score"));
-                if(score.accComboPosition.Y >= 12 && score.accComboPosition.Y <= 49) {
-                    Core.renderer.DrawText(score.accComboPosition, score.accuracyStr, score.accuracyColor);
-                    Core.renderer.DrawText(score.accComboDividerPosition, "│", ColorScheme.GetColor("combo"));
-                    Core.renderer.DrawText(score.maxComboPosition, score.maxComboStr, score.maxComboColor);
-                }
-                if(score.scoresPosition.Y >= 12 && score.scoresPosition.Y <= 49)
-                    DrawMiniScores(score.scoresPosition, score.scores);
-                if(score.linePosition.Y >= 12 && score.linePosition.Y <= 49) Core.renderer.DrawText(score.linePosition,
-                        score.linePosition.Y == 39 ? "├───────────────────────┼" : "├───────────────────────┤");
-            }
-        }
-
-        private static readonly Vector2i levelNamePos = new Vector2i(0, 0);
+        /*private static readonly Vector2i levelNamePos = new Vector2i(0, 0);
         private static readonly Vector2i musicTimePos = new Vector2i(79, 0);
         private static readonly Vector2i scorePos = new Vector2i(0, 57);
         private static readonly Vector2i accPos = new Vector2i(0, 58);
@@ -589,39 +480,6 @@ namespace PPR.GUI {
             Core.renderer.DrawText(position, $"{prefix}COMBO: {(maxCombo ? ScoreManager.maxCombo : ScoreManager.combo).ToString()}",
                 color, ColorScheme.GetColor("transparent"));
         }
-        private static void DrawMiniScores(Vector2i position, int[] scores) {
-            string scores0Str = scores[0].ToString();
-            Core.renderer.DrawText(position, scores0Str, currentBackground,
-                ColorScheme.GetColor("miss"));
-
-            string scores1Str = scores[1].ToString();
-            int x1 = position.X + scores0Str.Length + 1;
-            Core.renderer.DrawText(new Vector2i(x1, position.Y), scores1Str, currentBackground,
-                ColorScheme.GetColor("hit"));
-
-            Core.renderer.DrawText(new Vector2i(x1 + scores1Str.Length + 1, position.Y), scores[2].ToString(), 
-                currentBackground,
-                ColorScheme.GetColor("perfect_hit"));
-        }
-        private static void DrawScores(Vector2i position) {
-            int posXOffseted = position.X + 15;
-            Core.renderer.DrawText(position, "MISSES:", ColorScheme.GetColor("miss"));
-            Core.renderer.DrawText(new Vector2i(posXOffseted, position.Y), ScoreManager.scores[0].ToString(),
-                currentBackground,
-                ColorScheme.GetColor("miss"));
-
-            int posYHits = position.Y + 2;
-            Core.renderer.DrawText(new Vector2i(position.X, posYHits), "HITS:", ColorScheme.GetColor("hit"));
-            Core.renderer.DrawText(new Vector2i(posXOffseted, posYHits), ScoreManager.scores[1].ToString(),
-                currentBackground,
-                ColorScheme.GetColor("hit"));
-
-            int posYPerfectHits = position.Y + 4;
-            Core.renderer.DrawText(new Vector2i(position.X, posYPerfectHits), "PERFECT HITS:", ColorScheme.GetColor("perfect_hit"));
-            Core.renderer.DrawText(new Vector2i(posXOffseted, posYPerfectHits), ScoreManager.scores[2].ToString(),
-                currentBackground,
-                ColorScheme.GetColor("perfect_hit"));
-        }
         private static void DrawLevelName(Vector2i position, Color color, bool invertOnDarkBG = true) =>
             Core.renderer.DrawText(position,
             $"{Map.currentLevel.metadata.name} [{Map.currentLevel.metadata.displayDiff}] : {Map.currentLevel.metadata.author}",
@@ -634,36 +492,9 @@ namespace PPR.GUI {
         }
         private static void DrawEditorDifficulty(Vector2i position, Color color) => Core.renderer.DrawText(position,
             $"DIFFICULTY: {Map.currentLevel.metadata.displayDifficulty}", color,
-            Renderer.Alignment.Right, false, true);
-        private static readonly Vector2i passFailText = new Vector2i(40, 5);
-        private static readonly Vector2i lastLevelPos = new Vector2i(2, 13);
-        private static readonly Vector2i lastScorePos = new Vector2i(2, 16);
-        private static readonly Vector2i lastAccPos = new Vector2i(2, 18);
-        private static readonly Vector2i lastScoresPos = new Vector2i(25, 16);
+            Alignment.Right, false, true);
         private static readonly Vector2i lastMaxComboPos = new Vector2i(2, 20);
         private static void DrawLastStats() {
-            DrawMenusAnim();
-            Core.renderer.DrawText(zero, lastStatsText);
-            string text = "PAUSE";
-            Color color = ColorScheme.GetColor("pause");
-            if(!Game.editing && Game.statsState != StatsState.Pause) {
-                if(Game.statsState == StatsState.Pass) {
-                    text = "PASS";
-                    color = ColorScheme.GetColor("pass");
-                }
-                else {
-                    text = "FAIL";
-                    color = ColorScheme.GetColor("fail");
-                }
-            }
-            Core.renderer.DrawText(passFailText, text, color, Renderer.Alignment.Center);
-            DrawLevelName(lastLevelPos, ColorScheme.GetColor("stats_level_name"), false);
-            if(!Game.editing) {
-                DrawScore(lastScorePos, ColorScheme.GetColor("score"));
-                DrawAccuracy(lastAccPos);
-                DrawScores(lastScoresPos);
-                DrawCombo(lastMaxComboPos, true);
-            }
             DrawSettingsList(true);
             if(Game.editing)
                 foreach(Button button in _editorLastStatsButtons)
@@ -878,9 +709,9 @@ namespace PPR.GUI {
                 Core.renderer.DrawText(new Vector2i(59, y), secondary, ColorScheme.GetColor("settings_keybind_secondary"));
                 y += 2;
             }
-        }
+        }*/
         public static void Draw() {
-            switch(Game.menu) {
+            /*switch(Game.menu) {
                 case Menu.Main:
                     DrawMainMenu();
                     break;
@@ -899,6 +730,54 @@ namespace PPR.GUI {
                 case Menu.LastStats:
                     DrawLastStats();
                     break;
+            }*/
+
+            HashSet<string> prevCurrentLayouts = new HashSet<string>(currentLayouts);
+            foreach(string layout in prevCurrentLayouts) {
+                Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> useTransition = null;
+                if(transitionsQueue.TryPeek(
+                    out (string layout, string transition, float speed, bool endLayoutState) transitionTuple)) {
+                    Func<float, (Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>, bool)> currentTransition
+                        = LuaConsole.GUI.UI.scriptTransitions.GetValueOrDefault(transitionTuple.transition, null);
+                    if(currentTransition != null && (transitionTuple.layout == layout ||
+                                                     transitionTuple.endLayoutState == false &&
+                                                     transitionTuple.layout == null)) {
+                        bool finished;
+                        (useTransition, finished) = currentTransition.Invoke(transitionTuple.speed);
+                        if(_lastTransitionFinished) {
+                            LuaConsole.GUI.UI.restartScriptTransitionClock[transitionTuple.transition]?.Invoke();
+                            if(transitionTuple.endLayoutState) {
+                                currentLayouts.Add(layout);
+                                onEnablingTransitionStarted?.Invoke(null, new TransitionEventArgs(layout));
+                            }
+                            else {
+                                onDisablingTransitionStarted?.Invoke(null, new TransitionEventArgs(layout));
+                            }
+                        }
+
+                        if(finished) {
+                            transitionsQueue.Dequeue();
+                            if(transitionTuple.endLayoutState) {
+                                onEnablingTransitionFinished?.Invoke(null, new TransitionEventArgs(layout));
+                            }
+                            else {
+                                currentLayouts.Remove(layout);
+                                onDisablingTransitionFinished?.Invoke(null, new TransitionEventArgs(layout));
+                                if(transitionsQueue.TryPeek(
+                                    out (string layout, string _, float __, bool ___) nextTransitionTuple))
+                                    onMenuSwitch?.Invoke(null,
+                                        new MenuSwitchEventArgs(layout, nextTransitionTuple.layout));
+                            }
+                        }
+
+                        _lastTransitionFinished = finished;
+                    }
+                }
+                // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
+                foreach((string _, UIElement element) in layouts[layout].elements)
+                    if(element.enabled) toDraw.Enqueue(element);
+                while(toDraw.TryDequeue(out UIElement element))
+                    element.Draw(useTransition);
             }
 
             Lua.DrawUI();
@@ -906,7 +785,7 @@ namespace PPR.GUI {
             if(Settings.GetBool("showFps"))
                 Core.renderer.DrawText(fpsPos, $"{fps.ToString()}/{avgFPS.ToString()} FPS , {tps.ToString()} TPS",
                     fps >= 60 ? ColorScheme.GetColor("fps_good") : fps > 20 ? ColorScheme.GetColor("fps_ok") : 
-                        ColorScheme.GetColor("fps_bad"), Renderer.Alignment.Right);
+                        ColorScheme.GetColor("fps_bad"), Alignment.Right);
 
             prevMousePosition = Core.renderer.mousePosition;
         }

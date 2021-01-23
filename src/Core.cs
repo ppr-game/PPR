@@ -33,9 +33,9 @@ namespace PPR {
         // bruh Rider wth
         // ReSharper disable once UnusedMember.Local
         private static void Main() {
-        #if !DEBUG
+#if !DEBUG
             try {
-        #endif
+#endif
                 renderer.UpdateFramerateSetting();
 
                 static void SubscribeEvents() {
@@ -47,6 +47,7 @@ namespace PPR {
                     ColorScheme.Reload();
                 }
 
+                Lua.ScriptSetup();
                 SubscribeEvents();
                 renderer.onWindowRecreated += (_, __) => SubscribeEvents();
                 Bindings.Reload();
@@ -81,15 +82,15 @@ namespace PPR {
                         UI.tempAvgFPSCounter = 0;
                     }
                     
-                    if(Game.exiting && UI.fadeOutFinished) renderer.window.Close();
+                    if(Game.exiting && UI.currentLayouts.Count <= 0) renderer.window.Close();
                 }
-        #if !DEBUG
+#if !DEBUG
             }
             catch(Exception ex) {
                 logger.Fatal(ex);
                 throw;
             }
-        #endif
+#endif
         }
     }
 }

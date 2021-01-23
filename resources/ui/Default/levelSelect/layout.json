@@ -1,0 +1,101 @@
+{
+	"levelSelect.frame": {
+		"type": "text",
+		"id": "frame",
+		"path": "frame.txt",
+		"text": "bruh what why did you delete frame.txt put it back :(",
+		"position": { "x": 0, "y": 0 },
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"levelSelect.title": {
+		"type": "panel",
+		"id": "title",
+		"position": { "x": 0, "y": 8 },
+		"size": { "x": 0, "y": 0 },
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"levelSelect.title.red": {
+		"type": "text",
+		"id": "title.red",
+		"text": " E E   E E T",
+		"position": { "x": 0, "y": 0 },
+		"align": "center",
+		"parent": "levelSelect.title",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"levelSelect.title.green": {
+		"type": "text",
+		"id": "title.green",
+		"text": "L   L S L   ",
+		"position": { "x": 0, "y": 0 },
+		"align": "center",
+		"parent": "levelSelect.title",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"levelSelect.title.blue": {
+		"type": "text",
+		"id": "title.blue",
+		"text": "  V       C ",
+		"position": { "x": 0, "y": 0 },
+		"align": "center",
+		"parent": "levelSelect.title",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"levelSelect.auto": {
+		"type": "button",
+		"text": "AUTO",
+		"position": { "x": 25, "y": 10 },
+		"width": 4,
+		"align": "left",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"levelSelect.back": {
+		"type": "button",
+		"id": "back",
+		"text": "BACK",
+		"position": { "x": 39, "y": 52 },
+		"width": 4,
+		"align": "center",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"levelSelect.levels": {
+		"type": "mask",
+		"position": { "x": 0, "y": 12 },
+		"size": { "x": 30, "y": 27 },
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"levelSelect.allDifficulties": {
+		"type": "mask",
+		"position": { "x": 0, "y": 40 },
+		"size": { "x": 30, "y": 10 },
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"levelSelect.allScores": {
+		"type": "mask",
+		"position": { "x": 1, "y": 12 },
+		"size": { "x": 23, "y": 38 },
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"levelSelect.allMetadatas": {
+		"type": "mask",
+		"position": { "x": 56, "y": 12 },
+		"size": { "x": 23, "y": 38 },
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"levelSelect.music": {
+		"type": "panel",
+		"position": { "x": 1, "y": 1 },
+		"size": { "x": 0 , "y": 0 },
+		"anchor": { "x": 0, "y": 1 }
+	},
+	"levelSelect.music.nowPlaying": {
+		"type": "text",
+		"id": "music.nowPlaying",
+		"text": "NOW PLAYING : ???",
+		"position": { "x": 0, "y": 0 },
+		"align": "left",
+		"parent": "levelSelect.music",
+		"anchor": { "x": 0, "y": 1 }
+	}
+}

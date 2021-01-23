@@ -50,6 +50,11 @@ light_purple=255,158,255
 background=black
 foreground=white
 
+text_frame_fg=foreground
+text_title.red_fg=light_red
+text_title.green_fg=light_green
+text_title.blue_fg=light_blue
+
 good=green
 ok=yellow
 bad=red

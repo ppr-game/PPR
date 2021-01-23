@@ -1,5 +1,7 @@
 ﻿using System;
 
+using MoonSharp.Interpreter;
+
 using PPR.Main;
 using PPR.Main.Managers;
 
@@ -8,114 +10,106 @@ using PRR;
 using SFML.Graphics;
 using SFML.System;
 
+using Alignment = PRR.Renderer.Alignment;
+
 namespace PPR.GUI.Elements {
-    // Yes. Yes I just copy-pasted the code from the Button class and modified it a bit. Sorry
-    // ReSharper disable FieldCanBeMadeReadOnly.Global
-    // ReSharper disable MemberCanBePrivate.Global
-    public class Slider {
+    public class Slider : UIElement {
         public enum State { Idle, Hovered, Clicked }
-        public Vector2i position { get; set; }
+
         public int minValue { get; }
         public int maxValue { get; }
-        public int size { get; }
+        public int width { get; }
+        public override Vector2i size {
+            get => new Vector2i(width, 1);
+            set => throw new InvalidOperationException("Tried to change the size of a slider.");
+        }
         public int step { get; }
-        public int value { get; set; }
+
+        public int value {
+            get => _value;
+            set {
+                _value = value;
+                _onValueChangePartialArgs[1] = DynValue.NewNumber(value);
+            }
+        }
+        
         public string leftText { get; set; }
         public string rightText { get; set; }
-        public string id { get; set; }
-        public Color idleColor { get; }
-        public Color hoverColor { get; }
-        public Color clickColor { get; }
-        public Renderer.Alignment align { get; set; }
+        public Closure onValueChange { get; set; }
+        public Color idleColor => ColorScheme.GetColor($"slider_{id}_idle");
+        public Color hoverColor => ColorScheme.GetColor($"slider_{id}_hover");
+        public Color clickColor => ColorScheme.GetColor($"slider_{id}_click");
+        public Alignment align { get; set; }
         public bool swapTexts { get; set; }
         public State currentState { get; private set; } = State.Clicked;
-        public State prevFrameState { get; private set; } = State.Hovered;
-        
+
+        private readonly DynValue[] _onValueChangePartialArgs;
+        private int _value;
         private readonly float[] _animTimes;
         private readonly float[] _animRateOffsets;
         private State _prevState = State.Hovered;
         private Color _currentColor;
         private Color _prevColor;
         private int _posX;
-        public Slider(Vector2i position, int minValue, int maxValue, int size, int defaultValue, string leftText,
-            string rightText, string id, Renderer.Alignment align = Renderer.Alignment.Left, bool swapTexts = false) :
-            this(position, minValue, maxValue, size, defaultValue, leftText, rightText, id,
-            ColorScheme.GetColor($"slider_{id}_idle"),
-            ColorScheme.GetColor($"slider_{id}_hover"),
-            ColorScheme.GetColor($"slider_{id}_click"), align, swapTexts) { }
-        public Slider(Vector2i position, int minValue, int maxValue, int size, int defaultValue, string leftText,
-            string rightText, string id, Color idleColor, Color hoverColor, Color clickColor,
-            Renderer.Alignment align = Renderer.Alignment.Left, bool swapTexts = false) {
-            this.position = position;
+
+        public Slider(string uid, string id, Vector2i? position, int width, Vector2f? anchor, UIElement parent, int minValue,
+            int maxValue, int defaultValue, string leftText, string rightText,
+            Alignment align = Alignment.Left, bool swapTexts = false) :
+            base(uid, id, position, new Vector2i(width, 1), anchor, parent) {
             this.minValue = minValue;
             this.maxValue = maxValue;
-            this.size = size;
-            step = (maxValue - minValue) / (size - 1);
+            this.width = width;
+            step = (maxValue - minValue) / (width - 1);
             value = defaultValue;
             this.leftText = leftText;
             this.rightText = rightText;
-            this.id = id;
-            this.idleColor = idleColor;
-            this.hoverColor = hoverColor;
-            this.clickColor = clickColor;
             this.align = align;
             this.swapTexts = swapTexts;
-            _animTimes = new float[size];
-            _animRateOffsets = new float[size];
+            _animTimes = new float[width];
+            _animRateOffsets = new float[width];
             _currentColor = hoverColor;
+            _onValueChangePartialArgs = new DynValue[] { DynValue.NewString(id), DynValue.NewNumber(0) };
         }
-        private State DrawBase() {
+        private State DrawBase(Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> transition) {
             string leftText = $"{(swapTexts ? this.rightText : this.leftText).Replace("[value]", value.ToString())} ";
             string rightText = (swapTexts ? this.leftText : this.rightText).Replace("[value]", value.ToString());
-            _posX = position.X - align switch
-            {
-                Renderer.Alignment.Right => size + rightText.Length + 1,
-                Renderer.Alignment.Center => (int)MathF.Ceiling(size / 2f),
+            _posX = globalPosition.X - align switch {
+                Alignment.Right => width + rightText.Length + 1,
+                Alignment.Center => (int)MathF.Ceiling(width / 2f),
                 _ => -leftText.Length
             };
             if(leftText != "")
-                Core.renderer.DrawText(new Vector2i(_posX - leftText.Length, position.Y), leftText, hoverColor,
-                    idleColor);
+                Core.renderer.DrawText(new Vector2i(_posX - leftText.Length, globalPosition.Y), leftText, hoverColor,
+                    idleColor, Alignment.Left, false, false, transition);
             if(rightText != "")
-                Core.renderer.DrawText(new Vector2i(_posX + size + 1, position.Y), rightText, hoverColor, idleColor);
-            
-            
-            bool onSlider = Core.renderer.mousePosition.InBounds(_posX, position.Y, _posX + size - 1, position.Y);
+                Core.renderer.DrawText(new Vector2i(_posX + width + 1, globalPosition.Y), rightText, hoverColor,
+                    idleColor, Alignment.Left, false, false, transition);
+
+            bool onSlider = Core.renderer.mousePosition.InBounds(_posX, globalPosition.Y, _posX + width - 1, globalPosition.Y);
             bool wasOnSlider = UI.LineSegmentIntersection(UI.prevMousePosition, Core.renderer.mousePosition,
-                new Vector2i(_posX, position.Y), new Vector2i(_posX + size - 1, position.Y));
+                new Vector2i(_posX, globalPosition.Y), new Vector2i(_posX + width - 1, globalPosition.Y));
             return wasOnSlider ? Core.renderer.leftButtonPressed && onSlider ? State.Clicked :
                 State.Hovered : State.Idle;
         }
-        public bool Draw() {
-            prevFrameState = currentState;
-            currentState = DrawBase();
-            if(_prevState != currentState) {
-                Color color = currentState switch {
-                    State.Hovered => hoverColor,
-                    State.Clicked => clickColor,
-                    _ => idleColor
-                };
-                if(_currentColor != color) {
-                    _prevColor = _currentColor;
-                    for(int x = 0; x < size; x++) {
-                        _animTimes[x] = 0f;
-                        _animRateOffsets[x] = new Random().NextFloat(-1f, 1f);
-                    }
-                }
-                _currentColor = color;
-            }
-            _prevState = currentState;
+        public override void Draw(Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> transition) {
+            currentState = DrawBase(transition);
 
-            bool valueChanged = false;
+            UpdateState();
+
             if(Core.renderer.window.HasFocus() && currentState == State.Clicked) {
                 int previousValue = value;
                 value = Math.Clamp((Core.renderer.mousePosition.X - _posX) * step + minValue, minValue, maxValue);
-                valueChanged = value != previousValue;
-                if(valueChanged) SoundManager.PlaySound(SoundType.Slider);
+                bool valueChanged = value != previousValue;
+                if(valueChanged) {
+                    SoundManager.PlaySound(SoundType.Slider); // ReSharper disable once HeapView.ObjectAllocation
+                    onValueChange?.Call(_onValueChangePartialArgs[0], DynValue.NewNumber(previousValue),
+                        _onValueChangePartialArgs[1]);
+                }
             }
 
-            for(int x = 0; x < size; x++) {
-                Vector2i pos = new Vector2i(_posX + x, position.Y);
+            // TODO: transition implementation
+            for(int x = 0; x < width; x++) {
+                Vector2i pos = new Vector2i(_posX + x, globalPosition.Y);
                 int drawValue = (value - minValue) / step;
                 char curChar = '█';
                 if(x < drawValue) curChar = '─';
@@ -126,7 +120,27 @@ namespace PPR.GUI.Elements {
                         currentState == State.Idle ? hoverColor : idleColor, 4f + _animRateOffsets[x])));
                 _animTimes[x] += Core.deltaTime;
             }
-            return valueChanged;
+        }
+
+        private void UpdateState() {
+            if(_prevState != currentState) {
+                Color color = currentState switch {
+                    State.Hovered => hoverColor,
+                    State.Clicked => clickColor,
+                    _ => idleColor
+                };
+                if(_currentColor != color) {
+                    _prevColor = _currentColor;
+                    for(int x = 0; x < width; x++) {
+                        _animTimes[x] = 0f;
+                        _animRateOffsets[x] = new Random().NextFloat(-1f, 1f);
+                    }
+                }
+
+                _currentColor = color;
+            }
+
+            _prevState = currentState;
         }
     }
 }

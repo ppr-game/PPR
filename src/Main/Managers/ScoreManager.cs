@@ -19,7 +19,7 @@ namespace PPR.Main.Managers {
         public static int maxCombo { get; set; }
         public static void ResetScore() {
             score = 0;
-            UI.prevScore = 0;
+            //UI.prevScore = 0;
             scores = new int[3];
             accuracy = 100;
             combo = 0;

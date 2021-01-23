@@ -60,7 +60,7 @@ namespace PPR.Main.Levels {
         private static Vector2f _prevMPosF;
         private static readonly List<LevelNote> movingNotes = new List<LevelNote>();
         public static void Draw() {
-            if(Game.currentMenu != Menu.Game) return;
+            if(!UI.currentLayouts.Contains("game")) return;
 
             //   L     I     N     E
             for(int x = 0; x < Core.renderer.width; x++) {
@@ -148,12 +148,12 @@ namespace PPR.Main.Levels {
             }
         }
         public static void StepAll() {
-            if(Game.currentMenu != Menu.Game) return;
+            if(!UI.currentLayouts.Contains("game")) return;
 
             foreach(LevelObject obj in currentLevel.objects) obj.Step();
         }
         public static void TickAll() {
-            if(Game.currentMenu != Menu.Game || currentLevel.objects.Count <= 0) return;
+            if(!UI.currentLayouts.Contains("game") || currentLevel.objects.Count <= 0) return;
 
             foreach(LevelObject obj in currentLevel.objects) {
                 if(!Game.editing && obj is LevelNote note) note.Input();
