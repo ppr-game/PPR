@@ -250,9 +250,19 @@ namespace PPR.Main.Levels {
             foreach(ClipboardLevelNote obj in clipboard)
                 if(currentLevel.objects.All(mapObj => mapObj.character != obj.character ||
                                                       mapObj.startPosition.X != obj.xPos ||
-                                                      mapObj.step != obj.step + Game.roundedSteps)) {
-                    currentLevel.objects.Add(obj.constructor(obj.character, obj.step + Game.roundedSteps,
-                        currentLevel.speeds));
+                                                      mapObj.step != obj.step + Game.roundedSteps ||
+                                                      mapObj is LevelNote mapNote &&
+                                                      mapNote.constructor != obj.constructor)) {
+                    int newStep = obj.step + Game.roundedSteps;
+                    
+                    // Remove objects that are in the way to prevent overlapping
+                    foreach(LevelObject lvlObj in currentLevel.objects.Where(lvlObj =>
+                                                  obj.character == lvlObj.character &&
+                                                  newStep == lvlObj.step &&
+                                                  obj.xPos == lvlObj.startPosition.X))
+                        lvlObj.remove = RemoveType.NoAnimation;
+                    
+                    currentLevel.objects.Add(obj.constructor(obj.character, newStep, currentLevel.speeds));
 
                     changed = true;
                 }
