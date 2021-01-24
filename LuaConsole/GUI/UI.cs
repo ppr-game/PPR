@@ -24,7 +24,7 @@ namespace PPR.LuaConsole.GUI {
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
-    internal struct TransExCtx {
+    internal struct AnimExCtx {
         public int x { get; set; }
         public int y { get; set; }
         public char character { get; set; }
@@ -59,76 +59,70 @@ namespace PPR.LuaConsole.GUI {
         public double sign(double value) => Math.Sign(value);
         public double sqrt(double value) => Math.Sqrt(value);
     }
-    internal class Transition {
-        public Func<TransExCtx, int> x;
-        public Func<TransExCtx, int> y;
-        public Func<TransExCtx, string> character;
-        public Func<TransExCtx, byte> bgR;
-        public Func<TransExCtx, byte> bgG;
-        public Func<TransExCtx, byte> bgB;
-        public Func<TransExCtx, byte> bgA;
-        public Func<TransExCtx, byte> fgR;
-        public Func<TransExCtx, byte> fgG;
-        public Func<TransExCtx, byte> fgB;
-        public Func<TransExCtx, byte> fgA;
-        public Func<TransExCtx, bool> finished;
+    internal class Animation {
+        public Func<AnimExCtx, int> x;
+        public Func<AnimExCtx, int> y;
+        public Func<AnimExCtx, string> character;
+        public Func<AnimExCtx, byte> bgR;
+        public Func<AnimExCtx, byte> bgG;
+        public Func<AnimExCtx, byte> bgB;
+        public Func<AnimExCtx, byte> bgA;
+        public Func<AnimExCtx, byte> fgR;
+        public Func<AnimExCtx, byte> fgG;
+        public Func<AnimExCtx, byte> fgB;
+        public Func<AnimExCtx, byte> fgA;
         public Clock clock;
     }
-    [MoonSharpHideMember("scriptTransitions")]
-    [MoonSharpHideMember("resetScriptTransitionClock")]
+    [MoonSharpHideMember("scriptAnimations")]
     public class UI {
-        public static Dictionary<string, Action> restartScriptTransitionClock;
         public static Dictionary<string,
-                Func<float, (Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>, bool)>> scriptTransitions;
-        public static Dictionary<string, Dictionary<string, DynValue>> transitions {
+                Func<float, Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>>> scriptAnimations;
+        public static Dictionary<string, Dictionary<string, DynValue>> animations {
             set {
                 if(value == null) {
-                    scriptTransitions = null;
+                    scriptAnimations = null;
                     return;
                 }
                 
-                Dictionary<string, Transition> transes = new Dictionary<string, Transition>(value.Count);
-                foreach((string name, Dictionary<string, DynValue> transition) in value) {
-                    Transition trans = new Transition();
-                    foreach((string key, DynValue dynValue) in transition)
+                Dictionary<string, Animation> anims = new Dictionary<string, Animation>(value.Count);
+                foreach((string name, Dictionary<string, DynValue> animation) in value) {
+                    Animation anim = new Animation();
+                    foreach((string key, DynValue dynValue) in animation)
                         switch(key) {
-                            case "x": trans.x = new Expression(dynValue.String).ToLambda<TransExCtx, int>();
+                            case "x": anim.x = new Expression(dynValue.String).ToLambda<AnimExCtx, int>();
                                 continue;
-                            case "y": trans.y = new Expression(dynValue.String).ToLambda<TransExCtx, int>();
+                            case "y": anim.y = new Expression(dynValue.String).ToLambda<AnimExCtx, int>();
                                 continue;
                             case "character":
-                                trans.character = new Expression(dynValue.String).ToLambda<TransExCtx, string>();
-                                continue;
-                            case "finished":
-                                trans.finished = new Expression(dynValue.String).ToLambda<TransExCtx, bool>();
+                                anim.character = new Expression(dynValue.String).ToLambda<AnimExCtx, string>();
                                 continue;
                             default: {
                                 if(dynValue.Type == DataType.Table)
                                     foreach(TablePair pair in dynValue.Table.Pairs) {
-                                        Func<TransExCtx, byte> exp =
-                                            new Expression(pair.Value.String).ToLambda<TransExCtx, byte>();
+                                        Func<AnimExCtx, byte> exp =
+                                            new Expression(pair.Value.String).ToLambda<AnimExCtx, byte>();
                                         switch(key) {
                                             case "background":
                                                 switch(pair.Key.Number) {
-                                                    case 1: trans.bgR = exp;
+                                                    case 1: anim.bgR = exp;
                                                         continue;
-                                                    case 2: trans.bgG = exp;
+                                                    case 2: anim.bgG = exp;
                                                         continue;
-                                                    case 3: trans.bgB = exp;
+                                                    case 3: anim.bgB = exp;
                                                         continue;
-                                                    case 4: trans.bgA = exp;
+                                                    case 4: anim.bgA = exp;
                                                         continue;
                                                 }
                                                 break;
                                             case "foreground":
                                                 switch(pair.Key.Number) {
-                                                    case 1: trans.fgR = exp;
+                                                    case 1: anim.fgR = exp;
                                                         continue;
-                                                    case 2: trans.fgG = exp;
+                                                    case 2: anim.fgG = exp;
                                                         continue;
-                                                    case 3: trans.fgB = exp;
+                                                    case 3: anim.fgB = exp;
                                                         continue;
-                                                    case 4: trans.fgA = exp;
+                                                    case 4: anim.fgA = exp;
                                                         continue;
                                                 }
                                                 break;
@@ -137,19 +131,16 @@ namespace PPR.LuaConsole.GUI {
                                 break;
                             }
                         }
-                    trans.clock = new Clock();
-                    transes.Add(name, trans);
+                    anim.clock = new Clock();
+                    anims.Add(name, anim);
                 }
 
-                // this is rly junk but whatever lmao
-                restartScriptTransitionClock = new Dictionary<string, Action>();
-                scriptTransitions = new Dictionary<string,
-                    Func<float, (Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>, bool)>>();
-                foreach((string name, Transition transition) in transes) {
-                    restartScriptTransitionClock.Add(name, () => { transition.clock.Restart(); });
-                    scriptTransitions.Add(name, speed => {
-                        TransExCtx context = new TransExCtx();
-                        return ((pos, character) => {
+                scriptAnimations = new Dictionary<string,
+                    Func<float, Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>>>();
+                foreach((string name, Animation animation) in anims) {
+                    scriptAnimations.Add(name, time => {
+                        AnimExCtx context = new AnimExCtx();
+                        return (pos, character) => {
                             context.x = pos.X;
                             context.y = pos.Y;
                             context.character = character.character;
@@ -161,28 +152,26 @@ namespace PPR.LuaConsole.GUI {
                             context.fgG = character.foreground.G;
                             context.fgB = character.foreground.B;
                             context.fgA = character.foreground.A;
-                            context.time = transition.clock.ElapsedTime.AsSeconds() * speed;
+                            context.time = time;
                             Vector2i modPos = pos;
                             RenderCharacter modChar = character;
-                            modPos = new Vector2i(transition.x?.Invoke(context) ?? modPos.X,
-                                transition.y?.Invoke(context) ?? modPos.Y);
-                            modChar = new RenderCharacter(transition.character?.Invoke(context)[0] ?? modChar.character,
-                                new Color(transition.bgR?.Invoke(context) ?? modChar.background.R,
-                                    transition.bgG?.Invoke(context) ?? modChar.background.G,
-                                    transition.bgB?.Invoke(context) ?? modChar.background.B,
-                                    transition.bgA?.Invoke(context) ?? modChar.background.A),
-                                new Color(transition.fgR?.Invoke(context) ?? modChar.foreground.R,
-                                    transition.fgG?.Invoke(context) ?? modChar.foreground.G,
-                                    transition.fgB?.Invoke(context) ?? modChar.foreground.B,
-                                    transition.fgA?.Invoke(context) ?? modChar.foreground.A));
+                            modPos = new Vector2i(animation.x?.Invoke(context) ?? modPos.X,
+                                animation.y?.Invoke(context) ?? modPos.Y);
+                            modChar = new RenderCharacter(animation.character?.Invoke(context)[0] ?? modChar.character,
+                                new Color(animation.bgR?.Invoke(context) ?? modChar.background.R,
+                                    animation.bgG?.Invoke(context) ?? modChar.background.G,
+                                    animation.bgB?.Invoke(context) ?? modChar.background.B,
+                                    animation.bgA?.Invoke(context) ?? modChar.background.A),
+                                new Color(animation.fgR?.Invoke(context) ?? modChar.foreground.R,
+                                    animation.fgG?.Invoke(context) ?? modChar.foreground.G,
+                                    animation.fgB?.Invoke(context) ?? modChar.foreground.B,
+                                    animation.fgA?.Invoke(context) ?? modChar.foreground.A));
                             return (modPos, modChar);
-                        }, transition.finished(context));
+                        };
                     });
                 }
             }
         }
-
-        public static List<string> currentLayouts => PPR.GUI.UI.currentLayouts.ToList();
 
         public static string currentSelectedLevel {
             get => PPR.GUI.UI.currSelectedLevel;
@@ -194,30 +183,29 @@ namespace PPR.LuaConsole.GUI {
             set => PPR.GUI.UI.currSelectedDiff = value;
         }
 
-        public static void TransitionLayouts(string previous, string next,
-            string fadeOutTransition, string fadeInTransition,
-            float fadeOutSpeed, float fadeInSpeed) => PPR.GUI.UI.TransitionLayouts(previous, next,
-            fadeOutTransition, fadeInTransition, fadeOutSpeed, fadeInSpeed);
+        public static void AnimateElement(string id, string animation, float delay, float time, bool? startState,
+            bool? endState) {
+            UIElement element = null;
+            if(id != null && !PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out element))
+                throw new ArgumentException($"Element {id} doesn't exist.");
 
-        public static void SetElementText(string id, string text) {
-            // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-            foreach(string layout in PPR.GUI.UI.currentLayouts) {
-                // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-                foreach((string _, UIElement element) in PPR.GUI.UI.layouts[layout].elements) {
-                    if(element.id == id) {
-                        switch(element) {
-                            case Button button: button.text = text;
-                                break;
-                            case Text textElement: textElement.text = text;
-                                break;
-                        }
-                    }
+            PPR.GUI.UI.AnimateElement(element, animation, delay, time, startState, endState);
+        }
+
+        public static void SetElementsText(string tag, string text) {
+            foreach(UIElement element in PPR.GUI.UI.currentLayout.elements.Values
+                .Where(elem => elem.tags.Contains(tag))) {
+                switch(element) {
+                    case Button button: button.text = text;
+                        break;
+                    case Text textElement: textElement.text = text;
+                        break;
                 }
             }
         }
 
-        public static void SetUniqueElementText(string layout, string uid, string text) {
-            if(!PPR.GUI.UI.layouts[layout].elements.TryGetValue(uid, out UIElement element)) return;
+        public static void SetElementText(string id, string text) {
+            if(!PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out UIElement element)) return;
             switch(element) {
                 case Button button: button.text = text;
                     break;
@@ -226,104 +214,76 @@ namespace PPR.LuaConsole.GUI {
             }
         }
 
-        public static string GetPreviousMenuForLayout(string layout) => layout switch {
+        public static string GetPreviousMenu(string currentMenu) => currentMenu switch {
             "game" => "lastStats",
             "lastStats" => "levelSelect",
             "keybinds" => "settings",
             _ => "mainMenu"
         };
 
-        public static void CreatePanel(string layout, string uid, string id, int x, int y, int width, int height,
+        public static void CreatePanel(string id, List<string> tags, int x, int y, int width, int height,
             float anchorX, float anchorY, string parent) {
-            if(!PPR.GUI.UI.layouts.TryGetValue(layout, out Layout useLayout))
-                throw new ArgumentException($"Layout {layout} doesn't exist.");
             UIElement useParent = null;
-            if(!string.IsNullOrWhiteSpace(parent) && !useLayout.elements.TryGetValue(parent, out useParent))
-                throw new ArgumentException($"Element {parent} doesn't exist in {layout}.");
+            if(!string.IsNullOrWhiteSpace(parent) &&
+               !PPR.GUI.UI.currentLayout.elements.TryGetValue(parent, out useParent))
+                throw new ArgumentException($"Element {parent} doesn't exist.");
             
-            useLayout.elements.TryRemove(uid, out _);
-            useLayout.elements.TryAdd(uid,
-                new Panel(uid, id, new Vector2i(x, y), new Vector2i(width, height), new Vector2f(anchorX, anchorY),
+            PPR.GUI.UI.currentLayout.elements.TryRemove(id, out _);
+            PPR.GUI.UI.currentLayout.elements.TryAdd(id,
+                new Panel(id, tags, new Vector2i(x, y), new Vector2i(width, height), new Vector2f(anchorX, anchorY),
                     useParent));
-            useLayout.RegisterElementEvents(uid);
+            PPR.GUI.UI.currentLayout.RegisterElementEvents(id);
         }
 
-        public static void CreateText(string layout, string uid, string id, int x, int y, float anchorX, float anchorY,
+        public static void CreateText(string id, List<string> tags, int x, int y, float anchorX, float anchorY,
             string parent, string text, Renderer.Alignment align, bool replacingSpaces, bool invertOnDarkBackground) {
-            if(!PPR.GUI.UI.layouts.TryGetValue(layout, out Layout useLayout))
-                throw new ArgumentException($"Layout {layout} doesn't exist.");
             UIElement useParent = null;
-            if(!string.IsNullOrWhiteSpace(parent) && !useLayout.elements.TryGetValue(parent, out useParent))
-                throw new ArgumentException($"Element {parent} doesn't exist in {layout}.");
+            if(!string.IsNullOrWhiteSpace(parent) &&
+               !PPR.GUI.UI.currentLayout.elements.TryGetValue(parent, out useParent))
+                throw new ArgumentException($"Element {parent} doesn't exist.");
 
-            useLayout.elements.TryRemove(uid, out _);
-            useLayout.elements.TryAdd(uid,
-                new Text(uid, id, new Vector2i(x, y), new Vector2f(anchorX, anchorY),
+            PPR.GUI.UI.currentLayout.elements.TryRemove(id, out _);
+            PPR.GUI.UI.currentLayout.elements.TryAdd(id,
+                new Text(id, tags, new Vector2i(x, y), new Vector2f(anchorX, anchorY),
                     useParent, text, align, replacingSpaces, invertOnDarkBackground));
-            useLayout.RegisterElementEvents(uid);
+            PPR.GUI.UI.currentLayout.RegisterElementEvents(id);
         }
 
-        public static void CreateButton(string layout, string uid, string id, int x, int y, int width,
+        public static void CreateButton(string id, List<string> tags, int x, int y, int width,
             float anchorX, float anchorY, string parent, string text, Renderer.Alignment align) {
-            if(!PPR.GUI.UI.layouts.TryGetValue(layout, out Layout useLayout))
-                throw new ArgumentException($"Layout {layout} doesn't exist.");
             UIElement useParent = null;
-            if(!string.IsNullOrWhiteSpace(parent) && !useLayout.elements.TryGetValue(parent, out useParent))
-                throw new ArgumentException($"Element {parent} doesn't exist in {layout}.");
+            if(!string.IsNullOrWhiteSpace(parent) &&
+               !PPR.GUI.UI.currentLayout.elements.TryGetValue(parent, out useParent))
+                throw new ArgumentException($"Element {parent} doesn't exist.");
             
-            useLayout.elements.TryRemove(uid, out _);
-            useLayout.elements.TryAdd(uid,
-                new Button(uid, id, new Vector2i(x, y), width, new Vector2f(anchorX, anchorY), useParent, text, null,
+            PPR.GUI.UI.currentLayout.elements.TryRemove(id, out _);
+            PPR.GUI.UI.currentLayout.elements.TryAdd(id,
+                new Button(id, tags, new Vector2i(x, y), width, new Vector2f(anchorX, anchorY), useParent, text, null,
                     align));
-            useLayout.RegisterElementEvents(uid);
+            PPR.GUI.UI.currentLayout.RegisterElementEvents(id);
         }
 
         public static void SetButtonSelected(string id, bool selected) {
-            // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-            foreach(string layout in PPR.GUI.UI.currentLayouts) {
-                foreach((string _, UIElement element) in PPR.GUI.UI.layouts[layout].elements) {
-                    if(element.id == id && element is Button button) button.selected = selected;
-                }
-            }
-        }
-
-        public static void SetUniqueButtonSelected(string layout, string uid, bool selected) {
-            if(!PPR.GUI.UI.layouts.TryGetValue(layout, out Layout useLayout))
-                throw new ArgumentException($"Layout {layout} doesn't exist.");
-            if(!useLayout.elements.TryGetValue(uid, out UIElement element))
-                throw new ArgumentException($"Element {uid} doesn't exist in {layout}.");
+            if(!PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out UIElement element))
+                throw new ArgumentException($"Element {id} doesn't exist.");
             if(!(element is Button button))
-                throw new ArgumentException($"Element {uid} is not a button.");
+                throw new ArgumentException($"Element {id} is not a button.");
 
             button.selected = selected;
         }
 
         public static void SetElementEnabled(string id, bool enabled) {
-            // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-            foreach(string layout in PPR.GUI.UI.currentLayouts) {
-                // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-                foreach((string _, UIElement element) in PPR.GUI.UI.layouts[layout].elements) {
-                    if(element.id == id) element.enabled = enabled;
-                }
-            }
-        }
-
-        public static void SetUniqueElementEnabled(string layout, string uid, bool enabled) {
-            if(!PPR.GUI.UI.layouts.TryGetValue(layout, out Layout useLayout))
-                throw new ArgumentException($"Layout {layout} doesn't exist.");
-            if(!useLayout.elements.TryGetValue(uid, out UIElement element))
-                throw new ArgumentException($"Element {uid} doesn't exist in {layout}.");
+            if(!PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out UIElement element))
+                throw new ArgumentException($"Element {id} doesn't exist.");
 
             element.enabled = enabled;
         }
 
-        public static string GetLevelNameFromButton(string layout, string uid) {
-            if(!PPR.GUI.UI.layouts.TryGetValue(layout, out Layout useLayout))
-                throw new ArgumentException($"Layout {layout} doesn't exist.");
-            if(!useLayout.elements.TryGetValue(uid, out UIElement element))
-                throw new ArgumentException($"Element {uid} doesn't exist in {layout}.");
+        public static string GetLevelNameFromButton(string id) {
+            if(!PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out UIElement element))
+                throw new ArgumentException($"Element {id} doesn't exist.");
             if(!(element is Button button))
-                throw new ArgumentException($"Element {uid} is not a button.");
+                throw new ArgumentException($"Element {id} is not a button.");
 
             // ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
             foreach((string levelName, LevelSelectLevel level) in PPR.GUI.UI.levelSelectLevels)
@@ -333,13 +293,11 @@ namespace PPR.LuaConsole.GUI {
             return null;
         }
 
-        public static (string, string) GetLevelAndDiffNamesFromButton(string layout, string uid) {
-            if(!PPR.GUI.UI.layouts.TryGetValue(layout, out Layout useLayout))
-                throw new ArgumentException($"Layout {layout} doesn't exist.");
-            if(!useLayout.elements.TryGetValue(uid, out UIElement element))
-                throw new ArgumentException($"Element {uid} doesn't exist in {layout}.");
+        public static (string, string) GetLevelAndDiffNamesFromButton(string id) {
+            if(!PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out UIElement element))
+                throw new ArgumentException($"Element {id} doesn't exist.");
             if(!(element is Button button))
-                throw new ArgumentException($"Element {uid} is not a button.");
+                throw new ArgumentException($"Element {id} is not a button.");
 
             // ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
             foreach((string levelName, LevelSelectLevel level) in PPR.GUI.UI.levelSelectLevels) {

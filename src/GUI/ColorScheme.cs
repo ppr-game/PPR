@@ -39,6 +39,7 @@ namespace PPR.GUI {
         }
 
         public static Color GetColor(string key) => colors.ContainsKey(key) ? colors[key] : Color.Transparent;
+        public static Color? TryGetColor(string key) => colors.ContainsKey(key) ? colors[key] : (Color?)null;
         
         private static void LoadSchemes(string basePath, string priorityPath) {
             #region Get the paths

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using PRR;
 
@@ -8,9 +9,7 @@ namespace PPR.GUI.Elements {
     public class Panel : UIElement {
         public override string type => "panel";
 
-        public Panel(string uid, string id, Vector2i? position = null, Vector2i? size = null, Vector2f? anchor = null,
-            UIElement parent = null) : base(uid, id, position, size, anchor, parent) { }
-        
-        public override void Draw(Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> transition) { }
+        public Panel(string id, List<string> tags, Vector2i? position, Vector2i? size, Vector2f? anchor,
+            UIElement parent) : base(id, tags, position, size, anchor, parent) { }
     }
 }

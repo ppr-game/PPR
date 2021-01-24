@@ -25,41 +25,43 @@ namespace PPR.GUI {
         }
 
         public static void RegisterElementEvents(UIElement element, Script script) {
-                string safeId = element.id.Replace('.', '_');
+            string safeId = element.id.Replace('.', '_');
 
-                switch(element) {
-                    case Button button: {
-                        StringBuilder onClickName = new StringBuilder();
-                        onClickName.Append(button.type);
-                        onClickName.Append('_');
-                        onClickName.Append(safeId);
-                        onClickName.Append('_');
-                        onClickName.Append("onClick");
+            switch(element) {
+                case Button button: {
+                    StringBuilder onClickName = new StringBuilder();
+                    onClickName.Append(button.type);
+                    onClickName.Append('_');
+                    onClickName.Append(safeId);
+                    onClickName.Append('_');
+                    onClickName.Append("onClick");
 
-                        button.onClick = script.Globals.Get(onClickName.ToString()).Function;
-                        
-                        StringBuilder onHoverName = new StringBuilder();
-                        onHoverName.Append(button.type);
-                        onHoverName.Append('_');
-                        onHoverName.Append(safeId);
-                        onHoverName.Append('_');
-                        onHoverName.Append("onHover");
+                    button.onClick = script.Globals.Get(onClickName.ToString()).Function;
+                    
+                    StringBuilder onHoverName = new StringBuilder();
+                    onHoverName.Append(button.type);
+                    onHoverName.Append('_');
+                    onHoverName.Append(safeId);
+                    onHoverName.Append('_');
+                    onHoverName.Append("onHover");
 
-                        button.onHover = script.Globals.Get(onHoverName.ToString()).Function;
-                        break;
-                    }
-                    case Slider slider: {
-                        StringBuilder onValueChangeName = new StringBuilder();
-                        onValueChangeName.Append(slider.type);
-                        onValueChangeName.Append('_');
-                        onValueChangeName.Append(safeId);
-                        onValueChangeName.Append('_');
-                        onValueChangeName.Append("onValueChange");
-
-                        slider.onValueChange = script.Globals.Get(onValueChangeName.ToString()).Function;
-                        break;
-                    }
+                    button.onHover = script.Globals.Get(onHoverName.ToString()).Function;
+                    break;
                 }
+                case Slider slider: {
+                    StringBuilder onValueChangeName = new StringBuilder();
+                    onValueChangeName.Append(slider.type);
+                    onValueChangeName.Append('_');
+                    onValueChangeName.Append(safeId);
+                    onValueChangeName.Append('_');
+                    onValueChangeName.Append("onValueChange");
+
+                    slider.onValueChange = script.Globals.Get(onValueChangeName.ToString()).Function;
+                    break;
+                }
+            }
         }
+
+        public bool IsElementEnabled(string id) => elements.TryGetValue(id, out UIElement game) && game.enabled;
     }
 }

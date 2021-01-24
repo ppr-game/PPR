@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using MoonSharp.Interpreter;
 
@@ -36,9 +37,12 @@ namespace PPR.GUI.Elements {
         public string leftText { get; set; }
         public string rightText { get; set; }
         public Closure onValueChange { get; set; }
-        public Color idleColor => ColorScheme.GetColor($"slider_{id}_idle");
-        public Color hoverColor => ColorScheme.GetColor($"slider_{id}_hover");
-        public Color clickColor => ColorScheme.GetColor($"slider_{id}_click");
+        private Color idleColor => ColorScheme.TryGetColor($"slider_{id}_idle") ??
+            (tags != null && tags.Count > 0 ? ColorScheme.GetColor($"slider_@{tags[0]}_idle") : Color.Transparent);
+        private Color hoverColor => ColorScheme.TryGetColor($"slider_{id}_hover") ??
+            (tags != null && tags.Count > 0 ? ColorScheme.GetColor($"slider_@{tags[0]}_hover") : Color.Transparent);
+        private Color clickColor => ColorScheme.TryGetColor($"slider_{id}_click") ??
+            (tags != null && tags.Count > 0 ? ColorScheme.GetColor($"slider_@{tags[0]}_click") : Color.Transparent);
         public Alignment align { get; set; }
         public bool swapTexts { get; set; }
         public State currentState { get; private set; } = State.Clicked;
@@ -52,10 +56,10 @@ namespace PPR.GUI.Elements {
         private Color _prevColor;
         private int _posX;
 
-        public Slider(string uid, string id, Vector2i? position, int width, Vector2f? anchor, UIElement parent, int minValue,
-            int maxValue, int defaultValue, string leftText, string rightText,
+        public Slider(string id, List<string> tags, Vector2i? position, int width, Vector2f? anchor, UIElement parent,
+            int minValue, int maxValue, int defaultValue, string leftText, string rightText,
             Alignment align = Alignment.Left, bool swapTexts = false) :
-            base(uid, id, position, new Vector2i(width, 1), anchor, parent) {
+            base(id, tags, position, new Vector2i(width, 1), anchor, parent) {
             this.minValue = minValue;
             this.maxValue = maxValue;
             this.width = width;
@@ -70,7 +74,7 @@ namespace PPR.GUI.Elements {
             _currentColor = hoverColor;
             _onValueChangePartialArgs = new DynValue[] { DynValue.NewString(id), DynValue.NewNumber(0) };
         }
-        private State DrawBase(Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> transition) {
+        private State DrawBase() {
             string leftText = $"{(swapTexts ? this.rightText : this.leftText).Replace("[value]", value.ToString())} ";
             string rightText = (swapTexts ? this.leftText : this.rightText).Replace("[value]", value.ToString());
             _posX = globalPosition.X - align switch {
@@ -80,10 +84,10 @@ namespace PPR.GUI.Elements {
             };
             if(leftText != "")
                 Core.renderer.DrawText(new Vector2i(_posX - leftText.Length, globalPosition.Y), leftText, hoverColor,
-                    idleColor, Alignment.Left, false, false, transition);
+                    idleColor, Alignment.Left, false, false, animationModifier);
             if(rightText != "")
                 Core.renderer.DrawText(new Vector2i(_posX + width + 1, globalPosition.Y), rightText, hoverColor,
-                    idleColor, Alignment.Left, false, false, transition);
+                    idleColor, Alignment.Left, false, false, animationModifier);
 
             bool onSlider = Core.renderer.mousePosition.InBounds(_posX, globalPosition.Y, _posX + width - 1, globalPosition.Y);
             bool wasOnSlider = UI.LineSegmentIntersection(UI.prevMousePosition, Core.renderer.mousePosition,
@@ -91,8 +95,10 @@ namespace PPR.GUI.Elements {
             return wasOnSlider ? Core.renderer.leftButtonPressed && onSlider ? State.Clicked :
                 State.Hovered : State.Idle;
         }
-        public override void Draw(Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> transition) {
-            currentState = DrawBase(transition);
+        public override void Draw() {
+            base.Draw();
+            
+            currentState = DrawBase();
 
             UpdateState();
 

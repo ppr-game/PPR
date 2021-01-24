@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 using PRR;
@@ -14,8 +15,8 @@ namespace PPR.GUI.Elements {
             set => _enabled = value;
         }
 
-        public string uid { get; }
         public string id { get; }
+        public List<string> tags { get; }
         public virtual Vector2i position { get; set; }
         
         public Vector2i globalPosition {
@@ -47,20 +48,54 @@ namespace PPR.GUI.Elements {
 
         public virtual Mask mask { get; private set; }
 
+        public UIAnimation? animation {
+            set {
+                _animation = value?.animation;
+                animationTime = -value?.delay ?? 0f;
+                animationEndTime = value?.time ?? 0f;
+                animationEndState = value?.endState ?? enabled;
+                enabled = value?.startState ?? enabled;
+            }
+        }
+
+        protected Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> animationModifier =>
+            animationPlaying ? _animation(animationTime / animationEndTime) : parent?.animationModifier;
+        protected float animationTime { get; set; }
+        protected float animationEndTime { get; set; }
+        protected bool animationEndState { get; set; }
+
+        protected bool animationPlaying =>
+            animationTime >= 0f && animationTime < animationEndTime && _animation != null;
+        protected bool animationStopped =>
+            animationTime >= 0f && animationTime >= animationEndTime && _animation != null;
+
+        private Func<float, Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>> _animation;
         private UIElement _parent;
         private bool _enabled = true;
 
         [SuppressMessage("ReSharper", "VirtualMemberCallInConstructor")]
-        protected UIElement(string uid, string id, Vector2i? position = null, Vector2i? size = null, Vector2f? anchor = null,
-            UIElement parent = null) {
-            this.uid = uid;
+        protected UIElement(string id, List<string> tags = null, Vector2i? position = null, Vector2i? size = null,
+            Vector2f? anchor = null, UIElement parent = null) {
             this.id = id;
+            this.tags = tags ?? new List<string>();
             this.position = position ?? parent?.position ?? new Vector2i();
-            this.size = size ?? parent?.size ?? new Vector2i(1, 1);
+            Vector2i tempSize = size ?? parent?.size ?? new Vector2i(1, 1);
             this.anchor = anchor ?? parent?.anchor ?? new Vector2f();
             this.parent = parent;
+
+            if(tempSize.X < 0) tempSize.X = Core.renderer.width;
+            if(tempSize.Y < 0) tempSize.Y = Core.renderer.height;
+            this.size = tempSize;
         }
 
-        public abstract void Draw(Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> transition);
+        public virtual void Draw() => UpdateAnimation();
+
+        private void UpdateAnimation() {
+            if(animationStopped) {
+                _animation = null;
+                enabled = animationEndState;
+            }
+            else if(_animation != null) animationTime += Core.deltaTime;
+        }
     }
 }

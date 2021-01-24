@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using MoonSharp.Interpreter;
 
@@ -37,9 +38,12 @@ namespace PPR.GUI.Elements {
 
         public Closure onClick { get; set; }
         public Closure onHover { get; set; }
-        private Color idleColor => ColorScheme.GetColor($"button_{id}_idle");
-        private Color hoverColor => ColorScheme.GetColor($"button_{id}_hover");
-        private Color clickColor => ColorScheme.GetColor($"button_{id}_click");
+        private Color idleColor => ColorScheme.TryGetColor($"button_{id}_idle") ??
+            (tags != null && tags.Count > 0 ? ColorScheme.GetColor($"button_@{tags[0]}_idle") : Color.Transparent);
+        private Color hoverColor => ColorScheme.TryGetColor($"button_{id}_hover") ??
+            (tags != null && tags.Count > 0 ? ColorScheme.GetColor($"button_@{tags[0]}_hover") : Color.Transparent);
+        private Color clickColor => ColorScheme.TryGetColor($"button_{id}_click") ??
+            (tags != null && tags.Count > 0 ? ColorScheme.GetColor($"button_@{tags[0]}_click") : Color.Transparent);
         public State currentState { get; private set; } = State.Hovered;
         public State prevFrameState { get; private set; } = State.Hovered;
         public bool selected = false;
@@ -56,16 +60,16 @@ namespace PPR.GUI.Elements {
         private Color _prevColor;
         private int _posX;
 
-        public Button(string uid, string id, Vector2i? position, int width, Vector2f? anchor, UIElement parent, string text,
-            InputKey hotkey = null, Alignment align = Alignment.Left) :
-            base(uid, id, position, new Vector2i(width, 1), anchor, parent) {
+        public Button(string id, List<string> tags, Vector2i? position, int width, Vector2f? anchor, UIElement parent,
+            string text, InputKey hotkey = null, Alignment align = Alignment.Left) :
+            base(id, tags, position, new Vector2i(width, 1), anchor, parent) {
             this.text = text;
             this.width = width;
             _align = align;
             _animTimes = new float[width];
             _animRateOffsets = new float[width];
             _currentColor = hoverColor;
-            _onClickArgs = new DynValue[] { DynValue.NewString(uid) };
+            _onClickArgs = new DynValue[] { DynValue.NewString(id) };
             Core.renderer.window.KeyPressed += (_, key) => {
                 if(hotkey != null && hotkey.IsPressed(key)) _hotkeyPressed = true;
             };
@@ -88,10 +92,12 @@ namespace PPR.GUI.Elements {
                 selected ? State.Selected : State.Idle;
         }
         
-        public override void Draw(Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> transition) {
+        public override void Draw() {
+            base.Draw();
+            
             if(text != null)
                 Core.renderer.DrawText(globalPosition, text.Substring(0, Math.Min(text.Length, width)), _align, false,
-                false, transition);
+                false, animationModifier);
 
             UpdateState();
 

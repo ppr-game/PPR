@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using PPR.Main;
 
@@ -25,12 +26,14 @@ namespace PPR.GUI.Elements {
         public Alignment align { get; set; }
         public bool replacingSpaces { get; set; }
         public bool invertOnDarkBackground { get; set; }
-        private Color foregroundColor => ColorScheme.GetColor($"text_{id}_fg");
-        private Color backgroundColor => ColorScheme.GetColor($"text_{id}_bg");
+        private Color foregroundColor => ColorScheme.TryGetColor($"text_{id}_fg") ?? (tags != null && tags.Count > 0 ?
+            ColorScheme.GetColor($"text_@{tags[0]}_fg") : Color.Transparent);
+        private Color backgroundColor => ColorScheme.TryGetColor($"text_{id}_bg") ?? (tags != null && tags.Count > 0 ?
+            ColorScheme.GetColor($"text_@{tags[0]}_bg") : Color.Transparent);
         private string _text;
 
-        public Text(string uid, string id, Vector2i? position, Vector2f? anchor, UIElement parent, string text,
-            Alignment align, bool replacingSpaces, bool invertOnDarkBackground) : base(uid, id, position,
+        public Text(string id, List<string> tags, Vector2i? position, Vector2f? anchor, UIElement parent, string text,
+            Alignment align, bool replacingSpaces, bool invertOnDarkBackground) : base(id, tags, position,
             new Vector2i(), anchor, parent) {
             this.text = text;
             this.align = align;
@@ -38,8 +41,11 @@ namespace PPR.GUI.Elements {
             this.invertOnDarkBackground = invertOnDarkBackground;
         }
 
-        public override void Draw(Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> transition) =>
+        public override void Draw() {
+            base.Draw();
+            
             Core.renderer.DrawLines(globalPosition, lines, foregroundColor, backgroundColor, align, replacingSpaces,
-                invertOnDarkBackground, transition);
+                invertOnDarkBackground, animationModifier);
+        }
     }
 }

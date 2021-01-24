@@ -24,10 +24,6 @@ using SFML.Window;
 using Alignment = PRR.Renderer.Alignment;
 
 namespace PPR.GUI {
-    public sealed class TransitionEventArgs : EventArgs {
-        public string layout;
-        public TransitionEventArgs(string layout) => this.layout = layout;
-    }
     public sealed class MenuSwitchEventArgs : EventArgs {
         public string oldLayout;
         public string newLayout;
@@ -43,16 +39,9 @@ namespace PPR.GUI {
         public static int tempAvgFPSCounter = 0;
         public static int tps = 0;
 
-        public static readonly Dictionary<string, Layout> layouts = new Dictionary<string, Layout>();
-        public static readonly HashSet<string> currentLayouts = new HashSet<string>();
-        private static readonly Queue<(string layout, string transition, float speed, bool endLayoutState)>
-            transitionsQueue = new Queue<(string, string, float, bool)>();
+        public static Layout currentLayout { get; private set; }
         private static readonly Queue<UIElement> toDraw = new Queue<UIElement>();
 
-        public static event EventHandler<TransitionEventArgs> onDisablingTransitionStarted;
-        public static event EventHandler<TransitionEventArgs> onDisablingTransitionFinished;
-        public static event EventHandler<TransitionEventArgs> onEnablingTransitionStarted;
-        public static event EventHandler<TransitionEventArgs> onEnablingTransitionFinished;
         public static event EventHandler<MenuSwitchEventArgs> onMenuSwitch;
 
         private static readonly Random random = new Random();
@@ -119,8 +108,6 @@ namespace PPR.GUI {
 
         public static Vector2i prevMousePosition { get; private set; }
 
-        private static bool _lastTransitionFinished;
-
         /*private static readonly string[] settingsText = File.ReadAllLines(Path.Join("resources", "ui", "settings.txt"));
         private static readonly string[] keybindsEditorText = File.ReadAllLines(Path.Join("resources", "ui", "keybinds.txt"));
         private static readonly string[] levelSelectText = File.ReadAllLines(Path.Join("resources", "ui", "levelSelect.txt"));
@@ -143,89 +130,79 @@ namespace PPR.GUI {
         private static readonly Vector2i zero = new Vector2i();
 
         // don't mind this monstrosity over here
-        public static void LoadLayouts(string path) {
-            layouts.Clear();
+        public static void LoadLayout(string path) {
+            string layoutPath = Path.Join(path, "layout.json");
+            string scriptPath = Path.Join(path, "script.lua");
+            
+            if(!File.Exists(layoutPath) || !File.Exists(scriptPath)) return;
             
             Script script = new Script(CoreModules.Preset_SoftSandbox);
             Lua.InitializeConsole(script);
-            script.DoFile(Path.Join(path, "script.lua"));
+            script.DoFile(scriptPath);
             
-            string[] menusPaths = Directory.GetDirectories(path);
-            foreach(string menuPath in menusPaths) {
-                string layoutPath = Path.Join(menuPath, "layout.json");
-                if(!File.Exists(layoutPath)) continue;
-                Dictionary<string, DeserializedUIElement> layout =
-                    JsonConvert.DeserializeObject<Dictionary<string, DeserializedUIElement>>(
-                        File.ReadAllText(layoutPath));
-                ConcurrentDictionary<string, UIElement> elements = new ConcurrentDictionary<string, UIElement>();
-                // sry for this mess, not gonna clean up :)
-                foreach((string uid, DeserializedUIElement elem) in layout) {
-                    string type = elem.type;
+            Dictionary<string, DeserializedUIElement> layout =
+                JsonConvert.DeserializeObject<Dictionary<string, DeserializedUIElement>>(File.ReadAllText(layoutPath));
+            ConcurrentDictionary<string, UIElement> elements = new ConcurrentDictionary<string, UIElement>();
+            foreach((string id, DeserializedUIElement elem) in layout) {
+                string type = elem.type ?? "panel";
 
-                    string id = elem.id ?? uid;
-                    Dictionary<string, int> posDict = elem.position;
-                    Dictionary<string, int> sizeDict = elem.size;
-                    Dictionary<string, float> anchorDict = elem.anchor;
-                    Vector2i position = posDict == null ? new Vector2i() :
-                        new Vector2i(posDict.GetValueOrDefault("x", 0), posDict.GetValueOrDefault("y", 0));
-                    Vector2i size = sizeDict == null ? new Vector2i(1, 1) :
-                        new Vector2i(sizeDict.GetValueOrDefault("x", 0), sizeDict.GetValueOrDefault("y", 0));
-                    Vector2f anchor = anchorDict == null ? new Vector2f() :
-                        new Vector2f(anchorDict.GetValueOrDefault("x", 0f), anchorDict.GetValueOrDefault("y", 0f));
-                    UIElement parent = elem.parent == null ? null : elements[elem.parent];
-                    string text = elem.path == null ? elem.text : File.ReadAllText(Path.Join(menuPath, elem.path));
-                    Alignment align = (elem.align ?? "left") switch {
-                        "right" => Alignment.Right,
-                        "center" => Alignment.Center,
-                        _ => Alignment.Left
-                    };
-                    bool replacingSpaces = elem.replacingSpaces;
-                    bool invertOnDarkBackground = elem.invertOnDarkBackground;
-                    // not using GetValueOrDefault here cuz then rider's gonna scream at me and be like
-                    // "aaaAAA HERE MAY BE NULL REFERENCE AAAAAAAAA OAAOoOOAOaoa ALERT wait
-                    // OMG is that an... INT BOXING ALLOCATION???!!?! AOAOAAAOA ALEEEEERRRRRRTTTTT AAAAAA HOLY SHIT OMG"
-                    // bruh and it even screams at all these "AAAAA"s, yes, even that one,
-                    // had to add them to the dictionary
-                    int width = elem.width;
-                    int minValue = elem.minValue;
-                    int maxValue = elem.maxValue;
-                    int defaultValue = elem.defaultValue;
-                    string leftText = elem.leftText ?? "";
-                    string rightText = elem.rightText ?? "";
-                    // idk, rider suggested to convert `elem.ContainsKey("swapTexts") ? (bool)elem["swapTexts"] : false`
-                    // to this so whatever
-                    bool swapTexts = elem.swapTexts;
+                List<string> tags = elem.tags;
+                Dictionary<string, int> posDict = elem.position;
+                Dictionary<string, int> sizeDict = elem.size;
+                Dictionary<string, float> anchorDict = elem.anchor;
+                Vector2i position = posDict == null ? new Vector2i() :
+                    new Vector2i(posDict.GetValueOrDefault("x", 0), posDict.GetValueOrDefault("y", 0));
+                Vector2i size = sizeDict == null ? new Vector2i(1, 1) :
+                    new Vector2i(sizeDict.GetValueOrDefault("x", 0), sizeDict.GetValueOrDefault("y", 0));
+                Vector2f anchor = anchorDict == null ? new Vector2f() :
+                    new Vector2f(anchorDict.GetValueOrDefault("x", 0f), anchorDict.GetValueOrDefault("y", 0f));
+                string parentId = elem.parent ?? string.Join('.', id.Split('.').SkipLast(1).ToArray());
+                UIElement parent = elements.GetValueOrDefault(parentId, null);
+                string text = elem.path == null ? elem.text : File.ReadAllText(Path.Join(path, elem.path));
+                Alignment align = (elem.align ?? "left") switch {
+                    "right" => Alignment.Right,
+                    "center" => Alignment.Center,
+                    _ => Alignment.Left
+                };
+                bool replacingSpaces = elem.replacingSpaces;
+                bool invertOnDarkBackground = elem.invertOnDarkBackground;
+                int width = elem.width;
+                int minValue = elem.minValue;
+                int maxValue = elem.maxValue;
+                int defaultValue = elem.defaultValue;
+                string leftText = elem.leftText ?? "";
+                string rightText = elem.rightText ?? "";
+                bool swapTexts = elem.swapTexts;
 
-                    UIElement element = type switch {
-                        "panel" => new Panel(uid, id, position, size, anchor, parent),
-                        "mask" => new Mask(uid, id, position, size, anchor, parent),
-                        "text" => new Elements.Text(uid, id, position, anchor, parent, text, align, replacingSpaces,
-                            invertOnDarkBackground),
-                        "button" => new Button(uid, id, position, width, anchor, parent, text, null, align),
-                        "slider" => new Slider(uid, id, position, width, anchor, parent, minValue, maxValue, defaultValue,
-                            leftText, rightText, align, swapTexts),
-                        _ => null
-                    };
+                UIElement element = type switch {
+                    "panel" => new Panel(id, tags, position, size, anchor, parent),
+                    "mask" => new Mask(id, tags, position, size, anchor, parent),
+                    "text" => new Elements.Text(id, tags, position, anchor, parent, text, align, replacingSpaces,
+                        invertOnDarkBackground),
+                    "button" => new Button(id, tags, position, width, anchor, parent, text, null, align),
+                    "slider" => new Slider(id, tags, position, width, anchor, parent, minValue, maxValue, defaultValue,
+                        leftText, rightText, align, swapTexts),
+                    _ => null
+                };
 
-                    if(element != null) elements.TryAdd(uid, element);
-                }
+                if(element != null) elements.TryAdd(id, element);
+            }
                 
-                layouts.Add(Path.GetFileName(menuPath), new Layout(elements, script));
-            }
+            currentLayout = new Layout(elements, script);
         }
 
-        public static void TransitionLayouts(string previous, string next,
-            string fadeOutTransition = "fadeOut", string fadeInTransition = "fadeIn",
-            float fadeOutSpeed = 7f, float fadeInSpeed = 7f) {
-            if(string.IsNullOrWhiteSpace(previous) || currentLayouts.Contains(previous)) {
-                transitionsQueue.Enqueue((previous, fadeOutTransition, fadeOutSpeed, false));
+        public static void AnimateElement(UIElement element, string animation, float delay, float time,
+            bool? startState, bool? endState) {
+            UIAnimation anim = new UIAnimation(LuaConsole.GUI.UI.scriptAnimations[animation], delay,
+                time, startState, endState);
+            if(element == null) {
+                foreach(UIElement elem in currentLayout.elements.Values.Where(elem => elem.parent == null))
+                    elem.animation = anim;
+                return;
             }
-
-            if(!string.IsNullOrWhiteSpace(next) && !currentLayouts.Contains(next) && layouts.ContainsKey(next)) {
-                transitionsQueue.Enqueue((next, fadeInTransition, fadeInSpeed, true));
-            }
+            element.animation = anim;
         }
-        
+
         /*public static void RecreateButtons() {
             const Alignment center = Alignment.Center;
             const Alignment right = Alignment.Right;
@@ -286,13 +263,13 @@ namespace PPR.GUI {
         
         public static void UpdateAnims() {
             bool useScriptCharMod =
-                Scripts.Rendering.Renderer.scriptCharactersModifier != null && currentLayouts.Contains("game");
+                Scripts.Rendering.Renderer.scriptCharactersModifier != null && currentLayout.IsElementEnabled("game");
             if(useScriptCharMod) Core.renderer.charactersModifier = Scripts.Rendering.Renderer.scriptCharactersModifier;
             
-            levelBackground = currentLayouts.Contains("game") ?
+            levelBackground = currentLayout.IsElementEnabled("game") ?
                 Scripts.Rendering.Renderer.scriptBackgroundModifier?.Invoke(ColorScheme.GetColor("background")) : null;
 
-            if(transitionsQueue.Count > 0 || useScriptCharMod) return;
+            if(useScriptCharMod) return;
             Core.renderer.charactersModifier = null;
         }
 
@@ -732,53 +709,11 @@ namespace PPR.GUI {
                     break;
             }*/
 
-            HashSet<string> prevCurrentLayouts = new HashSet<string>(currentLayouts);
-            foreach(string layout in prevCurrentLayouts) {
-                Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> useTransition = null;
-                if(transitionsQueue.TryPeek(
-                    out (string layout, string transition, float speed, bool endLayoutState) transitionTuple)) {
-                    Func<float, (Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>, bool)> currentTransition
-                        = LuaConsole.GUI.UI.scriptTransitions.GetValueOrDefault(transitionTuple.transition, null);
-                    if(currentTransition != null && (transitionTuple.layout == layout ||
-                                                     transitionTuple.endLayoutState == false &&
-                                                     transitionTuple.layout == null)) {
-                        bool finished;
-                        (useTransition, finished) = currentTransition.Invoke(transitionTuple.speed);
-                        if(_lastTransitionFinished) {
-                            LuaConsole.GUI.UI.restartScriptTransitionClock[transitionTuple.transition]?.Invoke();
-                            if(transitionTuple.endLayoutState) {
-                                currentLayouts.Add(layout);
-                                onEnablingTransitionStarted?.Invoke(null, new TransitionEventArgs(layout));
-                            }
-                            else {
-                                onDisablingTransitionStarted?.Invoke(null, new TransitionEventArgs(layout));
-                            }
-                        }
-
-                        if(finished) {
-                            transitionsQueue.Dequeue();
-                            if(transitionTuple.endLayoutState) {
-                                onEnablingTransitionFinished?.Invoke(null, new TransitionEventArgs(layout));
-                            }
-                            else {
-                                currentLayouts.Remove(layout);
-                                onDisablingTransitionFinished?.Invoke(null, new TransitionEventArgs(layout));
-                                if(transitionsQueue.TryPeek(
-                                    out (string layout, string _, float __, bool ___) nextTransitionTuple))
-                                    onMenuSwitch?.Invoke(null,
-                                        new MenuSwitchEventArgs(layout, nextTransitionTuple.layout));
-                            }
-                        }
-
-                        _lastTransitionFinished = finished;
-                    }
-                }
-                // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-                foreach((string _, UIElement element) in layouts[layout].elements)
-                    if(element.enabled) toDraw.Enqueue(element);
-                while(toDraw.TryDequeue(out UIElement element))
-                    element.Draw(useTransition);
-            }
+            // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
+            foreach((string _, UIElement element) in currentLayout.elements)
+                if(element.enabled) toDraw.Enqueue(element);
+            while(toDraw.TryDequeue(out UIElement element))
+                element.Draw();
 
             Lua.DrawUI();
             

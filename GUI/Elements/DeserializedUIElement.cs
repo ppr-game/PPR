@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
 
-using SFML.System;
-
 namespace PPR.GUI.Elements {
     public struct DeserializedUIElement {
         public string type;
-        public string id;
+        public List<string> tags;
         public Dictionary<string, int> position;
         public Dictionary<string, int> size;
         public Dictionary<string, float> anchor;

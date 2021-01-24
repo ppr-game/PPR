@@ -1,32 +1,33 @@
-ui.transitions = {
-	none = { finished = "true" },
+ui.animations = {
+	none = { },
 	fadeOut = {
 		background = { "bgR", "bgG", "bgB", "lerp(bgA, 0, time * posRandom(x, y) * 3.5 + 0.5)" },
-		foreground = { "fgR", "fgG", "fgB", "lerp(fgA, 0, time * posRandom(x, y) * 3.5 + 0.5)" },
-		finished = "time >= 1"
+		foreground = { "fgR", "fgG", "fgB", "lerp(fgA, 0, time * posRandom(x, y) * 3.5 + 0.5)" }
 	},
 	fadeIn = {
 		background = { "bgR", "bgG", "bgB", "lerp(0, bgA, time * posRandom(x, y) * 3.5 + 0.5)" },
-		foreground = { "fgR", "fgG", "fgB", "lerp(0, fgA, time * posRandom(x, y) * 3.5 + 0.5)" },
-		finished = "time >= 1"
+		foreground = { "fgR", "fgG", "fgB", "lerp(0, fgA, time * posRandom(x, y) * 3.5 + 0.5)" }
 	}
 }
 
 function button_mainMenu_play_onClick()
 	game.editing = false
-	ui.setUniqueElementEnabled("levelSelect", "levelSelect.auto", true)
+	ui.setElementEnabled("levelSelect.auto", true)
 	updateAutoButton()
-	ui.transitionLayouts("mainMenu", "levelSelect", "fadeOut", "fadeIn", 7, 7)
+	ui.animateElement("mainMenu", "fadeOut", 0, 1/7, nil, false)
+	ui.animateElement("levelSelect", "fadeIn", 1/7, 1/7, nil, true)
 end
 
 function button_mainMenu_edit_onClick()
 	game.editing = true
-	ui.setUniqueElementEnabled("levelSelect", "levelSelect.auto", false)
-	ui.transitionLayouts("mainMenu", "levelSelect", "fadeOut", "fadeIn", 7, 7)
+	ui.setElementEnabled("levelSelect.auto", false)
+	ui.animateElement("mainMenu", "fadeOut", 0, 1/7, nil, false)
+	ui.animateElement("levelSelect", "fadeIn", 1/7, 1/7, nil, true)
 end
 
 function button_mainMenu_settings_onClick()
-	ui.transitionLayouts("mainMenu", "settings", "fadeOut", "fadeIn", 7, 7)
+	ui.animateElement("mainMenu", "fadeOut", 0, 1/7, nil, false)
+	ui.animateElement("settings", "fadeIn", 1/7, 1/7, nil, true)
 end
 
 function button_mainMenu_exit_onClick()
@@ -59,34 +60,37 @@ end
 
 function onMusicStatusChange()
 	if soundManager.musicStatus == soundStatus.playing then
-		ui.setUniqueElementText("mainMenu", "mainMenu.music", "║")
+		ui.setElementText("mainMenu.music", "║")
 	else
-		ui.setUniqueElementText("mainMenu", "mainMenu.music", "►")
+		ui.setElementText("mainMenu.music", "►")
 	end
-	ui.setElementText("music.nowPlaying", "NOW PLAYING : " .. soundManager.currentMusicName)
+	ui.setElementsText("music.nowPlaying", "NOW PLAYING : " .. soundManager.currentMusicName)
 end
 
 function onGameStart()
-	ui.transitionLayouts(nil, "mainMenu", "none", "fadeIn", 0.5, 1)
+	ui.animateElement(nil, "none", 0, 0, nil, false)
+	ui.animateElement("mainMenu", "fadeIn", 0, 1/0.5, nil, true)
 end
 
 function onGameExit()
-	ui.transitionLayouts(nil, nil, "fadeOut", "none", 0.75, 1)
+	game.exitTime = 1/0.75
+	ui.animateElement(nil, "fadeOut", 0, 1/0.75, nil, false)
 end
 
 function onPassOrFail()
-	ui.transitionLayouts("game", "lastStats", "fadeOut", "fadeIn", 10, 7)
+	ui.animateElement("game", "fadeOut", 0, 1/10, nil, false)
+	ui.animateElement("lastStats", "fadeIn", 1/10, 1/7, nil, true)
 end
 
 function button_back_onClick()
-	for i, layout in ipairs(ui.currentLayouts) do
-		previousLayout = ui.getPreviousMenuForLayout(layout)
-		fadeOutSpeed = 7
-		fadeInSpeed = 7
+	--for i, layout in ipairs(ui.currentLayouts) do
+		--previousLayout = ui.getPreviousMenuForLayout(layout)
+		--fadeOutSpeed = 7
+		--fadeInSpeed = 7
 		--if layout == "game" then fadeOutSpeed = 10 end
 		--if previousLayout == "game" then fadeInSpeed == 10 end
-		ui.transitionLayouts(layout, previousLayout, "fadeOut", "fadeIn", fadeOutSpeed, fadeInSpeed)
-	end
+		--ui.transitionLayouts(layout, previousLayout, "fadeOut", "fadeIn", fadeOutSpeed, fadeInSpeed)
+	--end
 end
 
 function button_levelSelect_auto_onClick()
@@ -95,7 +99,7 @@ function button_levelSelect_auto_onClick()
 end
 
 function updateAutoButton()
-	ui.setUniqueButtonSelected("levelSelect", "levelSelect.auto", game.auto)
+	ui.setButtonSelected("levelSelect.auto", game.auto)
 end
 
 --function generateLevelSelectLevelButton(levelIndex, levelName)

@@ -1,0 +1,349 @@
+{
+	"mainMenu": { "size": { "x": -1 , "y": -1 } },
+	"mainMenu.frame": {
+		"type": "text",
+		"tags": [ "frame" ],
+		"path": "mainMenu.txt",
+		"text": "bruh what why did you delete frame.txt put it back :(",
+		"position": { "x": 0, "y": 0 },
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"mainMenu.title": {
+		"type": "panel",
+		"tags": [ "title" ],
+		"position": { "x": 0, "y": 8 },
+		"size": { "x": 0, "y": 0 },
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"mainMenu.title.red": {
+		"type": "text",
+		"tags": [ "title.red" ],
+		"text": "PRE   PRE   RE O UTIO ",
+		"position": { "x": 0, "y": 0 },
+		"align": "center",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"mainMenu.title.green": {
+		"type": "text",
+		"tags": [ "title.green" ],
+		"text": "   SS    SS     L     ",
+		"position": { "x": 0, "y": 0 },
+		"align": "center",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"mainMenu.title.blue": {
+		"type": "text",
+		"tags": [ "title.blue" ],
+		"text": "              V      N",
+		"position": { "x": 0, "y": 0 },
+		"align": "center",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"mainMenu.mainButtons": {
+		"type": "panel",
+		"position": { "x": 0, "y": 0 },
+		"size": { "x": 0, "y": 7 },
+		"anchor": { "x": 0.5, "y": 0.5 }
+	},
+	"mainMenu.play": {
+		"type": "button",
+		"text": "PLAY",
+		"position": { "x": 0, "y": 0 },
+		"width": 4,
+		"align": "center",
+		"parent": "mainMenu.mainButtons",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"mainMenu.edit": {
+		"type": "button",
+		"text": "EDIT",
+		"position": { "x": 0, "y": 2 },
+		"width": 4,
+		"align": "center",
+		"parent": "mainMenu.mainButtons",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"mainMenu.settings": {
+		"type": "button",
+		"text": "SETTINGS",
+		"position": { "x": 0, "y": 4 },
+		"width": 8,
+		"align": "center",
+		"parent": "mainMenu.mainButtons",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"mainMenu.exit": {
+		"type": "button",
+		"text": "EXIT",
+		"position": { "x": 0, "y": 6 },
+		"width": 4,
+		"align": "center",
+		"parent": "mainMenu.mainButtons",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"mainMenu.extraButtons": {
+		"type": "panel",
+		"position": { "x": 1, "y": 1 },
+		"size": { "x": 0, "y": 0 },
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"mainMenu.sfml": {
+		"type": "button",
+		"text": "SFML",
+		"position": { "x": 0, "y": 0 },
+		"width": 4,
+		"align": "left",
+		"parent": "mainMenu.extraButtons",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"mainMenu.github": {
+		"type": "button",
+		"text": "GITHUB",
+		"position": { "x": 1, "y": 0 },
+		"width": 6,
+		"align": "left",
+		"parent": "mainMenu.sfml",
+		"anchor": { "x": 1, "y": 0 }
+	},
+	"mainMenu.discord": {
+		"type": "button",
+		"text": "DISCORD",
+		"position": { "x": 1, "y": 0 },
+		"width": 7,
+		"align": "left",
+		"parent": "mainMenu.github",
+		"anchor": { "x": 1, "y": 0 }
+	},
+	"mainMenu.music": {
+		"type": "panel",
+		"position": { "x": 1, "y": 1 },
+		"size": { "x": 0 , "y": 0 },
+		"anchor": { "x": 0, "y": 1 }
+	},
+	"mainMenu.music.pause": {
+		"type": "button",
+		"position": { "x": 0, "y": 0 },
+		"width": 1,
+		"anchor": { "x": 0, "y": 1 }
+	},
+	"mainMenu.music.switch": {
+		"type": "button",
+		"text": "»",
+		"position": { "x": 2, "y": 0 },
+		"width": 1,
+		"anchor": { "x": 0, "y": 1 }
+	},
+	"mainMenu.music.nowPlaying": {
+		"type": "text",
+		"tags": [ "music.nowPlaying" ],
+		"text": "NOW PLAYING : ???",
+		"position": { "x": 4, "y": 0 },
+		"align": "left",
+		"anchor": { "x": 0, "y": 1 }
+	},
+	"levelSelect": { "size": { "x": -1 , "y": -1 } },
+	"levelSelect.frame": {
+		"type": "text",
+		"tags": [ "frame" ],
+		"path": "levelSelect.txt",
+		"text": "bruh what why did you delete frame.txt put it back :(",
+		"position": { "x": 0, "y": 0 },
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"levelSelect.title": {
+		"type": "panel",
+		"tags": [ "title" ],
+		"position": { "x": 0, "y": 8 },
+		"size": { "x": 0, "y": 0 },
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"levelSelect.title.red": {
+		"type": "text",
+		"tags": [ "title.red" ],
+		"text": " E E   E E T",
+		"position": { "x": 0, "y": 0 },
+		"align": "center",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"levelSelect.title.green": {
+		"type": "text",
+		"tags": [ "title.green" ],
+		"text": "L   L S L   ",
+		"position": { "x": 0, "y": 0 },
+		"align": "center",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"levelSelect.title.blue": {
+		"type": "text",
+		"tags": [ "title.blue" ],
+		"text": "  V       C ",
+		"position": { "x": 0, "y": 0 },
+		"align": "center",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"levelSelect.auto": {
+		"type": "button",
+		"text": "AUTO",
+		"position": { "x": 25, "y": 10 },
+		"width": 4,
+		"align": "left",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"levelSelect.back": {
+		"type": "button",
+		"tags": [ "back" ],
+		"text": "BACK",
+		"position": { "x": 39, "y": 52 },
+		"width": 4,
+		"align": "center",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"levelSelect.levels": {
+		"type": "mask",
+		"position": { "x": 0, "y": 12 },
+		"size": { "x": 30, "y": 27 },
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"levelSelect.allDifficulties": {
+		"type": "mask",
+		"position": { "x": 0, "y": 40 },
+		"size": { "x": 30, "y": 10 },
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"levelSelect.allScores": {
+		"type": "mask",
+		"position": { "x": 1, "y": 12 },
+		"size": { "x": 23, "y": 38 },
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"levelSelect.allMetadatas": {
+		"type": "mask",
+		"position": { "x": 56, "y": 12 },
+		"size": { "x": 23, "y": 38 },
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"levelSelect.music": {
+		"type": "panel",
+		"position": { "x": 1, "y": 1 },
+		"size": { "x": 0 , "y": 0 },
+		"anchor": { "x": 0, "y": 1 }
+	},
+	"levelSelect.music.nowPlaying": {
+		"type": "text",
+		"tags": [ "music.nowPlaying" ],
+		"text": "NOW PLAYING : ???",
+		"position": { "x": 0, "y": 0 },
+		"align": "left",
+		"anchor": { "x": 0, "y": 1 }
+	},
+	"lastStats": { "size": { "x": -1 , "y": -1 } },
+	"lastStats.frame": {
+		"type": "text",
+		"tags": [ "frame" ],
+		"path": "lastStats.txt",
+		"text": "bruh what why did you delete frame.txt put it back :(",
+		"position": { "x": 0, "y": 0 },
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"lastStats.title": {
+		"type": "panel",
+		"tags": [ "title" ],
+		"position": { "x": 0, "y": 8 },
+		"size": { "x": 0, "y": 0 },
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"lastStats.title.red": {
+		"type": "text",
+		"tags": [ "title.red" ],
+		"text": " T TI TI  ",
+		"position": { "x": 0, "y": 0 },
+		"align": "center",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"lastStats.title.green": {
+		"type": "text",
+		"tags": [ "title.green" ],
+		"text": "S A  S   S",
+		"position": { "x": 0, "y": 0 },
+		"align": "center",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"lastStats.title.blue": {
+		"type": "text",
+		"tags": [ "title.blue" ],
+		"text": "        C ",
+		"position": { "x": 0, "y": 0 },
+		"align": "center",
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"lastStats.subtitle": {
+		"type": "panel",
+		"position": { "x": 0, "y": 5 },
+		"anchor": { "x": 0.5, "y": 0 }
+	},
+	"lastStats.subtitle.pause": {
+		"type": "text",
+		"text": "PAUSE",
+		"align": "center"
+	},
+	"lastStats.subtitle.pass": {
+		"type": "text",
+		"text": "PASS",
+		"align": "center"
+	},
+	"lastStats.subtitle.fail": {
+		"type": "text",
+		"text": "FAIL",
+		"align": "center"
+	},
+	"lastStats.levelName": {
+		"type": "text",
+		"tags": [ "levelName" ],
+		"text": "what",
+		"position": { "x": 2, "y": 13 },
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"lastStats.exit": {
+		"type": "button",
+		"tags": [ "back" ],
+		"text": "EXIT",
+		"position": { "x": 1, "y": -1 },
+		"width": 4,
+		"align": "left",
+		"anchor": { "x": 0, "y": 1 }
+	},
+	"lastStats.player": {
+		"type": "panel"
+	},
+	"lastStats.score": {
+		"type": "text",
+		"tags": [ "score" ],
+		"text": "SCORE: what",
+		"position": { "x": 2, "y": 16 },
+		"align": "left",
+		"parent": "lastStats.player",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"lastStats.accuracy": {
+		"type": "text",
+		"tags": [ "accuracy" ],
+		"text": "ACCURACY: what",
+		"position": { "x": 2, "y": 18 },
+		"align": "left",
+		"parent": "lastStats.player",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"lastStats.combo": {
+		"type": "text",
+		"tags": [ "combo" ],
+		"text": "MAX COMBO: what",
+		"position": { "x": 2, "y": 18 },
+		"align": "left",
+		"parent": "lastStats.player",
+		"anchor": { "x": 0, "y": 0 }
+	}
+}

@@ -23,7 +23,14 @@ namespace PPR.LuaConsole.Main {
             set => PPR.Main.Game.auto = value;
         }
         
-        public static void Exit() => PPR.Main.Game.Exit();
+        public static float exitTime {
+            get => PPR.Main.Game.exitTime;
+            set => PPR.Main.Game.exitTime = value;
+        }
+        
+        public static void Exit() {
+            PPR.Main.Game.Exit();
+        }
 
         public static void LoadLevel(string levelName, string diffName) {
             string path = Path.Join("levels", levelName);

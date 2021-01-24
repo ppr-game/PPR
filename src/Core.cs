@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 using NLog;
@@ -43,7 +44,7 @@ namespace PPR {
                     renderer.window.MouseWheelScrolled += Game.MouseWheelScrolled;
                     renderer.window.LostFocus += Game.LostFocus;
                     renderer.window.GainedFocus += Game.GainedFocus;
-                    renderer.window.Closed += (___, ____) => Game.Exit();
+                    renderer.window.Closed += (_, __) => Game.Exit();
                     ColorScheme.Reload();
                 }
 
@@ -82,7 +83,7 @@ namespace PPR {
                         UI.tempAvgFPSCounter = 0;
                     }
                     
-                    if(Game.exiting && UI.currentLayouts.Count <= 0) renderer.window.Close();
+                    if(Game.exiting && Game.exitTime <= 0f) renderer.window.Close();
                 }
 #if !DEBUG
             }

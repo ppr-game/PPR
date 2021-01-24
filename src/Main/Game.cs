@@ -70,6 +70,7 @@ namespace PPR.Main {
         public static bool auto { get; set; }
         public static bool changed { get; set; }
         public static bool exiting { get; private set; }
+        public static float exitTime { get; set; }
         public static int menusAnimInitialOffset;
         public static List<LevelSpeed> menusAnimSpeeds;
         private static Time _prevLevelTime;
@@ -139,7 +140,7 @@ namespace PPR.Main {
         }
         
         public static void UpdateSettings() {
-            UI.LoadLayouts(Path.Join("resources", "ui", "Default"));
+            UI.LoadLayout(Path.Join("resources", "ui", "Default"));
             /*UI.musicVolumeSlider.value = Settings.GetInt("musicVolume");
             UI.soundsVolumeSlider.value = Settings.GetInt("soundsVolume");
             UI.bloomSwitch.selected = Settings.GetBool("bloom");
@@ -256,12 +257,6 @@ namespace PPR.Main {
             logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
         }
 
-        public static void EndGame() {
-            UI.TransitionLayouts("game", "levelSelect");
-            playing = false;
-            Lua.ClearScript();
-        }
-        
         public static void UpdatePresence() {
             string lvlName = Map.currentLevel == null ? "this" : Map.currentLevel.metadata.name;
             string lvlDiff = Map.currentLevel == null ? "doesn't" : Map.currentLevel.metadata.displayDiff;
@@ -271,13 +266,13 @@ namespace PPR.Main {
             Time useTimeFromStart = SoundManager.music.PlayingOffset -
                 (Map.currentLevel == null ? Time.Zero : Time.FromMilliseconds(Map.currentLevel.metadata.musicOffset));
 
-            if(UI.currentLayouts.Contains("mainMenu")) {
+            if(UI.currentLayout.IsElementEnabled("mainMenu")) {
                 RPC.SetPresence("In main menu");
             }
-            else if(UI.currentLayouts.Contains("levelSelect")) {
+            else if(UI.currentLayout.IsElementEnabled("levelSelect")) {
                 RPC.SetPresence($"Selecting a level to {(editing ? "edit" : "play")}");
             }
-            else if(UI.currentLayouts.Contains("game")) {
+            else if(UI.currentLayout.IsElementEnabled("game")) {
                 RPC.SetPresence(editing ? "Editing" :
                     auto ? "Watching" : "Playing",
                     Map.currentLevel == null ? "wtf how do you even see this ???/?//" :
@@ -286,7 +281,7 @@ namespace PPR.Main {
                         Map.currentLevel.metadata.lengthSpan -
                         TimeSpan.FromMilliseconds(useTimeFromStart.AsMilliseconds())));
             }
-            else if(UI.currentLayouts.Contains("lastStats")) {
+            else if(UI.currentLayout.IsElementEnabled("lastStats")) {
                 RPC.SetPresence(editing ? "Paused Editing" :
                     statsState == StatsState.Pause ? "Paused" :
                     statsState == StatsState.Pass ? "Passed" : "Failed",
@@ -296,11 +291,13 @@ namespace PPR.Main {
         }
         
         public void Update() {
-            if(UI.currentLayouts.Contains("mainMenu") && SoundManager.music.Status == SoundStatus.Stopped)
+            if(exiting) exitTime -= Core.deltaTime;
+            
+            if(UI.currentLayout.IsElementEnabled("mainMenu") && SoundManager.music.Status == SoundStatus.Stopped)
                 SoundManager.SwitchMusic();
             
             // Update the menus background animation BPM
-            if(!UI.currentLayouts.Contains("game")) {
+            if(!UI.currentLayout.IsElementEnabled("game")) {
                 if(Path.GetFileName(Path.GetDirectoryName(SoundManager.currentMusicPath)) == "Default" ||
                    SoundManager.music.Status != SoundStatus.Playing) UI.menusAnimBPM = 60;
                 else {
@@ -537,7 +534,7 @@ namespace PPR.Main {
             if(Bindings.GetBinding("fullscreen").IsPressed(key))
                 Settings.SetBool("fullscreen", !Settings.GetBool("fullscreen"));
             
-            if(!UI.currentLayouts.Contains("game")) return;
+            if(!UI.currentLayout.IsElementEnabled("game")) return;
             
             char character = GetNoteBinding(key.Code);
 
@@ -689,7 +686,7 @@ namespace PPR.Main {
         }
 
         public static void MouseWheelScrolled(object caller, MouseWheelScrollEventArgs scroll) {
-            if(UI.currentLayouts.Contains("levelSelect")) {
+            if(UI.currentLayout.IsElementEnabled("levelSelect")) {
                 Vector2i mousePos = Core.renderer.mousePosition;
                 if(mousePos.Y >= 12 && mousePos.Y <= 49) {
                     if(mousePos.X >= 28 && mousePos.X <= 51) {
@@ -727,7 +724,7 @@ namespace PPR.Main {
                     }
                 }
             }
-            else if(editing && UI.currentLayouts.Contains("game")) ScrollTime((int)scroll.Delta);
+            else if(editing && UI.currentLayout.IsElementEnabled("game")) ScrollTime((int)scroll.Delta);
         }
 
         public static void ScrollTime(int delta) {
@@ -815,7 +812,7 @@ namespace PPR.Main {
                 Lua.SendMessageToConsoles("generateLevelSelectLevelButton", DynValue.NewNumber(i),
                     DynValue.NewString(levelName));
                 LevelSelectLevel level = new LevelSelectLevel {
-                    button = (Button)UI.layouts["levelSelect"].elements[$"levelSelect.level.{levelName}"]
+                    button = (Button)UI.currentLayout.elements[$"levelSelect.level.{levelName}"]
                 };
 
                 #region Load Diffs
@@ -857,7 +854,7 @@ namespace PPR.Main {
                         DynValue.NewString(sortedDiffs[j].Key),
                         DynValue.NewString(level.diffs[sortedDiffs[j].Key].metadata.displayDifficulty));
                     LevelSelectDiff diff = level.diffs[sortedDiffs[j].Key];
-                    diff.button = (Button)UI.layouts["levelSelect"]
+                    diff.button = (Button)UI.currentLayout
                         .elements[$"levelSelect.difficulty.{levelName}.{sortedDiffs[j].Key}"];
                     level.diffs[sortedDiffs[j].Key] = diff;
                 }

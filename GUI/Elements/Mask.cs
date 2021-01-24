@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using PRR;
 
@@ -10,11 +11,10 @@ namespace PPR.GUI.Elements {
         
         public bool exclusive { get; set; }
 
-        public Mask(string uid, string id, Vector2i? position = null, Vector2i? size = null, Vector2f? anchor = null,
-            UIElement parent = null, bool exclusive = false) : base(uid, id, position, size, anchor, parent) =>
+        public Mask(string id, List<string> tags, Vector2i? position = null, Vector2i? size = null, Vector2f? anchor = null,
+            UIElement parent = null, bool exclusive = false) : base(id, tags, position, size, anchor, parent) =>
             this.exclusive = exclusive;
 
         // TODO: implement masks
-        public override void Draw(Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> transition) { }
     }
 }
