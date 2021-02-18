@@ -36,8 +36,8 @@ namespace PPR.GUI.Elements {
             set => width = value.X;
         }
 
-        public Closure onClick { get; set; }
-        public Closure onHover { get; set; }
+        public List<Closure> onClick { get; set; }
+        public List<Closure> onHover { get; set; }
         private Color idleColor => ColorScheme.TryGetColor($"button_{id}_idle") ??
             (tags != null && tags.Count > 0 ? ColorScheme.GetColor($"button_@{tags[0]}_idle") : Color.Transparent);
         private Color hoverColor => ColorScheme.TryGetColor($"button_{id}_hover") ??
@@ -106,11 +106,11 @@ namespace PPR.GUI.Elements {
                     switch(prevFrameState) {
                         case State.Clicked:
                             SoundManager.PlaySound(SoundType.Click);
-                            onClick?.Call(_onClickArgs);
+                            foreach(Closure closure in onClick) closure?.Call(_onClickArgs);
                             break;
                         case State.Idle:
                         case State.Selected:
-                            onHover?.Call(_onClickArgs);
+                            foreach(Closure closure in onHover) closure?.Call(_onClickArgs);
                             break;
                     }
                 }

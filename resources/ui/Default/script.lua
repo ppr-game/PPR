@@ -1,12 +1,12 @@
 ui.animations = {
 	none = { },
 	fadeOut = {
-		background = { "bgR", "bgG", "bgB", "lerp(bgA, 0, time * posRandom(x, y) * 3.5 + 0.5)" },
-		foreground = { "fgR", "fgG", "fgB", "lerp(fgA, 0, time * posRandom(x, y) * 3.5 + 0.5)" }
+		background = { "bgR", "bgG", "bgB", "lerp(bgA, 0, time * (posRandom(x, y) * 3.5 + 1))" },
+		foreground = { "fgR", "fgG", "fgB", "lerp(fgA, 0, time * (posRandom(x, y) * 3.5 + 1))" }
 	},
 	fadeIn = {
-		background = { "bgR", "bgG", "bgB", "lerp(0, bgA, time * posRandom(x, y) * 3.5 + 0.5)" },
-		foreground = { "fgR", "fgG", "fgB", "lerp(0, fgA, time * posRandom(x, y) * 3.5 + 0.5)" }
+		background = { "bgR", "bgG", "bgB", "lerp(0, bgA, time * (posRandom(x, y) * 3.5 + 1))" },
+		foreground = { "fgR", "fgG", "fgB", "lerp(0, fgA, time * (posRandom(x, y) * 3.5 + 1))" }
 	}
 }
 
@@ -14,20 +14,22 @@ function button_mainMenu_play_onClick()
 	game.editing = false
 	ui.setElementEnabled("levelSelect.auto", true)
 	updateAutoButton()
-	ui.animateElement("mainMenu", "fadeOut", 0, 1/7, nil, false)
-	ui.animateElement("levelSelect", "fadeIn", 1/7, 1/7, nil, true)
+	ui.animateElement("mainMenu", "fadeOut", 0, 1/7, false)
+	ui.animateElement("levelSelect", "fadeIn", 1/7, 1/7, true)
+	game.generateLevelList()
 end
 
 function button_mainMenu_edit_onClick()
 	game.editing = true
 	ui.setElementEnabled("levelSelect.auto", false)
-	ui.animateElement("mainMenu", "fadeOut", 0, 1/7, nil, false)
-	ui.animateElement("levelSelect", "fadeIn", 1/7, 1/7, nil, true)
+	ui.animateElement("mainMenu", "fadeOut", 0, 1/7, false)
+	ui.animateElement("levelSelect", "fadeIn", 1/7, 1/7, true)
+	game.generateLevelList()
 end
 
 function button_mainMenu_settings_onClick()
-	ui.animateElement("mainMenu", "fadeOut", 0, 1/7, nil, false)
-	ui.animateElement("settings", "fadeIn", 1/7, 1/7, nil, true)
+	ui.animateElement("mainMenu", "fadeOut", 0, 1/7, false)
+	ui.animateElement("settings", "fadeIn", 1/7, 1/7, true)
 end
 
 function button_mainMenu_exit_onClick()
@@ -35,15 +37,15 @@ function button_mainMenu_exit_onClick()
 end
 
 function button_mainMenu_sfml_onClick()
-	helper.openUrl("https://sfml-dev.org")
+	helper.openURL("https://sfml-dev.org")
 end
 
 function button_mainMenu_github_onClick()
-	helper.openUrl("https://github.com/ppr-game/PPR")
+	helper.openURL("https://github.com/ppr-game/PPR")
 end
 
 function button_mainMenu_discord_onClick()
-	helper.openUrl("https://discord.gg/AuYUVs5")
+	helper.openURL("https://discord.gg/AuYUVs5")
 end
 
 function button_mainMenu_music_pause_onClick()
@@ -60,37 +62,42 @@ end
 
 function onMusicStatusChange()
 	if soundManager.musicStatus == soundStatus.playing then
-		ui.setElementText("mainMenu.music", "║")
+		ui.setElementText("mainMenu.music.pause", "║")
 	else
-		ui.setElementText("mainMenu.music", "►")
+		ui.setElementText("mainMenu.music.pause", "►")
 	end
 	ui.setElementsText("music.nowPlaying", "NOW PLAYING : " .. soundManager.currentMusicName)
 end
 
 function onGameStart()
-	ui.animateElement(nil, "none", 0, 0, nil, false)
-	ui.animateElement("mainMenu", "fadeIn", 0, 1/0.5, nil, true)
+	ui.animateElement(nil, "none", 0, 0, false)
+	ui.animateElement("mainMenu", "fadeIn", 0, 1/0.5, true)
 end
 
 function onGameExit()
 	game.exitTime = 1/0.75
-	ui.animateElement(nil, "fadeOut", 0, 1/0.75, nil, false)
+	ui.animateElement(nil, "fadeOut", 0, 1/0.75, false)
 end
 
 function onPassOrFail()
-	ui.animateElement("game", "fadeOut", 0, 1/10, nil, false)
-	ui.animateElement("lastStats", "fadeIn", 1/10, 1/7, nil, true)
+	ui.animateElement("game", "fadeOut", 0, 1/10, false)
+	ui.animateElement("lastStats", "fadeIn", 1/10, 1/7, true)
 end
 
+menus = { "mainMenu", "levelSelect", "lastStats" }
+
 function button_back_onClick()
-	--for i, layout in ipairs(ui.currentLayouts) do
-		--previousLayout = ui.getPreviousMenuForLayout(layout)
-		--fadeOutSpeed = 7
-		--fadeInSpeed = 7
-		--if layout == "game" then fadeOutSpeed = 10 end
-		--if previousLayout == "game" then fadeInSpeed == 10 end
-		--ui.transitionLayouts(layout, previousLayout, "fadeOut", "fadeIn", fadeOutSpeed, fadeInSpeed)
-	--end
+	for i, menu in ipairs(menus) do
+		if ui.getElementEnabled(menu) then
+			previousMenu = ui.getPreviousMenu(menu)
+			fadeOutSpeed = 7
+			fadeInSpeed = 7
+			if menu == "game" then fadeOutSpeed = 10 end
+			if previousMenu == "game" then fadeInSpeed = 10 end
+			ui.animateElement(menu, "fadeOut", 0, 1/fadeOutSpeed, false)
+			ui.animateElement(previousMenu, "fadeIn", 1/fadeOutSpeed, 1/fadeInSpeed, true)
+		end
+	end
 end
 
 function button_levelSelect_auto_onClick()
@@ -102,24 +109,53 @@ function updateAutoButton()
 	ui.setButtonSelected("levelSelect.auto", game.auto)
 end
 
---function generateLevelSelectLevelButton(levelIndex, levelName)
---	ui.createButton("levelSelect", "levelSelect.level." .. levelName, "levelSelect.level", 0, levelIndex, 30, 0.5, 0, "levelSelect.levels", levelName, alignment.center)
+function generateLevelSelectLevelButton(levelIndex, levelName)
+	ui.createButton("levelSelect.levels.level." .. levelName, { "levelSelect.level" }, 0, levelIndex, 30, 0, 0, "levelSelect.levels", levelName, alignment.left)
+	ui.createPanel("levelSelect.difficulties." .. levelName, { "levelSelect.difficulties" }, 0, 0, 0, 0, 0, 0, "levelSelect.difficulties")
+	ui.setElementEnabled("levelSelect.difficulties." .. levelName, false)
+end
+
+function button_levelSelect_level_onClick(id)
+	local levelName = ui.getLevelNameFromButton(id)
+	soundManager.loadLevelMusic(levelName)
+	ui.currentSelectedLevel = levelName
+	
+	-- Deselect all level buttons and then select the one we need
+	ui.setButtonsSelected("levelSelect.level", false)
+	ui.setButtonSelected(id, true)
+	
+	ui.setElementsEnabled("levelSelect.difficulties", false)
+	ui.setElementEnabled("levelSelect.difficulties." .. levelName, true)
+end
+--function button_levelSelect_level_onClick(uid)
+--	levelName = ui.getLevelNameFromButton("levelSelect", uid)
+--	soundManager.loadLevelMusic(levelName)
+--	ui.currentSelectedLevel = levelName
+--	
+--	-- Deselect all level buttons and then select the one we need
+--	ui.setButtonSelected("levelSelect.level", false)
+--	ui.setUniqueButtonSelected("levelSelect", uid, true)
+--	
+--	ui.setElementEnabled("levelSelect.difficulties", false)
+--	ui.setUniqueElementEnabled("levelSelect", "levelSelect.difficulties." .. levelName, true)
+--	
+--	ui.setElementEnabled("levelSelect.scores", false)
+--	
+--	ui.setElementEnabled("levelSelect.metadatas", false)
 --end
 
---function generateLevelSelectDifficultyButton(difficultyIndex, levelName, difficultyName, difficulty)
---	ui.createPanel("levelSelect", "levelSelect.difficulties." .. levelName, "levelSelect.difficulties", 0, 0, 0, 0, 0, 0, "levelSelect.allDifficulties")
---	
---	local diffName = string.upper(difficultyName)
---	--if difficultyName == "level" then
---	--	diffName = "DEFAULT"
---	--end
---	
---	ui.createButton("levelSelect", "levelSelect.difficulty." .. levelName .. "." .. difficultyName, "levelSelect.difficulty", 0, difficultyIndex, 30, 0.5, 0, "levelSelect.difficulties", diffName .. "(" .. difficulty .. ")", alignment.center)
---	
---	generateLevelSelectMetadata(levelName, difficultyName)
---	generateLevelSelectScores(levelName, difficultyName)
---end
---
+function generateLevelSelectDifficultyButton(difficultyIndex, levelName, difficultyName, difficulty)
+	local diffName = string.upper(difficultyName)
+	if difficultyName == "level" then
+		diffName = "DEFAULT"
+	end
+	
+	ui.createButton("levelSelect.difficulties." .. levelName .. ".difficulty." .. difficultyName, { "levelSelect.difficulty" }, 0, difficultyIndex, 30, 0, 0, "levelSelect.difficulties." .. levelName, diffName .. "(" .. difficulty .. ")", alignment.left)
+	
+	--generateLevelSelectMetadata(levelName, difficultyName)
+	--generateLevelSelectScores(levelName, difficultyName)
+end
+
 --function generateLevelSelectMetadata(levelName, difficultyName)
 --	length, difficulty, bpm, author, lua, objectsCount, speedsCount = ui.getLevelMetadata(levelName, difficultyName)
 --	
@@ -138,7 +174,7 @@ end
 --	ui.createText("levelSelect", uid .. ".objectsCount", id .. ".objectsCount", 0, 36, 0, 0, uid, "objects:" .. objectsCount, align.left, false, false)
 --	ui.createText("levelSelect", uid .. ".speedsCount", id .. ".speedsCount", 0, 37, 0, 0, uid, "speeds:" .. speedsCount, align.left, false, false)
 --end
---
+
 --function generateLevelSelectScores(levelName, difficultyName)
 --	local uid = "levelSelect.scores." .. levelName
 --	local id = "levelSelect.scores"
@@ -164,7 +200,7 @@ end
 --		ui.createText("levelSelect", uid .. "." .. i .. ".divider", id .. ".divider", 0, endY, 0, 0, uid, dividerText, align.left, false, false)
 --	end
 --end
---
+
 --function generateMiniScores(layout, uid, id, x, y, anchorX, anchorY, scores)
 --	ui.createText(layout, uid .. ".miniScores.misses", id .. ".miniScores.misses", x, y, anchorX, anchorY, uid, scores[1], align.left, false, false)
 --	
@@ -184,23 +220,6 @@ end
 --
 --	ui.createText(layout, uid .. ".scores.perfectHits.title", id .. ".scores.perfectHits.title", x, y + 4, anchorX, anchorY, uid, "PERFECT HITS:", align.left, false, false)
 --	ui.createText(layout, uid .. ".scores.perfectHits", id .. ".scores.perfectHits", x + 15, y + 4, anchorX, anchorY, uid, scores[3], align.left, false, false)
---end
---
---function button_levelSelect_level_onClick(uid)
---	levelName = ui.getLevelNameFromButton("levelSelect", uid)
---	soundManager.loadLevelMusic(levelName)
---	ui.currentSelectedLevel = levelName
---	
---	-- Deselect all level buttons and then select the one we need
---	ui.setButtonSelected("levelSelect.level", false)
---	ui.setUniqueButtonSelected("levelSelect", uid, true)
---	
---	ui.setElementEnabled("levelSelect.difficulties", false)
---	ui.setUniqueElementEnabled("levelSelect", "levelSelect.difficulties." .. levelName, true)
---	
---	ui.setElementEnabled("levelSelect.scores", false)
---	
---	ui.setElementEnabled("levelSelect.metadatas", false)
 --end
 --
 --function button_levelSelect_difficulty_onHover(uid)

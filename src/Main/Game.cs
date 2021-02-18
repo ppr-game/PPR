@@ -801,7 +801,13 @@ namespace PPR.Main {
                 File.Delete(infoFile);
             }
         }
-        private static void GenerateLevelList() {
+        
+        public static void GenerateLevelList() {
+            foreach((string id, UIElement _) in UI.currentLayout.elements.Where(
+                elem => elem.Value.parent?.id == "levelSelect.levels")) {
+                UI.currentLayout.elements.TryRemove(id, out UIElement _);
+            }
+
             RescanCreatedLevels();
             
             string[] directories = Directory.GetDirectories("levels")
@@ -812,7 +818,7 @@ namespace PPR.Main {
                 Lua.SendMessageToConsoles("generateLevelSelectLevelButton", DynValue.NewNumber(i),
                     DynValue.NewString(levelName));
                 LevelSelectLevel level = new LevelSelectLevel {
-                    button = (Button)UI.currentLayout.elements[$"levelSelect.level.{levelName}"]
+                    button = (Button)UI.currentLayout.elements[$"levelSelect.levels.level.{levelName}"]
                 };
 
                 #region Load Diffs
@@ -841,21 +847,20 @@ namespace PPR.Main {
                     #endregion
                     
                     logger.Info("Loaded scores for level '{0}' diff '{1}', total scores count: {2}",
-                        levelName, diffName, diff.scores.Count);
+                        levelName, diffName, diff.scores?.Count);
                     
                     level.diffs.Add(diffName, diff);
                 }
                 List<KeyValuePair<string, LevelSelectDiff>> sortedDiffs =
                     level.diffs.OrderBy(pair => pair.Value.metadata.difficulty).ToList();
                 for(int j = 0; j < sortedDiffs.Count; j++) {
-                    string diffDisplayName = sortedDiffs[j].Key == "level" ? "DEFAULT" : sortedDiffs[j].Key.ToUpper();
                     Lua.SendMessageToConsoles("generateLevelSelectDifficultyButton", DynValue.NewNumber(j),
                         DynValue.NewString(levelName),
                         DynValue.NewString(sortedDiffs[j].Key),
                         DynValue.NewString(level.diffs[sortedDiffs[j].Key].metadata.displayDifficulty));
                     LevelSelectDiff diff = level.diffs[sortedDiffs[j].Key];
                     diff.button = (Button)UI.currentLayout
-                        .elements[$"levelSelect.difficulty.{levelName}.{sortedDiffs[j].Key}"];
+                        .elements[$"levelSelect.difficulties.{levelName}.difficulty.{sortedDiffs[j].Key}"];
                     level.diffs[sortedDiffs[j].Key] = diff;
                 }
 

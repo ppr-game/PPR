@@ -40,7 +40,6 @@ namespace PPR.GUI {
         public static int tps = 0;
 
         public static Layout currentLayout { get; private set; }
-        private static readonly Queue<UIElement> toDraw = new Queue<UIElement>();
 
         public static event EventHandler<MenuSwitchEventArgs> onMenuSwitch;
 
@@ -192,9 +191,8 @@ namespace PPR.GUI {
         }
 
         public static void AnimateElement(UIElement element, string animation, float delay, float time,
-            bool? startState, bool? endState) {
-            UIAnimation anim = new UIAnimation(LuaConsole.GUI.UI.scriptAnimations[animation], delay,
-                time, startState, endState);
+            bool? endState) {
+            UIAnimation anim = new UIAnimation(LuaConsole.GUI.UI.scriptAnimations[animation], delay, time, endState);
             if(element == null) {
                 foreach(UIElement elem in currentLayout.elements.Values.Where(elem => elem.parent == null))
                     elem.animation = anim;
@@ -710,10 +708,10 @@ namespace PPR.GUI {
             }*/
 
             // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-            foreach((string _, UIElement element) in currentLayout.elements)
-                if(element.enabled) toDraw.Enqueue(element);
-            while(toDraw.TryDequeue(out UIElement element))
-                element.Draw();
+            foreach((string _, UIElement element) in currentLayout.elements) {
+                element.Update();
+                if(element.enabled) element.Draw();
+            }
 
             Lua.DrawUI();
             

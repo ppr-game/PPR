@@ -29,37 +29,45 @@ namespace PPR.GUI {
 
             switch(element) {
                 case Button button: {
-                    StringBuilder onClickName = new StringBuilder();
-                    onClickName.Append(button.type);
-                    onClickName.Append('_');
-                    onClickName.Append(safeId);
-                    onClickName.Append('_');
-                    onClickName.Append("onClick");
-
-                    button.onClick = script.Globals.Get(onClickName.ToString()).Function;
-                    
-                    StringBuilder onHoverName = new StringBuilder();
-                    onHoverName.Append(button.type);
-                    onHoverName.Append('_');
-                    onHoverName.Append(safeId);
-                    onHoverName.Append('_');
-                    onHoverName.Append("onHover");
-
-                    button.onHover = script.Globals.Get(onHoverName.ToString()).Function;
+                    button.onClick = GetElementEventClosures(script, button.type, safeId, button.tags, "onClick");
+                    button.onHover = GetElementEventClosures(script, button.type, safeId, button.tags, "onHover");
                     break;
                 }
                 case Slider slider: {
-                    StringBuilder onValueChangeName = new StringBuilder();
-                    onValueChangeName.Append(slider.type);
-                    onValueChangeName.Append('_');
-                    onValueChangeName.Append(safeId);
-                    onValueChangeName.Append('_');
-                    onValueChangeName.Append("onValueChange");
-
-                    slider.onValueChange = script.Globals.Get(onValueChangeName.ToString()).Function;
+                    slider.onValueChange =
+                        GetElementEventClosures(script, slider.type, safeId, slider.tags, "onValueChange");
                     break;
                 }
             }
+        }
+
+        private static List<Closure> GetElementEventClosures(Script script, string type, string safeId,
+            IReadOnlyCollection<string> tags, string eventName) {
+            List<Closure> closures = new List<Closure>(tags.Count + 1);
+            
+            StringBuilder idEventName = new StringBuilder();
+            idEventName.Append(type);
+            idEventName.Append('_');
+            idEventName.Append(safeId);
+            idEventName.Append('_');
+            idEventName.Append(eventName);
+
+            closures.Add(script.Globals.Get(idEventName.ToString()).Function);
+
+            foreach(string tag in tags) {
+                string safeTag = tag.Replace('.', '_');
+                
+                StringBuilder tagEventName = new StringBuilder();
+                tagEventName.Append(type);
+                tagEventName.Append('_');
+                tagEventName.Append(safeTag);
+                tagEventName.Append('_');
+                tagEventName.Append(eventName);
+
+                closures.Add(script.Globals.Get(tagEventName.ToString()).Function);
+            }
+
+            return closures;
         }
 
         public bool IsElementEnabled(string id) => elements.TryGetValue(id, out UIElement game) && game.enabled;

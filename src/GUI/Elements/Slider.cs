@@ -30,13 +30,13 @@ namespace PPR.GUI.Elements {
             get => _value;
             set {
                 _value = value;
-                _onValueChangePartialArgs[1] = DynValue.NewNumber(value);
+                _onValueChangeArgs[1] = DynValue.NewNumber(value);
             }
         }
         
         public string leftText { get; set; }
         public string rightText { get; set; }
-        public Closure onValueChange { get; set; }
+        public List<Closure> onValueChange { get; set; }
         private Color idleColor => ColorScheme.TryGetColor($"slider_{id}_idle") ??
             (tags != null && tags.Count > 0 ? ColorScheme.GetColor($"slider_@{tags[0]}_idle") : Color.Transparent);
         private Color hoverColor => ColorScheme.TryGetColor($"slider_{id}_hover") ??
@@ -47,7 +47,7 @@ namespace PPR.GUI.Elements {
         public bool swapTexts { get; set; }
         public State currentState { get; private set; } = State.Clicked;
 
-        private readonly DynValue[] _onValueChangePartialArgs;
+        private readonly DynValue[] _onValueChangeArgs;
         private int _value;
         private readonly float[] _animTimes;
         private readonly float[] _animRateOffsets;
@@ -72,7 +72,7 @@ namespace PPR.GUI.Elements {
             _animTimes = new float[width];
             _animRateOffsets = new float[width];
             _currentColor = hoverColor;
-            _onValueChangePartialArgs = new DynValue[] { DynValue.NewString(id), DynValue.NewNumber(0) };
+            _onValueChangeArgs = new DynValue[] { DynValue.NewString(id), DynValue.NewNumber(0) };
         }
         private State DrawBase() {
             string leftText = $"{(swapTexts ? this.rightText : this.leftText).Replace("[value]", value.ToString())} ";
@@ -108,8 +108,8 @@ namespace PPR.GUI.Elements {
                 bool valueChanged = value != previousValue;
                 if(valueChanged) {
                     SoundManager.PlaySound(SoundType.Slider); // ReSharper disable once HeapView.ObjectAllocation
-                    onValueChange?.Call(_onValueChangePartialArgs[0], DynValue.NewNumber(previousValue),
-                        _onValueChangePartialArgs[1]);
+                    foreach(Closure closure in onValueChange)
+                        closure?.Call(_onValueChangeArgs[0], DynValue.NewNumber(previousValue), _onValueChangeArgs[1]);
                 }
             }
 

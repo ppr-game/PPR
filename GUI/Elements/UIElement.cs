@@ -51,16 +51,19 @@ namespace PPR.GUI.Elements {
         public UIAnimation? animation {
             set {
                 _animation = value?.animation;
-                animationTime = -value?.delay ?? 0f;
+                animationDelay = value?.delay ?? 0f;
                 animationEndTime = value?.time ?? 0f;
                 animationEndState = value?.endState ?? enabled;
-                enabled = value?.startState ?? enabled;
+                animationStartTime = DateTime.UtcNow;
+                _checkAnimation = true;
             }
         }
 
         protected Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> animationModifier =>
             animationPlaying ? _animation(animationTime / animationEndTime) : parent?.animationModifier;
-        protected float animationTime { get; set; }
+        protected DateTime animationStartTime { get; set; }
+        protected float animationDelay { get; set; }
+        protected float animationTime => (float)((DateTime.UtcNow - animationStartTime).TotalSeconds - animationDelay);
         protected float animationEndTime { get; set; }
         protected bool animationEndState { get; set; }
 
@@ -72,6 +75,7 @@ namespace PPR.GUI.Elements {
         private Func<float, Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>> _animation;
         private UIElement _parent;
         private bool _enabled = true;
+        private bool _checkAnimation = true;
 
         [SuppressMessage("ReSharper", "VirtualMemberCallInConstructor")]
         protected UIElement(string id, List<string> tags = null, Vector2i? position = null, Vector2i? size = null,
@@ -88,14 +92,18 @@ namespace PPR.GUI.Elements {
             this.size = tempSize;
         }
 
-        public virtual void Draw() => UpdateAnimation();
+        public virtual void Draw() { }
+        
+        public virtual void Update() => UpdateAnimation();
 
         private void UpdateAnimation() {
+            if(!_checkAnimation) return;
             if(animationStopped) {
                 _animation = null;
                 enabled = animationEndState;
+                _checkAnimation = false;
             }
-            else if(_animation != null) animationTime += Core.deltaTime;
+            else if(animationPlaying && animationEndState) enabled = true;
         }
     }
 }

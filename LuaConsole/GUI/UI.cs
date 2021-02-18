@@ -183,13 +183,12 @@ namespace PPR.LuaConsole.GUI {
             set => PPR.GUI.UI.currSelectedDiff = value;
         }
 
-        public static void AnimateElement(string id, string animation, float delay, float time, bool? startState,
-            bool? endState) {
+        public static void AnimateElement(string id, string animation, float delay, float time, bool? endState) {
             UIElement element = null;
             if(id != null && !PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out element))
                 throw new ArgumentException($"Element {id} doesn't exist.");
 
-            PPR.GUI.UI.AnimateElement(element, animation, delay, time, startState, endState);
+            PPR.GUI.UI.AnimateElement(element, animation, delay, time, endState);
         }
 
         public static void SetElementsText(string tag, string text) {
@@ -272,11 +271,33 @@ namespace PPR.LuaConsole.GUI {
             button.selected = selected;
         }
 
+        public static void SetButtonsSelected(string tag, bool selected) {
+            foreach(UIElement element in PPR.GUI.UI.currentLayout.elements.Values
+                .Where(elem => elem.tags.Contains(tag))) {
+                if(element is Button button)
+                    button.selected = selected;
+            }
+        }
+
+        public static bool GetElementEnabled(string id) {
+            if(!PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out UIElement element))
+                throw new ArgumentException($"Element {id} doesn't exist.");
+
+            return element.enabled;
+        }
+
         public static void SetElementEnabled(string id, bool enabled) {
             if(!PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out UIElement element))
                 throw new ArgumentException($"Element {id} doesn't exist.");
 
             element.enabled = enabled;
+        }
+
+        public static void SetElementsEnabled(string tag, bool enabled) {
+            foreach(UIElement element in PPR.GUI.UI.currentLayout.elements.Values
+                .Where(elem => elem.tags.Contains(tag))) {
+                element.enabled = enabled;
+            }
         }
 
         public static string GetLevelNameFromButton(string id) {
