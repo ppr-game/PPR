@@ -48,6 +48,7 @@ namespace PPR.Main {
             UserData.RegisterType<Color>();
             UserData.RegisterType<RenderCharacter>();
             UserData.RegisterType<SoundStatus>();
+            UserData.RegisterType<Bounds>();
         }
         
         public static void ClearScript() {
@@ -102,7 +103,7 @@ namespace PPR.Main {
 
                 script.Options.DebugPrint = message => {
                     Console.WriteLine(message);
-                    logger.Debug(message);
+                    logger.Info(message);
                 };
                 
                 script.DoFile(path);
@@ -184,6 +185,11 @@ namespace PPR.Main {
 
             script.Globals["alignment"] = UserData.CreateStatic<Renderer.Alignment>();
             script.Globals["soundStatus"] = UserData.CreateStatic<SoundStatus>();
+
+            script.Options.DebugPrint = message => {
+                Console.WriteLine(message);
+                logger.Info(message);
+            };
             
             script.Globals["vector2i"] = (Func<int, int, Vector2i>)((x, y) => new Vector2i(x, y));
             script.Globals["vector2f"] = (Func<float, float, Vector2f>)((x, y) => new Vector2f(x, y));

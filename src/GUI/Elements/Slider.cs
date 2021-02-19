@@ -37,12 +37,9 @@ namespace PPR.GUI.Elements {
         public string leftText { get; set; }
         public string rightText { get; set; }
         public List<Closure> onValueChange { get; set; }
-        private Color idleColor => ColorScheme.TryGetColor($"slider_{id}_idle") ??
-            (tags != null && tags.Count > 0 ? ColorScheme.GetColor($"slider_@{tags[0]}_idle") : Color.Transparent);
-        private Color hoverColor => ColorScheme.TryGetColor($"slider_{id}_hover") ??
-            (tags != null && tags.Count > 0 ? ColorScheme.GetColor($"slider_@{tags[0]}_hover") : Color.Transparent);
-        private Color clickColor => ColorScheme.TryGetColor($"slider_{id}_click") ??
-            (tags != null && tags.Count > 0 ? ColorScheme.GetColor($"slider_@{tags[0]}_click") : Color.Transparent);
+        private Color idleColor => GetColor("idle");
+        private Color hoverColor => GetColor("hover");
+        private Color clickColor => GetColor("click");
         public Alignment align { get; set; }
         public bool swapTexts { get; set; }
         public State currentState { get; private set; } = State.Clicked;

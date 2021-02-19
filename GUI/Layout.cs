@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,22 +8,44 @@ using PPR.GUI.Elements;
 
 namespace PPR.GUI {
     public class Layout {
-        public ConcurrentDictionary<string, UIElement> elements { get; }
+        public IReadOnlyDictionary<string, UIElement> elements => _elements;
         public Script script { get; }
+
+        private readonly Dictionary<string, UIElement> _elements = new Dictionary<string, UIElement>();
+        private readonly Dictionary<string, int> _elementIndices = new Dictionary<string, int>();
+        private readonly Dictionary<int, string> _elementKeys = new Dictionary<int, string>();
         
-        public Layout(ConcurrentDictionary<string, UIElement> elements, Script script) {
-            this.elements = elements;
-            this.script = script;
+        public Layout(Script script) => this.script = script;
 
-            foreach((string _, UIElement element) in elements) RegisterElementEvents(element, script);
+        public void AddElement(string id, UIElement element) {
+            if(_elements.ContainsKey(id)) return;
+            
+            _elements.Add(id, element);
+            _elementIndices.Add(id, _elementIndices.Count);
+            _elementKeys.Add(_elementKeys.Count, id);
+            RegisterElementEvents(element, script);
         }
 
-        public void RegisterElementEvents(string uid) {
-            if(elements.TryGetValue(uid, out UIElement element)) RegisterElementEvents(element, script);
-            else throw new ArgumentException($"The element with UID {uid} doesn't exist.");
+        public void RemoveElement(string id) {
+            if(!_elements.ContainsKey(id)) return;
+            
+            _elements.Remove(id);
+            _elementKeys.Remove(_elementIndices[id]);
+            _elementIndices.Remove(id);
         }
 
-        public static void RegisterElementEvents(UIElement element, Script script) {
+        public void RemoveElement(int index) {
+            if(!_elementKeys.ContainsKey(index)) return;
+            
+            string id = _elementKeys[index];
+            RemoveElement(id);
+        }
+
+        public UIElement GetElement(string id) => _elements[id];
+
+        public UIElement GetElement(int index) => GetElement(_elementKeys[index]);
+
+        private static void RegisterElementEvents(UIElement element, Script script) {
             string safeId = element.id.Replace('.', '_');
 
             switch(element) {
@@ -36,6 +57,10 @@ namespace PPR.GUI {
                 case Slider slider: {
                     slider.onValueChange =
                         GetElementEventClosures(script, slider.type, safeId, slider.tags, "onValueChange");
+                    break;
+                }
+                case Mask mask: {
+                    mask.onScroll = GetElementEventClosures(script, mask.type, safeId, mask.tags, "onScroll");
                     break;
                 }
             }
@@ -70,6 +95,6 @@ namespace PPR.GUI {
             return closures;
         }
 
-        public bool IsElementEnabled(string id) => elements.TryGetValue(id, out UIElement game) && game.enabled;
+        public bool IsElementEnabled(string id) => _elements.TryGetValue(id, out UIElement game) && game.enabled;
     }
 }

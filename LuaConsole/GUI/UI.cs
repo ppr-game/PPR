@@ -227,11 +227,19 @@ namespace PPR.LuaConsole.GUI {
                !PPR.GUI.UI.currentLayout.elements.TryGetValue(parent, out useParent))
                 throw new ArgumentException($"Element {parent} doesn't exist.");
             
-            PPR.GUI.UI.currentLayout.elements.TryRemove(id, out _);
-            PPR.GUI.UI.currentLayout.elements.TryAdd(id,
-                new Panel(id, tags, new Vector2i(x, y), new Vector2i(width, height), new Vector2f(anchorX, anchorY),
-                    useParent));
-            PPR.GUI.UI.currentLayout.RegisterElementEvents(id);
+            PPR.GUI.UI.currentLayout.AddElement(id, new Panel(id, tags, new Vector2i(x, y), new Vector2i(width, height),
+                new Vector2f(anchorX, anchorY), useParent));
+        }
+
+        public static void CreateMask(string id, List<string> tags, int x, int y, int width, int height,
+            float anchorX, float anchorY, string parent, bool exclusive) {
+            UIElement useParent = null;
+            if(!string.IsNullOrWhiteSpace(parent) &&
+               !PPR.GUI.UI.currentLayout.elements.TryGetValue(parent, out useParent))
+                throw new ArgumentException($"Element {parent} doesn't exist.");
+            
+            PPR.GUI.UI.currentLayout.AddElement(id, new Mask(id, tags, new Vector2i(x, y), new Vector2i(width, height),
+                new Vector2f(anchorX, anchorY), useParent, exclusive));
         }
 
         public static void CreateText(string id, List<string> tags, int x, int y, float anchorX, float anchorY,
@@ -241,11 +249,8 @@ namespace PPR.LuaConsole.GUI {
                !PPR.GUI.UI.currentLayout.elements.TryGetValue(parent, out useParent))
                 throw new ArgumentException($"Element {parent} doesn't exist.");
 
-            PPR.GUI.UI.currentLayout.elements.TryRemove(id, out _);
-            PPR.GUI.UI.currentLayout.elements.TryAdd(id,
-                new Text(id, tags, new Vector2i(x, y), new Vector2f(anchorX, anchorY),
-                    useParent, text, align, replacingSpaces, invertOnDarkBackground));
-            PPR.GUI.UI.currentLayout.RegisterElementEvents(id);
+            PPR.GUI.UI.currentLayout.AddElement(id, new Text(id, tags, new Vector2i(x, y),
+                new Vector2f(anchorX, anchorY), useParent, text, align, replacingSpaces, invertOnDarkBackground));
         }
 
         public static void CreateButton(string id, List<string> tags, int x, int y, int width,
@@ -255,11 +260,8 @@ namespace PPR.LuaConsole.GUI {
                !PPR.GUI.UI.currentLayout.elements.TryGetValue(parent, out useParent))
                 throw new ArgumentException($"Element {parent} doesn't exist.");
             
-            PPR.GUI.UI.currentLayout.elements.TryRemove(id, out _);
-            PPR.GUI.UI.currentLayout.elements.TryAdd(id,
-                new Button(id, tags, new Vector2i(x, y), width, new Vector2f(anchorX, anchorY), useParent, text, null,
-                    align));
-            PPR.GUI.UI.currentLayout.RegisterElementEvents(id);
+            PPR.GUI.UI.currentLayout.AddElement(id, new Button(id, tags, new Vector2i(x, y), width,
+                new Vector2f(anchorX, anchorY), useParent, text, null, align));
         }
 
         public static void SetButtonSelected(string id, bool selected) {
@@ -300,6 +302,65 @@ namespace PPR.LuaConsole.GUI {
             }
         }
 
+        public static Vector2i GetElementPosition(string id) {
+            if(!PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out UIElement element))
+                throw new ArgumentException($"Element {id} doesn't exist.");
+
+            return element.position;
+        }
+
+        public static Vector2i GetElementGlobalPosition(string id) {
+            if(!PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out UIElement element))
+                throw new ArgumentException($"Element {id} doesn't exist.");
+
+            return element.globalPosition;
+        }
+
+        public static Vector2i GetElementSize(string id) {
+            if(!PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out UIElement element))
+                throw new ArgumentException($"Element {id} doesn't exist.");
+
+            return element.size;
+        }
+
+        public static void SetElementSize(string id, int width, int height) {
+            if(!PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out UIElement element))
+                throw new ArgumentException($"Element {id} doesn't exist.");
+
+            element.size = new Vector2i(width, height);
+        }
+
+        public static void ChangeElementSize(string id, int width, int height) {
+            if(!PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out UIElement element))
+                throw new ArgumentException($"Element {id} doesn't exist.");
+
+            element.size += new Vector2i(width, height);
+        }
+
+        public static Bounds GetElementBounds(string id) {
+            if(!PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out UIElement element))
+                throw new ArgumentException($"Element {id} doesn't exist.");
+
+            return element.bounds;
+        }
+
+        public static void MoveElement(string id, int x, int y) {
+            if(!PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out UIElement element))
+                throw new ArgumentException($"Element {id} doesn't exist.");
+
+            element.position += new Vector2i(x, y);
+        }
+
+        public static void MoveElements(string tag, int x, int y) {
+            Vector2i moveVector = new Vector2i(x, y);
+            foreach(UIElement element in PPR.GUI.UI.currentLayout.elements.Values
+                .Where(elem => elem.tags.Contains(tag))) {
+                element.position += moveVector;
+            }
+        }
+
+        public static bool ElementExists(string id) => PPR.GUI.UI.currentLayout.elements.ContainsKey(id);
+
         public static string GetLevelNameFromButton(string id) {
             if(!PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out UIElement element))
                 throw new ArgumentException($"Element {id} doesn't exist.");
@@ -314,7 +375,7 @@ namespace PPR.LuaConsole.GUI {
             return null;
         }
 
-        public static (string, string) GetLevelAndDiffNamesFromButton(string id) {
+        public static DynValue GetLevelAndDiffNamesFromButton(string id) {
             if(!PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out UIElement element))
                 throw new ArgumentException($"Element {id} doesn't exist.");
             if(!(element is Button button))
@@ -324,35 +385,40 @@ namespace PPR.LuaConsole.GUI {
             foreach((string levelName, LevelSelectLevel level) in PPR.GUI.UI.levelSelectLevels) {
                 foreach((string diffName, LevelSelectDiff diff) in level.diffs)
                     if(diff.button == button)
-                        return (levelName, diffName);
-
-                return (levelName, null);
+                        return DynValue.NewTuple(DynValue.NewString(levelName), DynValue.NewString(diffName));
             }
 
-            return (null, null);
+            return DynValue.NewTuple(DynValue.Nil, DynValue.Nil);
         }
 
-        public static (string, string, string, string, bool, string, string)
-            GetLevelMetadata(string levelName, string diffName) {
+        public static DynValue GetLevelMetadata(string levelName, string diffName) {
             if(!PPR.GUI.UI.levelSelectLevels.TryGetValue(levelName, out LevelSelectLevel level))
                 throw new ArgumentException($"Level {levelName} doesn't exist.");
-            if(!level.diffs.TryGetValue(levelName, out LevelSelectDiff diff))
-                throw new ArgumentException($"Difficulty {diff} doesn't exist in level {levelName}.");
+            if(!level.diffs.TryGetValue(diffName, out LevelSelectDiff diff))
+                throw new ArgumentException($"Difficulty {diffName} doesn't exist in level {levelName}.");
 
             bool lua = File.Exists(Path.Join("levels", levelName, "script.lua")) ||
                        File.Exists(Path.Join("levels", levelName, $"{diffName}.lua"));
-            return (diff.metadata.length, diff.metadata.displayDifficulty, diff.metadata.bpm, diff.metadata.author, lua,
-                diff.metadata.objectCount.ToString(), diff.metadata.speedsCount.ToString());
+
+            return DynValue.NewTuple(DynValue.NewString(diff.metadata.length),
+                DynValue.NewString(diff.metadata.displayDifficulty),
+                DynValue.NewString(diff.metadata.bpm),
+                DynValue.NewString(diff.metadata.author),
+                DynValue.NewBoolean(lua),
+                DynValue.NewString(diff.metadata.objectCount.ToString()),
+                DynValue.NewString(diff.metadata.speedsCount.ToString())
+            );
         }
 
-        public static List<(string, string, string, string[])> GetLevelScores(string levelName, string diffName) {
+        public static List<DynValue> GetLevelScores(Script script, string levelName, string diffName) {
             if(!PPR.GUI.UI.levelSelectLevels.TryGetValue(levelName, out LevelSelectLevel level))
                 throw new ArgumentException($"Level {levelName} doesn't exist.");
-            if(!level.diffs.TryGetValue(levelName, out LevelSelectDiff diff))
-                throw new ArgumentException($"Difficulty {diff} doesn't exist in level {levelName}.");
+            if(!level.diffs.TryGetValue(diffName, out LevelSelectDiff diff))
+                throw new ArgumentException($"Difficulty {diffName} doesn't exist in level {levelName}.");
 
-            return diff.scores.Select(score => (score.scoreStr, score.accuracyStr, score.maxComboStr,
-                score.scores.Select(sc => sc.ToString()).ToArray())).ToList();
+            return diff.scores.Select(score => DynValue.NewTable(script, DynValue.NewString(score.scoreStr),
+                DynValue.NewString(score.accuracyStr), DynValue.NewString(score.maxComboStr),
+                DynValue.FromObject(script, score.scores.Select(sc => sc.ToString()).ToArray()))).ToList();
         }
     }
 }

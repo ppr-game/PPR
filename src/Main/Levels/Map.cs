@@ -189,17 +189,18 @@ namespace PPR.Main.Levels {
             lines[4] = $"{hpDrain}:{hpRestorage}:{diff}:{author}:{linesFreq}:{musicOffset}";
             return string.Join('\n', lines);
         }
-        public static List<LevelScore> ScoresFromLines(string[] lines, Vector2i position) {
+        
+        public static List<LevelScore> ScoresFromLines(string[] lines) {
             List<LevelScore> list = new List<LevelScore>();
             for(int i = 0; i < lines.Length; i++) {
                 string[] data = lines[i].Split(':');
-                list.Add(new LevelScore(new Vector2i(position.X, position.Y + i * 4), int.Parse(data[0]),
-                    int.Parse(data[1]), int.Parse(data[2]),
+                list.Add(new LevelScore(int.Parse(data[0]), int.Parse(data[1]), int.Parse(data[2]),
                     new int[] { int.Parse(data[3]), int.Parse(data[4]), int.Parse(data[5]) }));
             }
 
             return list;
         }
+        
         // ReSharper disable once MemberCanBePrivate.Global
         public static string TextFromScore(LevelScore score) => string.Join(':',
             new int[] {

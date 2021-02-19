@@ -686,7 +686,7 @@ namespace PPR.Main {
         }
 
         public static void MouseWheelScrolled(object caller, MouseWheelScrollEventArgs scroll) {
-            if(UI.currentLayout.IsElementEnabled("levelSelect")) {
+            /*if(UI.currentLayout.IsElementEnabled("levelSelect")) {
                 Vector2i mousePos = Core.renderer.mousePosition;
                 if(mousePos.Y >= 12 && mousePos.Y <= 49) {
                     if(mousePos.X >= 28 && mousePos.X <= 51) {
@@ -724,7 +724,7 @@ namespace PPR.Main {
                     }
                 }
             }
-            else if(editing && UI.currentLayout.IsElementEnabled("game")) ScrollTime((int)scroll.Delta);
+            else */if(editing && UI.currentLayout.IsElementEnabled("game")) ScrollTime((int)scroll.Delta);
         }
 
         public static void ScrollTime(int delta) {
@@ -805,7 +805,7 @@ namespace PPR.Main {
         public static void GenerateLevelList() {
             foreach((string id, UIElement _) in UI.currentLayout.elements.Where(
                 elem => elem.Value.parent?.id == "levelSelect.levels")) {
-                UI.currentLayout.elements.TryRemove(id, out UIElement _);
+                UI.currentLayout.RemoveElement(id);
             }
 
             RescanCreatedLevels();
@@ -841,8 +841,8 @@ namespace PPR.Main {
 
                     string scoresPath = diffName == "level" ? Path.Join("scores", $"{levelName}.txt") :
                         Path.Join("scores", $"{levelName}", $"{diffName}.txt");
-                    //diff.scores = Map.ScoresFromLines(
-                    //    File.Exists(scoresPath) ? File.ReadAllLines(scoresPath) : Array.Empty<string>(), UI.scoresPos);
+                    diff.scores = Map.ScoresFromLines(File.Exists(scoresPath) ? File.ReadAllLines(scoresPath) :
+                        Array.Empty<string>());
 
                     #endregion
                     
@@ -869,6 +869,13 @@ namespace PPR.Main {
                 logger.Info("Loaded diffs for level '{0}', total diffs count: {1}", levelName, level.diffs.Count);
                 
                 UI.levelSelectLevels.Add(levelName, level);
+
+                foreach((string difficultyName, LevelSelectDiff _) in sortedDiffs) {
+                    Lua.SendMessageToConsoles("generateLevelSelectMetadata", DynValue.NewString(levelName),
+                        DynValue.NewString(difficultyName));
+                    Lua.SendMessageToConsoles("generateLevelSelectScores", DynValue.NewString(levelName),
+                        DynValue.NewString(difficultyName));
+                }
             }
 
             logger.Info("Loaded levels, total level count: {0}", UI.levelSelectLevels.Count);

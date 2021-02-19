@@ -49,10 +49,9 @@ namespace PPR {
                 }
 
                 Lua.ScriptSetup();
+                Bindings.Reload();
                 SubscribeEvents();
                 renderer.onWindowRecreated += (_, __) => SubscribeEvents();
-                Bindings.Reload();
-                ColorScheme.Reload();
                 SoundManager.ReloadSounds();
 
                 Game.Start(); // Start the game

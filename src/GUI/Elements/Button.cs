@@ -38,12 +38,9 @@ namespace PPR.GUI.Elements {
 
         public List<Closure> onClick { get; set; }
         public List<Closure> onHover { get; set; }
-        private Color idleColor => ColorScheme.TryGetColor($"button_{id}_idle") ??
-            (tags != null && tags.Count > 0 ? ColorScheme.GetColor($"button_@{tags[0]}_idle") : Color.Transparent);
-        private Color hoverColor => ColorScheme.TryGetColor($"button_{id}_hover") ??
-            (tags != null && tags.Count > 0 ? ColorScheme.GetColor($"button_@{tags[0]}_hover") : Color.Transparent);
-        private Color clickColor => ColorScheme.TryGetColor($"button_{id}_click") ??
-            (tags != null && tags.Count > 0 ? ColorScheme.GetColor($"button_@{tags[0]}_click") : Color.Transparent);
+        private Color idleColor => GetColor("idle");
+        private Color hoverColor => GetColor("hover");
+        private Color clickColor => GetColor("click");
         public State currentState { get; private set; } = State.Hovered;
         public State prevFrameState { get; private set; } = State.Hovered;
         public bool selected = false;

@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 using PRR;
 
+using SFML.Graphics;
 using SFML.System;
 
 namespace PPR.GUI.Elements {
@@ -17,25 +18,30 @@ namespace PPR.GUI.Elements {
 
         public string id { get; }
         public List<string> tags { get; }
+
         public virtual Vector2i position { get; set; }
-        
-        public Vector2i globalPosition {
+
+        public Vector2i globalPosition =>
             // what the actual fuck, when i write `parent?.globalPosition.Y ?? 0` it says that Y can never be null
             // but when i write it as `parent == null ? 0 : parent.globalPosition.Y` it suggests me to write it as
             // `parent?.globalPosition.Y ?? 0` and continues to display the same warning
-            get => new Vector2i(
-                // ReSharper disable once MergeConditionalExpression
-                (parent == null ? (int)(Core.renderer.width * anchor.X) : parent.globalPosition.X) + position.X +
-                (int)((parent?.size.X ?? 0) * anchor.X),
-                // ReSharper disable once MergeConditionalExpression
-                (parent == null ? (int)(Core.renderer.height * anchor.Y) : parent.globalPosition.Y) + position.Y +
-                (int)((parent?.size.Y ?? 0) * anchor.Y));
-            set => position = new Vector2i(
-                value.X - position.X - (int)((parent?.size.X ?? 0) * anchor.X),
-                value.Y - position.Y - (int)((parent?.size.Y ?? 0) * anchor.Y));
-        }
+            new Vector2i(
+            // ReSharper disable once MergeConditionalExpression
+            (parent == null ? (int)(Core.renderer.width * anchor.X) : parent.globalPosition.X) + position.X +
+            (int)((parent?.size.X ?? 0) * anchor.X),
+            // ReSharper disable once MergeConditionalExpression
+            (parent == null ? (int)(Core.renderer.height * anchor.Y) : parent.globalPosition.Y) + position.Y +
+            (int)((parent?.size.Y ?? 0) * anchor.Y));
 
         public virtual Vector2i size { get; set; }
+        
+        public virtual Bounds bounds {
+            get {
+                Vector2i start = globalPosition;
+                return new Bounds(start, start + size);
+            }
+        }
+
         public virtual Vector2f anchor { get; set; }
 
         public virtual UIElement parent {
@@ -104,6 +110,19 @@ namespace PPR.GUI.Elements {
                 _checkAnimation = false;
             }
             else if(animationPlaying && animationEndState) enabled = true;
+        }
+
+        protected Color GetColor(string colorName) {
+            Color? color = ColorScheme.TryGetColor($"{type}_{id}_{colorName}");
+
+            if(color != null) return (Color)color;
+
+            for(int i = tags.Count - 1; i >= 0; i--) {
+                color = ColorScheme.TryGetColor($"{type}_@{tags[i]}_{colorName}");
+                if(color != null) return (Color)color;
+            }
+
+            return Color.Transparent;
         }
     }
 }

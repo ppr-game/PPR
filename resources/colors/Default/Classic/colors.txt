@@ -64,6 +64,11 @@ button_@levelSelect.level_click=gray
 button_@levelSelect.difficulty_idle=background
 button_@levelSelect.difficulty_hover=foreground
 button_@levelSelect.difficulty_click=gray
+text_@levelSelect.metadata_fg=foreground
+text_@levelSelect.metadata_bg=background
+text_@levelSelect.metadata.lua_fg=blue
+text_@levelSelect.score_fg=foreground
+text_@levelSelect.score_bg=background
 
 good=green
 ok=yellow

@@ -28,50 +28,22 @@ namespace PPR.Main.Levels {
     }
     
     public struct LevelScore {
-        public Vector2i scorePosition;
         public readonly int score;
         public readonly string scoreStr;
-        public Vector2i accComboPosition;
         public readonly int accuracy;
         public readonly int maxCombo;
         public readonly string accuracyStr;
-        public Color accuracyColor;
-        public Vector2i accComboDividerPosition;
-        public Vector2i maxComboPosition;
         public readonly string maxComboStr;
-        public Color maxComboColor;
-        public Vector2i scoresPosition;
         public readonly int[] scores;
-        public Vector2i linePosition;
 
-        public LevelScore(Vector2i position, int score, int accuracy, int maxCombo, int[] scores) {
-            scorePosition = position;
+        public LevelScore(int score, int accuracy, int maxCombo, int[] scores) {
             this.score = score;
-            scoreStr = $"SCORE: {score.ToString()}";
-            accComboPosition = new Vector2i(position.X, position.Y + 1);
+            scoreStr = score.ToString();
             this.accuracy = accuracy;
             this.maxCombo = maxCombo;
-            accuracyStr = $"{accuracy.ToString()}%";
-            accuracyColor = ScoreManager.GetAccuracyColor(accuracy);
-            accComboDividerPosition = accComboPosition + new Vector2i(accuracyStr.Length, 0);
-            maxComboPosition = accComboDividerPosition + new Vector2i(1, 0);
-            maxComboStr = $"{maxCombo.ToString()}x";
-            maxComboColor = ScoreManager.GetComboColor(accuracy, scores[0]);
-            scoresPosition = new Vector2i(position.X, position.Y + 2);
+            accuracyStr = accuracy.ToString();
+            maxComboStr = maxCombo.ToString();
             this.scores = scores;
-            linePosition = new Vector2i(position.X - 1, position.Y + 3);
-        }
-        
-        public LevelScore(int score, int accuracy, int maxCombo, int[] scores) : this(new Vector2i(), score, accuracy,
-            maxCombo, scores) { }
-        
-        public void Move(Vector2i by) {
-            scorePosition += by;
-            accComboPosition += by;
-            accComboDividerPosition += by;
-            maxComboPosition += by;
-            scoresPosition += by;
-            linePosition += by;
         }
     }
     

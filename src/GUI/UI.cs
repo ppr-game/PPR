@@ -139,9 +139,10 @@ namespace PPR.GUI {
             Lua.InitializeConsole(script);
             script.DoFile(scriptPath);
             
+            currentLayout = new Layout(script);
+            
             Dictionary<string, DeserializedUIElement> layout =
                 JsonConvert.DeserializeObject<Dictionary<string, DeserializedUIElement>>(File.ReadAllText(layoutPath));
-            ConcurrentDictionary<string, UIElement> elements = new ConcurrentDictionary<string, UIElement>();
             foreach((string id, DeserializedUIElement elem) in layout) {
                 string type = elem.type ?? "panel";
 
@@ -156,7 +157,7 @@ namespace PPR.GUI {
                 Vector2f anchor = anchorDict == null ? new Vector2f() :
                     new Vector2f(anchorDict.GetValueOrDefault("x", 0f), anchorDict.GetValueOrDefault("y", 0f));
                 string parentId = elem.parent ?? string.Join('.', id.Split('.').SkipLast(1).ToArray());
-                UIElement parent = elements.GetValueOrDefault(parentId, null);
+                UIElement parent = currentLayout.elements.GetValueOrDefault(parentId, null);
                 string text = elem.path == null ? elem.text : File.ReadAllText(Path.Join(path, elem.path));
                 Alignment align = (elem.align ?? "left") switch {
                     "right" => Alignment.Right,
@@ -184,10 +185,8 @@ namespace PPR.GUI {
                     _ => null
                 };
 
-                if(element != null) elements.TryAdd(id, element);
+                if(element != null) currentLayout.AddElement(id, element);
             }
-                
-            currentLayout = new Layout(elements, script);
         }
 
         public static void AnimateElement(UIElement element, string animation, float delay, float time,
@@ -707,8 +706,9 @@ namespace PPR.GUI {
                     break;
             }*/
 
-            // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-            foreach((string _, UIElement element) in currentLayout.elements) {
+            for(int i = 0; i < currentLayout.elements.Count; i++) {
+                UIElement element = currentLayout.GetElement(i);
+                
                 element.Update();
                 if(element.enabled) element.Draw();
             }

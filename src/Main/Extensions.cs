@@ -32,7 +32,12 @@ namespace PPR.Main {
         }
     }
     public static class Vector2i_Extensions {
-        public static bool InBounds(this Vector2i vector, int minX, int minY, int maxX, int maxY) => vector.X >= minX && vector.X <= maxX && vector.Y >= minY && vector.Y <= maxY;
+        public static bool InBounds(this Vector2i vector, int minX, int minY, int maxX, int maxY) =>
+            vector.X >= minX && vector.X <= maxX && vector.Y >= minY && vector.Y <= maxY;
+        public static bool InBounds(this Vector2i vector, Vector2i min, Vector2i max) =>
+            InBounds(vector, min.X, min.Y, max.X, max.Y);
+        public static bool InBounds(this Vector2i vector, Bounds bounds) =>
+            InBounds(vector, bounds.min, bounds.max);
     }
     public static class Renderer_Extensions {
         public static void UpdateFramerateSetting(this Renderer renderer) => renderer.SetFramerateSetting(Settings.GetInt("fpsLimit"));
