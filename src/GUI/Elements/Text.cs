@@ -41,9 +41,24 @@ namespace PPR.GUI.Elements {
 
         public override void Draw() {
             base.Draw();
-            
-            Core.renderer.DrawLines(globalPosition, lines, foregroundColor, backgroundColor, align, replacingSpaces,
-                invertOnDarkBackground, animationModifier);
+
+            if(mask == null)
+                Core.renderer.DrawLines(globalPosition, lines, foregroundColor, backgroundColor, align, replacingSpaces,
+                    invertOnDarkBackground, animationModifier);
+            else {
+                Vector2i pos = globalPosition;
+                Bounds maskBounds = mask.bounds;
+                int minY = Math.Max(0, maskBounds.min.Y - pos.Y);
+                int maxY = Math.Min(lines.Length, maskBounds.max.Y - pos.Y);
+                for(int y = minY; y < maxY; ++y) {
+                    string line = lines[y];
+                    int minX = Math.Max(0, maskBounds.min.X - pos.X);
+                    int maxX = Math.Min(line.Length, maskBounds.max.X - pos.X - minX);
+                    Core.renderer.DrawText(pos + new Vector2i(minX, y), line.Substring(minX, maxX),
+                        foregroundColor, backgroundColor, align, replacingSpaces, invertOnDarkBackground,
+                        animationModifier);
+                }
+            }
         }
     }
 }

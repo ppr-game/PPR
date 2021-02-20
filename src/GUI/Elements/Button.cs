@@ -86,9 +86,24 @@ namespace PPR.GUI.Elements {
                 Alignment.Center => (int)MathF.Floor(text.Length / 2f),
                 _ => 0
             };
-            bool onButton = Core.renderer.mousePosition.InBounds(_posX, globalPosition.Y, _posX + width - 1, globalPosition.Y);
-            bool wasOnButton = UI.LineSegmentIntersection(UI.prevMousePosition, Core.renderer.mousePosition,
-                new Vector2i(_posX, globalPosition.Y), new Vector2i(_posX + width - 1, globalPosition.Y));
+            bool onButton;
+            bool wasOnButton;
+            if(mask == null) {
+                onButton =
+                    Core.renderer.mousePosition.InBounds(_posX, globalPosition.Y, _posX + width - 1, globalPosition.Y);
+                wasOnButton = UI.LineSegmentIntersection(UI.prevMousePosition, Core.renderer.mousePosition,
+                    new Vector2i(_posX, globalPosition.Y), new Vector2i(_posX + width - 1, globalPosition.Y));
+            }
+            else {
+                Bounds maskBounds = mask.bounds;
+                Vector2i minBound = new Vector2i(Math.Max(_posX, maskBounds.min.X),
+                    Math.Max(globalPosition.Y, maskBounds.min.Y));
+                Vector2i maxBound = new Vector2i(Math.Min(_posX + width - 1, maskBounds.max.X),
+                    Math.Min(globalPosition.Y, maskBounds.max.Y));
+                onButton = Core.renderer.mousePosition.InBounds(minBound, maxBound);
+                wasOnButton = UI.LineSegmentIntersection(UI.prevMousePosition, Core.renderer.mousePosition,
+                    minBound, maxBound);
+            }
             return wasOnButton || _prevFrameHotkeyPressed ?
                 Core.renderer.leftButtonPressed && onButton || _hotkeyPressed ? State.Clicked : State.Hovered :
                 selected ? State.Selected : State.Idle;
@@ -99,9 +114,23 @@ namespace PPR.GUI.Elements {
 
             Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> useAnimationModifier = animationModifier;
             
-            if(text != null)
-                Core.renderer.DrawText(globalPosition, text.Substring(0, Math.Min(text.Length, width)), _align, false,
-                false, useAnimationModifier);
+            Vector2i globalPos = globalPosition;
+            
+            if(text != null) {
+                if(mask == null) {
+                    Core.renderer.DrawText(globalPos, text.Substring(0, Math.Min(text.Length, width)), _align,
+                        false, false, useAnimationModifier);
+                }
+                else {
+                    Bounds maskBounds = mask.bounds;
+                    if(globalPos.Y >= maskBounds.min.Y && globalPos.Y <= maskBounds.max.Y) {
+                        int minX = Math.Max(0, maskBounds.min.X - globalPos.X);
+                        int maxX = Math.Min(text.Length, maskBounds.max.X - globalPos.X - minX);
+                        Core.renderer.DrawText(globalPos + new Vector2i(minX, 0), text.Substring(minX, maxX),
+                            _align, false, false, useAnimationModifier);
+                    }
+                }
+            }
 
             UpdateState();
             _animTime = (float)(DateTime.UtcNow - _animStartTime).TotalSeconds;
@@ -122,7 +151,12 @@ namespace PPR.GUI.Elements {
             }
 
             for(int x = 0; x < width; x++) {
-                Vector2i pos = new Vector2i(_posX + x, globalPosition.Y);
+                Vector2i pos = new Vector2i(_posX + x, globalPos.Y);
+                if(mask != null) {
+                    Bounds maskBounds = mask.bounds;
+                    if(pos.X < maskBounds.min.X || pos.X > maskBounds.max.X ||
+                       pos.Y < maskBounds.min.Y || pos.Y > maskBounds.max.Y) break;
+                }
                 Color foreground = Renderer.AnimateColor(_animTime, _currentColor,
                     currentState == State.Idle ? hoverColor : idleColor, 4f + _animRateOffsets[x]);
                 Color background =

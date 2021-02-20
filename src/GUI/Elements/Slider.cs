@@ -86,21 +86,63 @@ namespace PPR.GUI.Elements {
         private State DrawBase(Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> modifier) {
             string leftText = $"{(swapTexts ? this.rightText : this.leftText).Replace("[value]", value.ToString())} ";
             string rightText = (swapTexts ? this.leftText : this.rightText).Replace("[value]", value.ToString());
-            _posX = globalPosition.X - align switch {
+            Vector2i globalPos = globalPosition;
+            _posX = globalPos.X - align switch {
                 Alignment.Right => width + rightText.Length + 1,
                 Alignment.Center => (int)MathF.Ceiling(width / 2f),
                 _ => -leftText.Length
             };
-            if(leftText != "")
-                Core.renderer.DrawText(new Vector2i(_posX - leftText.Length, globalPosition.Y), leftText, hoverColor,
-                    idleColor, Alignment.Left, false, false, modifier);
-            if(rightText != "")
-                Core.renderer.DrawText(new Vector2i(_posX + width + 1, globalPosition.Y), rightText, hoverColor,
-                    idleColor, Alignment.Left, false, false, modifier);
+            if(leftText != "") {
+                if(mask == null) {
+                    Core.renderer.DrawText(new Vector2i(_posX - leftText.Length, globalPos.Y), leftText, hoverColor,
+                        idleColor, Alignment.Left, false, false, modifier);
+                }
+                else {
+                    Bounds maskBounds = mask.bounds;
+                    Vector2i textPos = new Vector2i(_posX - leftText.Length, globalPos.Y);
+                    if(textPos.Y >= maskBounds.min.Y && textPos.Y <= maskBounds.max.Y) {
+                        int minX = Math.Max(0, maskBounds.min.X - textPos.X);
+                        int maxX = Math.Min(leftText.Length, maskBounds.max.X - textPos.X - minX);
+                        Core.renderer.DrawText(textPos + new Vector2i(minX, 0), leftText.Substring(minX, maxX),
+                            hoverColor, idleColor, Alignment.Left, false, false, modifier);
+                    }
+                }
+            }
+            if(rightText != "") {
+                if(mask == null) {
+                    Core.renderer.DrawText(new Vector2i(_posX + width + 1, globalPos.Y), rightText, hoverColor,
+                        idleColor, Alignment.Left, false, false, modifier);
+                }
+                else {
+                    Bounds maskBounds = mask.bounds;
+                    Vector2i textPos = new Vector2i(_posX + width + 1, globalPos.Y);
+                    if(textPos.Y >= maskBounds.min.Y && textPos.Y <= maskBounds.max.Y) {
+                        int minX = Math.Max(0, maskBounds.min.X - textPos.X);
+                        int maxX = Math.Min(rightText.Length, maskBounds.max.X - textPos.X - minX);
+                        Core.renderer.DrawText(textPos + new Vector2i(minX, 0), rightText.Substring(minX, maxX),
+                            hoverColor, idleColor, Alignment.Left, false, false, modifier);
+                    }
+                }
+            }
 
-            bool onSlider = Core.renderer.mousePosition.InBounds(_posX, globalPosition.Y, _posX + width - 1, globalPosition.Y);
-            bool wasOnSlider = UI.LineSegmentIntersection(UI.prevMousePosition, Core.renderer.mousePosition,
-                new Vector2i(_posX, globalPosition.Y), new Vector2i(_posX + width - 1, globalPosition.Y));
+            bool onSlider;
+            bool wasOnSlider;
+            if(mask == null) {
+                onSlider =
+                    Core.renderer.mousePosition.InBounds(_posX, globalPos.Y, _posX + width - 1, globalPos.Y);
+                wasOnSlider = UI.LineSegmentIntersection(UI.prevMousePosition, Core.renderer.mousePosition,
+                    new Vector2i(_posX, globalPos.Y), new Vector2i(_posX + width - 1, globalPos.Y));
+            }
+            else {
+                Bounds maskBounds = mask.bounds;
+                Vector2i minBound = new Vector2i(Math.Max(_posX, maskBounds.min.X),
+                    Math.Max(globalPos.Y, maskBounds.min.Y));
+                Vector2i maxBound = new Vector2i(Math.Min(_posX + width - 1, maskBounds.max.X),
+                    Math.Min(globalPos.Y, maskBounds.max.Y));
+                onSlider = Core.renderer.mousePosition.InBounds(minBound, maxBound);
+                wasOnSlider = UI.LineSegmentIntersection(UI.prevMousePosition, Core.renderer.mousePosition,
+                    minBound, maxBound);
+            }
             return wasOnSlider ? Core.renderer.leftButtonPressed && onSlider ? State.Clicked :
                 State.Hovered : State.Idle;
         }
@@ -127,6 +169,11 @@ namespace PPR.GUI.Elements {
 
             for(int x = 0; x < width; x++) {
                 Vector2i pos = new Vector2i(_posX + x, globalPosition.Y);
+                if(mask != null) {
+                    Bounds maskBounds = mask.bounds;
+                    if(pos.X < maskBounds.min.X || pos.X > maskBounds.max.X ||
+                       pos.Y < maskBounds.min.Y || pos.Y > maskBounds.max.Y) break;
+                }
                 int drawValue = (value - minValue) / step;
                 char curChar = '█';
                 if(x < drawValue) curChar = '─';

@@ -223,14 +223,14 @@ namespace PPR.LuaConsole.GUI {
         }
 
         public static Mask CreateMask(string id, List<string> tags, int x, int y, int width, int height,
-            float anchorX, float anchorY, string parent, bool exclusive) {
+            float anchorX, float anchorY, string parent) {
             UIElement useParent = null;
             if(!string.IsNullOrWhiteSpace(parent) &&
                !PPR.GUI.UI.currentLayout.elements.TryGetValue(parent, out useParent))
                 throw new ArgumentException($"Element {parent} doesn't exist.");
 
             Mask newMask = new Mask(id, tags, new Vector2i(x, y), new Vector2i(width, height),
-                new Vector2f(anchorX, anchorY), useParent, exclusive);
+                new Vector2f(anchorX, anchorY), useParent);
             PPR.GUI.UI.currentLayout.AddElement(id, newMask);
             return newMask;
         }

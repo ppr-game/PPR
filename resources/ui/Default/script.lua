@@ -109,6 +109,8 @@ function onBack(caller, args)
 			ui.animateElement(previousMenu, "fadeIn", 1/fadeOutSpeed, 1/fadeInSpeed, true)
 		end
 	end
+	firstLevelListName = nil
+	lastLevelListName = nil
 end
 for i, element in ipairs(ui.getElements("back")) do element.onClick.add(onBack) end
 
@@ -207,7 +209,7 @@ function generateLevelSelectScores(levelName, difficultyName)
 	
 		local baseY = (i - 1) * 4
 	
-		ui.createPanel(id, { tag, tag .. ".panel" }, 0, 0, 0, 4, 0, 0, parentId)
+		ui.createPanel(id, { tag, tag .. ".panel" }, 1, 0, 0, 4, 0, 0, parentId)
 		local sizeChangeVector = vector2i(0, 4)
 		if i == 1 then sizeChangeVector = vector2i(0, 3) end
 		parentElement.size = parentElement.size + sizeChangeVector
@@ -279,24 +281,30 @@ function scrollElements(maskId, movingTag, firstId, lastId, delta)
 end
 
 function levelsScrolled(caller, args)
-	local firstId = "levelSelect.levels.level." .. firstLevelListName
-	local lastId = "levelSelect.levels.level." .. lastLevelListName
-	if ui.elementExists(firstId) and ui.elementExists(lastId) then
-		scrollElements(args.id, "levelSelect.level", firstId, lastId, args.delta)
+	if firstLevelListName != nil and lastLevelListName != nil then
+		local firstId = "levelSelect.levels.level." .. firstLevelListName
+		local lastId = "levelSelect.levels.level." .. lastLevelListName
+		if ui.elementExists(firstId) and ui.elementExists(lastId) then
+			scrollElements(args.id, "levelSelect.level", firstId, lastId, args.delta)
+		end
 	end
 end
 ui.getElement("levelSelect.levels").onScroll.add(levelsScrolled)
 
 function difficultiesScrolled(caller, args)
-	scrollElement(args.id, "levelSelect.difficulties." .. ui.currentSelectedLevel .. ".difficulty." .. ui.currentSelectedDiff, args.delta)
+	if ui.currentSelectedLevel != nil and ui.currentSelectedDiff != nil then
+		scrollElement(args.id, "levelSelect.difficulties." .. ui.currentSelectedLevel .. ".difficulty." .. ui.currentSelectedDiff, args.delta)
+	end
 end
 ui.getElement("levelSelect.difficulties").onScroll.add(difficultiesScrolled)
 
 function scoresScrolled(called, args)
-	local movingId = "levelSelect.scores." .. ui.currentSelectedLevel .. ".difficulty." .. ui.currentSelectedDiff
-	scrollElement(args.id, movingId, args.delta)
-	for i, element in ipairs(ui.getElements(movingId .. ".divider")) do
-		if element.globalPosition.Y == 39 then element.text = "├───────────────────────┼" else element.text = "├───────────────────────┤" end
+	if ui.currentSelectedLevel != nil and ui.currentSelectedDiff != nil then
+		local movingId = "levelSelect.scores." .. ui.currentSelectedLevel .. ".difficulty." .. ui.currentSelectedDiff
+		scrollElement(args.id, movingId, args.delta)
+		for i, element in ipairs(ui.getElements(movingId .. ".divider")) do
+			if element.globalPosition.Y == 39 then element.text = "├───────────────────────┼" else element.text = "├───────────────────────┤" end
+		end
 	end
 end
 ui.getElement("levelSelect.scores").onScroll.add(scoresScrolled)

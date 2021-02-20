@@ -23,13 +23,24 @@ namespace PPR.GUI.Elements {
     
     public class Mask : Panel {
         public override string type => "mask";
-        
-        public bool exclusive { get; set; }
+
+        public override Bounds bounds {
+            get {
+                if(mask == null) return base.bounds;
+                Bounds parentBounds = mask.bounds;
+                Bounds baseBounds = base.bounds;
+                baseBounds = new Bounds(new Vector2i(
+                    Math.Max(baseBounds.min.X,parentBounds.min.X),
+                    Math.Max(baseBounds.min.Y, parentBounds.min.Y)), new Vector2i(
+                    Math.Max(baseBounds.max.X, parentBounds.max.X),
+                    Math.Max(baseBounds.max.Y, parentBounds.max.Y)));
+                return baseBounds;
+            }
+        }
         public event EventHandler<OnScrollEventArgs> onScroll;
 
         public Mask(string id, List<string> tags, Vector2i? position = null, Vector2i? size = null, Vector2f? anchor = null,
-            UIElement parent = null, bool exclusive = false) : base(id, tags, position, size, anchor, parent) {
-            this.exclusive = exclusive;
+            UIElement parent = null) : base(id, tags, position, size, anchor, parent) {
             OnScrollEventArgs onScrollArgs = new OnScrollEventArgs(id, 0f);
             Core.renderer.window.MouseWheelScrolled += (_, scroll) => {
                 if(!Core.renderer.mousePosition.InBounds(bounds)) return;
@@ -37,7 +48,5 @@ namespace PPR.GUI.Elements {
                 onScroll?.Invoke(this, onScrollArgs);
             };
         }
-
-        // TODO: implement masks
     }
 }
