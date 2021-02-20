@@ -58,7 +58,8 @@ namespace PPR.GUI.Elements {
 
         private readonly OnValueChangeEventArgs _onValueChangeArgs;
         private int _value;
-        private readonly float[] _animTimes;
+        private DateTime _animStartTime;
+        private float _animTime;
         private readonly float[] _animRateOffsets;
         private State _prevState = State.Hovered;
         private Color _currentColor;
@@ -78,12 +79,11 @@ namespace PPR.GUI.Elements {
             this.rightText = rightText;
             this.align = align;
             this.swapTexts = swapTexts;
-            _animTimes = new float[width];
             _animRateOffsets = new float[width];
             _currentColor = hoverColor;
             _onValueChangeArgs = new OnValueChangeEventArgs(id, value, value);
         }
-        private State DrawBase() {
+        private State DrawBase(Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> modifier) {
             string leftText = $"{(swapTexts ? this.rightText : this.leftText).Replace("[value]", value.ToString())} ";
             string rightText = (swapTexts ? this.leftText : this.rightText).Replace("[value]", value.ToString());
             _posX = globalPosition.X - align switch {
@@ -93,10 +93,10 @@ namespace PPR.GUI.Elements {
             };
             if(leftText != "")
                 Core.renderer.DrawText(new Vector2i(_posX - leftText.Length, globalPosition.Y), leftText, hoverColor,
-                    idleColor, Alignment.Left, false, false, animationModifier);
+                    idleColor, Alignment.Left, false, false, modifier);
             if(rightText != "")
                 Core.renderer.DrawText(new Vector2i(_posX + width + 1, globalPosition.Y), rightText, hoverColor,
-                    idleColor, Alignment.Left, false, false, animationModifier);
+                    idleColor, Alignment.Left, false, false, modifier);
 
             bool onSlider = Core.renderer.mousePosition.InBounds(_posX, globalPosition.Y, _posX + width - 1, globalPosition.Y);
             bool wasOnSlider = UI.LineSegmentIntersection(UI.prevMousePosition, Core.renderer.mousePosition,
@@ -106,10 +106,13 @@ namespace PPR.GUI.Elements {
         }
         public override void Draw() {
             base.Draw();
+
+            Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> useAnimationModifier = animationModifier;
             
-            currentState = DrawBase();
+            currentState = DrawBase(useAnimationModifier);
 
             UpdateState();
+            _animTime = (float)(DateTime.UtcNow - _animStartTime).TotalSeconds;
 
             if(Core.renderer.window.HasFocus() && currentState == State.Clicked) {
                 int previousValue = value;
@@ -122,18 +125,23 @@ namespace PPR.GUI.Elements {
                 }
             }
 
-            // TODO: transition implementation
             for(int x = 0; x < width; x++) {
                 Vector2i pos = new Vector2i(_posX + x, globalPosition.Y);
                 int drawValue = (value - minValue) / step;
                 char curChar = '█';
                 if(x < drawValue) curChar = '─';
                 else if(x > drawValue) curChar = '-';
-                Core.renderer.SetCharacter(pos, new RenderCharacter(curChar,
-                    Renderer.AnimateColor(_animTimes[x], _prevColor, _currentColor, 4f + _animRateOffsets[x]),
-                    Renderer.AnimateColor(_animTimes[x], _currentColor,
-                        currentState == State.Idle ? hoverColor : idleColor, 4f + _animRateOffsets[x])));
-                _animTimes[x] += Core.deltaTime;
+                Color background =
+                    Renderer.AnimateColor(_animTime, _prevColor, _currentColor, 4f + _animRateOffsets[x]);
+                Color foreground = Renderer.AnimateColor(_animTime, _currentColor,
+                    currentState == State.Idle ? hoverColor : idleColor, 4f + _animRateOffsets[x]);
+                if(useAnimationModifier == null)
+                    Core.renderer.SetCharacter(pos, new RenderCharacter(curChar, background, foreground));
+                else {
+                    (Vector2i newPos, RenderCharacter newCharacter) =
+                        useAnimationModifier(pos, new RenderCharacter(curChar, background, foreground));
+                    Core.renderer.SetCharacter(newPos, newCharacter);
+                }
             }
         }
 
@@ -146,10 +154,8 @@ namespace PPR.GUI.Elements {
                 };
                 if(_currentColor != color) {
                     _prevColor = _currentColor;
-                    for(int x = 0; x < width; x++) {
-                        _animTimes[x] = 0f;
-                        _animRateOffsets[x] = new Random().NextFloat(-1f, 1f);
-                    }
+                    for(int x = 0; x < width; x++) _animRateOffsets[x] = new Random().NextFloat(-1f, 1f);
+                    _animStartTime = DateTime.UtcNow;
                 }
 
                 _currentColor = color;

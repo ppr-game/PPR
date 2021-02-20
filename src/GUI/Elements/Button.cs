@@ -32,7 +32,6 @@ namespace PPR.GUI.Elements {
             get => _width;
             set {
                 _width = value;
-                _animTimes = new float[value];
                 _animRateOffsets = new float[value];
             }
         }
@@ -54,7 +53,8 @@ namespace PPR.GUI.Elements {
         private readonly OnClickEventArgs _onClickArgs;
         private int _width;
         private readonly Alignment _align;
-        private float[] _animTimes;
+        private DateTime _animStartTime;
+        private float _animTime;
         private float[] _animRateOffsets;
         private State _prevState = State.Hovered;
         private bool _hotkeyPressed;
@@ -69,7 +69,6 @@ namespace PPR.GUI.Elements {
             this.text = text;
             this.width = width;
             _align = align;
-            _animTimes = new float[width];
             _animRateOffsets = new float[width];
             _currentColor = hoverColor;
             _onClickArgs = new OnClickEventArgs(id);
@@ -97,12 +96,15 @@ namespace PPR.GUI.Elements {
         
         public override void Draw() {
             base.Draw();
+
+            Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> useAnimationModifier = animationModifier;
             
             if(text != null)
                 Core.renderer.DrawText(globalPosition, text.Substring(0, Math.Min(text.Length, width)), _align, false,
-                false, animationModifier);
+                false, useAnimationModifier);
 
             UpdateState();
+            _animTime = (float)(DateTime.UtcNow - _animStartTime).TotalSeconds;
 
             if(Core.renderer.window.HasFocus()) {
                 if(currentState == State.Hovered) {
@@ -119,14 +121,19 @@ namespace PPR.GUI.Elements {
                 }
             }
 
-            // TODO: transition implementation
             for(int x = 0; x < width; x++) {
                 Vector2i pos = new Vector2i(_posX + x, globalPosition.Y);
-                Core.renderer.SetCellColor(pos,
-                    Renderer.AnimateColor(_animTimes[x], _currentColor,
-                        currentState == State.Idle ? hoverColor : idleColor, 4f + _animRateOffsets[x]),
-                    Renderer.AnimateColor(_animTimes[x], _prevColor, _currentColor, 4f + _animRateOffsets[x]));
-                _animTimes[x] += Core.deltaTime;
+                Color foreground = Renderer.AnimateColor(_animTime, _currentColor,
+                    currentState == State.Idle ? hoverColor : idleColor, 4f + _animRateOffsets[x]);
+                Color background =
+                    Renderer.AnimateColor(_animTime, _prevColor, _currentColor, 4f + _animRateOffsets[x]);
+                if(useAnimationModifier == null) Core.renderer.SetCellColor(pos, foreground, background);
+                else {
+                    RenderCharacter character =
+                        new RenderCharacter(background, foreground, Core.renderer.GetCharacter(pos));
+                    (Vector2i newPos, RenderCharacter newCharacter) = useAnimationModifier(pos, character);
+                    Core.renderer.SetCharacter(newPos, newCharacter);
+                }
             }
 
             _prevFrameHotkeyPressed = Core.renderer.window.HasFocus() && _hotkeyPressed;
@@ -149,10 +156,8 @@ namespace PPR.GUI.Elements {
 
                 if(_currentColor != color) {
                     _prevColor = _currentColor;
-                    for(int x = 0; x < width; x++) {
-                        _animTimes[x] = 0f;
-                        _animRateOffsets[x] = new Random().NextFloat(-1f, 1f);
-                    }
+                    for(int x = 0; x < width; x++) _animRateOffsets[x] = new Random().NextFloat(-1f, 1f);
+                    _animStartTime = DateTime.UtcNow;
                 }
 
                 _currentColor = color;
