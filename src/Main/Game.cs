@@ -103,17 +103,6 @@ namespace PPR.Main {
             SoundManager.PlayMusic();
             
             UI.RegenPositionRandoms();
-            
-            UI.onMenuSwitch += (_, args) => {
-                Lua.SendMessageToConsoles("onMenuSwitch",
-                    DynValue.NewString(args.oldLayout), DynValue.NewString(args.newLayout));
-            };
-            
-            UI.onMenuSwitch += (_, args) => { // Game.EndGame()
-                if(args.oldLayout != "game" || args.newLayout != "levelSelect") return;
-                SoundManager.PlayMusic();
-                SoundManager.music.Pitch = 1f;
-            };
 
             Lua.SendMessageToConsoles("onGameStart");
         }
@@ -804,7 +793,10 @@ namespace PPR.Main {
         
         public static void GenerateLevelList() {
             foreach((string id, UIElement _) in UI.currentLayout.elements.Where(
-                elem => elem.Value.parent?.id == "levelSelect.levels")) {
+                elem => elem.Value.parent?.id == "levelSelect.levels" ||
+                        elem.Value.parent?.id == "levelSelect.difficulties" ||
+                        elem.Value.parent?.id == "levelSelect.scores" ||
+                        elem.Value.parent?.id == "levelSelect.metadatas")) {
                 UI.currentLayout.RemoveElement(id);
             }
 

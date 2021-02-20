@@ -10,63 +10,74 @@ ui.animations = {
 	}
 }
 
-function button_mainMenu_play_onClick()
+function onPlay(caller, args)
 	game.editing = false
-	ui.setElementEnabled("levelSelect.auto", true)
+	ui.getElement("levelSelect.auto").enabled = true
 	updateAutoButton()
 	ui.animateElement("mainMenu", "fadeOut", 0, 1/7, false)
 	ui.animateElement("levelSelect", "fadeIn", 1/7, 1/7, true)
 	game.generateLevelList()
 end
+ui.getElement("mainMenu.play").onClick.add(onPlay)
 
-function button_mainMenu_edit_onClick()
+function onEdit(caller, args)
 	game.editing = true
-	ui.setElementEnabled("levelSelect.auto", false)
+	ui.getElement("levelSelect.auto").enabled = false
 	ui.animateElement("mainMenu", "fadeOut", 0, 1/7, false)
 	ui.animateElement("levelSelect", "fadeIn", 1/7, 1/7, true)
 	game.generateLevelList()
 end
+ui.getElement("mainMenu.edit").onClick.add(onEdit)
 
-function button_mainMenu_settings_onClick()
+function onSettings(caller, args)
 	ui.animateElement("mainMenu", "fadeOut", 0, 1/7, false)
 	ui.animateElement("settings", "fadeIn", 1/7, 1/7, true)
 end
+ui.getElement("mainMenu.settings").onClick.add(onSettings)
 
-function button_mainMenu_exit_onClick()
+function onExit(caller, args)
 	game.exit()
 end
+ui.getElement("mainMenu.exit").onClick.add(onExit)
 
-function button_mainMenu_sfml_onClick()
+function onSFML(caller, args)
 	helper.openURL("https://sfml-dev.org")
 end
+ui.getElement("mainMenu.sfml").onClick.add(onSFML)
 
-function button_mainMenu_github_onClick()
+function onGithub(caller, args)
 	helper.openURL("https://github.com/ppr-game/PPR")
 end
+ui.getElement("mainMenu.github").onClick.add(onGithub)
 
-function button_mainMenu_discord_onClick()
+function onDiscord(caller, args)
 	helper.openURL("https://discord.gg/AuYUVs5")
 end
+ui.getElement("mainMenu.discord").onClick.add(onDiscord)
 
-function button_mainMenu_music_pause_onClick()
+function onMusicStatusSwitch(caller, args)
 	if soundManager.musicStatus == soundStatus.playing then
 		soundManager.pauseMusic()
 	else
 		soundManager.playMusic()
 	end
 end
+ui.getElement("mainMenu.music.pause").onClick.add(onMusicStatusSwitch)
 
-function button_mainMenu_music_switch_onClick()
+function onMusicSwitch(caller, args)
 	soundManager.switchMusic()
 end
+ui.getElement("mainMenu.music.switch").onClick.add(onMusicSwitch)
 
 function onMusicStatusChange()
 	if soundManager.musicStatus == soundStatus.playing then
-		ui.setElementText("mainMenu.music.pause", "║")
+		ui.getElement("mainMenu.music.pause").text = "║"
 	else
-		ui.setElementText("mainMenu.music.pause", "►")
+		ui.getElement("mainMenu.music.pause").text = "►"
 	end
-	ui.setElementsText("music.nowPlaying", "NOW PLAYING : " .. soundManager.currentMusicName)
+	for i, element in ipairs(ui.getElements("music.nowPlaying")) do
+		element.text = "NOW PLAYING : " .. soundManager.currentMusicName
+	end
 end
 
 function onGameStart()
@@ -86,9 +97,9 @@ end
 
 menus = { "mainMenu", "levelSelect", "lastStats" }
 
-function button_back_onClick()
+function onBack(caller, args)
 	for i, menu in ipairs(menus) do
-		if ui.getElementEnabled(menu) then
+		if ui.getElement(menu).enabled then
 			previousMenu = ui.getPreviousMenu(menu)
 			fadeOutSpeed = 7
 			fadeInSpeed = 7
@@ -99,64 +110,69 @@ function button_back_onClick()
 		end
 	end
 end
+for i, element in ipairs(ui.getElements("back")) do element.onClick.add(onBack) end
 
-function button_levelSelect_auto_onClick()
+function onSwitchAuto(caller, args)
 	game.auto = not game.auto
 	updateAutoButton()
 end
+ui.getElement("levelSelect.auto").onClick.add(onSwitchAuto)
 
 function updateAutoButton()
-	ui.setButtonSelected("levelSelect.auto", game.auto)
+	ui.getElement("levelSelect.auto").selected = game.auto
 end
 
 function generateLevelSelectLevelButton(levelIndex, levelName)
-	ui.createButton("levelSelect.levels.level." .. levelName, { "levelSelect.level" }, 0, levelIndex, 30, 0, 0, "levelSelect.levels", levelName, alignment.left)
+	local levelButton = ui.createButton("levelSelect.levels.level." .. levelName, { "levelSelect.level" }, 0, levelIndex, 30, 0, 0, "levelSelect.levels", levelName, alignment.left)
 	if levelIndex == 0 then firstLevelListName = levelName end
 	lastLevelListName = levelName
 	
-	ui.createPanel("levelSelect.difficulties." .. levelName, { "levelSelect.difficulties" }, 0, 0, 0, 0, 0, 0, "levelSelect.difficulties")
+	local diffPanel = ui.createPanel("levelSelect.difficulties." .. levelName, { "levelSelect.difficulties" }, 0, 0, 0, 0, 0, 0, "levelSelect.difficulties")
+	diffPanel.enabled = false
 	
-	ui.setElementEnabled("levelSelect.difficulties." .. levelName, false)
+	levelButton.onClick.add(onSelectLevel)
 end
 
-function button_levelSelect_level_onClick(id)
-	local levelName = ui.getLevelNameFromButton(id)
+function onSelectLevel(caller, args)
+	local levelName = ui.getLevelNameFromButton(args.id)
 	soundManager.loadLevelMusic(levelName)
 	ui.currentSelectedLevel = levelName
 	
 	-- Deselect all level buttons and then select the one we need
-	ui.setButtonsSelected("levelSelect.level", false)
-	ui.setButtonSelected(id, true)
+	for i, element in ipairs(ui.getElements("levelSelect.level")) do element.selected = false end
+	ui.getElement(args.id).selected = true
 	
-	ui.setElementsEnabled("levelSelect.difficulties", false)
-	ui.setElementEnabled("levelSelect.difficulties." .. levelName, true)
+	for i, element in ipairs(ui.getElements("levelSelect.difficulties")) do element.enabled = false end
+	ui.getElement("levelSelect.difficulties." .. levelName).enabled = true
 	
-	ui.setElementsEnabled("levelSelect.scores", false)
-	ui.setElementsEnabled("levelSelect.metadatas", false)
+	for i, element in ipairs(ui.getElements("levelSelect.scores")) do element.enabled = false end
+	for i, element in ipairs(ui.getElements("levelSelect.metadatas")) do element.enabled = false end
 end
 
 function generateLevelSelectDifficultyButton(difficultyIndex, levelName, difficultyName, difficulty)
 	local diffName = string.upper(difficultyName)
 	if difficultyName == "level" then diffName = "DEFAULT" end
 	
-	ui.createButton("levelSelect.difficulties." .. levelName .. ".difficulty." .. difficultyName, { "levelSelect.difficulty" }, 0, difficultyIndex, 30, 0, 0, "levelSelect.difficulties." .. levelName, diffName .. "(" .. difficulty .. ")", alignment.left)
+	local difficultyButton = ui.createButton("levelSelect.difficulties." .. levelName .. ".difficulty." .. difficultyName, { "levelSelect.difficulty" }, 0, difficultyIndex, 30, 0, 0, "levelSelect.difficulties." .. levelName, diffName .. "(" .. difficulty .. ")", alignment.left)
 	
-	ui.createPanel("levelSelect.metadatas." .. levelName .. ".difficulty." .. difficultyName, { "levelSelect.metadatas" }, 0, 0, 0, 0, 0, 0, "levelSelect.metadatas")
-	ui.createPanel("levelSelect.scores." .. levelName .. ".difficulty." .. difficultyName, { "levelSelect.scores" }, 0, 0, 0, 0, 0, 0, "levelSelect.scores")
+	local metadataPanel = ui.createPanel("levelSelect.metadatas." .. levelName .. ".difficulty." .. difficultyName, { "levelSelect.metadatas" }, 0, 0, 0, 0, 0, 0, "levelSelect.metadatas")
+	local scoresPanel = ui.createPanel("levelSelect.scores." .. levelName .. ".difficulty." .. difficultyName, { "levelSelect.scores" }, 0, 0, 0, 0, 0, 0, "levelSelect.scores")
 	
-	ui.setElementEnabled("levelSelect.metadatas." .. levelName .. ".difficulty." .. difficultyName, false)
-	ui.setElementEnabled("levelSelect.scores." .. levelName .. ".difficulty." .. difficultyName, false)
+	metadataPanel.enabled = false
+	scoresPanel.enabled = false
+	
+	difficultyButton.onHover.add(onSelectDifficulty)
 end
 
-function button_levelSelect_difficulty_onHover(id)
-	local levelName, diffName = ui.getLevelAndDiffNamesFromButton(id)
+function onSelectDifficulty(caller, args)
+	local levelName, diffName = ui.getLevelAndDiffNamesFromButton(args.id)
 	ui.currentSelectedDiff = diffName
 	
-	ui.setElementsEnabled("levelSelect.metadatas", false)
-	ui.setElementEnabled("levelSelect.metadatas." .. levelName .. ".difficulty." .. diffName, true)
+	for i, element in ipairs(ui.getElements("levelSelect.metadatas")) do element.enabled = false end
+	ui.getElement("levelSelect.metadatas." .. levelName .. ".difficulty." .. diffName).enabled = true
 
-	ui.setElementsEnabled("levelSelect.scores", false)
-	ui.setElementEnabled("levelSelect.scores." .. levelName .. ".difficulty." .. diffName, true)
+	for i, element in ipairs(ui.getElements("levelSelect.scores")) do element.enabled = false end
+	ui.getElement("levelSelect.scores." .. levelName .. ".difficulty." .. diffName).enabled = true
 end
 
 function generateLevelSelectMetadata(levelName, difficultyName)
@@ -167,8 +183,9 @@ function generateLevelSelectMetadata(levelName, difficultyName)
 	
 	ui.createText(id .. ".length", { tag, tag .. ".length" }, 0, 0, 0, 0, id, "LENGTH:" .. length, alignment.left, false, false)
 	ui.createText(id .. ".difficulty", { tag, tag .. ".difficulty" }, 0, 1, 0, 0, id, "DIFFICULTY:" .. difficulty, alignment.left, false, false)
-	ui.createText(id .. ".bpm", { tag, tag .. ".difficulty" }, 0, 2, 0, 0, id, "BPM:" .. bpm, alignment.left, false, false)
-	ui.createText(id .. ".author", { tag, tag .. ".difficulty" }, 0, 3, 0, 0, id, "AUTHOR:" .. author, alignment.left, false, false)
+	ui.createText(id .. ".bpm", { tag, tag .. ".bpm" }, 0, 2, 0, 0, id, "BPM:" .. bpm, alignment.left, false, false)
+	ui.createText(id .. ".author", { tag, tag .. ".author", tag .. ".author." .. author }, 0, 3, 0, 0, id, "AUTHOR:", alignment.left, false, false)
+	ui.createText(id .. ".author.text", { tag, tag .. ".author", tag .. ".author.text." .. author }, 7, 3, 0, 0, id, author, alignment.left, false, false)
 	
 	if lua then ui.createText(id .. ".lua", { tag, tag .. ".lua" }, 0, 34, 0, 0, id, "○ Lua Scripted", alignment.left, false, false) end
 	
@@ -180,83 +197,109 @@ function generateLevelSelectScores(levelName, difficultyName)
 	local levelScores = ui.getLevelScores(levelName, difficultyName)
 	for i, scoreTable in ipairs(levelScores) do
 		local score, accuracy, maxCombo, scores = unpack(scoreTable)
+		local accuracyStr = tostring(accuracy)
 	
 		local parentId = "levelSelect.scores." .. levelName .. ".difficulty." .. difficultyName
+		local parentElement = ui.getElement(parentId)
 		local id = parentId .. ".number." .. i
-		local tag = "levelSelect.score"
+		local uniTag = "score"
+		local tag = "levelSelect." .. uniTag
 	
 		local baseY = (i - 1) * 4
 	
 		ui.createPanel(id, { tag, tag .. ".panel" }, 0, 0, 0, 4, 0, 0, parentId)
-		if i == 1 then ui.changeElementSize(parentId, 0, 3) else ui.changeElementSize(parentId, 0, 4) end
+		local sizeChangeVector = vector2i(0, 4)
+		if i == 1 then sizeChangeVector = vector2i(0, 3) end
+		parentElement.size = parentElement.size + sizeChangeVector
 	
-		ui.createText(id .. ".score", { tag, tag .. ".score", tag .. ".score.number." .. i }, 0, baseY, 0, 0, id, "SCORE: " .. score, alignment.left, false, false)
+		ui.createText(id .. ".score", { tag, uniTag .. ".score", tag .. ".score", tag .. ".score.number." .. i }, 0, baseY, 0, 0, id, "SCORE: " .. tostring(score), alignment.left, false, false)
 		
-		local horDivPos = string.len(accuracy) + 1
+		local accTag = uniTag .. ".accuracy."
+		if accuracy >= 100 then accTag = accTag .. "good" elseif accuracy >= 70 then accTag = accTag .. "ok" else accTag = accTag .. "bad" end
+		
+		local maxComboTag = uniTag .. ".maxCombo."
+		if accuracy >= 100 then maxComboTag = maxComboTag .. "perfect_combo" elseif scores[1] <= 0 then maxComboTag = maxComboTag .. "full_combo" else maxComboTag = maxComboTag .. "combo" end
+		
+		local horDivPos = string.len(accuracyStr) + 1
 		local maxComboPos = horDivPos + 1
-		ui.createText(id .. ".accuracy", { tag, tag .. ".accuracy", tag .. ".accuracy.number." .. i }, 0, baseY + 1, 0, 0, id, accuracy .. "%", alignment.left, false, false)
-		ui.createText(id .. ".accComboDiv", { tag, tag .. ".accComboDiv", tag .. ".accComboDiv.number." .. i }, horDivPos, baseY + 1, 0, 0, id, "│", alignment.left, false, false)
-		ui.createText(id .. ".maxCombo", { tag, tag .. ".maxCombo", tag .. ".maxCombo.number." .. i }, maxComboPos, baseY + 1, 0, 0, id, maxCombo .. "x", alignment.left, false, false)
+		ui.createText(id .. ".accuracy", { tag, uniTag .. ".accuracy", tag .. ".accuracy", tag .. ".accuracy.number." .. i, accTag }, 0, baseY + 1, 0, 0, id, accuracyStr .. "%", alignment.left, false, false)
+		ui.createText(id .. ".accComboDiv", { tag, uniTag .. ".accComboDiv", tag .. ".accComboDiv", tag .. ".accComboDiv.number." .. i }, horDivPos, baseY + 1, 0, 0, id, "│", alignment.left, false, false)
+		ui.createText(id .. ".maxCombo", { tag, uniTag .. ".maxCombo", tag .. ".maxCombo", tag .. ".maxCombo.number." .. i, maxComboTag }, maxComboPos, baseY + 1, 0, 0, id, tostring(maxCombo) .. "x", alignment.left, false, false)
 		
 		generateMiniScores(id, tag, 0, baseY + 2, 0, 0, scores)
 		
 		local endY = baseY + 3
 		local dividerText = "├───────────────────────┤"
 		if endY == 27 then dividerText = "├───────────────────────┼" end
-		ui.createText(id .. ".divider", { tag, tag .. ".divider", tag .. ".divider.number." .. i, lastTag }, -1, endY, 0, 0, id, dividerText, alignment.left, false, false)
+		ui.createText(id .. ".divider", { tag, tag .. ".divider", parentId .. ".divider", tag .. ".divider.number." .. i }, -1, endY, 0, 0, id, dividerText, alignment.left, false, false)
 	end
 end
 
 function generateMiniScores(id, tag, x, y, anchorX, anchorY, scores)
-	ui.createText(id .. ".miniScores.misses", { tag, tag .. ".miniScores", tag .. ".miniScores.misses", id .. ".miniscores" }, x, y, anchorX, anchorY, id, scores[1], alignment.left, false, false)
-	
-	local x1 = x + string.len(scores[1]) + 1
-	ui.createText(id .. ".miniScores.hits", { tag, tag .. ".miniScores", tag .. ".miniScores.hits", id .. ".miniscores" }, x1, y, anchorX, anchorY, id, scores[2], alignment.left, false, false)
+	local missesCount = tostring(scores[1])
+	local hitsCount = tostring(scores[2])
+	local perfectHitsCount = tostring(scores[3])
 
-	local x2 = x1 + string.len(scores[2]) + 1
-	ui.createText(id .. ".miniScores.perfectHits", { tag, tag .. ".miniScores", tag .. ".miniScores.perfectHits", id .. ".miniscores" }, x2, y, anchorX, anchorY, id, scores[3], alignment.left, false, false)
+	ui.createText(id .. ".miniScores.misses", { tag, "miniScores", tag .. ".miniScores", "miniScores.misses", tag .. ".miniScores.misses", id .. ".miniScores" }, x, y, anchorX, anchorY, id, missesCount, alignment.left, false, false)
+	
+	local x1 = x + string.len(missesCount) + 1
+	ui.createText(id .. ".miniScores.hits", { tag, "miniScores", tag .. ".miniScores", "miniScores.hits", tag .. ".miniScores.hits", id .. ".miniScores" }, x1, y, anchorX, anchorY, id, hitsCount, alignment.left, false, false)
+
+	local x2 = x1 + string.len(hitsCount) + 1
+	ui.createText(id .. ".miniScores.perfectHits", { tag, "miniScores", tag .. ".miniScores", "miniScores.perfectHits", tag .. ".miniScores.perfectHits", id .. ".miniScores" }, x2, y, anchorX, anchorY, id, perfectHitsCount, alignment.left, false, false)
 end
 
 function scrollElement(maskId, movingId, delta)
-	local movingBounds = ui.getElementBounds(movingId)
-	local maskBounds = ui.getElementBounds(maskId)
+	local movingBounds = ui.getElement(movingId).bounds
+	local maskBounds = ui.getElement(maskId).bounds
 	
 	local canScrollUp = movingBounds.min.Y < maskBounds.min.Y
 	local canScrollDown = movingBounds.max.Y > maskBounds.max.Y
 	
 	if delta < 0 and canScrollDown or delta > 0 and canScrollUp then
-		ui.moveElement(movingId, 0, delta)
+		local element = ui.getElement(movingId)
+		element.position = element.position + vector2i(0, delta)
 	end
 end
 
 function scrollElements(maskId, movingTag, firstId, lastId, delta)
-	local firstBounds = ui.getElementBounds(firstId)
-	local lastBounds = ui.getElementBounds(lastId)
-	local maskBounds = ui.getElementBounds(maskId)
+	local firstBounds = ui.getElement(firstId).bounds
+	local lastBounds = ui.getElement(lastId).bounds
+	local maskBounds = ui.getElement(maskId).bounds
 	
 	local canScrollUp = firstBounds.min.Y < maskBounds.min.Y
 	local canScrollDown = lastBounds.max.Y > maskBounds.max.Y
 	
 	if delta < 0 and canScrollDown or delta > 0 and canScrollUp then
-		ui.moveElements(movingTag, 0, delta)
+		moveVector = vector2i(0, delta);
+		for i, element in ipairs(ui.getElements(movingTag)) do
+			element.position = element.position + moveVector
+		end
 	end
 end
 
-function mask_levelSelect_levels_onScroll(id, delta)
+function levelsScrolled(caller, args)
 	local firstId = "levelSelect.levels.level." .. firstLevelListName
 	local lastId = "levelSelect.levels.level." .. lastLevelListName
 	if ui.elementExists(firstId) and ui.elementExists(lastId) then
-		scrollElements(id, "levelSelect.level", firstId, lastId, delta)
+		scrollElements(args.id, "levelSelect.level", firstId, lastId, args.delta)
 	end
 end
+ui.getElement("levelSelect.levels").onScroll.add(levelsScrolled)
 
-function mask_levelSelect_difficulties_onScroll(id, delta)
-	scrollElement(id, "levelSelect.difficulties." .. ui.currentSelectedLevel .. ".difficulty." .. ui.currentSelectedDiff, delta)
+function difficultiesScrolled(caller, args)
+	scrollElement(args.id, "levelSelect.difficulties." .. ui.currentSelectedLevel .. ".difficulty." .. ui.currentSelectedDiff, args.delta)
 end
+ui.getElement("levelSelect.difficulties").onScroll.add(difficultiesScrolled)
 
-function mask_levelSelect_scores_onScroll(id, delta)
-	scrollElement(id, "levelSelect.scores." .. ui.currentSelectedLevel .. ".difficulty." .. ui.currentSelectedDiff, delta)
+function scoresScrolled(called, args)
+	local movingId = "levelSelect.scores." .. ui.currentSelectedLevel .. ".difficulty." .. ui.currentSelectedDiff
+	scrollElement(args.id, movingId, args.delta)
+	for i, element in ipairs(ui.getElements(movingId .. ".divider")) do
+		if element.globalPosition.Y == 39 then element.text = "├───────────────────────┼" else element.text = "├───────────────────────┤" end
+	end
 end
+ui.getElement("levelSelect.scores").onScroll.add(scoresScrolled)
 
 --function generateScores(layout, uid, id, x, y, anchorX, anchorY, scores)
 --	ui.createText(layout, uid .. ".scores.misses.title", id .. ".scores.misses.title", x, y, anchorX, anchorY, uid, "MISSES:", align.left, false, false)

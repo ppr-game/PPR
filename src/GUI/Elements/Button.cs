@@ -15,6 +15,12 @@ using SFML.System;
 using Alignment = PRR.Renderer.Alignment;
 
 namespace PPR.GUI.Elements {
+    public sealed class OnClickEventArgs : EventArgs {
+        public string id { get; }
+
+        public OnClickEventArgs(string id) => this.id = id;
+    }
+    
     public class Button : UIElement {
         public enum State { Idle, Hovered, Clicked, Selected }
 
@@ -36,8 +42,8 @@ namespace PPR.GUI.Elements {
             set => width = value.X;
         }
 
-        public List<Closure> onClick { get; set; }
-        public List<Closure> onHover { get; set; }
+        public event EventHandler<OnClickEventArgs> onClick;
+        public event EventHandler<OnClickEventArgs> onHover;
         private Color idleColor => GetColor("idle");
         private Color hoverColor => GetColor("hover");
         private Color clickColor => GetColor("click");
@@ -45,7 +51,7 @@ namespace PPR.GUI.Elements {
         public State prevFrameState { get; private set; } = State.Hovered;
         public bool selected = false;
 
-        private readonly DynValue[] _onClickArgs;
+        private readonly OnClickEventArgs _onClickArgs;
         private int _width;
         private readonly Alignment _align;
         private float[] _animTimes;
@@ -66,7 +72,7 @@ namespace PPR.GUI.Elements {
             _animTimes = new float[width];
             _animRateOffsets = new float[width];
             _currentColor = hoverColor;
-            _onClickArgs = new DynValue[] { DynValue.NewString(id) };
+            _onClickArgs = new OnClickEventArgs(id);
             Core.renderer.window.KeyPressed += (_, key) => {
                 if(hotkey != null && hotkey.IsPressed(key)) _hotkeyPressed = true;
             };
@@ -103,11 +109,11 @@ namespace PPR.GUI.Elements {
                     switch(prevFrameState) {
                         case State.Clicked:
                             SoundManager.PlaySound(SoundType.Click);
-                            foreach(Closure closure in onClick) closure?.Call(_onClickArgs);
+                            onClick?.Invoke(this, _onClickArgs);
                             break;
                         case State.Idle:
                         case State.Selected:
-                            foreach(Closure closure in onHover) closure?.Call(_onClickArgs);
+                            onHover?.Invoke(this, _onClickArgs);
                             break;
                     }
                 }

@@ -14,6 +14,18 @@ using SFML.System;
 using Alignment = PRR.Renderer.Alignment;
 
 namespace PPR.GUI.Elements {
+    public sealed class OnValueChangeEventArgs {
+        public string id { get; }
+        public int previousValue { get; set; }
+        public int value { get; set; }
+
+        public OnValueChangeEventArgs(string id, int previousValue, int value) {
+            this.id = id;
+            this.previousValue = previousValue;
+            this.value = value;
+        }
+    }
+    
     public class Slider : UIElement {
         public enum State { Idle, Hovered, Clicked }
 
@@ -30,13 +42,13 @@ namespace PPR.GUI.Elements {
             get => _value;
             set {
                 _value = value;
-                _onValueChangeArgs[1] = DynValue.NewNumber(value);
+                _onValueChangeArgs.value = value;
             }
         }
         
         public string leftText { get; set; }
         public string rightText { get; set; }
-        public List<Closure> onValueChange { get; set; }
+        public event EventHandler<OnValueChangeEventArgs> onValueChange;
         private Color idleColor => GetColor("idle");
         private Color hoverColor => GetColor("hover");
         private Color clickColor => GetColor("click");
@@ -44,7 +56,7 @@ namespace PPR.GUI.Elements {
         public bool swapTexts { get; set; }
         public State currentState { get; private set; } = State.Clicked;
 
-        private readonly DynValue[] _onValueChangeArgs;
+        private readonly OnValueChangeEventArgs _onValueChangeArgs;
         private int _value;
         private readonly float[] _animTimes;
         private readonly float[] _animRateOffsets;
@@ -69,7 +81,7 @@ namespace PPR.GUI.Elements {
             _animTimes = new float[width];
             _animRateOffsets = new float[width];
             _currentColor = hoverColor;
-            _onValueChangeArgs = new DynValue[] { DynValue.NewString(id), DynValue.NewNumber(0) };
+            _onValueChangeArgs = new OnValueChangeEventArgs(id, value, value);
         }
         private State DrawBase() {
             string leftText = $"{(swapTexts ? this.rightText : this.leftText).Replace("[value]", value.ToString())} ";
@@ -105,8 +117,8 @@ namespace PPR.GUI.Elements {
                 bool valueChanged = value != previousValue;
                 if(valueChanged) {
                     SoundManager.PlaySound(SoundType.Slider); // ReSharper disable once HeapView.ObjectAllocation
-                    foreach(Closure closure in onValueChange)
-                        closure?.Call(_onValueChangeArgs[0], DynValue.NewNumber(previousValue), _onValueChangeArgs[1]);
+                    _onValueChangeArgs.previousValue = previousValue;
+                    onValueChange?.Invoke(this, _onValueChangeArgs);
                 }
             }
 

@@ -24,14 +24,6 @@ using SFML.Window;
 using Alignment = PRR.Renderer.Alignment;
 
 namespace PPR.GUI {
-    public sealed class MenuSwitchEventArgs : EventArgs {
-        public string oldLayout;
-        public string newLayout;
-        public MenuSwitchEventArgs(string oldLayout, string newLayout) {
-            this.oldLayout = oldLayout;
-            this.newLayout = newLayout;
-        }
-    }
     public static class UI {
         public static int fps = 0;
         public static int avgFPS = 0;
@@ -40,8 +32,6 @@ namespace PPR.GUI {
         public static int tps = 0;
 
         public static Layout currentLayout { get; private set; }
-
-        public static event EventHandler<MenuSwitchEventArgs> onMenuSwitch;
 
         private static readonly Random random = new Random();
         private static readonly Perlin perlin = new Perlin();
@@ -113,7 +103,7 @@ namespace PPR.GUI {
         private static readonly string[] lastStatsText = File.ReadAllLines(Path.Join("resources", "ui", "lastStats.txt"));*/
         //static readonly string[] notificationsText = File.ReadAllLines(Path.Join("resources", "ui", "notifications.txt"));
 
-        private static List<Button> _levelSelectButtons;
+        /*private static List<Button> _levelSelectButtons;
 
         private static string _lastLevel = "";
         private static string _lastDiff = "";
@@ -122,11 +112,11 @@ namespace PPR.GUI {
 
         private static List<Button> _levelEditorButtons;
 
-        private static Button _skipButton;
+        private static Button _skipButton;*/
 
         //static bool _showNotificationsMenu;
 
-        private static readonly Vector2i zero = new Vector2i();
+        //private static readonly Vector2i zero = new Vector2i();
 
         // don't mind this monstrosity over here
         public static void LoadLayout(string path) {
@@ -137,9 +127,8 @@ namespace PPR.GUI {
             
             Script script = new Script(CoreModules.Preset_SoftSandbox);
             Lua.InitializeConsole(script);
-            script.DoFile(scriptPath);
             
-            currentLayout = new Layout(script);
+            currentLayout = new Layout();
             
             Dictionary<string, DeserializedUIElement> layout =
                 JsonConvert.DeserializeObject<Dictionary<string, DeserializedUIElement>>(File.ReadAllText(layoutPath));
@@ -187,6 +176,8 @@ namespace PPR.GUI {
 
                 if(element != null) currentLayout.AddElement(id, element);
             }
+            
+            script.DoFile(scriptPath);
         }
 
         public static void AnimateElement(UIElement element, string animation, float delay, float time,

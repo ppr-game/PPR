@@ -31,15 +31,29 @@ namespace PPR.Main {
                     
             UserData.RegisterType<Scripts.Core>();
             UserData.RegisterType<Scripts.Main.Game>();
+            
             UserData.RegisterType<LuaConsole.Main.Game>();
             UserData.RegisterType<LuaConsole.Main.Helper>();
             UserData.RegisterType<LuaConsole.GUI.UI>();
+            
+            UserData.RegisterType<GUI.Elements.Button>();
+            UserData.RegisterType<GUI.Elements.Mask>();
+            UserData.RegisterType<GUI.Elements.Panel>();
+            UserData.RegisterType<GUI.Elements.Slider>();
+            UserData.RegisterType<GUI.Elements.Text>();
+
+            UserData.RegisterType<GUI.Elements.OnClickEventArgs>();
+            UserData.RegisterType<GUI.Elements.OnScrollEventArgs>();
+            UserData.RegisterType<GUI.Elements.OnValueChangeEventArgs>();
+            
             UserData.RegisterType<LuaConsole.Main.Managers.SoundManager>();
             UserData.RegisterType<LuaConsole.Main.Managers.ScoreManager>();
+            
             UserData.RegisterType<Scripts.Main.Levels.Level>();
             UserData.RegisterType<Scripts.Main.Levels.Map>();
             UserData.RegisterType<Scripts.Rendering.Renderer>();
             UserData.RegisterType<LuaConsole.Rendering.Renderer>();
+            
             UserData.RegisterType<Scripts.IO.File>();
 
             UserData.RegisterType<Renderer.Alignment>();

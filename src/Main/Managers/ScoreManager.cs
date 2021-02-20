@@ -30,9 +30,5 @@ namespace PPR.Main.Managers {
             float mulSum = scores[1] * 0.5f + scores[2];
             accuracy = (int)MathF.Floor(mulSum / sum * 100f);
         }
-        public static Color GetAccuracyColor(int accuracy) => accuracy >= 100 ? ColorScheme.GetColor("accuracy_good") :
-            accuracy >= 70 ? ColorScheme.GetColor("accuracy_ok") : ColorScheme.GetColor("accuracy_bad");
-        public static Color GetComboColor(int accuracy, int misses) => accuracy >= 100 ? ColorScheme.GetColor("perfect_combo") :
-            misses <= 0 ? ColorScheme.GetColor("full_combo") : ColorScheme.GetColor("combo");
     }
 }

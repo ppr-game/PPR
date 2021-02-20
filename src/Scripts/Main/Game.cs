@@ -34,7 +34,5 @@ namespace PPR.Scripts.Main {
             PPR.Main.Calc.GetBPMBetweenSteps(start, end, Map.currentLevel.speeds);
         public static List<LevelSpeed> GetSpeedsBetweenSteps(int start, int end) =>
             PPR.Main.Calc.GetSpeedsBetweenSteps(start, end, Map.currentLevel.speeds);
-        public static Color GetAccuracyColor(int accuracy) => ScoreManager.GetAccuracyColor(accuracy);
-        public static Color GetComboColor(int accuracy, int misses) => ScoreManager.GetComboColor(accuracy, misses);
     }
 }

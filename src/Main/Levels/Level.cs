@@ -29,20 +29,14 @@ namespace PPR.Main.Levels {
     
     public struct LevelScore {
         public readonly int score;
-        public readonly string scoreStr;
         public readonly int accuracy;
         public readonly int maxCombo;
-        public readonly string accuracyStr;
-        public readonly string maxComboStr;
         public readonly int[] scores;
 
         public LevelScore(int score, int accuracy, int maxCombo, int[] scores) {
             this.score = score;
-            scoreStr = score.ToString();
             this.accuracy = accuracy;
             this.maxCombo = maxCombo;
-            accuracyStr = accuracy.ToString();
-            maxComboStr = maxCombo.ToString();
             this.scores = scores;
         }
     }
