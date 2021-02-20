@@ -113,16 +113,16 @@ namespace PPR.GUI.Elements {
         }
 
         protected Color GetColor(string colorName) {
-            Color? color = ColorScheme.TryGetColor($"{type}_{id}_{colorName}");
+            bool colorExists = ColorScheme.TryGetElementColor(new ElementColor(type, id, colorName), out Color color);
 
-            if(color != null) return (Color)color;
+            if(colorExists) return color;
 
             for(int i = tags.Count - 1; i >= 0; i--) {
-                color = ColorScheme.TryGetColor($"{type}_@{tags[i]}_{colorName}");
-                if(color != null) return (Color)color;
+                colorExists = ColorScheme.TryGetTagColor(new ElementColor(type, tags[i], colorName), out color);
+                if(colorExists) return color;
             }
 
-            return Color.Transparent;
+            return color;
         }
     }
 }
