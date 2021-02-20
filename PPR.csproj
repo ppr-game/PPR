@@ -61,9 +61,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="src\Console" />
-    <Folder Include="src\UI\Elements" />
-  </ItemGroup>
-
 </Project>
