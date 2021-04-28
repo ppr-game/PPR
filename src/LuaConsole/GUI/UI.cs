@@ -25,6 +25,8 @@ namespace PPR.LuaConsole.GUI {
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
+    [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
     internal struct AnimExCtx {
         public int x { get; set; }
         public int y { get; set; }
@@ -38,6 +40,8 @@ namespace PPR.LuaConsole.GUI {
         public byte fgB { get; set; }
         public byte fgA { get; set; }
         public float time { get; set; }
+        public static readonly Dictionary<string, double> customVars = new Dictionary<string, double>();
+        public double custom(string name) => customVars[name];
         // ReSharper disable once InconsistentNaming
         private static readonly Random _random = new Random();
         public int randomInt(int min, int max) => _random.Next(min, max);
@@ -80,6 +84,7 @@ namespace PPR.LuaConsole.GUI {
                 Func<float, Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>>> scriptAnimations;
         public static Dictionary<string, Dictionary<string, DynValue>> animations {
             set {
+                AnimExCtx.customVars.Clear();
                 if(value == null) {
                     scriptAnimations = null;
                     return;
@@ -188,6 +193,8 @@ namespace PPR.LuaConsole.GUI {
             Bindings.Reload();
             ColorScheme.Reload();
         }
+
+        public static void SetAnimationValue(string name, double value) => AnimExCtx.customVars[name] = value;
 
         public static void AnimateElement(string id, string animation, float time, bool endState, Closure endCallback) {
             UIElement element = null;
