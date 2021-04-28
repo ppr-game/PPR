@@ -172,18 +172,17 @@ namespace PPR.GUI {
             script.DoFile(scriptPath);
         }
 
-        public static void AnimateElement(UIElement element, string animation, float time, bool? endState,
+        public static void AnimateElement(UIElement element, string animation, float time, bool endState,
             Closure endCallback) {
             UIAnimation anim = new UIAnimation(animation, LuaConsole.GUI.UI.scriptAnimations[animation], time,
                 endState, endCallback);
             if(element == null) {
                 foreach(UIElement elem in new Dictionary<string, UIElement>(currentLayout.elements).Values)
                     if(elem.parent == null)
-                        elem.animation = anim;
-
-                return;
+                        elem.AddAnimation(anim);
             }
-            element.animation = anim;
+            else element.AddAnimation(anim);
+            anim.Start();
         }
 
         /*public static void RecreateButtons() {

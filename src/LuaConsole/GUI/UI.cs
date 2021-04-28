@@ -189,8 +189,7 @@ namespace PPR.LuaConsole.GUI {
             ColorScheme.Reload();
         }
 
-        public static void AnimateElement(string id, string animation, float time, bool? endState,
-            Closure endCallback) {
+        public static void AnimateElement(string id, string animation, float time, bool endState, Closure endCallback) {
             UIElement element = null;
             if(id != null && !PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out element))
                 throw new ArgumentException($"Element {id} doesn't exist.");

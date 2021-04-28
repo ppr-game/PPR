@@ -2,10 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-using MoonSharp.Interpreter;
-
-using NLog;
-
 using PPR.Main;
 
 using PRR;
@@ -15,8 +11,6 @@ using SFML.System;
 
 namespace PPR.GUI.Elements {
     public abstract class UIElement {
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
-
         public virtual string type => "none";
 
         public bool enabled {
@@ -65,35 +59,11 @@ namespace PPR.GUI.Elements {
 
         public virtual Mask mask { get; private set; }
 
-        public UIAnimation? animation {
-            set {
-                _animation = value?.animation;
-                animationEndTime = value?.time ?? 0f;
-                animationEndState = value?.endState ?? enabled;
-                animationEndCallback = value?.endCallback;
-                _animationName = DynValue.NewString(value?.id);
-                animationTime = 0f;
-                
-                if(animationEndState) enabled = true;
-                Lua.InvokeEvent(this, "animationStarted", this, _animationName);
-                
-                animationStartTime = DateTime.UtcNow;
-            }
-        }
+        public IReadOnlyList<UIAnimation> animations => _animations;
 
-        protected Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> animationModifier =>
-            animationPlaying ? _animation(animationTime / animationEndTime) : parent?.animationModifier;
-        protected DateTime animationStartTime { get; set; }
-        protected float animationTime { get; private set; }
-        protected float animationEndTime { get; set; }
-        protected bool animationEndState { get; set; }
-        protected Closure animationEndCallback { get; set; }
-
-        protected bool animationPlaying => animationTime < animationEndTime && _animation != null;
-        protected bool animationStopped => animationTime >= animationEndTime && _animation != null;
-            
-        private DynValue _animationName;
-        private Func<float, Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>> _animation;
+        private readonly List<UIAnimation> _animations = new List<UIAnimation>();
+        private readonly List<UIAnimation> _animationsToRemove = new List<UIAnimation>();
+        
         private UIElement _parent;
         private bool _enabled = true;
 
@@ -114,16 +84,42 @@ namespace PPR.GUI.Elements {
 
         public virtual void Draw() { }
         
-        public virtual void Update() => UpdateAnimation();
+        public virtual void Update() => UpdateAnimations();
 
-        private void UpdateAnimation() {
-            animationTime = (float)(DateTime.UtcNow - animationStartTime).TotalSeconds;
+        public void AddAnimation(UIAnimation animation) {
+            if(animation == null) return;
+            if(animation.endState) enabled = true;
+            Lua.InvokeEvent(this, "animationStarted", this, animation.id);
+            _animations.Add(animation);
+        }
 
-            if(!animationStopped) return;
-            _animation = null;
-            if(!animationEndState) enabled = false;
-            Lua.InvokeEvent(this, "animationFinished", this, _animationName);
-            animationEndCallback?.Call();
+        [SuppressMessage("ReSharper", "ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator")]
+        protected (Vector2i, RenderCharacter) ApplyAnimations(Vector2i pos, RenderCharacter character) {
+            (Vector2i pos, RenderCharacter character) mod = (pos, character);
+            if(parent != null) mod = parent.ApplyAnimations(pos, character);
+            foreach(UIAnimation animation in _animations) {
+                Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> animMod = animation.animationModifier;
+                if(animMod == null) continue;
+                mod = animMod(mod.pos, mod.character);
+            }
+            return mod;
+        }
+
+        private void UpdateAnimations() {
+            foreach(UIAnimation animation in _animations) {
+                animation.Update();
+                
+                if(!animation.stopped) continue;
+                animation.Stop();
+                _animationsToRemove.Add(animation);
+                
+                if(!animation.endState) enabled = false;
+                Lua.InvokeEvent(this, "animationFinished", this, animation.id);
+                animation.endCallback?.Call();
+            }
+            
+            foreach(UIAnimation animation in _animationsToRemove) _animations.Remove(animation);
+            _animationsToRemove.Clear();
         }
 
         protected Color GetColor(string colorName) {

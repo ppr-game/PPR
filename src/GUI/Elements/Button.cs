@@ -102,7 +102,7 @@ namespace PPR.GUI.Elements {
         public override void Draw() {
             base.Draw();
 
-            Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> useAnimationModifier = animationModifier;
+            Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> useAnimationModifier = ApplyAnimations;
             
             Vector2i globalPos = globalPosition;
             

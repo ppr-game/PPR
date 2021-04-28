@@ -44,7 +44,7 @@ namespace PPR.GUI.Elements {
 
             if(mask == null)
                 Core.renderer.DrawLines(globalPosition, lines, foregroundColor, backgroundColor, align, replacingSpaces,
-                    invertOnDarkBackground, animationModifier);
+                    invertOnDarkBackground, ApplyAnimations);
             else {
                 Vector2i pos = globalPosition;
                 Bounds maskBounds = mask.bounds;
@@ -56,7 +56,7 @@ namespace PPR.GUI.Elements {
                     int maxX = Math.Min(line.Length, maskBounds.max.X - pos.X - minX);
                     Core.renderer.DrawText(pos + new Vector2i(minX, y), line.Substring(minX, maxX),
                         foregroundColor, backgroundColor, align, replacingSpaces, invertOnDarkBackground,
-                        animationModifier);
+                        ApplyAnimations);
                 }
             }
         }
