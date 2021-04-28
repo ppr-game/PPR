@@ -2,6 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
+using MoonSharp.Interpreter;
+
+using NLog;
+
+using PPR.Main;
+
 using PRR;
 
 using SFML.Graphics;
@@ -9,16 +15,21 @@ using SFML.System;
 
 namespace PPR.GUI.Elements {
     public abstract class UIElement {
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
         public virtual string type => "none";
 
         public bool enabled {
             get => _enabled && (parent?.enabled ?? true);
-            set => _enabled = value;
+            set {
+                if(_enabled == value) return;
+                _enabled = value;
+                Lua.InvokeEvent(this, value ? "elementEnabled" : "elementDisabled", this);
+            }
         }
 
         public string id { get; }
-        public List<string> tags { get; }
-
+        public List<string> tags { get; set; }
         public virtual Vector2i position { get; set; }
 
         public Vector2i globalPosition =>
@@ -57,31 +68,34 @@ namespace PPR.GUI.Elements {
         public UIAnimation? animation {
             set {
                 _animation = value?.animation;
-                animationDelay = value?.delay ?? 0f;
                 animationEndTime = value?.time ?? 0f;
                 animationEndState = value?.endState ?? enabled;
+                animationEndCallback = value?.endCallback;
+                _animationName = DynValue.NewString(value?.id);
+                animationTime = 0f;
+                
+                if(animationEndState) enabled = true;
+                Lua.InvokeEvent(this, "animationStarted", this, _animationName);
+                
                 animationStartTime = DateTime.UtcNow;
-                _checkAnimation = true;
             }
         }
 
         protected Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> animationModifier =>
             animationPlaying ? _animation(animationTime / animationEndTime) : parent?.animationModifier;
         protected DateTime animationStartTime { get; set; }
-        protected float animationDelay { get; set; }
-        protected float animationTime => (float)((DateTime.UtcNow - animationStartTime).TotalSeconds - animationDelay);
+        protected float animationTime { get; private set; }
         protected float animationEndTime { get; set; }
         protected bool animationEndState { get; set; }
+        protected Closure animationEndCallback { get; set; }
 
-        protected bool animationPlaying =>
-            animationTime >= 0f && animationTime < animationEndTime && _animation != null;
-        protected bool animationStopped =>
-            animationTime >= 0f && animationTime >= animationEndTime && _animation != null;
-
+        protected bool animationPlaying => animationTime < animationEndTime && _animation != null;
+        protected bool animationStopped => animationTime >= animationEndTime && _animation != null;
+            
+        private DynValue _animationName;
         private Func<float, Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>> _animation;
         private UIElement _parent;
         private bool _enabled = true;
-        private bool _checkAnimation = true;
 
         [SuppressMessage("ReSharper", "VirtualMemberCallInConstructor")]
         protected UIElement(string id, List<string> tags = null, Vector2i? position = null, Vector2i? size = null,
@@ -103,13 +117,13 @@ namespace PPR.GUI.Elements {
         public virtual void Update() => UpdateAnimation();
 
         private void UpdateAnimation() {
-            if(!_checkAnimation) return;
-            if(animationStopped) {
-                _animation = null;
-                enabled = animationEndState;
-                _checkAnimation = false;
-            }
-            else if(animationPlaying && animationEndState) enabled = true;
+            animationTime = (float)(DateTime.UtcNow - animationStartTime).TotalSeconds;
+
+            if(!animationStopped) return;
+            _animation = null;
+            if(!animationEndState) enabled = false;
+            Lua.InvokeEvent(this, "animationFinished", this, _animationName);
+            animationEndCallback?.Call();
         }
 
         protected Color GetColor(string colorName) {

@@ -69,6 +69,12 @@ dark_health=dark_red
 
 menus_anim_max=15,15,15
 
+text_@debugMenu_bg=background
+text_@debugMenu_fg=green
+button_@debugMenu_idle=background
+button_@debugMenu_hover=green
+button_@debugMenu_click=dark_green
+
 text_@frame_fg=foreground
 text_@title.red_fg=light_red
 text_@title.green_fg=light_green
@@ -197,14 +203,16 @@ accuracy_bad=miss
 accuracy_ok=hit
 accuracy_good=perfect_hit
 
-stats_level_name=white
+text_@levelName_fg=white
 
-text_@levelSelect.score.score_fg=score
+text_@score.score_fg=score
 
-text_@score.maxCombo.combo_fg=combo
-text_@score.maxCombo.full_combo_fg=full_combo
-text_@score.maxCombo.perfect_combo_fg=perfect_combo
+text_@score.combo_fg=foreground
+text_@score.combo.combo_fg=combo
+text_@score.combo.fullCombo_fg=full_combo
+text_@score.combo.perfectCombo_fg=perfect_combo
 
+text_@score.accuracy_fg=foreground
 text_@score.accuracy.bad_fg=accuracy_bad
 text_@score.accuracy.ok_fg=accuracy_ok
 text_@score.accuracy.good_fg=accuracy_good
@@ -214,10 +222,19 @@ text_@miniScores.misses_bg=miss
 text_@miniScores.hits_bg=hit
 text_@miniScores.perfectHits_bg=perfect_hit
 
+text_@scores_bg=background
+text_@scores.misses_fg=miss
+text_@scores.hits_fg=hit
+text_@scores.perfectHits_fg=perfect_hit
+
+text_lastStats.subtitle.pause_fg=cyan
+text_lastStats.subtitle.pass_fg=good
+text_lastStats.subtitle.fail_fg=bad
+
 # Statistics buttons
-button_lastStats.continue_idle=background
-button_lastStats.continue_hover=cyan
-button_lastStats.continue_click=dark_cyan
+button_@lastStats.continue_idle=background
+button_@lastStats.continue_hover=cyan
+button_@lastStats.continue_click=dark_cyan
 
 button_lastStats.restart_idle=background
 button_lastStats.restart_hover=yellow

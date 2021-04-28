@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,15 +10,12 @@ using Newtonsoft.Json;
 using PPR.GUI.Elements;
 using PPR.Main;
 using PPR.Main.Levels;
-using PPR.Main.Managers;
 using PPR.Properties;
 
 using PRR;
 
-using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
-using SFML.Window;
 
 using Alignment = PRR.Renderer.Alignment;
 
@@ -103,20 +99,11 @@ namespace PPR.GUI {
         private static readonly string[] lastStatsText = File.ReadAllLines(Path.Join("resources", "ui", "lastStats.txt"));*/
         //static readonly string[] notificationsText = File.ReadAllLines(Path.Join("resources", "ui", "notifications.txt"));
 
-        /*private static List<Button> _levelSelectButtons;
-
-        private static string _lastLevel = "";
-        private static string _lastDiff = "";
-        private static List<Button> _gameLastStatsButtons;
-        private static List<Button> _editorLastStatsButtons;
-
-        private static List<Button> _levelEditorButtons;
+        /*private static List<Button> _levelEditorButtons;
 
         private static Button _skipButton;*/
 
         //static bool _showNotificationsMenu;
-
-        //private static readonly Vector2i zero = new Vector2i();
 
         // don't mind this monstrosity over here
         public static void LoadLayout(string path) {
@@ -124,17 +111,21 @@ namespace PPR.GUI {
             string scriptPath = Path.Join(path, "script.lua");
             
             if(!File.Exists(layoutPath) || !File.Exists(scriptPath)) return;
+
+            Lua.UnsubscribeAllEvents(currentLayout?.script);
+            Lua.consoles.Remove(currentLayout?.script);
             
             Script script = new Script(CoreModules.Preset_SoftSandbox);
             Lua.InitializeConsole(script);
             
-            currentLayout = new Layout();
+            currentLayout = new Layout(script);
             
             Dictionary<string, DeserializedUIElement> layout =
                 JsonConvert.DeserializeObject<Dictionary<string, DeserializedUIElement>>(File.ReadAllText(layoutPath));
             foreach((string id, DeserializedUIElement elem) in layout) {
                 string type = elem.type ?? "panel";
 
+                bool enabled = elem.enabled;
                 List<string> tags = elem.tags;
                 Dictionary<string, int> posDict = elem.position;
                 Dictionary<string, int> sizeDict = elem.size;
@@ -142,7 +133,7 @@ namespace PPR.GUI {
                 Vector2i position = posDict == null ? new Vector2i() :
                     new Vector2i(posDict.GetValueOrDefault("x", 0), posDict.GetValueOrDefault("y", 0));
                 Vector2i size = sizeDict == null ? new Vector2i(1, 1) :
-                    new Vector2i(sizeDict.GetValueOrDefault("x", 0), sizeDict.GetValueOrDefault("y", 0));
+                    new Vector2i(sizeDict.GetValueOrDefault("x", 1), sizeDict.GetValueOrDefault("y", 1));
                 Vector2f anchor = anchorDict == null ? new Vector2f() :
                     new Vector2f(anchorDict.GetValueOrDefault("x", 0f), anchorDict.GetValueOrDefault("y", 0f));
                 string parentId = elem.parent ?? string.Join('.', id.Split('.').SkipLast(1).ToArray());
@@ -173,6 +164,7 @@ namespace PPR.GUI {
                         leftText, rightText, align, swapTexts),
                     _ => null
                 };
+                element.enabled = enabled;
 
                 if(element != null) currentLayout.AddElement(id, element);
             }
@@ -180,12 +172,15 @@ namespace PPR.GUI {
             script.DoFile(scriptPath);
         }
 
-        public static void AnimateElement(UIElement element, string animation, float delay, float time,
-            bool? endState) {
-            UIAnimation anim = new UIAnimation(LuaConsole.GUI.UI.scriptAnimations[animation], delay, time, endState);
+        public static void AnimateElement(UIElement element, string animation, float time, bool? endState,
+            Closure endCallback) {
+            UIAnimation anim = new UIAnimation(animation, LuaConsole.GUI.UI.scriptAnimations[animation], time,
+                endState, endCallback);
             if(element == null) {
-                foreach(UIElement elem in currentLayout.elements.Values.Where(elem => elem.parent == null))
-                    elem.animation = anim;
+                foreach(UIElement elem in new Dictionary<string, UIElement>(currentLayout.elements).Values)
+                    if(elem.parent == null)
+                        elem.animation = anim;
+
                 return;
             }
             element.animation = anim;
@@ -194,18 +189,6 @@ namespace PPR.GUI {
         /*public static void RecreateButtons() {
             const Alignment center = Alignment.Center;
             const Alignment right = Alignment.Right;
-            _gameLastStatsButtons = new List<Button> {
-                new Button(new Vector2i(2, 53), "CONTINUE", "lastStats.continue", 8, new InputKey("Enter")),
-                new Button(new Vector2i(2, 55), "RESTART", "lastStats.restart", 7, new InputKey("LControl+R,RControl+R")),
-                new Button(new Vector2i(10, 55), "AUTO", "lastStats.auto", 4, new InputKey("Tab")),
-                new Button(new Vector2i(2, 57), "EXIT", "lastStats.exit", 4, new InputKey("Tilde"))
-            };
-            _editorLastStatsButtons = new List<Button> {
-                new Button(new Vector2i(2, 51), "CONTINUE", "lastStats.continue", 8, new InputKey("Enter")),
-                new Button(new Vector2i(2, 53), "SAVE", "lastStats.save", 4, new InputKey("LControl+S,RControl+S")),
-                new Button(new Vector2i(2, 55), "SAVE & EXIT", "lastStats.saveAndExit", 11),
-                new Button(new Vector2i(2, 57), "EXIT", "lastStats.exit", 4, new InputKey("Tilde"))
-            };
             _levelEditorButtons = new List<Button> {
                 new Button(new Vector2i(78, 58), "►", "editor.playPause", 1, new InputKey("Space")),
                 new Button(hpDrainPos, "<", "editor.hp.drain.down", 1),
@@ -459,65 +442,6 @@ namespace PPR.GUI {
             $"DIFFICULTY: {Map.currentLevel.metadata.displayDifficulty}", color,
             Alignment.Right, false, true);
         private static readonly Vector2i lastMaxComboPos = new Vector2i(2, 20);
-        private static void DrawLastStats() {
-            DrawSettingsList(true);
-            if(Game.editing)
-                foreach(Button button in _editorLastStatsButtons)
-                    switch(button.id) {
-                        case "lastStats.continue": LastStatsContinue(button);
-                            break;
-                        case "lastStats.save":
-                        case "lastStats.saveAndExit":
-                            if(button.Draw()) {
-                                Game.changed = false;
-                                string path = Path.Join("levels", _lastLevel);
-                                _ = Directory.CreateDirectory(path);
-                                File.WriteAllText(Path.Join(path, $"{_lastDiff}.txt"), Map.TextFromLevel(Map.currentLevel));
-                                if(button.id == "lastStats.saveAndExit") LastStatsExit();
-                            }
-                            if(button.text.EndsWith('*') && !Game.changed) {
-                                button.text = button.text.Remove(button.text.Length - 1);
-                                button.width--;
-                            }
-                            else if(!button.text.EndsWith('*') && Game.changed) {
-                                button.text = $"{button.text}*";
-                                button.width++;
-                            }
-                            break;
-                        case "lastStats.exit":
-                            if(button.Draw()) {
-                                Game.changed = false;
-                                LastStatsExit();
-                            }
-                            break;
-                    }
-            else
-                foreach(Button button in _gameLastStatsButtons)
-                    switch(button.id) {
-                        case "lastStats.continue": LastStatsContinue(button);
-                            break;
-                        case "lastStats.restart":
-                            if(!Game.editing && button.Draw()) {
-                                Game.menu = Menu.Game;
-                                Game.menuSwitchedCallback += (_, __) =>
-                                    Map.LoadLevelFromPath(Path.Join("levels", _lastLevel), _lastLevel, _lastDiff);
-                            }
-                            break;
-                        case "lastStats.auto":
-                            if(!Game.editing && button.Draw()) Game.auto = !Game.auto;
-                            button.selected = Game.auto;
-                            break;
-                        case "lastStats.exit": if(button.Draw()) LastStatsExit();
-                            break;
-                    }
-        }
-        private static void LastStatsContinue(Button button) {
-            if(Map.currentLevel.objects.Count > 0 && Game.health > 0 && button.Draw()) Game.menu = Menu.Game;
-        }
-        private static void LastStatsExit() {
-            Game.EndGame();
-            _musicSpeedSlider.value = 100;
-        }
 
         private static readonly Vector2i audioGroupTextPos = new Vector2i(2, 13);
         private static readonly Vector2i audioSwitchPos = new Vector2i(4, 19);
@@ -677,12 +601,6 @@ namespace PPR.GUI {
         }*/
         public static void Draw() {
             /*switch(Game.menu) {
-                case Menu.Main:
-                    DrawMainMenu();
-                    break;
-                case Menu.LevelSelect:
-                    DrawLevelSelect();
-                    break;
                 case Menu.Settings:
                     DrawSettings();
                     break;
@@ -691,9 +609,6 @@ namespace PPR.GUI {
                     break;
                 case Menu.Game:
                     DrawGame();
-                    break;
-                case Menu.LastStats:
-                    DrawLastStats();
                     break;
             }*/
 

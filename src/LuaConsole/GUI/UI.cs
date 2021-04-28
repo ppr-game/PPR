@@ -11,6 +11,7 @@ using NCalc;
 using PPR.GUI;
 using PPR.GUI.Elements;
 using PPR.Main.Levels;
+using PPR.Properties;
 
 using PRR;
 
@@ -183,12 +184,18 @@ namespace PPR.LuaConsole.GUI {
             set => PPR.GUI.UI.currSelectedDiff = value;
         }
 
-        public static void AnimateElement(string id, string animation, float delay, float time, bool? endState) {
+        public static void Reload() {
+            Bindings.Reload();
+            ColorScheme.Reload();
+        }
+
+        public static void AnimateElement(string id, string animation, float time, bool? endState,
+            Closure endCallback) {
             UIElement element = null;
             if(id != null && !PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out element))
                 throw new ArgumentException($"Element {id} doesn't exist.");
 
-            PPR.GUI.UI.AnimateElement(element, animation, delay, time, endState);
+            PPR.GUI.UI.AnimateElement(element, animation, time, endState, endCallback);
         }
 
         public static UIElement GetElement(string id) {
@@ -260,6 +267,9 @@ namespace PPR.LuaConsole.GUI {
             PPR.GUI.UI.currentLayout.AddElement(id, newButton);
             return newButton;
         }
+
+        public static void DeleteElement(string id) => PPR.GUI.UI.currentLayout.RemoveElement(id);
+        public static void DeleteElementWithIndex(int index) => PPR.GUI.UI.currentLayout.RemoveElement(index);
 
         public static bool ElementExists(string id) => PPR.GUI.UI.currentLayout.elements.ContainsKey(id);
 

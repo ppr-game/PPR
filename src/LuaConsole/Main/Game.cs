@@ -1,5 +1,7 @@
 ﻿using System.IO;
 
+using MoonSharp.Interpreter;
+
 using PPR.GUI;
 using PPR.LuaConsole.Rendering;
 using PPR.Main;
@@ -22,7 +24,14 @@ namespace PPR.LuaConsole.Main {
             get => PPR.Main.Game.auto;
             set => PPR.Main.Game.auto = value;
         }
-        
+
+        public static bool playing {
+            get => PPR.Main.Game.playing;
+            set => PPR.Main.Game.playing = value;
+        }
+
+        public static bool changed => PPR.Main.Game.changed;
+
         public static float exitTime {
             get => PPR.Main.Game.exitTime;
             set => PPR.Main.Game.exitTime = value;
@@ -37,5 +46,15 @@ namespace PPR.LuaConsole.Main {
             Map.LoadLevelFromPath(path, levelName, diffName);
             PPR.Main.Game.RecalculatePosition();
         }
+
+        public static void SaveLevel(string levelName, string diffName) {
+            PPR.Main.Game.changed = false;
+            string path = Path.Join("levels", levelName);
+            Directory.CreateDirectory(path);
+            File.WriteAllText(Path.Join(path, $"{diffName}.txt"), Map.TextFromLevel(Map.currentLevel));
+        }
+
+        public static void SubscribeEvent(object caller, string name, Closure closure) =>
+            Lua.SubscribeEvent(caller, name, closure);
     }
 }

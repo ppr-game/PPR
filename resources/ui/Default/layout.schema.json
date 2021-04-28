@@ -1,0 +1,144 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "layout.schema.json",
+    "title": "PPR UI Layout",
+    "description": "A user interface layout schema for the rhythm game Press Press Revolution",
+    "type": "object",
+    "definitions": {
+        "type": {
+            "type": "string",
+            "enum": [ "panel", "mask", "text", "button", "slider" ],
+            "default": "panel"
+        },
+        "vector2i": {
+            "type": "object",
+            "properties": {
+                "x": {
+                    "type": "integer",
+                    "default": 0
+                },
+                "y": {
+                    "type": "integer",
+                    "default": 0
+                }
+            }
+        },
+        "vector2f": {
+            "type": "object",
+            "properties": {
+                "x": {
+                    "type": "number",
+                    "default": 0
+                },
+                "y": {
+                    "type": "number",
+                    "default": 0
+                }
+            }
+        },
+        "align": { "type": "string", "enum": [ "left", "center", "right" ], "default": "left" },
+        "panel": {
+            "properties": {
+                "type": { "$ref": "#/definitions/type" },
+                "enabled": { "type": "boolean" },
+                "tags": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "uniqueItems": true
+                },
+                "position": { "$ref": "#/definitions/vector2i" },
+                "size": {
+                    "allOf": [
+                        { "$ref": "#/definitions/vector2i" },
+                        {
+                            "properties": {
+                                "x": { "default": 1 },
+                                "y": { "default": 1 }
+                            }
+                        }
+                    ]
+                },
+                "anchor": { "$ref": "#/definitions/vector2f" },
+                "parent": { "type": [ "string", "null" ] }
+            },
+            "additionalProperties": false
+        },
+        "mask": { "$ref": "#/definitions/panel" },
+        "text": {
+            "allOf": [
+                { "$ref": "#/definitions/panel" },
+                {
+                    "properties": {
+                        "path": {
+                            "type": [ "string", "null" ],
+                            "default": null
+                        },
+                        "text": { "type": "string" },
+                        "align": { "$ref": "#/definitions/align" },
+                        "replacingSpaces": { "type": "boolean", "default": false },
+                        "invertOnDarkBackground": { "type": "boolean", "default": false }
+                    },
+                    "required": [ "text" ]
+                }
+            ]
+        },
+        "button": {
+            "allOf": [
+                { "$ref": "#/definitions/panel" },
+                {
+                    "properties": {
+                        "width": { "type": "integer", "default": 0 },
+                        "text": { "type": "string" },
+                        "align": { "$ref": "#/definitions/align" }
+                    }
+                }
+            ]
+        },
+        "slider": {
+            "allOf": [
+                { "$ref": "#/definitions/panel" },
+                {
+                    "properties": {
+                        "minValue": { "type": "integer", "default": 0 },
+                        "maxValue": { "type": "integer", "default": 0 },
+                        "width": { "type": "integer", "default": 0 },
+                        "leftText": { "type": "string" },
+                        "rightText": { "type": "string" },
+                        "swapTexts": { "type": "boolean", "default": false }
+                    }
+                }
+            ]
+        }
+    },
+    "patternProperties": {
+        "^.*$": {
+            "type": "object",
+            "allOf": [
+                { "properties": { "type": { "$ref": "#/definitions/type" } } },
+                {
+                    "if": { "properties": { "type": { "const": "panel" } } },
+                    "then": { "$ref": "#/definitions/panel" },
+                    "else": {
+                        "if": { "properties": { "type": { "const": "mask" } } },
+                        "then": { "$ref": "#/definitions/mask" },
+                        "else": {
+                            "if": { "properties": { "type": { "const": "text" } } },
+                            "then": { "$ref": "#/definitions/text" },
+                            "else": {
+                                "if": { "properties": { "type": { "const": "button" } } },
+                                "then": { "$ref": "#/definitions/button" },
+                                "else": {
+                                    "if": { "properties": { "type": { "const": "slider" } } },
+                                    "then": { "$ref": "#/definitions/slider" },
+                                    "else": { "$ref": "#/definitions/panel" }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "additionalProperties": false,
+    "uniqueItems": true
+}

@@ -14,18 +14,6 @@ using SFML.System;
 using Alignment = PRR.Renderer.Alignment;
 
 namespace PPR.GUI.Elements {
-    public sealed class OnValueChangeEventArgs {
-        public string id { get; }
-        public int previousValue { get; set; }
-        public int value { get; set; }
-
-        public OnValueChangeEventArgs(string id, int previousValue, int value) {
-            this.id = id;
-            this.previousValue = previousValue;
-            this.value = value;
-        }
-    }
-    
     public class Slider : UIElement {
         public enum State { Idle, Hovered, Clicked }
 
@@ -33,7 +21,7 @@ namespace PPR.GUI.Elements {
         public int maxValue { get; }
         public int width { get; }
         public override Vector2i size {
-            get => new Vector2i(width, 1);
+            get => new Vector2i(width, 0);
             set => throw new InvalidOperationException("Tried to change the size of a slider.");
         }
         public int step { get; }
@@ -41,14 +29,16 @@ namespace PPR.GUI.Elements {
         public int value {
             get => _value;
             set {
+                if(_value == value) return;
+                Lua.InvokeEvent(this, "sliderValueChange", this, DynValue.NewNumber(value),
+                    DynValue.NewNumber(_value));
                 _value = value;
-                _onValueChangeArgs.value = value;
+                SoundManager.PlaySound(SoundType.Slider);
             }
         }
         
         public string leftText { get; set; }
         public string rightText { get; set; }
-        public event EventHandler<OnValueChangeEventArgs> onValueChange;
         private Color idleColor => GetColor("idle");
         private Color hoverColor => GetColor("hover");
         private Color clickColor => GetColor("click");
@@ -56,7 +46,6 @@ namespace PPR.GUI.Elements {
         public bool swapTexts { get; set; }
         public State currentState { get; private set; } = State.Clicked;
 
-        private readonly OnValueChangeEventArgs _onValueChangeArgs;
         private int _value;
         private DateTime _animStartTime;
         private float _animTime;
@@ -81,7 +70,6 @@ namespace PPR.GUI.Elements {
             this.swapTexts = swapTexts;
             _animRateOffsets = new float[width];
             _currentColor = hoverColor;
-            _onValueChangeArgs = new OnValueChangeEventArgs(id, value, value);
         }
         private State DrawBase(Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)> modifier) {
             string leftText = $"{(swapTexts ? this.rightText : this.leftText).Replace("[value]", value.ToString())} ";
@@ -156,16 +144,8 @@ namespace PPR.GUI.Elements {
             UpdateState();
             _animTime = (float)(DateTime.UtcNow - _animStartTime).TotalSeconds;
 
-            if(Core.renderer.window.HasFocus() && currentState == State.Clicked) {
-                int previousValue = value;
+            if(Core.renderer.window.HasFocus() && currentState == State.Clicked)
                 value = Math.Clamp((Core.renderer.mousePosition.X - _posX) * step + minValue, minValue, maxValue);
-                bool valueChanged = value != previousValue;
-                if(valueChanged) {
-                    SoundManager.PlaySound(SoundType.Slider); // ReSharper disable once HeapView.ObjectAllocation
-                    _onValueChangeArgs.previousValue = previousValue;
-                    onValueChange?.Invoke(this, _onValueChangeArgs);
-                }
-            }
 
             for(int x = 0; x < width; x++) {
                 Vector2i pos = new Vector2i(_posX + x, globalPosition.Y);

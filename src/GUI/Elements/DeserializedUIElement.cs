@@ -1,8 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
+
+using Newtonsoft.Json;
 
 namespace PPR.GUI.Elements {
     public struct DeserializedUIElement {
         public string type;
+        [DefaultValue(true)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool enabled;
         public List<string> tags;
         public Dictionary<string, int> position;
         public Dictionary<string, int> size;

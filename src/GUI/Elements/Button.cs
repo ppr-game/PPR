@@ -15,12 +15,6 @@ using SFML.System;
 using Alignment = PRR.Renderer.Alignment;
 
 namespace PPR.GUI.Elements {
-    public sealed class OnClickEventArgs : EventArgs {
-        public string id { get; }
-
-        public OnClickEventArgs(string id) => this.id = id;
-    }
-    
     public class Button : UIElement {
         public enum State { Idle, Hovered, Clicked, Selected }
 
@@ -37,12 +31,10 @@ namespace PPR.GUI.Elements {
         }
 
         public override Vector2i size {
-            get => new Vector2i(width, 1);
+            get => new Vector2i(width, 0);
             set => width = value.X;
         }
 
-        public event EventHandler<OnClickEventArgs> onClick;
-        public event EventHandler<OnClickEventArgs> onHover;
         private Color idleColor => GetColor("idle");
         private Color hoverColor => GetColor("hover");
         private Color clickColor => GetColor("click");
@@ -50,7 +42,6 @@ namespace PPR.GUI.Elements {
         public State prevFrameState { get; private set; } = State.Hovered;
         public bool selected = false;
 
-        private readonly OnClickEventArgs _onClickArgs;
         private int _width;
         private readonly Alignment _align;
         private DateTime _animStartTime;
@@ -71,7 +62,6 @@ namespace PPR.GUI.Elements {
             _align = align;
             _animRateOffsets = new float[width];
             _currentColor = hoverColor;
-            _onClickArgs = new OnClickEventArgs(id);
             Core.renderer.window.KeyPressed += (_, key) => {
                 if(hotkey != null && hotkey.IsPressed(key)) _hotkeyPressed = true;
             };
@@ -119,7 +109,7 @@ namespace PPR.GUI.Elements {
             if(text != null) {
                 if(mask == null) {
                     Core.renderer.DrawText(globalPos, text.Substring(0, Math.Min(text.Length, width)), _align,
-                        false, false, useAnimationModifier);
+                        true, false, useAnimationModifier);
                 }
                 else {
                     Bounds maskBounds = mask.bounds;
@@ -127,7 +117,7 @@ namespace PPR.GUI.Elements {
                         int minX = Math.Max(0, maskBounds.min.X - globalPos.X);
                         int maxX = Math.Min(text.Length, maskBounds.max.X - globalPos.X - minX);
                         Core.renderer.DrawText(globalPos + new Vector2i(minX, 0), text.Substring(minX, maxX),
-                            _align, false, false, useAnimationModifier);
+                            _align, true, false, useAnimationModifier);
                     }
                 }
             }
@@ -140,11 +130,11 @@ namespace PPR.GUI.Elements {
                     switch(prevFrameState) {
                         case State.Clicked:
                             SoundManager.PlaySound(SoundType.Click);
-                            onClick?.Invoke(this, _onClickArgs);
+                            Lua.InvokeEvent(this, "buttonClicked", this);
                             break;
                         case State.Idle:
                         case State.Selected:
-                            onHover?.Invoke(this, _onClickArgs);
+                            Lua.InvokeEvent(this, "buttonHovered", this);
                             break;
                     }
                 }

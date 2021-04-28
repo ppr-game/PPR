@@ -6,17 +6,55 @@ using SFML.Graphics;
 
 namespace PPR.Main.Managers {
     public static class ScoreManager {
-        public static int score;
-        private static int _accuracy = 100;
+        public static int score {
+            get => _score;
+            set {
+                Lua.InvokeEvent(null, "scoreChanged", value, _score);
+                _score = value;
+            }
+        }
 
         public static int accuracy {
             get => _accuracy;
-            private set => _accuracy = Math.Clamp(value, 0, 100);
+            private set {
+                int newValue = Math.Clamp(value, 0, 100);
+                Lua.InvokeEvent(null, "accuracyChanged", newValue, _accuracy);
+                _accuracy = newValue;
+            }
         }
 
-        public static int[] scores { get; private set; } = new int[3];
-        public static int combo { get; set; }
-        public static int maxCombo { get; set; }
+        public static int[] scores {
+            get => _scores;
+            private set {
+                Lua.InvokeEvent(null, "scoresChanged", 1);
+                Lua.InvokeEvent(null, "scoresChanged", 2);
+                Lua.InvokeEvent(null, "scoresChanged", 3);
+                _scores = value;
+            }
+        }
+
+        public static int combo {
+            get => _combo;
+            set {
+                Lua.InvokeEvent(null, "comboChanged", value, _combo);
+                _combo = value;
+            }
+        }
+
+        public static int maxCombo {
+            get => _maxCombo;
+            set {
+                Lua.InvokeEvent(null, "maxComboChanged", value, _maxCombo);
+                _maxCombo = value;
+            }
+        }
+
+        private static int _score;
+        private static int _accuracy = 100;
+        private static int[] _scores = new int[3];
+        private static int _combo;
+        private static int _maxCombo;
+
         public static void ResetScore() {
             score = 0;
             //UI.prevScore = 0;
@@ -25,6 +63,7 @@ namespace PPR.Main.Managers {
             combo = 0;
             maxCombo = 0;
         }
+        
         public static void RecalculateAccuracy() {
             float sum = scores[0] + scores[1] + scores[2];
             float mulSum = scores[1] * 0.5f + scores[2];

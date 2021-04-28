@@ -158,17 +158,17 @@ namespace PPR.Main.Managers {
 
         public static void PlayMusic() {
             music.Play();
-            Lua.SendMessageToConsoles("onMusicStatusChange");
+            Lua.InvokeEvent(null, "musicStatusChanged");
         }
         
         public static void PauseMusic() {
             music.Pause();
-            Lua.SendMessageToConsoles("onMusicStatusChange");
+            Lua.InvokeEvent(null, "musicStatusChanged");
         }
         
         public static void StopMusic() {
             music.Stop();
-            Lua.SendMessageToConsoles("onMusicStatusChange");
+            Lua.InvokeEvent(null, "musicStatusChanged");
         }
     }
 }

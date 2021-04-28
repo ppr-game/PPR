@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 
+using MoonSharp.Interpreter;
+
 using PPR.GUI;
 using PPR.Properties;
 
@@ -14,9 +16,11 @@ namespace PPR.Main {
     public static class Random_Extensions {
         public static float NextFloat(this Random rng, float min, float max) => (float)rng.NextDouble() * (max - min) + min;
     }
+    
     public static class IEnumerable_Extensions {
         public static T ElementAtOrDefault<T>(this IList<T> list, int index, Func<T> @default) => index >= 0 && index < list.Count ? list[index] : @default();
     }
+    
     public static class String_Extensions {
         public static string AddSpaces(this string text) {
             if(string.IsNullOrWhiteSpace(text))
@@ -31,6 +35,7 @@ namespace PPR.Main {
             return newText.ToString();
         }
     }
+    
     public static class Vector2i_Extensions {
         public static bool InBounds(this Vector2i vector, int minX, int minY, int maxX, int maxY) =>
             vector.X >= minX && vector.X <= maxX && vector.Y >= minY && vector.Y <= maxY;
@@ -39,6 +44,19 @@ namespace PPR.Main {
         public static bool InBounds(this Vector2i vector, Bounds bounds) =>
             InBounds(vector, bounds.min, bounds.max);
     }
+
+    public static class Script_Extensions {
+        public static void SendMessage(this Script script, string name) { 
+            if(script.Globals.Get(name).Function != null) 
+                script.Call(script.Globals.Get(name));
+        }
+        
+        public static void SendMessage(this Script script, string name, params DynValue[] args) { 
+            if(script.Globals.Get(name).Function != null) 
+                script.Call(script.Globals.Get(name), args);
+        }
+    }
+    
     public static class Renderer_Extensions {
         public static void UpdateFramerateSetting(this Renderer renderer) => renderer.SetFramerateSetting(Settings.GetInt("fpsLimit"));
         public static void UpdateWindow(this Renderer renderer) => renderer.UpdateWindow(Settings.GetBool("fullscreen"), Settings.GetInt("fpsLimit"));

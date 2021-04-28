@@ -53,6 +53,9 @@ namespace PPR.Main {
                 if(value) SoundManager.PlayMusic();
                 else SoundManager.PauseMusic();
                 _playing = value;
+                if(!auto && value) levelTime = Time.FromMicroseconds(Math.Max(0, levelTime.AsMicroseconds() - 3000000));
+                UpdateMusicTime();
+                _tickClock.Restart();
             }
         }
 
@@ -67,8 +70,23 @@ namespace PPR.Main {
         }
 
         public static bool editing { get; set; }
-        public static bool auto { get; set; }
-        public static bool changed { get; set; }
+
+        public static bool auto {
+            get => _auto;
+            set {
+                _auto = value;
+                if(value) _usedAuto = true;
+            }
+        }
+
+        public static bool changed {
+            get => _changed;
+            set {
+                _changed = value;
+                Lua.InvokeEvent(null, "levelChanged");
+            }
+        }
+
         public static bool exiting { get; private set; }
         public static float exitTime { get; set; }
         public static int menusAnimInitialOffset;
@@ -77,12 +95,14 @@ namespace PPR.Main {
         private static Clock _tickClock = new Clock();
         private static float _prevSteps;
         private static float _absoluteCurrentSpeedSec = 60f;
+        private static bool _auto;
         private static bool _usedAuto;
         private static float _tickAccumulator;
         private static int _tpsTicks;
         private static float _tpsTime;
         private static bool _prevLeftButtonPressed;
         private static bool _watchNegativeTime;
+        private static bool _changed;
         public Game() {
             Settings.settingChanged += SettingChanged;
             Settings.Reload();
@@ -104,13 +124,10 @@ namespace PPR.Main {
             
             UI.RegenPositionRandoms();
 
-            Lua.SendMessageToConsoles("onGameStart");
+            Lua.InvokeEvent(null, "gameStarted");
         }
         public static void Exit() {
             logger.Info("Exiting");
-            
-            Lua.SendMessageToConsoles("onGameExit");
-            logger.Info("Sent shutdown event to Lua");
 
             SoundManager.StopMusic();
             logger.Info("Stopped music");
@@ -121,6 +138,9 @@ namespace PPR.Main {
             RPC.client.ClearPresence();
             RPC.client.Dispose();
             logger.Info("Removed Discord RPC");
+            
+            Lua.InvokeEvent(null, "gameExited");
+            logger.Info("Sent shutdown event to Lua");
 
             logger.Info("F to the logger");
             LogManager.Shutdown();
@@ -324,7 +344,6 @@ namespace PPR.Main {
             Lua.Update();
 
             if(_watchNegativeTime || !playing || editing || SoundManager.music.Status == SoundStatus.Playing) return;
-            UpdateMusicTime();
             playing = true;
         }
         private static void Tick() {
@@ -384,7 +403,7 @@ namespace PPR.Main {
 
             Lua.Tick();
 
-            if(statsState != StatsState.Pause) Lua.SendMessageToConsoles("onPassOrFail");
+            if(statsState != StatsState.Pause) Lua.InvokeEvent(null, "passedOrFailed");
         }
         
         public static void RoundSteps() => steps = roundedSteps;
@@ -792,14 +811,6 @@ namespace PPR.Main {
         }
         
         public static void GenerateLevelList() {
-            foreach((string id, UIElement _) in UI.currentLayout.elements.Where(
-                elem => elem.Value.parent?.id == "levelSelect.levels" ||
-                        elem.Value.parent?.id == "levelSelect.difficulties" ||
-                        elem.Value.parent?.id == "levelSelect.scores" ||
-                        elem.Value.parent?.id == "levelSelect.metadatas")) {
-                UI.currentLayout.RemoveElement(id);
-            }
-
             RescanCreatedLevels();
             
             string[] directories = Directory.GetDirectories("levels")
@@ -807,7 +818,7 @@ namespace PPR.Main {
             UI.levelSelectLevels = new Dictionary<string, LevelSelectLevel>(directories.Length);
             for(int i = 0; i < directories.Length; i++) {
                 string levelName = Path.GetFileName(directories[i]);
-                Lua.SendMessageToConsoles("generateLevelSelectLevelButton", DynValue.NewNumber(i),
+                Lua.InvokeEvent(null, "generateLevelSelectLevelButton", DynValue.NewNumber(i),
                     DynValue.NewString(levelName));
                 LevelSelectLevel level = new LevelSelectLevel {
                     button = (Button)UI.currentLayout.elements[$"levelSelect.levels.level.{levelName}"]
@@ -846,7 +857,7 @@ namespace PPR.Main {
                 List<KeyValuePair<string, LevelSelectDiff>> sortedDiffs =
                     level.diffs.OrderBy(pair => pair.Value.metadata.difficulty).ToList();
                 for(int j = 0; j < sortedDiffs.Count; j++) {
-                    Lua.SendMessageToConsoles("generateLevelSelectDifficultyButton", DynValue.NewNumber(j),
+                    Lua.InvokeEvent(null, "generateLevelSelectDifficultyButton", DynValue.NewNumber(j),
                         DynValue.NewString(levelName),
                         DynValue.NewString(sortedDiffs[j].Key),
                         DynValue.NewString(level.diffs[sortedDiffs[j].Key].metadata.displayDifficulty));
@@ -863,9 +874,9 @@ namespace PPR.Main {
                 UI.levelSelectLevels.Add(levelName, level);
 
                 foreach((string difficultyName, LevelSelectDiff _) in sortedDiffs) {
-                    Lua.SendMessageToConsoles("generateLevelSelectMetadata", DynValue.NewString(levelName),
+                    Lua.InvokeEvent(null, "generateLevelSelectMetadata", DynValue.NewString(levelName),
                         DynValue.NewString(difficultyName));
-                    Lua.SendMessageToConsoles("generateLevelSelectScores", DynValue.NewString(levelName),
+                    Lua.InvokeEvent(null, "generateLevelSelectScores", DynValue.NewString(levelName),
                         DynValue.NewString(difficultyName));
                 }
             }

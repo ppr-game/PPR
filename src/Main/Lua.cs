@@ -25,6 +25,7 @@ namespace PPR.Main {
 
         public static Script console;
         public static List<Script> consoles = new List<Script>();
+        public static Dictionary<(object, string), List<Closure>> events = new Dictionary<(object, string), List<Closure>>();
         
         public static void ScriptSetup() {
             Script.WarmUp();
@@ -41,10 +42,6 @@ namespace PPR.Main {
             UserData.RegisterType<GUI.Elements.Panel>();
             UserData.RegisterType<GUI.Elements.Slider>();
             UserData.RegisterType<GUI.Elements.Text>();
-
-            UserData.RegisterType<GUI.Elements.OnClickEventArgs>();
-            UserData.RegisterType<GUI.Elements.OnScrollEventArgs>();
-            UserData.RegisterType<GUI.Elements.OnValueChangeEventArgs>();
             
             UserData.RegisterType<LuaConsole.Main.Managers.SoundManager>();
             UserData.RegisterType<LuaConsole.Main.Managers.ScoreManager>();
@@ -230,16 +227,30 @@ namespace PPR.Main {
         
         public static void ExecuteCommand(string command) => console.DoString(command);
         
-        public static void SendMessageToConsoles(string name) {
-            foreach(Script consoleScript in consoles)
-                if(consoleScript.Globals.Get(name).Function != null)
-                    consoleScript.Call(consoleScript.Globals.Get(name));
+        public static void InvokeEvent(object caller, string name) {
+            if(!events.TryGetValue((caller, name), out List<Closure> closures)) return;
+
+            foreach(Closure closure in closures) closure.Call();
         }
         
-        public static void SendMessageToConsoles(string name, params DynValue[] args) {
-            foreach(Script consoleScript in consoles) 
-                if(consoleScript.Globals.Get(name).Function != null)
-                    consoleScript.Call(consoleScript.Globals.Get(name), args);
+        public static void InvokeEvent(object caller, string name, params object[] args) {
+            if(!events.TryGetValue((caller, name), out List<Closure> closures)) return;
+
+            foreach(Closure closure in new List<Closure>(closures)) closure.Call(args);
+        }
+
+        public static void SubscribeEvent(object caller, string name, Closure closure) {
+            if(events.TryGetValue((caller, name), out List<Closure> closures)) closures.Add(closure);
+            else events.Add((caller, name), new List<Closure> { closure });
+        }
+
+        public static void UnsubscribeAllEvents(Script script) {
+            if(script == null) return;
+            
+            foreach(((object, string) _, List<Closure> closures) in events)
+                foreach(Closure closure in new List<Closure>(closures))
+                    if(closure.OwnerScript == script)
+                        closures.Remove(closure);
         }
     }
 }

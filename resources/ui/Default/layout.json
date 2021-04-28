@@ -1,5 +1,14 @@
 {
-	"mainMenu": { "size": { "x": -1 , "y": -1 } },
+	"debugMenu.toggle": {
+		"type": "button",
+		"enabled": true,
+		"position": { "x": 0, "y": 0 },
+		"width": 1,
+        "align": "left",
+		"anchor": { "x": 0, "y": 0 },
+		"parent": null
+	},
+	"mainMenu": { "enabled": false, "size": { "x": -1 , "y": -1 } },
 	"mainMenu.frame": {
 		"type": "text",
 		"tags": [ "frame" ],
@@ -142,7 +151,7 @@
 		"align": "left",
 		"anchor": { "x": 0, "y": 1 }
 	},
-	"levelSelect": { "size": { "x": -1 , "y": -1 } },
+	"levelSelect": { "enabled": false, "size": { "x": -1 , "y": -1 } },
 	"levelSelect.frame": {
 		"type": "text",
 		"tags": [ "frame" ],
@@ -185,6 +194,7 @@
 	},
 	"levelSelect.auto": {
 		"type": "button",
+		"tags": [ "auto" ],
 		"text": "AUTO",
 		"position": { "x": -15, "y": 10 },
 		"width": 4,
@@ -238,7 +248,7 @@
 		"align": "left",
 		"anchor": { "x": 0, "y": 1 }
 	},
-	"lastStats": { "size": { "x": -1 , "y": -1 } },
+	"lastStats": { "enabled": false, "size": { "x": -1 , "y": -1 } },
 	"lastStats.frame": {
 		"type": "text",
 		"tags": [ "frame" ],
@@ -286,16 +296,20 @@
 	},
 	"lastStats.subtitle.pause": {
 		"type": "text",
+		"tags": [ "lastStats.subtitle", "pause" ],
 		"text": "PAUSE",
+		"position": { "x": -1, "y": 0 },
 		"align": "center"
 	},
 	"lastStats.subtitle.pass": {
 		"type": "text",
+		"tags": [ "lastStats.subtitle", "pass" ],
 		"text": "PASS",
 		"align": "center"
 	},
 	"lastStats.subtitle.fail": {
 		"type": "text",
+		"tags": [ "lastStats.subtitle", "fail" ],
 		"text": "FAIL",
 		"align": "center"
 	},
@@ -311,17 +325,43 @@
 		"type": "button",
 		"tags": [ "back" ],
 		"text": "EXIT",
-		"position": { "x": 1, "y": -1 },
+		"position": { "x": 2, "y": -3 },
 		"width": 4,
 		"align": "left",
 		"anchor": { "x": 0, "y": 1 }
 	},
-	"lastStats.player": {
-		"type": "panel"
+    "lastStats.player": { "enabled": false, "size": { "x": -1 , "y": -1 } },
+	"lastStats.restart": {
+		"type": "button",
+		"text": "RESTART",
+		"position": { "x": 2, "y": -5 },
+		"width": 7,
+		"align": "left",
+		"parent": "lastStats.player",
+		"anchor": { "x": 0, "y": 1 }
+	},
+	"lastStats.auto": {
+		"type": "button",
+		"tags": [ "auto" ],
+		"text": "AUTO",
+		"position": { "x": 1, "y": 0 },
+		"width": 4,
+		"align": "left",
+		"parent": "lastStats.restart",
+		"anchor": { "x": 1, "y": 0 }
+	},
+	"lastStats.player.continue": {
+		"type": "button",
+		"tags": [ "pause", "lastStats.continue" ],
+		"text": "CONTINUE",
+		"position": { "x": 2, "y": -7 },
+		"width": 8,
+		"align": "left",
+		"anchor": { "x": 0, "y": 1 }
 	},
 	"lastStats.score": {
 		"type": "text",
-		"tags": [ "score" ],
+		"tags": [ "score.score", "realtime.score" ],
 		"text": "SCORE: what",
 		"position": { "x": 2, "y": 16 },
 		"align": "left",
@@ -330,20 +370,190 @@
 	},
 	"lastStats.accuracy": {
 		"type": "text",
-		"tags": [ "accuracy" ],
+		"tags": [ "score.accuracy", "realtime.accuracy" ],
 		"text": "ACCURACY: what",
 		"position": { "x": 2, "y": 18 },
 		"align": "left",
 		"parent": "lastStats.player",
 		"anchor": { "x": 0, "y": 0 }
 	},
-	"lastStats.combo": {
+	"lastStats.maxCombo": {
 		"type": "text",
-		"tags": [ "combo" ],
+		"tags": [ "score.maxCombo", "score.combo", "realtime.maxCombo" ],
 		"text": "MAX COMBO: what",
-		"position": { "x": 2, "y": 18 },
+		"position": { "x": 2, "y": 20 },
 		"align": "left",
 		"parent": "lastStats.player",
 		"anchor": { "x": 0, "y": 0 }
-	}
+	},
+	"lastStats.scores": {
+		"type": "panel",
+		"position": { "x": 25, "y": 16 },
+		"parent": "lastStats.player",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"lastStats.scores.misses": {
+		"type": "text",
+		"tags": [ "scores", "scores.misses" ],
+		"text": "MISSES:",
+		"position": { "x": 0, "y": 0 },
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"lastStats.scores.hits": {
+		"type": "text",
+		"tags": [ "scores", "scores.hits" ],
+		"text": "HITS:",
+		"position": { "x": 0, "y": 2 },
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"lastStats.scores.perfectHits": {
+		"type": "text",
+		"tags": [ "scores", "scores.perfectHits" ],
+		"text": "PERFECT HITS:",
+		"position": { "x": 0, "y": 4 },
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"lastStats.scores.miniScores": {
+		"type": "panel",
+		"position": { "x": 15, "y": 0 },
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"lastStats.scores.miniScores.misses": {
+		"type": "text",
+		"tags": [ "lastStats.scores", "miniScores", "lastStats.scores.miniScores", "miniScores.misses", "lastStats.scores.miniScores.misses", "lastStats.miniScores", "realtime.misses" ],
+		"text": "",
+		"position": { "x": 0, "y": 0 },
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"lastStats.scores.miniScores.hits": {
+		"type": "text",
+		"tags": [ "lastStats.scores", "miniScores", "lastStats.scores.miniScores", "miniScores.hits", "lastStats.scores.miniScores.hits", "lastStats.miniScores", "realtime.hits" ],
+		"text": "",
+		"position": { "x": 0, "y": 2 },
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"lastStats.scores.miniScores.perfectHits": {
+		"type": "text",
+		"tags": [ "lastStats.scores", "miniScores", "lastStats.scores.miniScores", "miniScores.perfectHits", "lastStats.scores.miniScores.perfectHits", "lastStats.miniScores", "realtime.perfectHits" ],
+		"text": "",
+		"position": { "x": 0, "y": 4 },
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"lastStats.editor": { "enabled": false, "size": { "x": -1 , "y": -1 } },
+    "lastStats.saveAndExit": {
+        "type": "button",
+        "tags": [ "lastStats.save", "back" ],
+        "text": "SAVE & EXIT",
+        "position": { "x": 2, "y": -5 },
+        "width": 11,
+        "align": "left",
+        "parent": "lastStats.editor",
+        "anchor": { "x": 0, "y": 1 }
+    },
+    "lastStats.save": {
+        "type": "button",
+        "tags": [ "lastStats.save" ],
+        "text": "SAVE",
+        "position": { "x": 2, "y": -7 },
+        "width": 4,
+        "align": "left",
+        "parent": "lastStats.editor",
+        "anchor": { "x": 0, "y": 1 }
+    },
+    "lastStats.editor.continue": {
+        "type": "button",
+        "tags": [ "lastStats.continue" ],
+        "text": "CONTINUE",
+        "position": { "x": 2, "y": -9 },
+        "width": 8,
+        "align": "left",
+        "anchor": { "x": 0, "y": 1 }
+    },
+	"game": { "enabled": false, "size": { "x": -1 , "y": -1 } },
+	"debugMenu": { "enabled": false, "size": { "x": -1 , "y": -1 } },
+	"debugMenu.reloadSettings": {
+		"type": "button",
+		"tags": [ "debugMenu" ],
+		"text": "RELOAD SETTINGS",
+		"position": { "x": 0, "y": 1 },
+		"width": 15,
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+    "debugMenu.exit": {
+        "type": "button",
+        "tags": [ "debugMenu" ],
+        "text": "EXIT GAME",
+        "position": { "x": 0, "y": 2 },
+        "width": 9,
+        "align": "left",
+        "anchor": { "x": 0, "y": 0 }
+    },
+	"debugMenu.mainMenu": {
+		"type": "button",
+		"tags": [ "debugMenu" ],
+		"text": "ENTER MAIN MENU",
+		"position": { "x": 0, "y": 3 },
+		"width": 15,
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"debugMenu.settings": {
+		"type": "button",
+		"tags": [ "debugMenu" ],
+		"text": "ENTER SETTINGS",
+		"position": { "x": 0, "y": 4 },
+		"width": 14,
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"debugMenu.editMode": {
+		"type": "button",
+		"tags": [ "debugMenu" ],
+		"text": "EDIT MODE",
+		"position": { "x": 0, "y": 5 },
+		"width": 9,
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"debugMenu.levelSelect": {
+		"type": "button",
+		"tags": [ "debugMenu" ],
+		"text": "ENTER LEVEL SELECT",
+		"position": { "x": 0, "y": 6 },
+		"width": 18,
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"debugMenu.game": {
+		"type": "button",
+		"tags": [ "debugMenu" ],
+		"text": "ENTER GAME",
+		"position": { "x": 0, "y": 7 },
+		"width": 10,
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+	"debugMenu.lastStats": {
+		"type": "button",
+		"tags": [ "debugMenu" ],
+		"text": "ENTER LAST STATS",
+		"position": { "x": 0, "y": 8 },
+		"width": 16,
+		"align": "left",
+		"anchor": { "x": 0, "y": 0 }
+	},
+    "debugMenu.debugStatus": {
+        "type": "panel",
+        "tags": [ "debugMenu" ],
+        "position": { "x": -1, "y": 0 },
+        "size": { "x": 0, "y": 0 },
+        "anchor": { "x": 1, "y": 0 }
+    }
 }
