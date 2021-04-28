@@ -63,6 +63,7 @@ namespace PPR.LuaConsole.GUI {
         public double round(double value) => Math.Round(value);
         public double sign(double value) => Math.Sign(value);
         public double sqrt(double value) => Math.Sqrt(value);
+        public object IF(bool condition, object val1, object val2) => condition ? val1 : val2;
     }
     internal class Animation {
         public Func<AnimExCtx, int> x;
