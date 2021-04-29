@@ -40,8 +40,8 @@ namespace PPR.LuaConsole.GUI {
         public byte fgB { get; set; }
         public byte fgA { get; set; }
         public float time { get; set; }
-        public static readonly Dictionary<string, object> customVars = new Dictionary<string, object>();
-        public object custom(string name) => customVars[name];
+        public static readonly Dictionary<string, double> customVars = new Dictionary<string, double>();
+        public double val(string name) => customVars[name];
         // ReSharper disable once InconsistentNaming
         private static readonly Random _random = new Random();
         public int randomInt(int min, int max) => _random.Next(min, max);
@@ -195,7 +195,7 @@ namespace PPR.LuaConsole.GUI {
             ColorScheme.Reload();
         }
 
-        public static void SetAnimationValue(string name, object value) => AnimExCtx.customVars[name] = value;
+        public static void SetAnimationValue(string name, double value) => AnimExCtx.customVars[name] = value;
 
         public static void AnimateElement(string id, string animation, float time, bool endState, Closure endCallback) {
             UIElement element = null;
