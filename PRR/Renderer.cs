@@ -61,6 +61,8 @@ namespace PRR {
     public class Renderer {
         public enum Alignment { Left, Center, Right }
 
+        public Color background = Color.Black;
+
         private readonly Shader _bloomFirstPass = Shader.FromString(
             File.ReadAllText(Path.Join("resources", "bloom_vert.glsl")), null,
             File.ReadAllText(Path.Join("resources", "bloom_frag.glsl")));
@@ -196,7 +198,7 @@ namespace PRR {
 
         public void Clear() => display.Clear();
 
-        public void Draw(Color background, bool bloom) {
+        public void Draw(bool bloom) {
             text.RebuildQuads(textPosition, charactersModifier);
 
             if(bloom) {
@@ -228,7 +230,7 @@ namespace PRR {
         }
 
         public void DrawText(Vector2i position, string text, Color foregroundColor, Color backgroundColor,
-            Color defaultBackground, Alignment align = Alignment.Left, bool replacingSpaces = false,
+            Alignment align = Alignment.Left, bool replacingSpaces = false,
             bool invertOnDarkBG = false,
             Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) {
             switch(text.Length) {
@@ -237,7 +239,7 @@ namespace PRR {
                     if(!replacingSpaces && text[0] == ' ') return;
                     Color useFG = foregroundColor;
                     if(invertOnDarkBG) {
-                        Color useBGColor = backgroundColor.A == 0 ? GetBackgroundColor(position, defaultBackground) :
+                        Color useBGColor = backgroundColor.A == 0 ? GetBackgroundColor(position) :
                             backgroundColor;
                         float luma = 0.299f * useBGColor.R +
                                      0.587f * useBGColor.G +
@@ -251,7 +253,7 @@ namespace PRR {
                     Vector2i usePos = position;
                     RenderCharacter useChar = new RenderCharacter(text[0], backgroundColor, useFG);
                     if(charactersModifier != null) (usePos, useChar) = charactersModifier.Invoke(position, useChar);
-                    SetCharacter(usePos, useChar, defaultBackground);
+                    SetCharacter(usePos, useChar);
                     return;
                 }
             }
@@ -272,7 +274,7 @@ namespace PRR {
                 Vector2i charPos = new Vector2i(posX + x, position.Y);
                 Color useFG = foregroundColor;
                 if(invertOnDarkBG) {
-                    Color useBGColor = backgroundColor.A == 0 ? GetBackgroundColor(charPos, defaultBackground) :
+                    Color useBGColor = backgroundColor.A == 0 ? GetBackgroundColor(charPos) :
                         backgroundColor;
                     float luma = 0.299f * useBGColor.R +
                                  0.587f * useBGColor.G +
@@ -286,35 +288,32 @@ namespace PRR {
                 Vector2i usePos = charPos;
                 RenderCharacter useChar = new RenderCharacter(curChar, backgroundColor, useFG);
                 if(charactersModifier != null) (usePos, useChar) = charactersModifier.Invoke(charPos, useChar);
-                SetCharacter(usePos, useChar, defaultBackground);
+                SetCharacter(usePos, useChar);
                 x++;
             }
         }
 
         public void DrawText(Vector2i position, string[] lines, Color foregroundColor, Color backgroundColor,
-            Color defaultBackground, Alignment align = Alignment.Left,
-            bool replacingSpaces = false,
-            bool invertOnDarkBG = false,
+            Alignment align = Alignment.Left, bool replacingSpaces = false, bool invertOnDarkBG = false,
             Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier =
-                null) => DrawLines(position, lines, foregroundColor, backgroundColor, defaultBackground, align,
-            replacingSpaces,
+                null) => DrawLines(position, lines, foregroundColor, backgroundColor, align, replacingSpaces,
             invertOnDarkBG, charactersModifier);
 
         // ReSharper disable once ParameterTypeCanBeEnumerable.Global
         public void DrawLines(Vector2i position, string[] lines, Color foregroundColor, Color backgroundColor,
-            Color defaultBackground, Alignment align = Alignment.Left,
+            Alignment align = Alignment.Left,
             bool replacingSpaces = false,
             bool invertOnDarkBG = false,
             Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) {
             for(int i = 0; i < lines.Length; i++)
                 DrawText(position + new Vector2i(0, i), lines[i], foregroundColor, backgroundColor,
-                    defaultBackground, align, replacingSpaces, invertOnDarkBG, charactersModifier);
+                    align, replacingSpaces, invertOnDarkBG, charactersModifier);
         }
 
-        public void SetCharacter(Vector2i position, RenderCharacter character, Color defaultBackground) {
+        public void SetCharacter(Vector2i position, RenderCharacter character) {
             if(position.X < 0 || position.Y < 0 || position.X >= width || position.Y >= height) return;
 
-            Color currentBackground = GetBackgroundColor(position, defaultBackground);
+            Color currentBackground = GetBackgroundColor(position);
             Color background = OverlayColors(currentBackground, character.background);
             Color foreground = OverlayColors(background, character.foreground);
             display[position] = new RenderCharacter(background, foreground, character);
@@ -327,13 +326,12 @@ namespace PRR {
         public char GetDisplayedCharacter(Vector2i position) =>
             !display.ContainsKey(position) ? '\0' : display[position].character;
 
-        public void SetCellColor(Vector2i position, Color foregroundColor, Color backgroundColor,
-            Color defaultBackground) => SetCharacter(position,
-            new RenderCharacter(backgroundColor, foregroundColor, GetCharacter(position)), defaultBackground);
+        public void SetCellColor(Vector2i position, Color foregroundColor, Color backgroundColor) =>
+            SetCharacter(position, new RenderCharacter(backgroundColor, foregroundColor, GetCharacter(position)));
 
-        public Color GetBackgroundColor(Vector2i position, Color @default) {
+        public Color GetBackgroundColor(Vector2i position) {
             if(position.X < 0 || position.Y < 0 || position.X >= width || position.Y >= height ||
-               !display.ContainsKey(position)) return @default;
+               !display.ContainsKey(position)) return background;
             return display[position].background;
         }
 

@@ -65,13 +65,13 @@ namespace PPR.Main.Levels {
             //   L     I     N     E
             for(int x = 0; x < Core.renderer.width; x++) {
                 Core.renderer.SetCharacter(new Vector2i(linePos.X + x, linePos.Y), 
-                    new RenderCharacter(LineCharacter, UI.currentBackground, ColorScheme.GetColor("foreground")));
+                    new RenderCharacter(LineCharacter, Core.renderer.background, ColorScheme.GetColor("foreground")));
             }
             // Handle line flashing
             for(int x = 0; x < Core.renderer.width; x++) {
                 Vector2i pos = new Vector2i(x, linePos.Y);
                 Core.renderer.SetCellColor(pos, ColorScheme.GetColor("foreground"),
-                    Renderer.LerpColors(UI.currentBackground,
+                    Renderer.LerpColors(Core.renderer.background,
                         ColorScheme.GetColor("foreground"), lineFlashTimes[x]));
                 lineFlashTimes[x] -= Core.deltaTime * 3f;
             }

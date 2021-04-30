@@ -278,7 +278,7 @@ namespace PPR.Main.Levels {
 
         public virtual LevelParticle GetRemoveAnimation(IEnumerable<LevelSpeed> speeds) =>
             new LevelParticle(step, startPosition.X, speeds) {
-            startColor = color, endColor = UI.currentBackground, speed = 3f
+            startColor = color, endColor = Core.renderer.background, speed = 3f
         };
 
         private Color Color() => Color(directionLayer, Game.currentDirectionLayer, color,
@@ -377,7 +377,7 @@ namespace PPR.Main.Levels {
         
         public override LevelParticle GetRemoveAnimation(IEnumerable<LevelSpeed> speeds) =>
             new LevelParticle(step, startPosition.X, speeds) {
-                startColor = removeColor, endColor = UI.currentBackground, speed = 3f
+                startColor = removeColor, endColor = Core.renderer.background, speed = 3f
             };
 
         protected void CheckHit() => CheckHit(GetHitIndex(Math.Abs(lastNoteDistanceFromLine)));

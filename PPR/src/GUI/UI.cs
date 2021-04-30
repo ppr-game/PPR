@@ -68,12 +68,6 @@ namespace PPR.GUI {
             }
         }*/
 
-        public static Color currentBackground {
-            get => levelBackground ?? ColorScheme.GetColor("background");
-            set => levelBackground = value;
-        }
-        public static Color? levelBackground;
-        
         public static string currSelectedLevel;
         public static string currSelectedDiff;
         public static Dictionary<string, LevelSelectLevel> levelSelectLevels;
@@ -189,6 +183,16 @@ namespace PPR.GUI {
             return anim;
         }
 
+        private static void AddAllAnimations() {
+            if(animationsToAdd.Count <= 0) return;
+            foreach((UIAnimation animation, List<UIElement> elements) in
+                new Dictionary<UIAnimation, List<UIElement>>(animationsToAdd)) {
+                foreach(UIElement element in elements) element.AddAnimation(animation);
+            }
+            foreach((UIAnimation animation, List<UIElement> _) in animationsToAdd) animation.Start();
+            animationsToAdd.Clear();
+        }
+
         /*public static void RecreateButtons() {
             const Alignment center = Alignment.Center;
             const Alignment right = Alignment.Right;
@@ -239,9 +243,14 @@ namespace PPR.GUI {
             bool useScriptCharMod =
                 Scripts.Rendering.Renderer.scriptCharactersModifier != null && currentLayout.IsElementEnabled("game");
             if(useScriptCharMod) Core.renderer.charactersModifier = Scripts.Rendering.Renderer.scriptCharactersModifier;
-            
-            levelBackground = currentLayout.IsElementEnabled("game") ?
-                Scripts.Rendering.Renderer.scriptBackgroundModifier?.Invoke(ColorScheme.GetColor("background")) : null;
+
+            if(currentLayout.IsElementEnabled("game")) {
+                Color? color =
+                    Scripts.Rendering.Renderer.scriptBackgroundModifier?.Invoke(ColorScheme.GetColor("background"));
+                if(color.HasValue) Core.renderer.background = color.Value;
+                else Core.renderer.ResetBackground();
+            }
+            else Core.renderer.ResetBackground();
 
             if(useScriptCharMod) return;
             Core.renderer.charactersModifier = null;
@@ -267,7 +276,7 @@ namespace PPR.GUI {
 
         private static float _menusAnimTime;
         private static void DrawMenusAnim() {
-            Color background = currentBackground;
+            Color background = Core.renderer.background;
             Color menusAnimMax = ColorScheme.GetColor("menus_anim_max");
             Color transparent = ColorScheme.GetColor("transparent");
             for(int x = -3; x < Core.renderer.width + 3; x++) {
@@ -622,14 +631,7 @@ namespace PPR.GUI {
                 if(element.enabled) element.Draw();
             }
 
-            if(animationsToAdd.Count > 0) {
-                foreach((UIAnimation animation, List<UIElement> elements) in
-                    new Dictionary<UIAnimation, List<UIElement>>(animationsToAdd)) {
-                    foreach(UIElement element in elements) element.AddAnimation(animation);
-                }
-                foreach((UIAnimation animation, List<UIElement> _) in animationsToAdd) animation.Start();
-                animationsToAdd.Clear();
-            }
+            AddAllAnimations();
 
             Lua.DrawUI();
             

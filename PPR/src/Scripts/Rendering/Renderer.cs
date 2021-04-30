@@ -125,7 +125,7 @@ namespace PPR.Scripts.Rendering {
         public static List<Dictionary<string, DynValue>> backgroundModifier {
             set {
                 if(value == null) {
-                    UI.levelBackground = null;
+                    PPR.Core.renderer.ResetBackground();
                     scriptBackgroundModifier = null;
                     return;
                 }
@@ -306,12 +306,11 @@ namespace PPR.Scripts.Rendering {
             backgroundColor ?? ColorScheme.GetColor("transparent"), align, replacingSpaces, invertOnDarkBG,
             charactersModifier);
 
-        public static void SetCharacter(int x, int y, RenderCharacter character, Color defaultBackground) =>
-            PPR.Core.renderer.SetCharacter(new Vector2i(x, y), character, defaultBackground);
+        public static void SetCharacter(int x, int y, RenderCharacter character) =>
+            PPR.Core.renderer.SetCharacter(new Vector2i(x, y), character);
         public static RenderCharacter GetCharacter(Vector2i position) => PPR.Core.renderer.GetCharacter(position);
-        public static void SetCellColor(int x, int y, Color foregroundColor, Color backgroundColor,
-            Color defaultBackground) =>
-            PPR.Core.renderer.SetCellColor(new Vector2i(x, y), foregroundColor, backgroundColor, defaultBackground);
+        public static void SetCellColor(int x, int y, Color foregroundColor, Color backgroundColor) =>
+            PPR.Core.renderer.SetCellColor(new Vector2i(x, y), foregroundColor, backgroundColor);
         public static Color LerpColors(Color a, Color b, float t) => PRR.Renderer.LerpColors(a, b, t);
         public static Color AnimateColor(float time, Color start, Color end, float rate) =>
             PRR.Renderer.AnimateColor(time, start, end, rate);
