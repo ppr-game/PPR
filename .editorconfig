@@ -6,6 +6,7 @@ trim_trailing_whitespace=false
 insert_final_newline=false
 indent_style=space
 indent_size=4
+tab_width=4
 
 # Microsoft .NET properties
 csharp_new_line_before_open_brace=none
@@ -76,7 +77,7 @@ resharper_blank_lines_between_using_groups=1
 resharper_braces_for_ifelse=not_required
 resharper_braces_redundant=false
 resharper_can_use_global_alias=false
-resharper_csharp_blank_lines_around_invocable=0
+resharper_csharp_blank_lines_around_invocable=1
 resharper_csharp_empty_block_style=together
 resharper_csharp_insert_final_newline=true
 resharper_csharp_stick_comment=false
@@ -152,16 +153,3 @@ resharper_use_deconstruction_highlighting=warning
 resharper_web_config_module_not_resolved_highlighting=warning
 resharper_web_config_type_not_resolved_highlighting=warning
 resharper_web_config_wrong_module_highlighting=warning
-
-[{*.har,*.inputactions,*.json}]
-indent_style=space
-indent_size=4
-
-[{*.yaml,*.yml}]
-indent_style=space
-indent_size=4
-
-[*.{appxmanifest,asax,ascx,aspx,build,cg,cginc,compute,cs,cshtml,dtd,hlsl,hlsli,hlslinc,master,nuspec,razor,resw,resx,shader,skin,usf,ush,vb,xaml,xamlx,xoml,xsd}]
-indent_style=space
-indent_size=4
-tab_width=4
