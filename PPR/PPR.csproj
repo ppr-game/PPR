@@ -21,6 +21,7 @@
     <ForceBeauty>false</ForceBeauty>
     <DisablePatch>false</DisablePatch>
     <BeautyLogLevel>Error</BeautyLogLevel>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

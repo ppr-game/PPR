@@ -340,8 +340,8 @@ ASALocalRun/
 healthchecksdb
 
 
-scores/
-levels/*
-!levels/_template
-/config.txt
-/logs/internalLog.txt
+*/scores/
+*/levels/*
+!*/levels/_template
+*/config.txt
+*/logs/internalLog.txt
