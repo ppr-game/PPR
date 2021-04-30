@@ -5,7 +5,7 @@
         <Version>0.1.5-beta</Version>
         <Authors>ConfiG</Authors>
         <PackageId>PRR</PackageId>
-        <RepositoryUrl>https://github.com/ppr-game/PRR</RepositoryUrl>
+        <RepositoryUrl>https://github.com/ppr-game/PPR</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
         <Title>Press Render Revolution</Title>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
