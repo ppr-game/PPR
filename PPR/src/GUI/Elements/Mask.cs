@@ -5,10 +5,7 @@ using MoonSharp.Interpreter;
 
 using PPR.Main;
 
-using PRR;
-
 using SFML.System;
-using SFML.Window;
 
 namespace PPR.GUI.Elements {
     public class Mask : Panel {

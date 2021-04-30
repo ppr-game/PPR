@@ -2,8 +2,6 @@
 
 using MoonSharp.Interpreter;
 
-using PPR.GUI;
-using PPR.LuaConsole.Rendering;
 using PPR.Main;
 using PPR.Main.Levels;
 

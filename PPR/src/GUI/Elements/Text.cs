@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using PPR.Main;
-
-using PRR;
-
 using SFML.Graphics;
 using SFML.System;
 

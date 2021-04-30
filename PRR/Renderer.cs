@@ -6,12 +6,6 @@ using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
-// ReSharper disable UnusedType.Global
-// ReSharper disable MemberCanBePrivate.Global
-// ReSharper disable UnassignedField.Global
-// ReSharper disable NotAccessedField.Global
-// ReSharper disable UnusedMember.Global
-
 namespace PRR {
     public readonly struct RenderCharacter {
         public RenderCharacter(char character, Color background, Color foreground) {

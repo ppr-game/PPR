@@ -2,8 +2,6 @@
 using System.IO;
 using System.Linq;
 
-using MoonSharp.Interpreter;
-
 using NLog;
 
 using PPR.GUI;

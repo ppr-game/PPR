@@ -1,9 +1,5 @@
 ﻿using System;
 
-using PPR.GUI;
-
-using SFML.Graphics;
-
 namespace PPR.Main.Managers {
     public static class ScoreManager {
         public static int score {

@@ -3,7 +3,6 @@
 using PPR.Main.Levels;
 using PPR.Main.Managers;
 
-using SFML.Graphics;
 using SFML.Window;
 
 namespace PPR.Scripts.Main {
