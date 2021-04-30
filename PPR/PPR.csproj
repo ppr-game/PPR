@@ -43,7 +43,6 @@
   <ItemGroup>
     <PackageReference Include="CoreCLR-NCalc" Version="2.2.88" />
     <PackageReference Include="nulastudio.NetCoreBeauty" Version="1.2.9" />
-    <PackageReference Include="PRR" Version="0.1.4-beta" />
     <PackageReference Include="DiscordRichPresence" Version="1.0.150" />
     <PackageReference Include="MoonSharp" Version="2.0.0" />
     <PackageReference Include="NLog" Version="4.7.5" />
@@ -60,6 +59,10 @@
     <None Update="resources\**\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PRR\PRR.csproj" />
   </ItemGroup>
 
 </Project>
