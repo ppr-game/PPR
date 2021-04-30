@@ -314,12 +314,11 @@ namespace PRR {
         public void SetCharacter(Vector2i position, RenderCharacter character, Color defaultBackground) {
             if(position.X < 0 || position.Y < 0 || position.X >= width || position.Y >= height) return;
 
-            if(IsRenderCharacterEmpty(character)) display.Remove(position);
-            else {
-                Color finalBackground =
-                    BlendColors(GetBackgroundColor(position, defaultBackground), character.background);
-                display[position] = new RenderCharacter(finalBackground, character);
-            }
+            Color currentBackground = GetBackgroundColor(position, defaultBackground);
+            Color background = OverlayColors(currentBackground, character.background);
+            Color foreground = OverlayColors(background, character.foreground);
+            display[position] = new RenderCharacter(background, foreground, character);
+            if(IsRenderCharacterEmpty(display[position])) display.Remove(position);
         }
 
         public RenderCharacter GetCharacter(Vector2i position) => display.ContainsKey(position) ? display[position] :
@@ -329,17 +328,8 @@ namespace PRR {
             !display.ContainsKey(position) ? '\0' : display[position].character;
 
         public void SetCellColor(Vector2i position, Color foregroundColor, Color backgroundColor,
-            Color defaultBackground) {
-            if(position.X < 0 || position.Y < 0 || position.X >= width || position.Y >= height) return;
-
-            Color finalBackground = BlendColors(GetBackgroundColor(position, defaultBackground), backgroundColor);
-
-            RenderCharacter newCharacter = new RenderCharacter(finalBackground, foregroundColor,
-                GetCharacter(position));
-
-            if(IsRenderCharacterEmpty(newCharacter)) display.Remove(position);
-            else display[position] = newCharacter;
-        }
+            Color defaultBackground) => SetCharacter(position,
+            new RenderCharacter(backgroundColor, foregroundColor, GetCharacter(position)), defaultBackground);
 
         public Color GetBackgroundColor(Vector2i position, Color @default) {
             if(position.X < 0 || position.Y < 0 || position.X >= width || position.Y >= height ||
@@ -362,14 +352,18 @@ namespace PRR {
         public static Color AnimateColor(float time, Color start, Color end, float rate) =>
             LerpColors(start, end, time * rate);
 
-        public static Color BlendColors(Color bottom, Color top) {
-            switch(top.A) {
-                case 255: return top;
-                case 0: return bottom;
-                default:
-                    Color noAlphaBG = new Color(top.R, top.G, top.B, 255);
-                    return LerpColors(bottom, noAlphaBG, top.A / 255f);
-            }
+        public static Color OverlayColors(Color bottom, Color top) {
+            float t = (255f - top.A) * bottom.A / 255f;
+            float a = t + top.A;
+
+            float r = (t * bottom.R + top.A * (float)top.R) / a;
+            float g = (t * bottom.G + top.A * (float)top.G) / a;
+            float b = (t * bottom.B + top.A * (float)top.B) / a;
+
+            return new Color((byte)r, (byte)g, (byte)b, (byte)a);
         }
+
+        [Obsolete("BlendsColors was renamed to OverlayColors and is now deprecated, use OverlayColors instead.")]
+        public static Color BlendColors(Color bottom, Color top) => OverlayColors(bottom, top);
     }
 }

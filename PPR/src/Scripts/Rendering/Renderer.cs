@@ -315,6 +315,6 @@ namespace PPR.Scripts.Rendering {
         public static Color LerpColors(Color a, Color b, float t) => PRR.Renderer.LerpColors(a, b, t);
         public static Color AnimateColor(float time, Color start, Color end, float rate) =>
             PRR.Renderer.AnimateColor(time, start, end, rate);
-        public static Color BlendColors(Color bottom, Color top) => PRR.Renderer.BlendColors(bottom, top);
+        public static Color BlendColors(Color bottom, Color top) => PRR.Renderer.OverlayColors(bottom, top);
     }
 }
