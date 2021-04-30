@@ -234,26 +234,10 @@ namespace PRR {
             bool invertOnDarkBG = false,
             Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) {
             switch(text.Length) {
-                case 0: return; // Don't do anything, if the text is empty
+                case 0: return; // Don't do anything if the text is empty
                 case 1: {
                     if(!replacingSpaces && text[0] == ' ') return;
-                    Color useFG = foregroundColor;
-                    if(invertOnDarkBG) {
-                        Color useBGColor = backgroundColor.A == 0 ? GetBackgroundColor(position) :
-                            backgroundColor;
-                        float luma = 0.299f * useBGColor.R +
-                                     0.587f * useBGColor.G +
-                                     0.114f * useBGColor.B;
-                        if(luma < 127.5f)
-                            useFG = new Color(255, 255, 255, foregroundColor.A) -
-                                    new Color(foregroundColor.R, foregroundColor.G,
-                                        foregroundColor.B, 0);
-                    }
-
-                    Vector2i usePos = position;
-                    RenderCharacter useChar = new RenderCharacter(text[0], backgroundColor, useFG);
-                    if(charactersModifier != null) (usePos, useChar) = charactersModifier.Invoke(position, useChar);
-                    SetCharacter(usePos, useChar);
+                    DrawTextChar(position, text[0], foregroundColor, backgroundColor, invertOnDarkBG, charactersModifier);
                     return;
                 }
             }
@@ -272,25 +256,28 @@ namespace PRR {
                 }
 
                 Vector2i charPos = new Vector2i(posX + x, position.Y);
-                Color useFG = foregroundColor;
-                if(invertOnDarkBG) {
-                    Color useBGColor = backgroundColor.A == 0 ? GetBackgroundColor(charPos) :
-                        backgroundColor;
-                    float luma = 0.299f * useBGColor.R +
-                                 0.587f * useBGColor.G +
-                                 0.114f * useBGColor.B;
-                    if(luma < 127.5f)
-                        useFG = new Color(255, 255, 255, foregroundColor.A) -
-                                new Color(foregroundColor.R, foregroundColor.G,
-                                    foregroundColor.B, 0);
-                }
-
-                Vector2i usePos = charPos;
-                RenderCharacter useChar = new RenderCharacter(curChar, backgroundColor, useFG);
-                if(charactersModifier != null) (usePos, useChar) = charactersModifier.Invoke(charPos, useChar);
-                SetCharacter(usePos, useChar);
+                DrawTextChar(charPos, curChar, foregroundColor, backgroundColor, invertOnDarkBG, charactersModifier);
                 x++;
             }
+        }
+
+        private void DrawTextChar(Vector2i position, char character, Color foregroundColor, Color backgroundColor,
+            bool invertOnDarkBG = false,
+            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) {
+            Color useFG = foregroundColor;
+            if(invertOnDarkBG) {
+                Color useBGColor = backgroundColor.A == 0 ? GetBackgroundColor(position) : backgroundColor;
+                float luma = 0.299f * useBGColor.R + 0.587f * useBGColor.G + 0.114f * useBGColor.B;
+                if(luma < 127.5f)
+                    useFG = new Color(255, 255, 255, foregroundColor.A) -
+                            new Color(foregroundColor.R, foregroundColor.G,
+                                foregroundColor.B, 0);
+            }
+
+            Vector2i usePos = position;
+            RenderCharacter useChar = new RenderCharacter(character, backgroundColor, useFG);
+            if(charactersModifier != null) (usePos, useChar) = charactersModifier(position, useChar);
+            SetCharacter(usePos, useChar);
         }
 
         public void DrawText(Vector2i position, string[] lines, Color foregroundColor, Color backgroundColor,
