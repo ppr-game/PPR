@@ -151,13 +151,10 @@ namespace PPR.GUI.Elements {
                     currentState == State.Idle ? hoverColor : idleColor, 4f + _animRateOffsets[x]);
                 Color background =
                     Renderer.AnimateColor(_animTime, _prevColor, _currentColor, 4f + _animRateOffsets[x]);
-                if(useAnimationModifier == null) Core.renderer.SetCellColor(pos, foreground, background);
-                else {
-                    RenderCharacter character =
-                        new RenderCharacter(background, foreground, Core.renderer.GetCharacter(pos));
-                    (Vector2i newPos, RenderCharacter newCharacter) = useAnimationModifier(pos, character);
-                    Core.renderer.SetCharacter(newPos, newCharacter);
-                }
+                RenderCharacter character =
+                    new RenderCharacter(background, foreground, Core.renderer.GetCharacter(pos));
+                (Vector2i newPos, RenderCharacter newCharacter) = useAnimationModifier(pos, character);
+                Core.renderer.SetCharacter(newPos, newCharacter);
             }
 
             _prevFrameHotkeyPressed = Core.renderer.window.HasFocus() && _hotkeyPressed;

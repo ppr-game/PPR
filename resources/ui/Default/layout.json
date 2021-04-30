@@ -8,7 +8,7 @@
 		"anchor": { "x": 0, "y": 0 },
 		"parent": null
 	},
-	"mainMenu": { "enabled": false, "size": { "x": -1 , "y": -1 } },
+	"mainMenu": { "enabled": false, "size": { "x": -1, "y": -1 } },
 	"mainMenu.frame": {
 		"type": "text",
 		"tags": [ "frame" ],
@@ -127,7 +127,7 @@
 	"mainMenu.music": {
 		"type": "panel",
 		"position": { "x": 1, "y": -2 },
-		"size": { "x": 0 , "y": 0 },
+		"size": { "x": 0, "y": 0 },
 		"anchor": { "x": 0, "y": 1 }
 	},
 	"mainMenu.music.pause": {
@@ -151,7 +151,7 @@
 		"align": "left",
 		"anchor": { "x": 0, "y": 1 }
 	},
-	"levelSelect": { "enabled": false, "size": { "x": -1 , "y": -1 } },
+	"levelSelect": { "enabled": false, "size": { "x": -1, "y": -1 } },
 	"levelSelect.frame": {
 		"type": "text",
 		"tags": [ "frame" ],
@@ -237,7 +237,7 @@
 	"levelSelect.music": {
 		"type": "panel",
 		"position": { "x": 1, "y": -2 },
-		"size": { "x": 0 , "y": 0 },
+		"size": { "x": 0, "y": 0 },
 		"anchor": { "x": 0, "y": 1 }
 	},
 	"levelSelect.music.nowPlaying": {
@@ -248,7 +248,7 @@
 		"align": "left",
 		"anchor": { "x": 0, "y": 1 }
 	},
-	"lastStats": { "enabled": false, "size": { "x": -1 , "y": -1 } },
+	"lastStats": { "enabled": false, "size": { "x": -1, "y": -1 } },
 	"lastStats.frame": {
 		"type": "text",
 		"tags": [ "frame" ],
@@ -330,7 +330,7 @@
 		"align": "left",
 		"anchor": { "x": 0, "y": 1 }
 	},
-    "lastStats.player": { "enabled": false, "size": { "x": -1 , "y": -1 } },
+    "lastStats.player": { "enabled": false, "size": { "x": -1, "y": -1 } },
 	"lastStats.restart": {
 		"type": "button",
 		"text": "RESTART",
@@ -445,7 +445,7 @@
 		"align": "left",
 		"anchor": { "x": 0, "y": 0 }
 	},
-	"lastStats.editor": { "enabled": false, "size": { "x": -1 , "y": -1 } },
+	"lastStats.editor": { "enabled": false, "size": { "x": -1, "y": -1 } },
     "lastStats.saveAndExit": {
         "type": "button",
         "tags": [ "lastStats.save", "back" ],
@@ -475,8 +475,32 @@
         "align": "left",
         "anchor": { "x": 0, "y": 1 }
     },
-	"game": { "enabled": false, "size": { "x": -1 , "y": -1 } },
-	"debugMenu": { "enabled": false, "size": { "x": -1 , "y": -1 } },
+	"game": { "enabled": false, "size": { "x": -1, "y": -1 } },
+    "game.progressBarBackground": {
+        "type": "filledPanel",
+        "tags": [ "progress.bg" ],
+        "position": { "x": 0, "y": 0 },
+        "size": { "x": 80, "y": 1 }
+    },
+    "game.progressBar": {
+        "type": "filledPanel",
+        "tags": [ "progress.fg" ],
+        "size": { "x": 0, "y": 1 },
+        "parent": "game.progressBarBackground"
+    },
+    "game.healthBarBackground": {
+        "type": "filledPanel",
+        "tags": [ "health.bg" ],
+        "position": { "x": 0, "y": 1 },
+        "size": { "x": 80, "y": 1 }
+    },
+    "game.healthBar": {
+        "type": "filledPanel",
+        "tags": [ "health.fg" ],
+        "size": { "x": 80, "y": 1 },
+        "parent": "game.healthBarBackground"
+    },
+	"debugMenu": { "enabled": false, "size": { "x": -1, "y": -1 } },
 	"debugMenu.reloadSettings": {
 		"type": "button",
 		"tags": [ "debugMenu" ],

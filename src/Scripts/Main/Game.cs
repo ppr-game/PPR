@@ -18,6 +18,7 @@ namespace PPR.Scripts.Main {
         public static int score => ScoreManager.score;
         public static int[] scores => ScoreManager.scores;
         public static int health => PPR.Main.Game.health;
+        public static int progress => PPR.Main.Game.progress;
         public static int accuracy => ScoreManager.accuracy;
         public static int combo => ScoreManager.combo;
         public static int maxCombo => ScoreManager.maxCombo;

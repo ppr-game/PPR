@@ -40,8 +40,10 @@ namespace PPR.LuaConsole.GUI {
         public byte fgB { get; set; }
         public byte fgA { get; set; }
         public float time { get; set; }
+        public Dictionary<string, double> args;
         public static readonly Dictionary<string, double> customVars = new Dictionary<string, double>();
         public double val(string name) => customVars[name];
+        public double arg(string name) => args[name];
         // ReSharper disable once InconsistentNaming
         private static readonly Random _random = new Random();
         public int randomInt(int min, int max) => _random.Next(min, max);
@@ -63,6 +65,7 @@ namespace PPR.LuaConsole.GUI {
         public double round(double value) => Math.Round(value);
         public double sign(double value) => Math.Sign(value);
         public double sqrt(double value) => Math.Sqrt(value);
+        public double toDouble(double value) => value;
     }
     internal class Animation {
         public Func<AnimExCtx, int> x;
@@ -81,7 +84,7 @@ namespace PPR.LuaConsole.GUI {
     [MoonSharpHideMember("scriptAnimations")]
     public class UI {
         public static Dictionary<string,
-                Func<float, Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>>> scriptAnimations;
+            Func<float, Dictionary<string, double>, Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>>> scriptAnimations;
         public static Dictionary<string, Dictionary<string, DynValue>> animations {
             set {
                 AnimExCtx.customVars.Clear();
@@ -142,9 +145,9 @@ namespace PPR.LuaConsole.GUI {
                 }
 
                 scriptAnimations = new Dictionary<string,
-                    Func<float, Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>>>();
+                    Func<float, Dictionary<string, double>, Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>>>();
                 foreach((string name, Animation animation) in anims) {
-                    scriptAnimations.Add(name, time => {
+                    scriptAnimations.Add(name, (time, args) => {
                         AnimExCtx context = new AnimExCtx();
                         return (pos, character) => {
                             context.x = pos.X;
@@ -159,6 +162,7 @@ namespace PPR.LuaConsole.GUI {
                             context.fgB = character.foreground.B;
                             context.fgA = character.foreground.A;
                             context.time = time;
+                            context.args = args ?? new Dictionary<string, double>();
                             Vector2i modPos = pos;
                             RenderCharacter modChar = character;
                             modPos = new Vector2i(animation.x?.Invoke(context) ?? modPos.X,
@@ -196,12 +200,13 @@ namespace PPR.LuaConsole.GUI {
 
         public static void SetAnimationValue(string name, double value) => AnimExCtx.customVars[name] = value;
 
-        public static void AnimateElement(string id, string animation, float time, bool endState, Closure endCallback) {
+        public static UIAnimation AnimateElement(string id, string animation, float time, bool endState, Closure endCallback,
+            Dictionary<string, double> args) {
             UIElement element = null;
             if(id != null && !PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out element))
                 throw new ArgumentException($"Element {id} doesn't exist.");
 
-            PPR.GUI.UI.AnimateElement(element, animation, time, endState, endCallback);
+            return PPR.GUI.UI.AnimateElement(element, animation, time, endState, endCallback, args);
         }
 
         public static UIElement GetElement(string id) {

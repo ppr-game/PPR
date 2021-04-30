@@ -129,6 +129,11 @@ dark_health_bar=dark_red
 progress_bar=white
 dark_progress_bar=darker_gray
 
+filledPanel_@health.fg_color=health_bar
+filledPanel_@health.bg_color=dark_health_bar
+filledPanel_@progress.fg_color=progress_bar
+filledPanel_@progress.bg_color=dark_progress_bar
+
 line_1_fg_color=light_orange
 line_2_fg_color=light_red
 line_3_fg_color=light_green

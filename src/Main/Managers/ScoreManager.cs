@@ -17,18 +17,18 @@ namespace PPR.Main.Managers {
         public static int accuracy {
             get => _accuracy;
             private set {
-                int newValue = Math.Clamp(value, 0, 100);
-                Lua.InvokeEvent(null, "accuracyChanged", newValue, _accuracy);
-                _accuracy = newValue;
+                value = Math.Clamp(value, 0, 100);
+                Lua.InvokeEvent(null, "accuracyChanged", value, _accuracy);
+                _accuracy = value;
             }
         }
 
         public static int[] scores {
             get => _scores;
             private set {
-                Lua.InvokeEvent(null, "scoresChanged", 1);
-                Lua.InvokeEvent(null, "scoresChanged", 2);
-                Lua.InvokeEvent(null, "scoresChanged", 3);
+                Lua.InvokeEvent(null, "scoresChanged", 1, _scores[0]);
+                Lua.InvokeEvent(null, "scoresChanged", 2, _scores[1]);
+                Lua.InvokeEvent(null, "scoresChanged", 3, _scores[2]);
                 _scores = value;
             }
         }

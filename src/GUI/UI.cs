@@ -32,7 +32,7 @@ namespace PPR.GUI {
         private static readonly Random random = new Random();
         private static readonly Perlin perlin = new Perlin();
 
-        private static readonly Color[] prevHealthColors = new Color[80];
+        /*private static readonly Color[] prevHealthColors = new Color[80];
         private static readonly Color[] healthColors = new Color[80];
         private static readonly float[] healthAnimTimes = new float[80];
         private static readonly float[] healthAnimRateOffsets = new float[80];
@@ -66,7 +66,7 @@ namespace PPR.GUI {
                     progressColors[x] = color;
                 }
             }
-        }
+        }*/
 
         public static Color currentBackground {
             get => levelBackground ?? ColorScheme.GetColor("background");
@@ -156,6 +156,7 @@ namespace PPR.GUI {
 
                 UIElement element = type switch {
                     "panel" => new Panel(id, tags, position, size, anchor, parent),
+                    "filledPanel" => new FilledPanel(id, tags, position, size, anchor, parent),
                     "mask" => new Mask(id, tags, position, size, anchor, parent),
                     "text" => new Elements.Text(id, tags, position, anchor, parent, text, align, replacingSpaces,
                         invertOnDarkBackground),
@@ -172,17 +173,20 @@ namespace PPR.GUI {
             script.DoFile(scriptPath);
         }
 
-        public static void AnimateElement(UIElement element, string animation, float time, bool endState,
-            Closure endCallback) {
+        private static readonly Dictionary<UIAnimation, List<UIElement>> animationsToAdd =
+            new Dictionary<UIAnimation, List<UIElement>>();
+        public static UIAnimation AnimateElement(UIElement element, string animation, float time, bool endState,
+            Closure endCallback, Dictionary<string, double> args) {
             UIAnimation anim = new UIAnimation(animation, LuaConsole.GUI.UI.scriptAnimations[animation], time,
-                endState, endCallback);
+                endState, endCallback, args);
+            animationsToAdd.Add(anim, new List<UIElement>());
             if(element == null) {
                 foreach(UIElement elem in new Dictionary<string, UIElement>(currentLayout.elements).Values)
                     if(elem.parent == null)
-                        elem.AddAnimation(anim);
+                        animationsToAdd[anim].Add(elem);
             }
-            else element.AddAnimation(anim);
-            anim.Start();
+            else animationsToAdd[anim].Add(element);
+            return anim;
         }
 
         /*public static void RecreateButtons() {
@@ -616,6 +620,15 @@ namespace PPR.GUI {
                 
                 element.Update();
                 if(element.enabled) element.Draw();
+            }
+
+            if(animationsToAdd.Count > 0) {
+                foreach((UIAnimation animation, List<UIElement> elements) in
+                    new Dictionary<UIAnimation, List<UIElement>>(animationsToAdd)) {
+                    foreach(UIElement element in elements) element.AddAnimation(animation);
+                }
+                foreach((UIAnimation animation, List<UIElement> _) in animationsToAdd) animation.Start();
+                animationsToAdd.Clear();
             }
 
             Lua.DrawUI();

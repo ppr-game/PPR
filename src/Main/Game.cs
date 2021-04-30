@@ -39,7 +39,7 @@ namespace PPR.Main {
             get => _steps;
             private set {
                 _steps = value;
-                if(!editing) UI.progress = (int)(value / Map.currentLevel.metadata.maxStep * 80f);
+                if(!editing) progress = (int)(value / Map.currentLevel.metadata.maxStep * 80f);
             }
         }
         public static int roundedSteps { get; private set; }
@@ -64,8 +64,19 @@ namespace PPR.Main {
             get => _health;
             set {
                 value = Math.Clamp(value, 0, 80);
+                if(_health == value) return;
+                Lua.InvokeEvent(null, "healthChanged", value, _health);
                 _health = value;
-                UI.health = value;
+            }
+        }
+        
+        private static int _progress;
+        public static int progress {
+            get => _progress;
+            set {
+                if(_progress == value) return;
+                Lua.InvokeEvent(null, "progressChanged", value, _progress);
+                _progress = value;
             }
         }
 
@@ -228,7 +239,7 @@ namespace PPR.Main {
 
             statsState = StatsState.Pause;
             _usedAuto = auto;
-            UI.progress = 80;
+            progress = 0;
             _offset = 0;
             roundedOffset = 0;
             steps = 0;
@@ -239,7 +250,6 @@ namespace PPR.Main {
             levelTime = Time.Zero;
             _prevLevelTime = Time.Zero;
             playing = false;
-            UI.health = 0;
             health = 80;
             _tickAccumulator = 0f;
             _tpsTicks = 0;
@@ -392,7 +402,7 @@ namespace PPR.Main {
                     }
                 }
 
-                UI.progress = (int)(levelTime.AsSeconds() / duration * 80f);
+                progress = (int)(levelTime.AsSeconds() / duration * 80f);
                 _prevLeftButtonPressed = Core.renderer.leftButtonPressed;
             }
 

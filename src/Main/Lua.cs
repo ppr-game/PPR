@@ -38,10 +38,13 @@ namespace PPR.Main {
             UserData.RegisterType<LuaConsole.GUI.UI>();
             
             UserData.RegisterType<GUI.Elements.Button>();
+            UserData.RegisterType<GUI.Elements.FilledPanel>();
             UserData.RegisterType<GUI.Elements.Mask>();
             UserData.RegisterType<GUI.Elements.Panel>();
             UserData.RegisterType<GUI.Elements.Slider>();
             UserData.RegisterType<GUI.Elements.Text>();
+                
+            UserData.RegisterType<GUI.Elements.UIAnimation>();
             
             UserData.RegisterType<LuaConsole.Main.Managers.SoundManager>();
             UserData.RegisterType<LuaConsole.Main.Managers.ScoreManager>();

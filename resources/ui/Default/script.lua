@@ -8,15 +8,20 @@ end
 
 
 ui.animations = {
-	none = { },
 	fadeOut = {
 		background = { "bgR", "bgG", "bgB", "lerp(bgA, 0, time * (posRandom(x, y) * 3.5 + 1))" },
 		foreground = { "fgR", "fgG", "fgB", "lerp(fgA, 0, time * (posRandom(x, y) * 3.5 + 1))" }
 	},
-	fadeIn = {
-		background = { "bgR", "bgG", "bgB", "lerp(0, bgA, time * (posRandom(x, y) * 3.5 + 1))" },
-		foreground = { "fgR", "fgG", "fgB", "lerp(0, fgA, time * (posRandom(x, y) * 3.5 + 1))" }
-	}
+    fadeIn = {
+        background = { "bgR", "bgG", "bgB", "lerp(0, bgA, time * (posRandom(x, y) * 3.5 + 1))" },
+        foreground = { "fgR", "fgG", "fgB", "lerp(0, fgA, time * (posRandom(x, y) * 3.5 + 1))" }
+    },
+    progressBarOut = {
+        background = { "bgR", "bgG", "bgB", "if(x >= arg('progress') && x <= arg('oldProgress'), lerp(bgA, 0, time * (posRandom(x, y) + 1)), toDouble(bgA))" }
+    },
+    progressBarIn = {
+        background = { "bgR", "bgG", "bgB", "if(x >= arg('oldProgress') && x <= arg('progress'), lerp(0, bgA, time * (posRandom(x, y) + 1)), toDouble(bgA))" }
+    }
 }
 
 ANIMATION_TIME = 1/7
@@ -27,9 +32,9 @@ EXIT_ANIMATION_TIME = 1/0.75
 
 game.subscribeEvent(ui.getElement("debugMenu.toggle"), "buttonClicked", function()
     if ui.getElement("debugMenu").enabled then
-        ui.animateElement("debugMenu", "fadeOut", ANIMATION_TIME, false, nil)
+        ui.animateElement("debugMenu", "fadeOut", ANIMATION_TIME, false, nil, nil)
     else
-        ui.animateElement("debugMenu", "fadeIn", ANIMATION_TIME, true, nil)
+        ui.animateElement("debugMenu", "fadeIn", ANIMATION_TIME, true, nil, nil)
     end
 end)
 
@@ -53,8 +58,8 @@ game.subscribeEvent(ui.getElement("mainMenu.play"), "buttonClicked", function()
     ui.getElement("levelSelect.auto").enabled = true
     updateAutoButtons()
     ui.animateElement("mainMenu", "fadeOut", ANIMATION_TIME, false, function()
-        ui.animateElement("levelSelect", "fadeIn", ANIMATION_TIME, true, nil)
-    end)
+        ui.animateElement("levelSelect", "fadeIn", ANIMATION_TIME, true, nil, nil)
+    end, nil)
 end)
 
 game.subscribeEvent(ui.getElement("mainMenu.edit"), "buttonClicked", function()
@@ -62,14 +67,14 @@ game.subscribeEvent(ui.getElement("mainMenu.edit"), "buttonClicked", function()
     updateEditModeButton()
     ui.getElement("levelSelect.auto").enabled = false
     ui.animateElement("mainMenu", "fadeOut", ANIMATION_TIME, false, function()
-        ui.animateElement("levelSelect", "fadeIn", ANIMATION_TIME, true, nil)
-    end)
+        ui.animateElement("levelSelect", "fadeIn", ANIMATION_TIME, true, nil, nil)
+    end, nil)
 end)
 
 game.subscribeEvent(ui.getElement("mainMenu.settings"), "buttonClicked", function()
     ui.animateElement("mainMenu", "fadeOut", ANIMATION_TIME, false, function()
-        ui.animateElement("settings", "fadeIn", ANIMATION_TIME, true, nil)
-    end)
+        ui.animateElement("settings", "fadeIn", ANIMATION_TIME, true, nil, nil)
+    end, nil)
 end)
 
 game.subscribeEvent(ui.getElement("mainMenu.exit"), "buttonClicked", function()
@@ -179,23 +184,23 @@ end)
 game.subscribeEvent(ui.getElement("lastStats.restart"), "buttonClicked", function()
     ui.animateElement("lastStats", "fadeOut", GAME_ANIMATION_TIME, false, function()
         reloadLevel = true
-        ui.animateElement("game", "fadeIn", GAME_ANIMATION_TIME, true, nil)
-    end)
+        ui.animateElement("game", "fadeIn", GAME_ANIMATION_TIME, true, nil, nil)
+    end, nil)
 end)
 
 game.subscribeEvent(ui.getElement("lastStats.player.continue"), "buttonClicked", function()
     ui.animateElement("lastStats", "fadeOut", GAME_ANIMATION_TIME, false, function()
         game.playing = true
         reloadLevel = false
-        ui.animateElement("game", "fadeIn", GAME_ANIMATION_TIME, true, nil)
-    end)
+        ui.animateElement("game", "fadeIn", GAME_ANIMATION_TIME, true, nil, nil)
+    end, nil)
 end)
 
 game.subscribeEvent(ui.getElement("lastStats.editor.continue"), "buttonClicked", function()
     ui.animateElement("lastStats", "fadeOut", GAME_ANIMATION_TIME, false, function()
         reloadLevel = false
-        ui.animateElement("game", "fadeIn", GAME_ANIMATION_TIME, true, nil)
-    end)
+        ui.animateElement("game", "fadeIn", GAME_ANIMATION_TIME, true, nil, nil)
+    end, nil)
 end)
 
 function onLevelSave()
@@ -247,14 +252,12 @@ function registerDebugAnimationOutput(id)
     end)
 end
 
---registerDebugAnimationOutput("levelSelect")
-
 function debugEnterMenu(menu)
 	ui.animateElement(nil, "fadeOut", ANIMATION_TIME, false, function()
         ui.getElement("debugMenu.toggle").enabled = true;
-        ui.animateElement("debugMenu", "fadeIn", ANIMATION_TIME, true, nil)
-        ui.animateElement(menu, "fadeIn", ANIMATION_TIME, true, nil)
-    end)
+        ui.animateElement("debugMenu", "fadeIn", ANIMATION_TIME, true, nil, nil)
+        ui.animateElement(menu, "fadeIn", ANIMATION_TIME, true, nil, nil)
+    end, nil)
 end
 
 function registerDebugMenuButton(menu)
@@ -286,19 +289,19 @@ end)
 
 function gameStarted()
     updateEditModeButton()
-    ui.animateElement("mainMenu", "fadeIn", START_ANIMATION_TIME, true, nil)
+    ui.animateElement("mainMenu", "fadeIn", START_ANIMATION_TIME, true, nil, nil)
 end
 game.subscribeEvent(nil, "gameStarted", gameStarted)
 
 game.subscribeEvent(nil, "gameExited", function()
 	game.exitTime = EXIT_ANIMATION_TIME + 0.25
-	ui.animateElement(nil, "fadeOut", EXIT_ANIMATION_TIME, false, nil)
+	ui.animateElement(nil, "fadeOut", EXIT_ANIMATION_TIME, false, nil, nil)
 end)
 
 game.subscribeEvent(nil, "passedOrFailed", function()
 	ui.animateElement("game", "fadeOut", GAME_ANIMATION_TIME, false, function()
-        ui.animateElement("lastStats", "fadeIn", ANIMATION_TIME, true, nil)
-    end)
+        ui.animateElement("lastStats", "fadeIn", ANIMATION_TIME, true, nil, nil)
+    end, nil)
 end)
 
 menus = { "mainMenu", "levelSelect", "lastStats" }
@@ -312,8 +315,8 @@ function onBack()
 			if menu == "game" then fadeOutTime = GAME_ANIMATION_TIME end
 			if previousMenu == "game" then fadeInTime = GAME_ANIMATION_TIME end
 			ui.animateElement(menu, "fadeOut", fadeOutTime, false, function()
-                ui.animateElement(previousMenu, "fadeIn", fadeInTime, true, nil)
-            end)
+                ui.animateElement(previousMenu, "fadeIn", fadeInTime, true, nil, nil)
+            end, nil)
 		end
 	end
 	firstLevelListName = nil
@@ -392,8 +395,8 @@ function onLevelEnter(button)
 	
 	ui.animateElement("levelSelect", "fadeOut", GAME_ANIMATION_TIME, false, function()
         reloadLevel = true
-        ui.animateElement("game", "fadeIn", GAME_ANIMATION_TIME, true, nil)
-    end)
+        ui.animateElement("game", "fadeIn", GAME_ANIMATION_TIME, true, nil, nil)
+    end, nil)
 end
 
 function generateLevelSelectMetadata(levelName, difficultyName)
@@ -586,13 +589,57 @@ function updateCombo(textTag, combo, accuracy, misses)
     end
 end
 
-function updateRealtimeCombo(newCombo)
-    updateCombo("realtime.combo", newCombo, scoreManager.accuracy, scoreManager.scores[1])
+function updateRealtimeProgress(newValue, oldValue)
+    local args = {
+        progress = newValue,
+        oldProgress = oldValue
+    }
+    elem = ui.getElement("game.progressBar")
+    difference = newValue - oldValue
+    if difference > 0 then
+        ui.animateElement("game.progressBar", "progressBarIn", ANIMATION_TIME, true, nil, args)
+        local size = elem.size
+        size.X = newValue
+        elem.size = size
+    else
+        ui.animateElement("game.progressBar", "progressBarOut", ANIMATION_TIME, true, function()
+            local size = elem.size
+            size.X = newValue
+            elem.size = size
+        end, args)
+    end
+end
+game.subscribeEvent(nil, "progressChanged", updateRealtimeProgress)
+
+function updateRealtimeHealth(newValue, oldValue)
+    local args = {
+        progress = newValue,
+        oldProgress = oldValue
+    }
+    elem = ui.getElement("game.healthBar")
+    difference = newValue - oldValue
+    if difference > 0 then
+        ui.animateElement("game.healthBar", "progressBarIn", ANIMATION_TIME, true, nil, args)
+        local size = elem.size
+        size.X = newValue
+        elem.size = size
+    else
+        ui.animateElement("game.healthBar", "progressBarOut", ANIMATION_TIME, true, function()
+            local size = elem.size
+            size.X = newValue
+            elem.size = size
+        end, args)
+    end
+end
+game.subscribeEvent(nil, "healthChanged", updateRealtimeHealth)
+
+function updateRealtimeCombo(newValue)
+    updateCombo("realtime.combo", newValue, scoreManager.accuracy, scoreManager.scores[1])
 end
 game.subscribeEvent(nil, "comboChanged", updateRealtimeCombo)
 
-function updateRealtimeMaxCombo(newMaxCombo)
-    updateCombo("realtime.maxCombo", newMaxCombo, scoreManager.accuracy, scoreManager.scores[1])
+function updateRealtimeMaxCombo(newValue)
+    updateCombo("realtime.maxCombo", newValue, scoreManager.accuracy, scoreManager.scores[1])
 end
 game.subscribeEvent(nil, "maxComboChanged", updateRealtimeMaxCombo)
 

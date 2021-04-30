@@ -7,7 +7,7 @@
     "definitions": {
         "type": {
             "type": "string",
-            "enum": [ "panel", "mask", "text", "button", "slider" ],
+            "enum": [ "panel", "filledPanel", "mask", "text", "button", "slider" ],
             "default": "panel"
         },
         "vector2i": {

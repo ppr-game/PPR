@@ -104,5 +104,7 @@ namespace PPR.Main {
         public static void SetCharacter(this Renderer renderer, Vector2i position, RenderCharacter character) => renderer.SetCharacter(position, character, UI.currentBackground);
         public static void SetCellColor(this Renderer renderer, Vector2i position, Color foregroundColor,
             Color backgroundColor) => renderer.SetCellColor(position, foregroundColor, backgroundColor, UI.currentBackground);
+        public static Color GetBackgroundColor(this Renderer renderer, Vector2i position) =>
+            renderer.GetBackgroundColor(position, UI.currentBackground);
     }
 }
