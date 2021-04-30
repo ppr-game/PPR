@@ -209,6 +209,14 @@ namespace PPR.LuaConsole.GUI {
             return PPR.GUI.UI.AnimateElement(element, animation, time, endState, endCallback, args);
         }
 
+        public static bool StopElementAnimations(string id) {
+            UIElement element = null;
+            if(id != null && !PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out element))
+                throw new ArgumentException($"Element {id} doesn't exist.");
+
+            return PPR.GUI.UI.StopElementAnimations(element);
+        }
+
         public static UIElement GetElement(string id) {
             UIElement element = null;
             if(id != null && !PPR.GUI.UI.currentLayout.elements.TryGetValue(id, out element))

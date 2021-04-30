@@ -153,6 +153,9 @@ button_game.skip_idle=background
 button_game.skip_hover=orange
 button_game.skip_click=dark_orange
 
+text_game.levelName_fg=game_level_name
+text_game.musicTime_fg=game_music_time
+
 # Level select
 lua_prompt=blue
 

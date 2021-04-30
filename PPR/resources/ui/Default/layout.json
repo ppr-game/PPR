@@ -500,6 +500,88 @@
         "size": { "x": 80, "y": 1 },
         "parent": "game.healthBarBackground"
     },
+    "game.levelName": {
+        "type": "text",
+        "tags": [ "levelName" ],
+        "text": "what",
+        "position": { "x": 0, "y": 0 },
+        "align": "left",
+        "anchor": { "x": 0, "y": 0 },
+        "invertOnDarkBackground": true
+    },
+    "game.musicTime": {
+        "type": "text",
+        "tags": [ "musicTime" ],
+        "text": "--:--",
+        "position": { "x": -1, "y": 0 },
+        "align": "right",
+        "anchor": { "x": 1, "y": 0 },
+        "invertOnDarkBackground": true
+    },
+    "game.score": {
+        "type": "text",
+        "tags": [ "score.score", "realtime.score" ],
+        "text": "SCORE: what",
+        "position": { "x": 0, "y": -3 },
+        "align": "left",
+        "anchor": { "x": 0, "y": 1 }
+    },
+    "game.score.change": {
+        "type": "text",
+        "enabled": false,
+        "tags": [ "score.score", "realtime.score.change" ],
+        "text": "+huh??/?",
+        "position": { "x": 1, "y": 0 },
+        "align": "left",
+        "anchor": { "x": 1, "y": 0 }
+    },
+    "game.accuracy": {
+        "type": "text",
+        "tags": [ "score.accuracy", "realtime.accuracy" ],
+        "text": "ACCURACY: what",
+        "position": { "x": 0, "y": -2 },
+        "align": "left",
+        "anchor": { "x": 0, "y": 1 }
+    },
+    "game.combo": {
+        "type": "text",
+        "tags": [ "score.combo", "realtime.combo" ],
+        "text": "COMBO: what",
+        "position": { "x": 0, "y": -1 },
+        "align": "left",
+        "anchor": { "x": 0, "y": 1 }
+    },
+    "game.miniScores": {
+        "type": "panel",
+        "position": { "x": 25, "y": -1 },
+        "anchor": { "x": 0, "y": 1 }
+    },
+    "game.miniScores.misses": {
+        "type": "text",
+        "tags": [ "miniScores", "miniScores.misses", "game.miniScores.misses", "game.miniScores", "realtime.misses" ],
+        "text": "",
+        "position": { "x": 0, "y": 0 },
+        "align": "left",
+        "anchor": { "x": 0, "y": 0 }
+    },
+    "game.miniScores.hits": {
+        "type": "text",
+        "tags": [ "miniScores", "miniScores.hits", "game.miniScores.hits", "game.miniScores", "realtime.hits" ],
+        "text": "",
+        "position": { "x": 1, "y": 0 },
+        "align": "left",
+        "parent": "game.miniScores.misses",
+        "anchor": { "x": 1, "y": 0 }
+    },
+    "game.miniScores.perfectHits": {
+        "type": "text",
+        "tags": [ "miniScores", "miniScores.perfectHits", "game.miniScores.perfectHits", "game.miniScores", "realtime.perfectHits" ],
+        "text": "",
+        "position": { "x": 1, "y": 0 },
+        "align": "left",
+        "parent": "game.miniScores.hits",
+        "anchor": { "x": 1, "y": 0 }
+    },
 	"debugMenu": { "enabled": false, "size": { "x": -1, "y": -1 } },
 	"debugMenu.reloadSettings": {
 		"type": "button",

@@ -10,11 +10,20 @@ namespace PPR.GUI.Elements {
     public class Text : UIElement {
         public override string type => "text";
 
+        public override Vector2i size {
+            get => new Vector2i(_maxLineLength, lines.Length);
+            set { }
+        }
+
         public string text {
             get => _text;
             set {
                 _text = value;
                 lines = value.Replace("\n\r", "\n").Replace("\r\n", "\n").Replace("\r", "\n").Split("\n");
+                _maxLineLength = 0;
+                foreach(string line in lines)
+                    if(line.Length > _maxLineLength)
+                        _maxLineLength = line.Length;
             }
         }
 
@@ -25,6 +34,7 @@ namespace PPR.GUI.Elements {
         private Color foregroundColor => GetColor("fg");
         private Color backgroundColor => GetColor("bg");
         private string _text;
+        private int _maxLineLength;
 
         public Text(string id, List<string> tags, Vector2i? position, Vector2f? anchor, UIElement parent, string text,
             Alignment align, bool replacingSpaces, bool invertOnDarkBackground) : base(id, tags, position,

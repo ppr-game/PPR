@@ -183,6 +183,14 @@ namespace PPR.GUI {
             return anim;
         }
 
+        public static bool StopElementAnimations(UIElement element) {
+            bool hadPlaying = false;
+            foreach((UIAnimation _, List<UIElement> elements) in animationsToAdd)
+                if(elements.Remove(element))
+                    hadPlaying = true;
+            return hadPlaying || element.StopAnimations();
+        }
+
         private static void AddAllAnimations() {
             if(animationsToAdd.Count <= 0) return;
             foreach((UIAnimation animation, List<UIElement> elements) in
@@ -308,12 +316,7 @@ namespace PPR.GUI {
         
         //static void DrawNotificationsMenu() => Core.renderer.DrawText(new Vector2i(79, 0), notificationsText, Renderer.Alignment.Right, true);
 
-        /*private static readonly Vector2i levelNamePos = new Vector2i(0, 0);
-        private static readonly Vector2i musicTimePos = new Vector2i(79, 0);
-        private static readonly Vector2i scorePos = new Vector2i(0, 57);
-        private static readonly Vector2i accPos = new Vector2i(0, 58);
-        private static readonly Vector2i comboPos = new Vector2i(0, 59);
-        private static readonly Vector2i miniScoresPos = new Vector2i(25, 59);
+        /*private static readonly Vector2i miniScoresPos = new Vector2i(25, 59);
         private static readonly Vector2i bpmPos = new Vector2i(0, 57);
         private static readonly Vector2i timePos = new Vector2i(0, 58);
         private static readonly Vector2i offsetPos = new Vector2i(0, 59);
@@ -377,13 +380,7 @@ namespace PPR.GUI {
                 DrawEditorDifficulty(musicTimePos, ColorScheme.GetColor("game_music_time"));
             }
             else {
-                DrawHealth();
-                DrawProgress();
-                DrawScore(scorePos, ColorScheme.GetColor("score"));
-                DrawAccuracy(accPos);
-                DrawCombo(comboPos);
                 DrawMiniScores(miniScoresPos, ScoreManager.scores);
-                DrawLevelName(levelNamePos, ColorScheme.GetColor("game_level_name"));
                 DrawMusicTime(musicTimePos, ColorScheme.GetColor("game_music_time"));
                 LevelMetadata metadata = Map.currentLevel.metadata;
 
@@ -394,22 +391,6 @@ namespace PPR.GUI {
                 Game.levelTime = Time.FromMilliseconds(Map.currentLevel.metadata.skipTime);
                 Game.UpdateMusicTime();
                 Game.UpdatePresence();
-            }
-        }
-        private static void DrawHealth() {
-            for(int x = 0; x < 80; x++) {
-                float rate = 3.5f + healthAnimRateOffsets[x];
-                Core.renderer.SetCellColor(new Vector2i(x, 1), ColorScheme.GetColor("transparent"),
-                    Renderer.AnimateColor(healthAnimTimes[x], prevHealthColors[x], healthColors[x], rate));
-                healthAnimTimes[x] += Core.deltaTime;
-            }
-        }
-        private static void DrawProgress() {
-            for(int x = 0; x < 80; x++) {
-                float rate = 3.5f + progressAnimRateOffsets[x];
-                Core.renderer.SetCellColor(new Vector2i(x, 0), ColorScheme.GetColor("transparent"),
-                    Renderer.AnimateColor(progressAnimTimes[x], prevProgressColors[x], progressColors[x], rate));
-                progressAnimTimes[x] += Core.deltaTime;
             }
         }
         private static int _scoreChange;
@@ -440,10 +421,6 @@ namespace PPR.GUI {
             Core.renderer.DrawText(position, $"{prefix}COMBO: {(maxCombo ? ScoreManager.maxCombo : ScoreManager.combo).ToString()}",
                 color, ColorScheme.GetColor("transparent"));
         }
-        private static void DrawLevelName(Vector2i position, Color color, bool invertOnDarkBG = true) =>
-            Core.renderer.DrawText(position,
-            $"{Map.currentLevel.metadata.name} [{Map.currentLevel.metadata.displayDiff}] : {Map.currentLevel.metadata.author}",
-            color, Renderer.Alignment.Left, false, invertOnDarkBG);
         private static void DrawMusicTime(Vector2i position, Color color) {
             TimeSpan timeSpan = TimeSpan.FromMilliseconds(Game.levelTime.AsMilliseconds());
             Core.renderer.DrawText(position,

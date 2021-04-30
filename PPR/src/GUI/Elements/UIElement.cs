@@ -111,15 +111,27 @@ namespace PPR.GUI.Elements {
                 
                 if(!animation.stopped) continue;
                 animation.Stop();
-                _animationsToRemove.Add(animation);
-                
-                if(!animation.endState) enabled = false;
-                Lua.InvokeEvent(this, "animationFinished", this, animation.id);
-                animation.endCallback?.Call();
+                AnimationStopped(animation);
             }
             
             foreach(UIAnimation animation in _animationsToRemove) _animations.Remove(animation);
             _animationsToRemove.Clear();
+        }
+
+        public bool StopAnimations() {
+            bool hadPlaying = _animations.Count > 0;
+            foreach(UIAnimation animation in _animations) AnimationStopped(animation);
+            foreach(UIAnimation animation in _animationsToRemove) _animations.Remove(animation);
+            _animationsToRemove.Clear();
+            return hadPlaying;
+        }
+
+        private void AnimationStopped(UIAnimation animation) {
+            _animationsToRemove.Add(animation);
+                
+            if(!animation.endState) enabled = false;
+            Lua.InvokeEvent(this, "animationFinished", this, animation.id);
+            animation.endCallback?.Call();
         }
 
         protected Color GetColor(string colorName) {

@@ -21,7 +21,15 @@ ui.animations = {
     },
     progressBarIn = {
         background = { "bgR", "bgG", "bgB", "if(x >= arg('oldProgress') && x <= arg('progress'), lerp(0, bgA, time * (posRandom(x, y) + 1)), toDouble(bgA))" }
-    }
+    },
+    plainFadeOut = {
+        background = { "bgR", "bgG", "bgB", "lerp(bgA, 0, time)" },
+        foreground = { "fgR", "fgG", "fgB", "lerp(fgA, 0, time)" }
+    },
+    plainFadeIn = {
+        background = { "bgR", "bgG", "bgB", "lerp(0, bgA, time)" },
+        foreground = { "fgR", "fgG", "fgB", "lerp(0, fgA, time)" }
+    },
 }
 
 ANIMATION_TIME = 1/7
@@ -516,17 +524,6 @@ function scrollElements(maskId, movingTag, firstId, lastId, delta)
 	end
 end
 
---function generateScores(layout, uid, id, x, y, anchorX, anchorY, scores)
---	ui.createText(layout, uid .. ".scores.misses.title", id .. ".scores.misses.title", x, y, anchorX, anchorY, uid, "MISSES:", align.left, false, false)
---	ui.createText(layout, uid .. ".scores.misses", id .. ".scores.misses", x + 15, y, anchorX, anchorY, uid, scores[1], align.left, false, false)
---	
---	ui.createText(layout, uid .. ".scores.hits.title", id .. ".scores.hits.title", x, y + 2, anchorX, anchorY, uid, "HITS:", align.left, false, false)
---	ui.createText(layout, uid .. ".scores.hits", id .. ".scores.hits", x + 15, y + 2, anchorX, anchorY, uid, scores[2], align.left, false, false)
---
---	ui.createText(layout, uid .. ".scores.perfectHits.title", id .. ".scores.perfectHits.title", x, y + 4, anchorX, anchorY, uid, "PERFECT HITS:", align.left, false, false)
---	ui.createText(layout, uid .. ".scores.perfectHits", id .. ".scores.perfectHits", x + 15, y + 4, anchorX, anchorY, uid, scores[3], align.left, false, false)
---end
-
 function updateLevelName()
 	local levelName = lastLevel
 	local difficultyName = lastDiff
@@ -542,10 +539,19 @@ function updateLevelName()
 end
 
 
-function updateRealtimeScore(newScore, _)
+scoreChange = 0
+function updateRealtimeScore(newScore, oldScore)
+    scoreChange = scoreChange + newScore - oldScore
 	for _, element in ipairs(ui.getElements("realtime.score")) do
 		element.text = "SCORE: " .. tostring(newScore)
 	end
+    for _, element in ipairs(ui.getElements("realtime.score.change")) do
+        if not ui.stopElementAnimations(element.id) then scoreChange = newScore - oldScore end
+        if scoreChange <= 0 then return end
+        element.text = "+" .. tostring(scoreChange)
+        element.enabled = true
+        ui.animateElement(element.id, "plainFadeOut", 0.5, false, nil, nil)
+    end
 end
 game.subscribeEvent(nil, "scoreChanged", updateRealtimeScore)
 
@@ -557,7 +563,9 @@ function updateRealtimeAccuracy(newAccuracy)
         local accTagChanged = false
         for i, tag in ipairs(element.tags) do
             if string.starts(tag, "score.accuracy.") then
-                element.tags[i] = accTag
+                local tags = element.tags
+                tags[i] = accTag
+                element.tags = tags
                 accTagChanged = true
             end
         end
@@ -581,7 +589,9 @@ function updateCombo(textTag, combo, accuracy, misses)
         local comboTagChanged = false
         for i, tag in ipairs(element.tags) do
             if string.starts(tag, "score.combo.") then
-                element.tags[i] = comboTag
+                local tags = element.tags
+                tags[i] = comboTag
+                element.tags = tags
                 comboTagChanged = true
             end
         end
