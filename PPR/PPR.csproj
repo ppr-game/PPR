@@ -45,7 +45,7 @@
     <PackageReference Include="nulastudio.NetCoreBeauty" Version="1.2.9" />
     <PackageReference Include="DiscordRichPresence" Version="1.0.150" />
     <PackageReference Include="MoonSharp" Version="2.0.0" />
-    <PackageReference Include="NLog" Version="4.7.5" />
+    <PackageReference Include="NLog" Version="4.7.9" />
     <PackageReference Include="SFML.Net" Version="2.5.0" />
   </ItemGroup>
 
