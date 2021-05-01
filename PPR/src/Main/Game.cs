@@ -9,8 +9,8 @@ using MoonSharp.Interpreter;
 
 using NLog;
 
-using PPR.GUI;
-using PPR.GUI.Elements;
+using PPR.UI;
+using PPR.UI.Elements;
 using PPR.Main.Levels;
 using PPR.Main.Managers;
 using PPR.Properties;
@@ -65,7 +65,7 @@ namespace PPR.Main {
             set {
                 value = Math.Clamp(value, 0, 80);
                 if(_health == value) return;
-                Lua.InvokeEvent(null, "healthChanged", value, _health);
+                Lua.Manager.InvokeEvent(null, "healthChanged", value, _health);
                 _health = value;
             }
         }
@@ -75,7 +75,7 @@ namespace PPR.Main {
             get => _progress;
             set {
                 if(_progress == value) return;
-                Lua.InvokeEvent(null, "progressChanged", value, _progress);
+                Lua.Manager.InvokeEvent(null, "progressChanged", value, _progress);
                 _progress = value;
             }
         }
@@ -94,7 +94,7 @@ namespace PPR.Main {
             get => _changed;
             set {
                 _changed = value;
-                Lua.InvokeEvent(null, "levelChanged");
+                Lua.Manager.InvokeEvent(null, "levelChanged");
             }
         }
 
@@ -119,7 +119,7 @@ namespace PPR.Main {
             Settings.Reload();
         }
         public static void Start() {
-            RPC.Initialize();
+            RichPresence.Initialize();
 
             try {
                 SoundManager.currentMusicPath = SoundManager.GetSoundFilePath(Path.Join("resources", "audio", Settings.GetPath("audio"), "mainMenu"));
@@ -133,9 +133,9 @@ namespace PPR.Main {
             SoundManager.music.Volume = Settings.GetInt("musicVolume");
             SoundManager.PlayMusic();
             
-            UI.RegenPositionRandoms();
+            UI.Manager.RegenPositionRandoms();
 
-            Lua.InvokeEvent(null, "gameStarted");
+            Lua.Manager.InvokeEvent(null, "gameStarted");
         }
         public static void Exit() {
             logger.Info("Exiting");
@@ -146,11 +146,11 @@ namespace PPR.Main {
             Settings.SaveConfig();
             logger.Info("Saved settings");
 
-            RPC.client.ClearPresence();
-            RPC.client.Dispose();
+            RichPresence.client.ClearPresence();
+            RichPresence.client.Dispose();
             logger.Info("Removed Discord RPC");
             
-            Lua.InvokeEvent(null, "gameExited");
+            Lua.Manager.InvokeEvent(null, "gameExited");
             logger.Info("Sent shutdown event to Lua");
 
             logger.Info("F to the logger");
@@ -160,14 +160,14 @@ namespace PPR.Main {
         }
         
         public static void UpdateSettings() {
-            UI.LoadLayout(Path.Join("resources", "ui", "Default"));
-            /*UI.musicVolumeSlider.value = Settings.GetInt("musicVolume");
-            UI.soundsVolumeSlider.value = Settings.GetInt("soundsVolume");
-            UI.bloomSwitch.selected = Settings.GetBool("bloom");
-            UI.showFpsSwitch.selected = Settings.GetBool("showFps");
-            UI.fullscreenSwitch.selected = Settings.GetBool("fullscreen");
-            UI.fpsLimitSlider.value = Settings.GetInt("fpsLimit");
-            UI.uppercaseSwitch.selected = Settings.GetBool("uppercaseNotes");*/
+            UI.Manager.LoadLayout(Path.Join("resources", "ui", "Default"));
+            /*UI.Manager.musicVolumeSlider.value = Settings.GetInt("musicVolume");
+            UI.Manager.soundsVolumeSlider.value = Settings.GetInt("soundsVolume");
+            UI.Manager.bloomSwitch.selected = Settings.GetBool("bloom");
+            UI.Manager.showFpsSwitch.selected = Settings.GetBool("showFps");
+            UI.Manager.fullscreenSwitch.selected = Settings.GetBool("fullscreen");
+            UI.Manager.fpsLimitSlider.value = Settings.GetInt("fpsLimit");
+            UI.Manager.uppercaseSwitch.selected = Settings.GetBool("uppercaseNotes");*/
 
             LevelObject.linesColors = new Color[] {
                 ColorScheme.GetColor("line_1_fg_color"), // 1234
@@ -259,7 +259,7 @@ namespace PPR.Main {
             ScoreManager.ResetScore();
             SoundManager.StopMusic();
 
-            if(Map.currentLevel.script != null) Lua.TryLoadScript(Map.currentLevel.script);
+            if(Map.currentLevel.script != null) Lua.Manager.TryLoadScript(Map.currentLevel.script);
 
             // Load music
             if(File.Exists(musicPath)) {
@@ -273,7 +273,7 @@ namespace PPR.Main {
             
             _tickClock.Restart();
 
-            logger.Info("Entered level '{0}' by {1}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
+            logger.Info("Entered level '{Name}' by {Author}", Map.currentLevel.metadata.name, Map.currentLevel.metadata.author);
         }
 
         public static void UpdatePresence() {
@@ -285,14 +285,14 @@ namespace PPR.Main {
             Time useTimeFromStart = SoundManager.music.PlayingOffset -
                 (Map.currentLevel == null ? Time.Zero : Time.FromMilliseconds(Map.currentLevel.metadata.musicOffset));
 
-            if(UI.currentLayout.IsElementEnabled("mainMenu")) {
-                RPC.SetPresence("In main menu");
+            if(UI.Manager.currentLayout.IsElementEnabled("mainMenu")) {
+                RichPresence.SetPresence("In main menu");
             }
-            else if(UI.currentLayout.IsElementEnabled("levelSelect")) {
-                RPC.SetPresence($"Selecting a level to {(editing ? "edit" : "play")}");
+            else if(UI.Manager.currentLayout.IsElementEnabled("levelSelect")) {
+                RichPresence.SetPresence($"Selecting a level to {(editing ? "edit" : "play")}");
             }
-            else if(UI.currentLayout.IsElementEnabled("game")) {
-                RPC.SetPresence(editing ? "Editing" :
+            else if(UI.Manager.currentLayout.IsElementEnabled("game")) {
+                RichPresence.SetPresence(editing ? "Editing" :
                     auto ? "Watching" : "Playing",
                     Map.currentLevel == null ? "wtf how do you even see this ???/?//" :
                         $"{lvlName} [{lvlDiff} ({lvlDifficulty})]", "",
@@ -300,8 +300,8 @@ namespace PPR.Main {
                         Map.currentLevel.metadata.lengthSpan -
                         TimeSpan.FromMilliseconds(useTimeFromStart.AsMilliseconds())));
             }
-            else if(UI.currentLayout.IsElementEnabled("lastStats")) {
-                RPC.SetPresence(editing ? "Paused Editing" :
+            else if(UI.Manager.currentLayout.IsElementEnabled("lastStats")) {
+                RichPresence.SetPresence(editing ? "Paused Editing" :
                     statsState == StatsState.Pause ? "Paused" :
                     statsState == StatsState.Pass ? "Passed" : "Failed",
                     Map.currentLevel == null ? "wtf how do you even see this ???/?//" :
@@ -312,20 +312,20 @@ namespace PPR.Main {
         public void Update() {
             if(exiting) exitTime -= Core.deltaTime;
             
-            if(UI.currentLayout.IsElementEnabled("mainMenu") && SoundManager.music.Status == SoundStatus.Stopped)
+            if(UI.Manager.currentLayout.IsElementEnabled("mainMenu") && SoundManager.music.Status == SoundStatus.Stopped)
                 SoundManager.SwitchMusic();
             
             // Update the menus background animation BPM
-            if(!UI.currentLayout.IsElementEnabled("game")) {
+            if(!UI.Manager.currentLayout.IsElementEnabled("game")) {
                 if(Path.GetFileName(Path.GetDirectoryName(SoundManager.currentMusicPath)) == "Default" ||
-                   SoundManager.music.Status != SoundStatus.Playing) UI.menusAnimBPM = 60;
+                   SoundManager.music.Status != SoundStatus.Playing) UI.Manager.menusAnimBPM = 60;
                 else {
                     int step = (int)Calc.MillisecondsToSteps(
                         SoundManager.music.PlayingOffset.AsMilliseconds() - menusAnimInitialOffset, menusAnimSpeeds);
-                    UI.menusAnimBPM = Math.Abs(Calc.GetBPMAtStep(step, menusAnimSpeeds));
+                    UI.Manager.menusAnimBPM = Math.Abs(Calc.GetBPMAtStep(step, menusAnimSpeeds));
                 }
 
-                UI.tps = 0;
+                UI.Manager.tps = 0;
                 return; // Everything after this line will be executed only if the player is playing a level
             }
 
@@ -345,13 +345,13 @@ namespace PPR.Main {
             }
             
             if(_tpsTime >= 1f) {
-                UI.tps = (int)(_tpsTicks / _tpsTime);
+                UI.Manager.tps = (int)(_tpsTicks / _tpsTime);
                 _tpsTicks = 0;
                 _tpsTime = 0f;
             }
             _tpsTime += Core.deltaTime;
 
-            Lua.Update();
+            Lua.Manager.Update();
 
             if(_watchNegativeTime || !playing || editing || SoundManager.music.Status == SoundStatus.Playing) return;
             playing = true;
@@ -411,9 +411,9 @@ namespace PPR.Main {
 
             Map.TickAll();
 
-            Lua.Tick();
+            Lua.Manager.Tick();
 
-            if(statsState != StatsState.Pause) Lua.InvokeEvent(null, "passedOrFailed");
+            if(statsState != StatsState.Pause) Lua.Manager.InvokeEvent(null, "passedOrFailed");
         }
         
         public static void RoundSteps() => steps = roundedSteps;
@@ -539,20 +539,20 @@ namespace PPR.Main {
         public static void KeyPressed(object caller, KeyEventArgs key) {
             // Back
             /*if(Bindings.GetBinding("back").IsPressed(key) &&
-               !UI.currentLayouts.Contains("levelSelect") && !UI.currentLayouts.Contains("lastStats")) {
+               !UI.Manager.currentLayouts.Contains("levelSelect") && !UI.Manager.currentLayouts.Contains("lastStats")) {
                 menu = menu switch {
                     Menu.Game => Menu.LastStats,
                     Menu.KeybindsEditor => Menu.Settings,
                     _ => Menu.Main
                 };
-                Lua.SendMessageToConsoles("onGoBack");
+                Manager.SendMessageToConsoles("onGoBack");
             }*/
             
             // Fullscreen
             if(Bindings.GetBinding("fullscreen").IsPressed(key))
                 Settings.SetBool("fullscreen", !Settings.GetBool("fullscreen"));
             
-            if(!UI.currentLayout.IsElementEnabled("game")) return;
+            if(!UI.Manager.currentLayout.IsElementEnabled("game")) return;
             
             char character = GetNoteBinding(key.Code);
 
@@ -704,7 +704,7 @@ namespace PPR.Main {
         }
 
         public static void MouseWheelScrolled(object caller, MouseWheelScrollEventArgs scroll) {
-            /*if(UI.currentLayout.IsElementEnabled("levelSelect")) {
+            /*if(UI.Manager.currentLayout.IsElementEnabled("levelSelect")) {
                 Vector2i mousePos = Core.renderer.mousePosition;
                 if(mousePos.Y >= 12 && mousePos.Y <= 49) {
                     if(mousePos.X >= 28 && mousePos.X <= 51) {
@@ -742,7 +742,7 @@ namespace PPR.Main {
                     }
                 }
             }
-            else */if(editing && UI.currentLayout.IsElementEnabled("game")) ScrollTime((int)scroll.Delta);
+            else */if(editing && UI.Manager.currentLayout.IsElementEnabled("game")) ScrollTime((int)scroll.Delta);
         }
 
         public static void ScrollTime(int delta) {
@@ -825,13 +825,13 @@ namespace PPR.Main {
             
             string[] directories = Directory.GetDirectories("levels")
                 .Where(path => Path.GetFileName(path) != "_template").ToArray();
-            UI.levelSelectLevels = new Dictionary<string, LevelSelectLevel>(directories.Length);
+            UI.Manager.levelSelectLevels = new Dictionary<string, LevelSelectLevel>(directories.Length);
             for(int i = 0; i < directories.Length; i++) {
                 string levelName = Path.GetFileName(directories[i]);
-                Lua.InvokeEvent(null, "generateLevelSelectLevelButton", DynValue.NewNumber(i),
+                Lua.Manager.InvokeEvent(null, "generateLevelSelectLevelButton", DynValue.NewNumber(i),
                     DynValue.NewString(levelName));
                 LevelSelectLevel level = new LevelSelectLevel {
-                    button = (Button)UI.currentLayout.elements[$"levelSelect.levels.level.{levelName}"]
+                    button = (Button)UI.Manager.currentLayout.elements[$"levelSelect.levels.level.{levelName}"]
                 };
 
                 #region Load Diffs
@@ -848,7 +848,7 @@ namespace PPR.Main {
                         metadata = metadata
                     };
                     
-                    logger.Info("Loaded metadata for level '{0}' diff '{1}'", levelName, diffName);
+                    logger.Info("Loaded metadata for level '{Level}' diff '{Diff}'", levelName, diffName);
 
                     #region Load Scores
 
@@ -859,7 +859,7 @@ namespace PPR.Main {
 
                     #endregion
                     
-                    logger.Info("Loaded scores for level '{0}' diff '{1}', total scores count: {2}",
+                    logger.Info("Loaded scores for level '{Level}' diff '{Diff}', total scores count: {Scores}",
                         levelName, diffName, diff.scores?.Count);
                     
                     level.diffs.Add(diffName, diff);
@@ -867,31 +867,31 @@ namespace PPR.Main {
                 List<KeyValuePair<string, LevelSelectDiff>> sortedDiffs =
                     level.diffs.OrderBy(pair => pair.Value.metadata.difficulty).ToList();
                 for(int j = 0; j < sortedDiffs.Count; j++) {
-                    Lua.InvokeEvent(null, "generateLevelSelectDifficultyButton", DynValue.NewNumber(j),
+                    Lua.Manager.InvokeEvent(null, "generateLevelSelectDifficultyButton", DynValue.NewNumber(j),
                         DynValue.NewString(levelName),
                         DynValue.NewString(sortedDiffs[j].Key),
                         DynValue.NewString(level.diffs[sortedDiffs[j].Key].metadata.displayDifficulty));
                     LevelSelectDiff diff = level.diffs[sortedDiffs[j].Key];
-                    diff.button = (Button)UI.currentLayout
+                    diff.button = (Button)UI.Manager.currentLayout
                         .elements[$"levelSelect.difficulties.{levelName}.difficulty.{sortedDiffs[j].Key}"];
                     level.diffs[sortedDiffs[j].Key] = diff;
                 }
 
                 #endregion
 
-                logger.Info("Loaded diffs for level '{0}', total diffs count: {1}", levelName, level.diffs.Count);
+                logger.Info("Loaded diffs for level '{Level}', total diffs count: {Diffs}", levelName, level.diffs.Count);
                 
-                UI.levelSelectLevels.Add(levelName, level);
+                UI.Manager.levelSelectLevels.Add(levelName, level);
 
                 foreach((string difficultyName, LevelSelectDiff _) in sortedDiffs) {
-                    Lua.InvokeEvent(null, "generateLevelSelectMetadata", DynValue.NewString(levelName),
+                    Lua.Manager.InvokeEvent(null, "generateLevelSelectMetadata", DynValue.NewString(levelName),
                         DynValue.NewString(difficultyName));
-                    Lua.InvokeEvent(null, "generateLevelSelectScores", DynValue.NewString(levelName),
+                    Lua.Manager.InvokeEvent(null, "generateLevelSelectScores", DynValue.NewString(levelName),
                         DynValue.NewString(difficultyName));
                 }
             }
 
-            logger.Info("Loaded levels, total level count: {0}", UI.levelSelectLevels.Count);
+            logger.Info("Loaded levels, total level count: {Levels}", UI.Manager.levelSelectLevels.Count);
         }
     }
 }

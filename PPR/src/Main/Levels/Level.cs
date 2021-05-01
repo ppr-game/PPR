@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-using PPR.GUI;
-using PPR.GUI.Elements;
+using PPR.UI;
+using PPR.UI.Elements;
 using PPR.Main.Managers;
 using PPR.Properties;
 
@@ -407,13 +407,13 @@ namespace PPR.Main.Levels {
             ScoreManager.combo++;
             ScoreManager.maxCombo = Math.Max(ScoreManager.combo, ScoreManager.maxCombo);
             ScoreManager.score += score * ScoreManager.combo;
-            Lua.InvokeEvent(null, "scoresChanged", hitIndex + 1, ScoreManager.scores[hitIndex]++);
+            Lua.Manager.InvokeEvent(null, "scoresChanged", hitIndex + 1, ScoreManager.scores[hitIndex]++);
         }
         
         protected void Miss() {
             Game.health -= Map.currentLevel.metadata.hpDrain;
             ScoreManager.combo = 0;
-            Lua.InvokeEvent(null, "scoresChanged", 1, ScoreManager.scores[0]++);
+            Lua.Manager.InvokeEvent(null, "scoresChanged", 1, ScoreManager.scores[0]++);
             removeColor = ColorScheme.GetColor("miss");
         }
 

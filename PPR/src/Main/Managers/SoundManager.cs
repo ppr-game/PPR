@@ -4,7 +4,6 @@ using System.Linq;
 
 using NLog;
 
-using PPR.GUI;
 using PPR.Main.Levels;
 using PPR.Properties;
 
@@ -80,7 +79,7 @@ namespace PPR.Main.Managers {
                 sound = new Sound(buffer);
                 return true;
             }
-            logger.Warn("Tried loading a sound at {0} but no success :(", path);
+            logger.Warn("Tried loading a sound at {Path} but no success :(", path);
             sound = null;
             return false;
         }
@@ -145,7 +144,7 @@ namespace PPR.Main.Managers {
                     break;
                 }
             }
-            UI.currSelectedLevel = Path.GetFileName(Path.GetDirectoryName(newPath));
+            UI.Manager.currSelectedLevel = Path.GetFileName(Path.GetDirectoryName(newPath));
             currentMusicPath = newPath;
             StopMusic();
             music = new Music(currentMusicPath) {
@@ -156,17 +155,17 @@ namespace PPR.Main.Managers {
 
         public static void PlayMusic() {
             music.Play();
-            Lua.InvokeEvent(null, "musicStatusChanged");
+            Lua.Manager.InvokeEvent(null, "musicStatusChanged");
         }
         
         public static void PauseMusic() {
             music.Pause();
-            Lua.InvokeEvent(null, "musicStatusChanged");
+            Lua.Manager.InvokeEvent(null, "musicStatusChanged");
         }
         
         public static void StopMusic() {
             music.Stop();
-            Lua.InvokeEvent(null, "musicStatusChanged");
+            Lua.Manager.InvokeEvent(null, "musicStatusChanged");
         }
     }
 }

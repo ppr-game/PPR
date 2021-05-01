@@ -5,7 +5,7 @@ namespace PPR.Main.Managers {
         public static int score {
             get => _score;
             set {
-                Lua.InvokeEvent(null, "scoreChanged", value, _score);
+                Lua.Manager.InvokeEvent(null, "scoreChanged", value, _score);
                 _score = value;
             }
         }
@@ -14,7 +14,7 @@ namespace PPR.Main.Managers {
             get => _accuracy;
             private set {
                 value = Math.Clamp(value, 0, 100);
-                Lua.InvokeEvent(null, "accuracyChanged", value, _accuracy);
+                Lua.Manager.InvokeEvent(null, "accuracyChanged", value, _accuracy);
                 _accuracy = value;
             }
         }
@@ -22,9 +22,9 @@ namespace PPR.Main.Managers {
         public static int[] scores {
             get => _scores;
             private set {
-                Lua.InvokeEvent(null, "scoresChanged", 1, _scores[0]);
-                Lua.InvokeEvent(null, "scoresChanged", 2, _scores[1]);
-                Lua.InvokeEvent(null, "scoresChanged", 3, _scores[2]);
+                Lua.Manager.InvokeEvent(null, "scoresChanged", 1, _scores[0]);
+                Lua.Manager.InvokeEvent(null, "scoresChanged", 2, _scores[1]);
+                Lua.Manager.InvokeEvent(null, "scoresChanged", 3, _scores[2]);
                 _scores = value;
             }
         }
@@ -32,7 +32,7 @@ namespace PPR.Main.Managers {
         public static int combo {
             get => _combo;
             set {
-                Lua.InvokeEvent(null, "comboChanged", value, _combo);
+                Lua.Manager.InvokeEvent(null, "comboChanged", value, _combo);
                 _combo = value;
             }
         }
@@ -40,7 +40,7 @@ namespace PPR.Main.Managers {
         public static int maxCombo {
             get => _maxCombo;
             set {
-                Lua.InvokeEvent(null, "maxComboChanged", value, _maxCombo);
+                Lua.Manager.InvokeEvent(null, "maxComboChanged", value, _maxCombo);
                 _maxCombo = value;
             }
         }
@@ -53,7 +53,7 @@ namespace PPR.Main.Managers {
 
         public static void ResetScore() {
             score = 0;
-            //UI.prevScore = 0;
+            //UI.Manager.prevScore = 0;
             scores = new int[3];
             accuracy = 100;
             combo = 0;

@@ -40,44 +40,44 @@ namespace PPR.Main {
             double xf = x - (int)x; // We also fade the location to smooth the result.
             double yf = y - (int)y;
             double zf = z - (int)z;
-            double u = fade(xf);
-            double v = fade(yf);
-            double w = fade(zf);
+            double u = Fade(xf);
+            double v = Fade(yf);
+            double w = Fade(zf);
 
             int aaa = p[p[p[xi] + yi] + zi];
-            int aba = p[p[p[xi] + inc(yi)] + zi];
-            int aab = p[p[p[xi] + yi] + inc(zi)];
-            int abb = p[p[p[xi] + inc(yi)] + inc(zi)];
-            int baa = p[p[p[inc(xi)] + yi] + zi];
-            int bba = p[p[p[inc(xi)] + inc(yi)] + zi];
-            int bab = p[p[p[inc(xi)] + yi] + inc(zi)];
-            int bbb = p[p[p[inc(xi)] + inc(yi)] + inc(zi)];
+            int aba = p[p[p[xi] + Increase(yi)] + zi];
+            int aab = p[p[p[xi] + yi] + Increase(zi)];
+            int abb = p[p[p[xi] + Increase(yi)] + Increase(zi)];
+            int baa = p[p[p[Increase(xi)] + yi] + zi];
+            int bba = p[p[p[Increase(xi)] + Increase(yi)] + zi];
+            int bab = p[p[p[Increase(xi)] + yi] + Increase(zi)];
+            int bbb = p[p[p[Increase(xi)] + Increase(yi)] + Increase(zi)];
 
-            double x1 = lerp(grad(aaa, xf, yf, zf), // The gradient function calculates the dot product between a pseudorandom
-                grad(baa, xf - 1, yf, zf), // gradient vector and the vector from the input coordinate to the 8
+            double x1 = Lerp(Gradual(aaa, xf, yf, zf), // The gradient function calculates the dot product between a pseudorandom
+                Gradual(baa, xf - 1, yf, zf), // gradient vector and the vector from the input coordinate to the 8
                 u);
-            double x2 = lerp(
-                grad(aba, xf, yf - 1,
+            double x2 = Lerp(
+                Gradual(aba, xf, yf - 1,
                     zf), // This is all then lerped together as a sort of weighted average based on the faded (u,v,w)
-                grad(bba, xf - 1, yf - 1, zf), // values we made earlier.
+                Gradual(bba, xf - 1, yf - 1, zf), // values we made earlier.
                 u);
-            double y1 = lerp(x1, x2, v);
+            double y1 = Lerp(x1, x2, v);
 
-            x1 = lerp(grad(aab, xf, yf, zf - 1), grad(bab, xf - 1, yf, zf - 1), u);
-            x2 = lerp(grad(abb, xf, yf - 1, zf - 1), grad(bbb, xf - 1, yf - 1, zf - 1), u);
-            double y2 = lerp(x1, x2, v);
+            x1 = Lerp(Gradual(aab, xf, yf, zf - 1), Gradual(bab, xf - 1, yf, zf - 1), u);
+            x2 = Lerp(Gradual(abb, xf, yf - 1, zf - 1), Gradual(bbb, xf - 1, yf - 1, zf - 1), u);
+            double y2 = Lerp(x1, x2, v);
 
-            return (lerp(y1, y2, w) + 1) / 2; // For convenience we bound it to 0 - 1 (theoretical min/max before is -1 - 1)
+            return (Lerp(y1, y2, w) + 1) / 2; // For convenience we bound it to 0 - 1 (theoretical min/max before is -1 - 1)
         }
 
-        private int inc(int num) {
+        private int Increase(int num) {
             num++;
             if(_repeat > 0) num %= _repeat;
 
             return num;
         }
 
-        private static double grad(int hash, double x, double y, double z) {
+        private static double Gradual(int hash, double x, double y, double z) {
             int h = hash & 15; // Take the hashed value and take the first 4 bits of it (15 == 0b1111)
             double
                 u = h < 8 /* 0b1000 */ ? x :
@@ -99,12 +99,12 @@ namespace PPR.Main {
                     -v); // Use the last 2 bits to decide if u and v are positive or negative.  Then return their addition.
         }
 
-        private static double fade(double t) =>
+        private static double Fade(double t) =>
             // Fade function as defined by Ken Perlin.  This eases coordinate values
             // so that they will "ease" towards integral values.  This ends up smoothing
             // the final output.
             t * t * t * (t * (t * 6 - 15) + 10); // 6t^5 - 15t^4 + 10t^3
 
-        private static double lerp(double a, double b, double x) => a + x * (b - a);
+        private static double Lerp(double a, double b, double x) => a + x * (b - a);
     }
 }

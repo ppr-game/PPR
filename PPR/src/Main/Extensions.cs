@@ -4,7 +4,7 @@ using System.Text;
 
 using MoonSharp.Interpreter;
 
-using PPR.GUI;
+using PPR.UI;
 using PPR.Properties;
 
 using PRR;

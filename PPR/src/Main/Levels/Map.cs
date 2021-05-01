@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using PPR.GUI;
+using PPR.UI;
 using PPR.Main.Managers;
 
 using PRR;
@@ -60,7 +60,7 @@ namespace PPR.Main.Levels {
         private static Vector2f _prevMPosF;
         private static readonly List<LevelNote> movingNotes = new List<LevelNote>();
         public static void Draw() {
-            if(!UI.currentLayout.IsElementEnabled("game")) return;
+            if(!UI.Manager.currentLayout.IsElementEnabled("game")) return;
 
             //   L     I     N     E
             for(int x = 0; x < Core.renderer.width; x++) {
@@ -117,7 +117,7 @@ namespace PPR.Main.Levels {
             DestroyToDestroy();
             foreach(LevelObject obj in currentLevel.objects) obj.Draw();
 
-            Lua.DrawMap();
+            Lua.Manager.DrawMap();
 
             _prevLMB = Core.renderer.leftButtonPressed;
             _prevMPosF = Core.renderer.mousePositionF;
@@ -148,12 +148,12 @@ namespace PPR.Main.Levels {
             }
         }
         public static void StepAll() {
-            if(!UI.currentLayout.IsElementEnabled("game")) return;
+            if(!UI.Manager.currentLayout.IsElementEnabled("game")) return;
 
             foreach(LevelObject obj in currentLevel.objects) obj.Step();
         }
         public static void TickAll() {
-            if(!UI.currentLayout.IsElementEnabled("game") || currentLevel.objects.Count <= 0) return;
+            if(!UI.Manager.currentLayout.IsElementEnabled("game") || currentLevel.objects.Count <= 0) return;
 
             foreach(LevelObject obj in currentLevel.objects) {
                 if(!Game.editing && obj is LevelNote note) note.Input();

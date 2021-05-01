@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace PPR.Main {
     public static class Helper {
-        public static void OpenURL(string url) {
+        public static void OpenUrl(string url) {
             try { Process.Start(url); }
             catch {
                 // https://github.com/dotnet/corefx/issues/10361

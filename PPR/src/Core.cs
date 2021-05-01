@@ -4,7 +4,6 @@ using System.Reflection;
 
 using NLog;
 
-using PPR.GUI;
 using PPR.Main;
 using PPR.Main.Levels;
 using PPR.Main.Managers;
@@ -44,10 +43,10 @@ namespace PPR {
                     renderer.window.LostFocus += Game.LostFocus;
                     renderer.window.GainedFocus += Game.GainedFocus;
                     renderer.window.Closed += (_, __) => Game.Exit();
-                    ColorScheme.Reload();
+                    UI.ColorScheme.Reload();
                 }
 
-                Lua.ScriptSetup();
+                Lua.Manager.ScriptSetup();
                 Bindings.Reload();
                 SubscribeEvents();
                 renderer.onWindowRecreated += (_, __) => SubscribeEvents();
@@ -65,20 +64,20 @@ namespace PPR {
 
                     renderer.Clear();
                     Map.Draw();
-                    UI.Draw();
-                    UI.UpdateAnims();
+                    UI.Manager.Draw();
+                    UI.Manager.UpdateAnims();
                     renderer.Draw(Settings.GetBool("bloom"));
 
                     renderer.window.Display();
 
                     deltaTime = fpsClock.Restart().AsSeconds();
-                    UI.fps = (int)MathF.Round(1f / deltaTime);
-                    UI.tempAvgFPS += UI.fps;
-                    UI.tempAvgFPSCounter++;
-                    if(UI.tempAvgFPSCounter >= 100) {
-                        UI.avgFPS = UI.tempAvgFPS / UI.tempAvgFPSCounter;
-                        UI.tempAvgFPS = 0;
-                        UI.tempAvgFPSCounter = 0;
+                    UI.Manager.fps = (int)MathF.Round(1f / deltaTime);
+                    UI.Manager.tempAvgFPS += UI.Manager.fps;
+                    UI.Manager.tempAvgFPSCounter++;
+                    if(UI.Manager.tempAvgFPSCounter >= 100) {
+                        UI.Manager.avgFPS = UI.Manager.tempAvgFPS / UI.Manager.tempAvgFPSCounter;
+                        UI.Manager.tempAvgFPS = 0;
+                        UI.Manager.tempAvgFPSCounter = 0;
                     }
                     
                     if(Game.exiting && Game.exitTime <= 0f) renderer.window.Close();

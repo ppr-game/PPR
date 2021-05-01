@@ -65,4 +65,8 @@
     <ProjectReference Include="..\PRR\PRR.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="src\Lua\API" />
+  </ItemGroup>
+
 </Project>
