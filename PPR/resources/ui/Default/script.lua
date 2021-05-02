@@ -125,9 +125,25 @@ end)
 
 reloadLevel = true
 game.subscribeEvent(ui.getElement("game"), "elementEnabled", function()
-    if not reloadLevel then return end
-    updateLevelName()
-    game.loadLevel(lastLevel, lastDiff)
+    if reloadLevel then
+        updateLevelName()
+        game.loadLevel(lastLevel, lastDiff)
+    end
+    
+    ui.getElement("game.player").enabled = not game.editing
+    ui.getElement("game.editor").enabled = game.editing
+end)
+
+game.subscribeEvent(ui.getElement("game.skip"), "buttonClicked", function()
+    game.trySkip()
+end)
+
+game.subscribeEvent(nil, "canSkip", function(canSkip)
+    ui.getElement("game.skip").enabled = canSkip
+end)
+
+game.subscribeEvent(ui.getElement("game.playMusic"), "buttonClicked", function()
+    game.playing = not game.playing
 end)
 
 game.subscribeEvent(ui.getElement("lastStats"), "elementEnabled", function()
@@ -220,13 +236,13 @@ game.subscribeEvent(nil, "levelChanged", function()
     for _, element in ipairs(ui.getElements("lastStats.save")) do
         if game.changed then
             if not string.ends(element.text, "*") then
-                element.text = element.text .. "*"
                 element.width = element.width + 1
+                element.text = element.text .. "*"
             end
         else
             if string.ends(element.text, "*") then
-                element.width = element.width - 1
                 element.text = element.text:sub(1, #element.text - 1)
+                element.width = element.width - 1
             end
         end
     end
@@ -286,9 +302,13 @@ end
 
 game.subscribeEvent(nil, "musicStatusChanged", function()
     if soundManager.musicStatus == soundStatus.playing then
-        ui.getElement("mainMenu.music.pause").text = "║"
+        for _, element in ipairs(ui.getElements("music.status.icon")) do
+            element.text = "║"
+        end
     else
-        ui.getElement("mainMenu.music.pause").text = "►"
+        for _, element in ipairs(ui.getElements("music.status.icon")) do
+            element.text = "►"
+        end
     end
     for _, element in ipairs(ui.getElements("music.nowPlaying")) do
         element.text = "NOW PLAYING : " .. soundManager.currentMusicName
@@ -312,7 +332,7 @@ game.subscribeEvent(nil, "passedOrFailed", function()
     end, nil)
 end)
 
-menus = { "mainMenu", "levelSelect", "lastStats" }
+menus = { "mainMenu", "levelSelect", "game", "lastStats" }
 
 function onBack()
 	for _, menu in ipairs(menus) do
@@ -653,7 +673,7 @@ function updateRealtimeMaxCombo(newValue)
 end
 game.subscribeEvent(nil, "maxComboChanged", updateRealtimeMaxCombo)
 
-function updateRealtimeScores(scoreIndex)
+function updateRealtimeScores(scoreIndex, newValue)
     local tag = "realtime."
     
     if scoreIndex == 1 then tag = tag .. "misses"
@@ -662,7 +682,7 @@ function updateRealtimeScores(scoreIndex)
     end
     
 	for _, element in ipairs(ui.getElements(tag)) do
-		element.text = tostring(scoreManager.scores[scoreIndex])
+		element.text = tostring(newValue)
 	end
 end
 game.subscribeEvent(nil, "scoresChanged", updateRealtimeScores)

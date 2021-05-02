@@ -407,13 +407,17 @@ namespace PPR.Main.Levels {
             ScoreManager.combo++;
             ScoreManager.maxCombo = Math.Max(ScoreManager.combo, ScoreManager.maxCombo);
             ScoreManager.score += score * ScoreManager.combo;
-            Lua.Manager.InvokeEvent(null, "scoresChanged", hitIndex + 1, ScoreManager.scores[hitIndex]++);
+            int newValue = ScoreManager.scores[hitIndex] + 1;
+            Lua.Manager.InvokeEvent(null, "scoresChanged", hitIndex + 1, newValue, ScoreManager.scores[hitIndex]);
+            ScoreManager.scores[hitIndex] = newValue;
         }
         
         protected void Miss() {
             Game.health -= Map.currentLevel.metadata.hpDrain;
             ScoreManager.combo = 0;
-            Lua.Manager.InvokeEvent(null, "scoresChanged", 1, ScoreManager.scores[0]++);
+            int newValue = ScoreManager.scores[0] + 1;
+            Lua.Manager.InvokeEvent(null, "scoresChanged", 1, newValue, ScoreManager.scores[0]);
+            ScoreManager.scores[0] = newValue;
             removeColor = ColorScheme.GetColor("miss");
         }
 

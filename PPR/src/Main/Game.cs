@@ -50,11 +50,17 @@ namespace PPR.Main {
         public static bool playing {
             get => _playing;
             set {
-                if(value) SoundManager.PlayMusic();
-                else SoundManager.PauseMusic();
+                if(value) {
+                    if(!auto) levelTime = Time.FromMicroseconds(Math.Max(0, levelTime.AsMicroseconds() - 3000000));
+                    UpdateMusicTime();
+                    SoundManager.PlayMusic();
+                }
+                else {
+                    SoundManager.PauseMusic();
+                    RoundSteps();
+                    UpdateTime();
+                }
                 _playing = value;
-                if(!auto && value) levelTime = Time.FromMicroseconds(Math.Max(0, levelTime.AsMicroseconds() - 3000000));
-                UpdateMusicTime();
                 _tickClock.Restart();
             }
         }
@@ -97,11 +103,15 @@ namespace PPR.Main {
                 Lua.Manager.InvokeEvent(null, "levelChanged");
             }
         }
+        
+        public static bool canSkip =>
+            Map.currentLevel.metadata.skippable && levelTime.AsMilliseconds() < Map.currentLevel.metadata.skipTime;
 
         public static bool exiting { get; private set; }
         public static float exitTime { get; set; }
         public static int menusAnimInitialOffset;
         public static List<LevelSpeed> menusAnimSpeeds;
+        private static bool _prevCanSkip;
         private static Time _prevLevelTime;
         private static Clock _tickClock = new Clock();
         private static float _prevSteps;
@@ -404,6 +414,13 @@ namespace PPR.Main {
 
                 progress = (int)(levelTime.AsSeconds() / duration * 80f);
                 _prevLeftButtonPressed = Core.renderer.leftButtonPressed;
+            }
+            else {
+                bool canSkip = Game.canSkip;
+                if(_prevCanSkip != canSkip) {
+                    Lua.Manager.InvokeEvent(null, "canSkip", canSkip);
+                }
+                _prevCanSkip = canSkip;
             }
 
             statsState = health > 0 ? Map.currentLevel.objects.Count > 0 ? StatsState.Pause : StatsState.Pass :

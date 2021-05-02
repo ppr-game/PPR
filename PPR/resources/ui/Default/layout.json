@@ -132,12 +132,14 @@
 	},
 	"mainMenu.music.pause": {
 		"type": "button",
+        "tags": [ "music.controls", "music.status.icon" ],
 		"position": { "x": 0, "y": 0 },
 		"width": 1,
 		"anchor": { "x": 0, "y": 1 }
 	},
 	"mainMenu.music.switch": {
 		"type": "button",
+        "tags": [ "music.controls" ],
 		"text": "»",
 		"position": { "x": 2, "y": 0 },
 		"width": 1,
@@ -488,18 +490,6 @@
         "size": { "x": 0, "y": 1 },
         "parent": "game.progressBarBackground"
     },
-    "game.healthBarBackground": {
-        "type": "filledPanel",
-        "tags": [ "health.bg" ],
-        "position": { "x": 0, "y": 1 },
-        "size": { "x": 80, "y": 1 }
-    },
-    "game.healthBar": {
-        "type": "filledPanel",
-        "tags": [ "health.fg" ],
-        "size": { "x": 80, "y": 1 },
-        "parent": "game.healthBarBackground"
-    },
     "game.levelName": {
         "type": "text",
         "tags": [ "levelName" ],
@@ -509,14 +499,37 @@
         "anchor": { "x": 0, "y": 0 },
         "invertOnDarkBackground": true
     },
+    "game.player": { "enabled": false, "size": { "x": -1, "y": -1 } },
+    "game.player.pause": {
+        "type": "button",
+        "tags": [ "game.pause", "back" ],
+        "text": "║",
+        "position": { "x": -2, "y": 3 },
+        "width": 1,
+        "align": "left",
+        "anchor": { "x": 1, "y": 0 }
+    },
     "game.musicTime": {
         "type": "text",
-        "tags": [ "musicTime" ],
         "text": "--:--",
         "position": { "x": -1, "y": 0 },
         "align": "right",
+        "parent": "game.player",
         "anchor": { "x": 1, "y": 0 },
         "invertOnDarkBackground": true
+    },
+    "game.healthBarBackground": {
+        "type": "filledPanel",
+        "tags": [ "health.bg" ],
+        "position": { "x": 0, "y": 1 },
+        "size": { "x": 80, "y": 1 },
+        "parent": "game.player"
+    },
+    "game.healthBar": {
+        "type": "filledPanel",
+        "tags": [ "health.fg" ],
+        "size": { "x": 80, "y": 1 },
+        "parent": "game.healthBarBackground"
     },
     "game.score": {
         "type": "text",
@@ -524,6 +537,7 @@
         "text": "SCORE: what",
         "position": { "x": 0, "y": -3 },
         "align": "left",
+        "parent": "game.player",
         "anchor": { "x": 0, "y": 1 }
     },
     "game.score.change": {
@@ -541,6 +555,7 @@
         "text": "ACCURACY: what",
         "position": { "x": 0, "y": -2 },
         "align": "left",
+        "parent": "game.player",
         "anchor": { "x": 0, "y": 1 }
     },
     "game.combo": {
@@ -549,11 +564,13 @@
         "text": "COMBO: what",
         "position": { "x": 0, "y": -1 },
         "align": "left",
+        "parent": "game.player",
         "anchor": { "x": 0, "y": 1 }
     },
     "game.miniScores": {
         "type": "panel",
         "position": { "x": 25, "y": -1 },
+        "parent": "game.player",
         "anchor": { "x": 0, "y": 1 }
     },
     "game.miniScores.misses": {
@@ -581,6 +598,35 @@
         "align": "left",
         "parent": "game.miniScores.hits",
         "anchor": { "x": 1, "y": 0 }
+    },
+    "game.skip": {
+        "type": "button",
+        "enabled": false,
+        "text": "SKIP",
+        "position": { "x": -2, "y": -2 },
+        "width": 4,
+        "align": "right",
+        "parent": "game.player",
+        "anchor": { "x": 1, "y": 1 }
+    },
+    "game.editor": { "enabled": false, "size": { "x": -1, "y": -1 } },
+    "game.editor.pause": {
+        "type": "button",
+        "tags": [ "game.pause", "back" ],
+        "text": "║",
+        "position": { "x": -2, "y": 2 },
+        "width": 1,
+        "align": "left",
+        "anchor": { "x": 1, "y": 0 }
+    },
+    "game.playMusic": {
+        "type": "button",
+        "tags": [ "music.controls", "music.status.icon" ],
+        "position": { "x": -2, "y": -2 },
+        "width": 1,
+        "align": "left",
+        "parent": "game.editor",
+        "anchor": { "x": 1, "y": 1 }
     },
 	"debugMenu": { "enabled": false, "size": { "x": -1, "y": -1 } },
 	"debugMenu.reloadSettings": {

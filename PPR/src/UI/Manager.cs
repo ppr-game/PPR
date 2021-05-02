@@ -290,20 +290,7 @@ namespace PPR.UI {
         private static void DrawGame() {
             if(Game.editing) {
                 foreach(Button button in _levelEditorButtons) {
-                    if(button.id == "editor.playPause") button.text = Game.playing ? "║" : "►";
                     if(button.Draw()) {
-                        switch(button.text) {
-                            case "►":
-                                Game.UpdateMusicTime();
-                                Game.playing = true;
-                                break;
-                            case "║":
-                                Game.playing = false;
-                                Game.RoundSteps();
-                                Game.UpdateTime();
-                                break;
-                        }
-
                         bool boost = Keyboard.IsKeyPressed(Keyboard.Key.LShift) ||
                                      Keyboard.IsKeyPressed(Keyboard.Key.RShift);
                         switch(button.id) {
@@ -338,22 +325,10 @@ namespace PPR.UI {
 
                 if(_musicSpeedSlider.Draw()) SoundManager.music.Pitch = _musicSpeedSlider.value / 100f;
 
-                DrawProgress();
-                DrawLevelName(levelNamePos, ColorScheme.GetColor("game_level_name"));
                 DrawEditorDifficulty(musicTimePos, ColorScheme.GetColor("game_music_time"));
             }
             else {
-                DrawMiniScores(miniScoresPos, ScoreManager.scores);
                 DrawMusicTime(musicTimePos, ColorScheme.GetColor("game_music_time"));
-                LevelMetadata metadata = Map.currentLevel.metadata;
-
-                if(!metadata.skippable ||
-                   Game.levelTime.AsMilliseconds() >= Map.currentLevel.metadata.skipTime ||
-                   !_skipButton.Draw()) return;
-                
-                Game.levelTime = Time.FromMilliseconds(Map.currentLevel.metadata.skipTime);
-                Game.UpdateMusicTime();
-                Game.UpdatePresence();
             }
         }
         private static int _scoreChange;

@@ -22,9 +22,9 @@ namespace PPR.Main.Managers {
         public static int[] scores {
             get => _scores;
             private set {
-                Lua.Manager.InvokeEvent(null, "scoresChanged", 1, _scores[0]);
-                Lua.Manager.InvokeEvent(null, "scoresChanged", 2, _scores[1]);
-                Lua.Manager.InvokeEvent(null, "scoresChanged", 3, _scores[2]);
+                Lua.Manager.InvokeEvent(null, "scoresChanged", 1, value[0], _scores[0]);
+                Lua.Manager.InvokeEvent(null, "scoresChanged", 2, value[1], _scores[1]);
+                Lua.Manager.InvokeEvent(null, "scoresChanged", 3, value[2], _scores[2]);
                 _scores = value;
             }
         }

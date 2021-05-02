@@ -116,14 +116,18 @@ button_mainMenu.notifications_idle=background
 button_mainMenu.notifications_hover=foreground
 button_mainMenu.notifications_click=gray
 
-button_mainMenu.music.pause_idle=background
-button_mainMenu.music.pause_hover=green
-button_mainMenu.music.pause_click=dark_green
-button_mainMenu.music.switch_idle=button_mainMenu.music.pause_idle
-button_mainMenu.music.switch_hover=button_mainMenu.music.pause_hover
-button_mainMenu.music.switch_click=button_mainMenu.music.pause_click
+button_@music.controls_idle=background
+button_@music.controls_hover=green
+button_@music.controls_click=dark_green
 
 # Game
+pause=cyan
+dark_pause=dark_cyan
+
+button_@game.pause_idle=background
+button_@game.pause_hover=pause
+button_@game.pause_click=dark_cyan
+
 health_bar=red
 dark_health_bar=dark_red
 progress_bar=white
@@ -197,7 +201,6 @@ miss=bad
 hit=ok
 perfect_hit=good
 
-pause=cyan
 pass=good
 fail=bad
 
