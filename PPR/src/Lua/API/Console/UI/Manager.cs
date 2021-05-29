@@ -11,6 +11,7 @@ using NCalc;
 using PPR.Main.Levels;
 using PPR.Properties;
 using PPR.UI;
+using PPR.UI.Animations;
 using PPR.UI.Elements;
 
 using PRR;
@@ -22,167 +23,7 @@ using Renderer = PRR.Renderer;
 using Text = PPR.UI.Elements.Text;
 
 namespace PPR.Lua.API.Console.UI {
-    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
-    [SuppressMessage("ReSharper", "UnusedMember.Global")]
-    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
-    [SuppressMessage("ReSharper", "InconsistentNaming")]
-    [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
-    internal struct AnimExCtx {
-        public int x { get; set; }
-        public int y { get; set; }
-        public char character { get; set; }
-        public byte bgR { get; set; }
-        public byte bgG { get; set; }
-        public byte bgB { get; set; }
-        public byte bgA { get; set; }
-        public byte fgR { get; set; }
-        public byte fgG { get; set; }
-        public byte fgB { get; set; }
-        public byte fgA { get; set; }
-        public float time { get; set; }
-        public Dictionary<string, double> args;
-        public static readonly Dictionary<string, double> customVars = new Dictionary<string, double>();
-        public double val(string name) => customVars[name];
-        public double arg(string name) => args[name];
-        // ReSharper disable once InconsistentNaming
-        private static readonly Random _random = new Random();
-        public int randomInt(int min, int max) => _random.Next(min, max);
-        public double random(double min, double max) => _random.NextDouble() * (max - min) + min;
-        public double posRandom(int x, int y) => posRandom(x, y, 0d);
-        public double posRandom(int x, int y, double @default) =>
-            PPR.UI.Manager.positionRandoms.TryGetValue(new Vector2i(x, y), out float value) ? value : @default;
-        public double lerp(double a, double b, double t) => t <= 0 ? a : t >= 1 ? b : a + (b - a) * t;
-        public double abs(double value) => Math.Abs(value);
-        public double ceil(double value) => ceiling(value);
-        // ReSharper disable once MemberCanBeMadeStatic.Global
-        // ReSharper disable once MemberCanBePrivate.Global
-        public double ceiling(double value) => Math.Ceiling(value);
-        public double clamp(double value, double min, double max) => Math.Clamp(value, min, max);
-        public double floor(double value) => Math.Floor(value);
-        public double max(double a, double b) => Math.Max(a, b);
-        public double min(double a, double b) => Math.Min(a, b);
-        public double pow(double a, double b) => Math.Pow(a, b);
-        public double round(double value) => Math.Round(value);
-        public double sign(double value) => Math.Sign(value);
-        public double sqrt(double value) => Math.Sqrt(value);
-        public double toDouble(double value) => value;
-    }
-    internal class Animation {
-        public Func<AnimExCtx, int> x;
-        public Func<AnimExCtx, int> y;
-        public Func<AnimExCtx, string> character;
-        public Func<AnimExCtx, byte> bgR;
-        public Func<AnimExCtx, byte> bgG;
-        public Func<AnimExCtx, byte> bgB;
-        public Func<AnimExCtx, byte> bgA;
-        public Func<AnimExCtx, byte> fgR;
-        public Func<AnimExCtx, byte> fgG;
-        public Func<AnimExCtx, byte> fgB;
-        public Func<AnimExCtx, byte> fgA;
-        public Clock clock;
-    }
-    [MoonSharpHideMember("scriptAnimations")]
     public class UI {
-        public static Dictionary<string,
-            Func<float, Dictionary<string, double>, Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>>> scriptAnimations;
-        public static Dictionary<string, Dictionary<string, DynValue>> animations {
-            set {
-                AnimExCtx.customVars.Clear();
-                if(value == null) {
-                    scriptAnimations = null;
-                    return;
-                }
-                
-                Dictionary<string, Animation> anims = new Dictionary<string, Animation>(value.Count);
-                foreach((string name, Dictionary<string, DynValue> animation) in value) {
-                    Animation anim = new Animation();
-                    foreach((string key, DynValue dynValue) in animation)
-                        switch(key) {
-                            case "x": anim.x = new Expression(dynValue.String).ToLambda<AnimExCtx, int>();
-                                continue;
-                            case "y": anim.y = new Expression(dynValue.String).ToLambda<AnimExCtx, int>();
-                                continue;
-                            case "character":
-                                anim.character = new Expression(dynValue.String).ToLambda<AnimExCtx, string>();
-                                continue;
-                            default: {
-                                if(dynValue.Type == DataType.Table)
-                                    foreach(TablePair pair in dynValue.Table.Pairs) {
-                                        Func<AnimExCtx, byte> exp =
-                                            new Expression(pair.Value.String).ToLambda<AnimExCtx, byte>();
-                                        switch(key) {
-                                            case "background":
-                                                switch(pair.Key.Number) {
-                                                    case 1: anim.bgR = exp;
-                                                        continue;
-                                                    case 2: anim.bgG = exp;
-                                                        continue;
-                                                    case 3: anim.bgB = exp;
-                                                        continue;
-                                                    case 4: anim.bgA = exp;
-                                                        continue;
-                                                }
-                                                break;
-                                            case "foreground":
-                                                switch(pair.Key.Number) {
-                                                    case 1: anim.fgR = exp;
-                                                        continue;
-                                                    case 2: anim.fgG = exp;
-                                                        continue;
-                                                    case 3: anim.fgB = exp;
-                                                        continue;
-                                                    case 4: anim.fgA = exp;
-                                                        continue;
-                                                }
-                                                break;
-                                        }
-                                    }
-                                break;
-                            }
-                        }
-                    anim.clock = new Clock();
-                    anims.Add(name, anim);
-                }
-
-                scriptAnimations = new Dictionary<string,
-                    Func<float, Dictionary<string, double>, Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>>>();
-                foreach((string name, Animation animation) in anims) {
-                    scriptAnimations.Add(name, (time, args) => {
-                        AnimExCtx context = new AnimExCtx();
-                        return (pos, character) => {
-                            context.x = pos.X;
-                            context.y = pos.Y;
-                            context.character = character.character;
-                            context.bgR = character.background.R;
-                            context.bgG = character.background.G;
-                            context.bgB = character.background.B;
-                            context.bgA = character.background.A;
-                            context.fgR = character.foreground.R;
-                            context.fgG = character.foreground.G;
-                            context.fgB = character.foreground.B;
-                            context.fgA = character.foreground.A;
-                            context.time = time;
-                            context.args = args ?? new Dictionary<string, double>();
-                            Vector2i modPos = pos;
-                            RenderCharacter modChar = character;
-                            modPos = new Vector2i(animation.x?.Invoke(context) ?? modPos.X,
-                                animation.y?.Invoke(context) ?? modPos.Y);
-                            modChar = new RenderCharacter(animation.character?.Invoke(context)[0] ?? modChar.character,
-                                new Color(animation.bgR?.Invoke(context) ?? modChar.background.R,
-                                    animation.bgG?.Invoke(context) ?? modChar.background.G,
-                                    animation.bgB?.Invoke(context) ?? modChar.background.B,
-                                    animation.bgA?.Invoke(context) ?? modChar.background.A),
-                                new Color(animation.fgR?.Invoke(context) ?? modChar.foreground.R,
-                                    animation.fgG?.Invoke(context) ?? modChar.foreground.G,
-                                    animation.fgB?.Invoke(context) ?? modChar.foreground.B,
-                                    animation.fgA?.Invoke(context) ?? modChar.foreground.A));
-                            return (modPos, modChar);
-                        };
-                    });
-                }
-            }
-        }
-
         public static string currentSelectedLevel {
             get => PPR.UI.Manager.currSelectedLevel;
             set => PPR.UI.Manager.currSelectedLevel = value;
@@ -198,9 +39,9 @@ namespace PPR.Lua.API.Console.UI {
             ColorScheme.Reload();
         }
 
-        public static void SetAnimationValue(string name, double value) => AnimExCtx.customVars[name] = value;
+        public static void SetAnimationValue(string name, double value) => AnimationContext.customVars[name] = value;
 
-        public static PPR.UI.Elements.Animation AnimateElement(string id, string animation, float time, bool endState, Closure endCallback,
+        public static PPR.UI.Animations.Animation AnimateElement(string id, string animation, float time, bool endState, Closure endCallback,
             Dictionary<string, double> args) {
             Element element = null;
             if(id != null && !PPR.UI.Manager.currentLayout.elements.TryGetValue(id, out element))
@@ -209,12 +50,20 @@ namespace PPR.Lua.API.Console.UI {
             return PPR.UI.Manager.AnimateElement(element, animation, time, endState, endCallback, args);
         }
 
-        public static bool StopElementAnimations(string id) {
+        public static bool StopElementAnimation(string id, PPR.UI.Animations.Animation animation) {
             Element element = null;
             if(id != null && !PPR.UI.Manager.currentLayout.elements.TryGetValue(id, out element))
                 throw new ArgumentException($"Element {id} doesn't exist.");
 
-            return PPR.UI.Manager.StopElementAnimations(element);
+            return PPR.UI.Manager.StopElementAnimation(element, animation);
+        }
+
+        public static bool StopElementAnimations(string id, string animation) {
+            Element element = null;
+            if(id != null && !PPR.UI.Manager.currentLayout.elements.TryGetValue(id, out element))
+                throw new ArgumentException($"Element {id} doesn't exist.");
+
+            return PPR.UI.Manager.StopElementAnimations(element, animation);
         }
 
         public static Element GetElement(string id) {
@@ -259,6 +108,19 @@ namespace PPR.Lua.API.Console.UI {
                 new Vector2f(anchorX, anchorY), useParent);
             PPR.UI.Manager.currentLayout.AddElement(id, newMask);
             return newMask;
+        }
+
+        public static Panel CreateFilledPanel(string id, List<string> tags, int x, int y, int width, int height,
+            float anchorX, float anchorY, string parent) {
+            Element useParent = null;
+            if(!string.IsNullOrWhiteSpace(parent) &&
+               !PPR.UI.Manager.currentLayout.elements.TryGetValue(parent, out useParent))
+                throw new ArgumentException($"Element {parent} doesn't exist.");
+
+            FilledPanel newFilledPanel = new FilledPanel(id, tags, new Vector2i(x, y), new Vector2i(width, height),
+                    new Vector2f(anchorX, anchorY), useParent);
+            PPR.UI.Manager.currentLayout.AddElement(id, newFilledPanel);
+            return newFilledPanel;
         }
 
         public static Text CreateText(string id, List<string> tags, int x, int y, float anchorX, float anchorY,

@@ -7,7 +7,7 @@
     "definitions": {
         "type": {
             "type": "string",
-            "enum": [ "panel", "filledPanel", "mask", "text", "button", "slider" ],
+            "enum": [ "panel", "filledPanel", "mask", "text", "button", "slider", "progressBar" ],
             "default": "panel"
         },
         "vector2i": {
@@ -109,6 +109,19 @@
                     }
                 }
             ]
+        },
+        "progressBar": {
+            "allOf": [
+                { "$ref": "#/definitions/panel" },
+                {
+                    "properties": {
+                        "defaultValue": { "type": "integer" },
+                        "maxValue": { "type": "integer" },
+                        "animation": { "type": "string" },
+                        "animationTime": { "type": "number" }
+                    }
+                }
+            ]
         }
     },
     "patternProperties": {
@@ -134,7 +147,11 @@
                                     "else": {
                                         "if": { "properties": { "type": { "const": "slider" } } },
                                         "then": { "$ref": "#/definitions/slider" },
-                                        "else": { "$ref": "#/definitions/panel" }
+                                        "else": {
+                                            "if": { "properties": { "type": { "const": "progressBar" } } },
+                                            "then": { "$ref": "#/definitions/progressBar" },
+                                            "else": { "$ref": "#/definitions/panel" }
+                                        }
                                     }
                                 }
                             }

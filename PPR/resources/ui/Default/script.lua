@@ -6,31 +6,13 @@ function string.ends(str, ending)
     return ending == "" or str:sub(-#ending) == ending
 end
 
+function table.contains(table, value)
+    for _, val in ipairs(table) do
+        if value(val) then return true end
+    end
+    return false
+end
 
-ui.animations = {
-	fadeOut = {
-		background = { "bgR", "bgG", "bgB", "lerp(bgA, 0, time * (posRandom(x, y) * 3.5 + 1))" },
-		foreground = { "fgR", "fgG", "fgB", "lerp(fgA, 0, time * (posRandom(x, y) * 3.5 + 1))" }
-	},
-    fadeIn = {
-        background = { "bgR", "bgG", "bgB", "lerp(0, bgA, time * (posRandom(x, y) * 3.5 + 1))" },
-        foreground = { "fgR", "fgG", "fgB", "lerp(0, fgA, time * (posRandom(x, y) * 3.5 + 1))" }
-    },
-    progressBarOut = {
-        background = { "bgR", "bgG", "bgB", "if(x >= arg('progress') && x <= arg('oldProgress'), lerp(bgA, 0, time * (posRandom(x, y) + 1)), toDouble(bgA))" }
-    },
-    progressBarIn = {
-        background = { "bgR", "bgG", "bgB", "if(x >= arg('oldProgress') && x <= arg('progress'), lerp(0, bgA, time * (posRandom(x, y) + 1)), toDouble(bgA))" }
-    },
-    plainFadeOut = {
-        background = { "bgR", "bgG", "bgB", "lerp(bgA, 0, time)" },
-        foreground = { "fgR", "fgG", "fgB", "lerp(fgA, 0, time)" }
-    },
-    plainFadeIn = {
-        background = { "bgR", "bgG", "bgB", "lerp(0, bgA, time)" },
-        foreground = { "fgR", "fgG", "fgB", "lerp(0, fgA, time)" }
-    },
-}
 
 ANIMATION_TIME = 1/7
 GAME_ANIMATION_TIME = 1/10
@@ -566,7 +548,7 @@ function updateRealtimeScore(newScore, oldScore)
 		element.text = "SCORE: " .. tostring(newScore)
 	end
     for _, element in ipairs(ui.getElements("realtime.score.change")) do
-        if not ui.stopElementAnimations(element.id) then scoreChange = newScore - oldScore end
+        if not ui.stopElementAnimations(element.id, nil) then scoreChange = newScore - oldScore end
         if scoreChange <= 0 then return end
         element.text = "+" .. tostring(scoreChange)
         element.enabled = true
@@ -619,47 +601,15 @@ function updateCombo(textTag, combo, accuracy, misses)
     end
 end
 
-function updateRealtimeProgress(newValue, oldValue)
-    local args = {
-        progress = newValue,
-        oldProgress = oldValue
-    }
+function updateRealtimeProgress(newValue, _)
     elem = ui.getElement("game.progressBar")
-    difference = newValue - oldValue
-    if difference > 0 then
-        ui.animateElement("game.progressBar", "progressBarIn", ANIMATION_TIME, true, nil, args)
-        local size = elem.size
-        size.X = newValue
-        elem.size = size
-    else
-        ui.animateElement("game.progressBar", "progressBarOut", ANIMATION_TIME, true, function()
-            local size = elem.size
-            size.X = newValue
-            elem.size = size
-        end, args)
-    end
+    elem.value = newValue
 end
 game.subscribeEvent(nil, "progressChanged", updateRealtimeProgress)
 
-function updateRealtimeHealth(newValue, oldValue)
-    local args = {
-        progress = newValue,
-        oldProgress = oldValue
-    }
+function updateRealtimeHealth(newValue, _)
     elem = ui.getElement("game.healthBar")
-    difference = newValue - oldValue
-    if difference > 0 then
-        ui.animateElement("game.healthBar", "progressBarIn", ANIMATION_TIME, true, nil, args)
-        local size = elem.size
-        size.X = newValue
-        elem.size = size
-    else
-        ui.animateElement("game.healthBar", "progressBarOut", ANIMATION_TIME, true, function()
-            local size = elem.size
-            size.X = newValue
-            elem.size = size
-        end, args)
-    end
+    elem.value = newValue
 end
 game.subscribeEvent(nil, "healthChanged", updateRealtimeHealth)
 

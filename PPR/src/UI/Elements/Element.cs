@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
+using MoonSharp.Interpreter;
+
+using PPR.UI.Animations;
+
 using PRR;
 
 using SFML.Graphics;
@@ -80,15 +84,54 @@ namespace PPR.UI.Elements {
             this.size = tempSize;
         }
 
+        [MoonSharpHidden]
         public virtual void Draw() { }
         
+        [MoonSharpHidden]
         public virtual void Update() => UpdateAnimations();
 
         public void AddAnimation(Animation animation) {
             if(animation == null) return;
             if(animation.endState) enabled = true;
-            Lua.Manager.InvokeEvent(this, "animationStarted", this, animation.id);
+            Lua.Manager.InvokeEvent(this, "animationStarted", this, animation.dynValueId);
             _animations.Add(animation);
+        }
+        
+        private void UpdateAnimations() {
+            foreach(Animation animation in _animations) {
+                if(!animation.started) animation.Restart();
+                
+                animation.Update();
+                
+                if(animation.playing) continue;
+                animation.Stop();
+                AnimationStopped(animation);
+            }
+            
+            RemoveRemovedAnimations();
+        }
+
+        public bool StopAnimation(Animation animation) {
+            bool wasPlaying = _animations.Contains(animation);
+            if(!wasPlaying) return false;
+            
+            animation.Stop();
+            AnimationStopped(animation);
+            RemoveRemovedAnimations();
+            return true;
+        }
+
+        private void AnimationStopped(Animation animation) {
+            _animationsToRemove.Add(animation);
+                
+            if(!animation.endState) enabled = false;
+            Lua.Manager.InvokeEvent(this, "animationFinished", this, animation.dynValueId);
+            animation.endCallback?.Call();
+        }
+
+        private void RemoveRemovedAnimations() {
+            foreach(Animation animation in _animationsToRemove) _animations.Remove(animation);
+            _animationsToRemove.Clear();
         }
 
         [SuppressMessage("ReSharper", "ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator")]
@@ -101,35 +144,6 @@ namespace PPR.UI.Elements {
                 mod = animMod(mod.pos, mod.character);
             }
             return mod;
-        }
-
-        private void UpdateAnimations() {
-            foreach(Animation animation in _animations) {
-                animation.Update();
-                
-                if(!animation.stopped) continue;
-                animation.Stop();
-                AnimationStopped(animation);
-            }
-            
-            foreach(Animation animation in _animationsToRemove) _animations.Remove(animation);
-            _animationsToRemove.Clear();
-        }
-
-        public bool StopAnimations() {
-            bool hadPlaying = _animations.Count > 0;
-            foreach(Animation animation in _animations) AnimationStopped(animation);
-            foreach(Animation animation in _animationsToRemove) _animations.Remove(animation);
-            _animationsToRemove.Clear();
-            return hadPlaying;
-        }
-
-        private void AnimationStopped(Animation animation) {
-            _animationsToRemove.Add(animation);
-                
-            if(!animation.endState) enabled = false;
-            Lua.Manager.InvokeEvent(this, "animationFinished", this, animation.id);
-            animation.endCallback?.Call();
         }
 
         protected Color GetColor(string colorName) {

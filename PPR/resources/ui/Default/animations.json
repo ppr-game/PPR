@@ -1,0 +1,66 @@
+﻿{
+    "fadeOut": {
+        "background": [
+            "bgR",
+            "bgG",
+            "bgB",
+            "lerp(bgA, 0, time * (posRandom(x, y) * 3.5 + 1))"
+        ],
+        "foreground": [
+            "fgR",
+            "fgG",
+            "fgB",
+            "lerp(fgA, 0, time * (posRandom(x, y) * 3.5 + 1))"
+        ]
+    },
+    "fadeIn": {
+        "background": [
+            "bgR",
+            "bgG",
+            "bgB",
+            "lerp(0, bgA, time * (posRandom(x, y) * 3.5 + 1))"
+        ],
+        "foreground": [
+            "fgR",
+            "fgG",
+            "fgB",
+            "lerp(0, fgA, time * (posRandom(x, y) * 3.5 + 1))"
+        ]
+    },
+    "progressBar": {
+        "background": [
+            "bgR",
+            "bgG",
+            "bgB",
+            "lerp(0, bgA, time * (posRandom(x, y) * 5.5 + 1))"
+        ]
+    },
+    "plainFadeOut": {
+        "background": [
+            "bgR",
+            "bgG",
+            "bgB",
+            "lerp(bgA, 0, time)"
+        ],
+        "foreground": [
+            "fgR",
+            "fgG",
+            "fgB",
+            "lerp(fgA, 0, time)"
+        ]
+    },
+    "plainFadeIn": {
+        "background": [
+            "bgR",
+            "bgG",
+            "bgB",
+            "lerp(0, bgA, time)"
+        ],
+        "foreground": [
+            "fgR",
+            "fgG",
+            "fgB",
+            "lerp(0, fgA, time)"
+        ]
+    }
+}

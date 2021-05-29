@@ -26,5 +26,7 @@ namespace PPR.UI.Elements {
         public string leftText;
         public string rightText;
         public bool swapTexts;
+        public string animation;
+        public float animationTime;
     }
 }

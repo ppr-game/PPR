@@ -478,17 +478,14 @@
         "anchor": { "x": 0, "y": 1 }
     },
 	"game": { "enabled": false, "size": { "x": -1, "y": -1 } },
-    "game.progressBarBackground": {
-        "type": "filledPanel",
-        "tags": [ "progress.bg" ],
-        "position": { "x": 0, "y": 0 },
-        "size": { "x": 80, "y": 1 }
-    },
     "game.progressBar": {
-        "type": "filledPanel",
-        "tags": [ "progress.fg" ],
-        "size": { "x": 0, "y": 1 },
-        "parent": "game.progressBarBackground"
+        "type": "progressBar",
+        "position": { "x": 0, "y": 0 },
+        "size": { "x": 80, "y": 1 },
+        "defaultValue": 0,
+        "maxValue": 80,
+        "animation": "progressBar",
+        "animationTime": 0.5
     },
     "game.levelName": {
         "type": "text",
@@ -518,18 +515,15 @@
         "anchor": { "x": 1, "y": 0 },
         "invertOnDarkBackground": true
     },
-    "game.healthBarBackground": {
-        "type": "filledPanel",
-        "tags": [ "health.bg" ],
+    "game.healthBar": {
+        "type": "progressBar",
         "position": { "x": 0, "y": 1 },
         "size": { "x": 80, "y": 1 },
-        "parent": "game.player"
-    },
-    "game.healthBar": {
-        "type": "filledPanel",
-        "tags": [ "health.fg" ],
-        "size": { "x": 80, "y": 1 },
-        "parent": "game.healthBarBackground"
+        "parent": "game.player",
+        "defaultValue": 0,
+        "maxValue": 80,
+        "animation": "progressBar",
+        "animationTime": 0.5
     },
     "game.score": {
         "type": "text",

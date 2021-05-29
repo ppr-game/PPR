@@ -69,6 +69,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="logs" />
     <Folder Include="src\Lua\API" />
   </ItemGroup>
 

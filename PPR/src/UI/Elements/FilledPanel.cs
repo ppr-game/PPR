@@ -16,10 +16,10 @@ namespace PPR.UI.Elements {
 
         public override void Draw() {
             Color color = this.color;
-            RenderCharacter character = new RenderCharacter('\0', color, color);
             for(int x = bounds.min.X; x < bounds.max.X; x++) {
                 for(int y = bounds.min.Y; y < bounds.max.Y; y++) {
                     Vector2i pos = new Vector2i(x, y);
+                    RenderCharacter character = new RenderCharacter('\0', color, color);
                     (pos, character) = ApplyAnimations(pos, character);
                     Core.renderer.SetCharacter(pos, character);
                 }

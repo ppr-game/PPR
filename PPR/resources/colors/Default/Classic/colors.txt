@@ -133,10 +133,17 @@ dark_health_bar=dark_red
 progress_bar=white
 dark_progress_bar=darker_gray
 
-filledPanel_@health.fg_color=health_bar
-filledPanel_@health.bg_color=dark_health_bar
-filledPanel_@progress.fg_color=progress_bar
-filledPanel_@progress.bg_color=dark_progress_bar
+#filledPanel_@health.fg.animation_color=health_bar
+#filledPanel_@health.fg_color=health_bar
+#filledPanel_@health.bg_color=dark_health_bar
+#filledPanel_@progress.fg.animation_color=progress_bar
+#filledPanel_@progress.fg_color=progress_bar
+#filledPanel_@progress.bg_color=dark_progress_bar
+
+progressBar_game.healthBar_fg=health_bar
+progressBar_game.healthBar_bg=dark_health_bar
+progressBar_game.progressBar_fg=progress_bar
+progressBar_game.progressBar_bg=dark_progress_bar
 
 line_1_fg_color=light_orange
 line_2_fg_color=light_red

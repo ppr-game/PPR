@@ -5,12 +5,17 @@ using System.Linq;
 
 using MoonSharp.Interpreter;
 
+using NCalc;
+
 using Newtonsoft.Json;
 
 using PPR.Main;
 using PPR.Main.Levels;
 using PPR.Properties;
+using PPR.UI.Animations;
 using PPR.UI.Elements;
+
+using PRR;
 
 using SFML.Graphics;
 using SFML.System;
@@ -26,6 +31,9 @@ namespace PPR.UI {
         public static int tps = 0;
 
         public static Layout currentLayout { get; private set; }
+        public static
+            Dictionary<string, Func<float, Dictionary<string, double>,
+                Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>>> animations { get; private set; }
 
         private static readonly Random random = new Random();
         //private static readonly Perlin perlin = new Perlin();
@@ -64,10 +72,21 @@ namespace PPR.UI {
 
         // don't mind this monstrosity over here
         public static void LoadLayout(string path) {
+            string animationsPath = Path.Join(path, "animations.json");
             string layoutPath = Path.Join(path, "layout.json");
             string scriptPath = Path.Join(path, "script.lua");
-            
-            if(!File.Exists(layoutPath) || !File.Exists(scriptPath)) return;
+
+            if(!File.Exists(animationsPath))
+                throw new FileNotFoundException("Could not load the layout because the animations file was not found.",
+                    animationsPath);
+            if(!File.Exists(layoutPath))
+                throw new FileNotFoundException("Could not load the layout because the layout file was not found.",
+                    layoutPath);
+            if(!File.Exists(scriptPath))
+                throw new FileNotFoundException("Could not load the layout because the script file was not found.",
+                    scriptPath);
+
+            LoadAnimations(animationsPath);
 
             Lua.Manager.UnsubscribeAllEvents(currentLayout?.script);
             Lua.Manager.consoles.Remove(currentLayout?.script);
@@ -110,6 +129,8 @@ namespace PPR.UI {
                 string leftText = elem.leftText ?? "";
                 string rightText = elem.rightText ?? "";
                 bool swapTexts = elem.swapTexts;
+                string animation = elem.animation;
+                float animationTime = elem.animationTime;
 
                 Element element = type switch {
                     "panel" => new Panel(id, tags, position, size, anchor, parent),
@@ -120,6 +141,8 @@ namespace PPR.UI {
                     "button" => new Button(id, tags, position, width, anchor, parent, text, null, align),
                     "slider" => new Slider(id, tags, position, width, anchor, parent, minValue, maxValue, defaultValue,
                         leftText, rightText, align, swapTexts),
+                    "progressBar" => new ProgressBar(id, defaultValue, maxValue, animation, animationTime, tags,
+                        position, size, anchor, parent),
                     _ => null
                 };
                 element.enabled = enabled;
@@ -130,39 +153,103 @@ namespace PPR.UI {
             script.DoFile(scriptPath);
         }
 
-        private static readonly Dictionary<Animation, List<Element>> animationsToAdd =
-            new Dictionary<Animation, List<Element>>();
+        private static void LoadAnimations(string path) {
+            AnimationContext.customVars.Clear();
+
+            Dictionary<string, DeserializedAnimation> deserializedAnimations =
+                JsonConvert.DeserializeObject<Dictionary<string, DeserializedAnimation>>(File.ReadAllText(path));
+
+            Dictionary<string, CustomAnimation> customAnimations =
+                new Dictionary<string, CustomAnimation>(deserializedAnimations.Count);
+            foreach((string name, DeserializedAnimation animation) in deserializedAnimations)
+                customAnimations.Add(name, new CustomAnimation(animation));
+
+            animations = new Dictionary<string,
+                Func<float, Dictionary<string, double>, Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>>>();
+            foreach((string name, CustomAnimation animation) in customAnimations) {
+                animations.Add(name, (time, args) => {
+                    AnimationContext context = new AnimationContext();
+                    return (pos, character) => {
+                        context.x = pos.X;
+                        context.y = pos.Y;
+                        context.character = character.character;
+                        context.bgR = character.background.R;
+                        context.bgG = character.background.G;
+                        context.bgB = character.background.B;
+                        context.bgA = character.background.A;
+                        context.fgR = character.foreground.R;
+                        context.fgG = character.foreground.G;
+                        context.fgB = character.foreground.B;
+                        context.fgA = character.foreground.A;
+                        context.time = time;
+                        context.args = args ?? new Dictionary<string, double>();
+                        Vector2i modPos = pos;
+                        RenderCharacter modChar = character;
+                        modPos = new Vector2i(animation.x?.Invoke(context) ?? modPos.X,
+                            animation.y?.Invoke(context) ?? modPos.Y);
+                        modChar = new RenderCharacter(animation.character?.Invoke(context)[0] ?? modChar.character,
+                            new Color(animation.bgR?.Invoke(context) ?? modChar.background.R,
+                                animation.bgG?.Invoke(context) ?? modChar.background.G,
+                                animation.bgB?.Invoke(context) ?? modChar.background.B,
+                                animation.bgA?.Invoke(context) ?? modChar.background.A),
+                            new Color(animation.fgR?.Invoke(context) ?? modChar.foreground.R,
+                                animation.fgG?.Invoke(context) ?? modChar.foreground.G,
+                                animation.fgB?.Invoke(context) ?? modChar.foreground.B,
+                                animation.fgA?.Invoke(context) ?? modChar.foreground.A));
+                        return (modPos, modChar);
+                    };
+                });
+            }
+        }
+
+        /*private static readonly Dictionary<Animation, List<Element>> animationsToAdd =
+            new Dictionary<Animation, List<Element>>();*/
         public static Animation AnimateElement(Element element, string animation, float time, bool endState,
             Closure endCallback, Dictionary<string, double> args) {
-            Animation anim = new Animation(animation, Lua.API.Console.UI.UI.scriptAnimations[animation], time,
+            Animation anim = new Animation(animation, animations[animation], time,
                 endState, endCallback, args);
-            animationsToAdd.Add(anim, new List<Element>());
+            //animationsToAdd.Add(anim, new List<Element>());
             if(element == null) {
                 foreach(Element elem in new Dictionary<string, Element>(currentLayout.elements).Values)
                     if(elem.parent == null)
-                        animationsToAdd[anim].Add(elem);
+                        elem.AddAnimation(anim);
+                        //animationsToAdd[anim].Add(elem);
             }
-            else animationsToAdd[anim].Add(element);
+            else element.AddAnimation(anim);
+            //else animationsToAdd[anim].Add(element);
             return anim;
         }
 
-        public static bool StopElementAnimations(Element element) {
-            bool hadPlaying = false;
-            foreach((Animation _, List<Element> elements) in animationsToAdd)
-                if(elements.Remove(element))
-                    hadPlaying = true;
-            return hadPlaying || element.StopAnimations();
+        public static bool StopElementAnimations(Element element, string animation) {
+            bool wasPlaying = false;
+            /*foreach((Animation anim, List<Element> elements) in animationsToAdd)
+                if((animation != null && anim.id == animation) && elements.Remove(element))
+                    wasPlaying = true;*/
+            foreach(Animation anim in element.animations) {
+                if(animation == null || anim.id != animation) continue;
+                wasPlaying |= element.StopAnimation(anim);
+            }
+            return wasPlaying;
         }
 
-        private static void AddAllAnimations() {
+        public static bool StopElementAnimation(Element element, Animation animation) {
+            /*bool wasPlaying = false;
+            foreach((Animation anim, List<Element> elements) in animationsToAdd)
+                if(anim == animation && elements.Remove(element))
+                    wasPlaying = true;
+            wasPlaying |= element.StopAnimation(animation);*/
+            return element.StopAnimation(animation);
+        }
+
+        /*private static void AddAllAnimations() {
             if(animationsToAdd.Count <= 0) return;
             foreach((Animation animation, List<Element> elements) in
                 new Dictionary<Animation, List<Element>>(animationsToAdd)) {
                 foreach(Element element in elements) element.AddAnimation(animation);
             }
-            foreach((Animation animation, List<Element> _) in animationsToAdd) animation.Start();
+            foreach((Animation animation, List<Element> _) in animationsToAdd) animation.Restart();
             animationsToAdd.Clear();
-        }
+        }*/
 
         /*public static void RecreateButtons() {
             const Alignment center = Alignment.Center;
@@ -546,7 +633,7 @@ namespace PPR.UI {
                 if(element.enabled) element.Draw();
             }
 
-            AddAllAnimations();
+            //AddAllAnimations();
 
             Lua.Manager.DrawUI();
             

@@ -10,6 +10,7 @@ using PPR.Lua.API.Console.Main.Managers;
 using PPR.Lua.API.Scripts.IO;
 using PPR.Lua.API.Scripts.Main.Levels;
 using PPR.UI;
+using PPR.UI.Animations;
 
 using PRR;
 
@@ -45,10 +46,11 @@ namespace PPR.Lua {
             UserData.RegisterType<UI.Elements.FilledPanel>();
             UserData.RegisterType<UI.Elements.Mask>();
             UserData.RegisterType<UI.Elements.Panel>();
+            UserData.RegisterType<UI.Elements.ProgressBar>();
             UserData.RegisterType<UI.Elements.Slider>();
             UserData.RegisterType<UI.Elements.Text>();
                 
-            UserData.RegisterType<UI.Elements.Animation>();
+            UserData.RegisterType<Animation>();
             
             UserData.RegisterType<SoundManager>();
             UserData.RegisterType<ScoreManager>();
