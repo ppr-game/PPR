@@ -36,6 +36,19 @@
                 }
             }
         },
+        "animationData": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "default": null
+                },
+                "time": {
+                    "type": "number",
+                    "default": 0
+                }
+            }
+        },
         "align": { "type": "string", "enum": [ "left", "center", "right" ], "default": "left" },
         "panel": {
             "properties": {
@@ -117,8 +130,8 @@
                     "properties": {
                         "defaultValue": { "type": "integer" },
                         "maxValue": { "type": "integer" },
-                        "animation": { "type": "string" },
-                        "animationTime": { "type": "number" }
+                        "inAnimation": { "$ref": "#/definitions/animationData" },
+                        "outAnimation": { "$ref": "#/definitions/animationData" }
                     }
                 }
             ]

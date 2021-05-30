@@ -3,6 +3,8 @@ using System.ComponentModel;
 
 using Newtonsoft.Json;
 
+using PPR.UI.Animations;
+
 namespace PPR.UI.Elements {
     public struct DeserializedElement {
         public string type;
@@ -26,7 +28,7 @@ namespace PPR.UI.Elements {
         public string leftText;
         public string rightText;
         public bool swapTexts;
-        public string animation;
-        public float animationTime;
+        public AnimationData inAnimation;
+        public AnimationData outAnimation;
     }
 }

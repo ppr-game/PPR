@@ -27,12 +27,12 @@
             "lerp(0, fgA, time * (posRandom(x, y) * 3.5 + 1))"
         ]
     },
-    "progressBar": {
+    "fadeFromColor": {
         "background": [
-            "bgR",
-            "bgG",
-            "bgB",
-            "lerp(0, bgA, time * (posRandom(x, y) * 5.5 + 1))"
+            "lerp(arg('startR'), bgR, time * (posRandom(x, y) * 5.5 + 1))",
+            "lerp(arg('startG'), bgG, time * (posRandom(x, y) * 5.5 + 1))",
+            "lerp(arg('startB'), bgB, time * (posRandom(x, y) * 5.5 + 1))",
+            "lerp(arg('startA'), bgA, time * (posRandom(x, y) * 5.5 + 1))"
         ]
     },
     "plainFadeOut": {

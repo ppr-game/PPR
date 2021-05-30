@@ -129,8 +129,8 @@ namespace PPR.UI {
                 string leftText = elem.leftText ?? "";
                 string rightText = elem.rightText ?? "";
                 bool swapTexts = elem.swapTexts;
-                string animation = elem.animation;
-                float animationTime = elem.animationTime;
+                AnimationData inAnimation = elem.inAnimation;
+                AnimationData outAnimation = elem.outAnimation;
 
                 Element element = type switch {
                     "panel" => new Panel(id, tags, position, size, anchor, parent),
@@ -141,7 +141,7 @@ namespace PPR.UI {
                     "button" => new Button(id, tags, position, width, anchor, parent, text, null, align),
                     "slider" => new Slider(id, tags, position, width, anchor, parent, minValue, maxValue, defaultValue,
                         leftText, rightText, align, swapTexts),
-                    "progressBar" => new ProgressBar(id, defaultValue, maxValue, animation, animationTime, tags,
+                    "progressBar" => new ProgressBar(id, defaultValue, maxValue, inAnimation, outAnimation, tags,
                         position, size, anchor, parent),
                     _ => null
                 };
@@ -202,29 +202,21 @@ namespace PPR.UI {
             }
         }
 
-        /*private static readonly Dictionary<Animation, List<Element>> animationsToAdd =
-            new Dictionary<Animation, List<Element>>();*/
         public static Animation AnimateElement(Element element, string animation, float time, bool endState,
             Closure endCallback, Dictionary<string, double> args) {
             Animation anim = new Animation(animation, animations[animation], time,
                 endState, endCallback, args);
-            //animationsToAdd.Add(anim, new List<Element>());
             if(element == null) {
                 foreach(Element elem in new Dictionary<string, Element>(currentLayout.elements).Values)
                     if(elem.parent == null)
                         elem.AddAnimation(anim);
-                        //animationsToAdd[anim].Add(elem);
             }
             else element.AddAnimation(anim);
-            //else animationsToAdd[anim].Add(element);
             return anim;
         }
 
         public static bool StopElementAnimations(Element element, string animation) {
             bool wasPlaying = false;
-            /*foreach((Animation anim, List<Element> elements) in animationsToAdd)
-                if((animation != null && anim.id == animation) && elements.Remove(element))
-                    wasPlaying = true;*/
             foreach(Animation anim in element.animations) {
                 if(animation == null || anim.id != animation) continue;
                 wasPlaying |= element.StopAnimation(anim);
@@ -232,24 +224,7 @@ namespace PPR.UI {
             return wasPlaying;
         }
 
-        public static bool StopElementAnimation(Element element, Animation animation) {
-            /*bool wasPlaying = false;
-            foreach((Animation anim, List<Element> elements) in animationsToAdd)
-                if(anim == animation && elements.Remove(element))
-                    wasPlaying = true;
-            wasPlaying |= element.StopAnimation(animation);*/
-            return element.StopAnimation(animation);
-        }
-
-        /*private static void AddAllAnimations() {
-            if(animationsToAdd.Count <= 0) return;
-            foreach((Animation animation, List<Element> elements) in
-                new Dictionary<Animation, List<Element>>(animationsToAdd)) {
-                foreach(Element element in elements) element.AddAnimation(animation);
-            }
-            foreach((Animation animation, List<Element> _) in animationsToAdd) animation.Restart();
-            animationsToAdd.Clear();
-        }*/
+        public static bool StopElementAnimation(Element element, Animation animation) => element.StopAnimation(animation);
 
         /*public static void RecreateButtons() {
             const Alignment center = Alignment.Center;
@@ -632,8 +607,6 @@ namespace PPR.UI {
                 element.Update();
                 if(element.enabled) element.Draw();
             }
-
-            //AddAllAnimations();
 
             Lua.Manager.DrawUI();
             

@@ -484,8 +484,14 @@
         "size": { "x": 80, "y": 1 },
         "defaultValue": 0,
         "maxValue": 80,
-        "animation": "progressBar",
-        "animationTime": 0.5
+        "inAnimation": {
+            "id": "fadeFromColor",
+            "time": 2
+        },
+        "outAnimation": {
+            "id": "fadeFromColor",
+            "time": 2
+        }
     },
     "game.levelName": {
         "type": "text",
@@ -522,8 +528,14 @@
         "parent": "game.player",
         "defaultValue": 0,
         "maxValue": 80,
-        "animation": "progressBar",
-        "animationTime": 0.5
+        "inAnimation": {
+            "id": "fadeFromColor",
+            "time": 2
+        },
+        "outAnimation": {
+            "id": "fadeFromColor",
+            "time": 2
+        }
     },
     "game.score": {
         "type": "text",
