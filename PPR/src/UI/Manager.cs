@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 
@@ -31,8 +32,9 @@ namespace PPR.UI {
         public static int tps = 0;
 
         public static Layout currentLayout { get; private set; }
+        public static Dictionary<string, AnimationSettings> animationPresets { get; private set; }
         public static
-            Dictionary<string, Func<float, Dictionary<string, double>,
+            Dictionary<string, Func<float, Dictionary<string, double>, ReadOnlyDictionary<string, double>,
                 Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>>> animations { get; private set; }
 
         private static readonly Random random = new Random();
@@ -73,12 +75,17 @@ namespace PPR.UI {
         // don't mind this monstrosity over here
         public static void LoadLayout(string path) {
             string animationsPath = Path.Join(path, "animations.json");
+            string animationPresetsPath = Path.Join(path, "animationPresets.json");
             string layoutPath = Path.Join(path, "layout.json");
             string scriptPath = Path.Join(path, "script.lua");
 
             if(!File.Exists(animationsPath))
                 throw new FileNotFoundException("Could not load the layout because the animations file was not found.",
                     animationsPath);
+            if(!File.Exists(animationPresetsPath))
+                throw new FileNotFoundException(
+                    "Could not load the layout because the animation presets file was not found.",
+                    animationPresetsPath);
             if(!File.Exists(layoutPath))
                 throw new FileNotFoundException("Could not load the layout because the layout file was not found.",
                     layoutPath);
@@ -86,7 +93,7 @@ namespace PPR.UI {
                 throw new FileNotFoundException("Could not load the layout because the script file was not found.",
                     scriptPath);
 
-            LoadAnimations(animationsPath);
+            LoadAnimations(animationsPath, animationPresetsPath);
 
             Lua.Manager.UnsubscribeAllEvents(currentLayout?.script);
             Lua.Manager.consoles.Remove(currentLayout?.script);
@@ -129,8 +136,8 @@ namespace PPR.UI {
                 string leftText = elem.leftText ?? "";
                 string rightText = elem.rightText ?? "";
                 bool swapTexts = elem.swapTexts;
-                AnimationData inAnimation = elem.inAnimation;
-                AnimationData outAnimation = elem.outAnimation;
+                AnimationSettings inAnimation = animationPresets.GetValueOrDefault(elem.inAnimationPreset ?? type);
+                AnimationSettings outAnimation = animationPresets.GetValueOrDefault(elem.outAnimationPreset ?? type);
 
                 Element element = type switch {
                     "panel" => new Panel(id, tags, position, size, anchor, parent),
@@ -153,21 +160,22 @@ namespace PPR.UI {
             script.DoFile(scriptPath);
         }
 
-        private static void LoadAnimations(string path) {
+        private static void LoadAnimations(string animationsPath, string presetsPath) {
             AnimationContext.customVars.Clear();
 
             Dictionary<string, DeserializedAnimation> deserializedAnimations =
-                JsonConvert.DeserializeObject<Dictionary<string, DeserializedAnimation>>(File.ReadAllText(path));
+                JsonConvert.DeserializeObject<Dictionary<string, DeserializedAnimation>>(File.ReadAllText(animationsPath));
 
             Dictionary<string, CustomAnimation> customAnimations =
                 new Dictionary<string, CustomAnimation>(deserializedAnimations.Count);
             foreach((string name, DeserializedAnimation animation) in deserializedAnimations)
                 customAnimations.Add(name, new CustomAnimation(animation));
 
-            animations = new Dictionary<string,
-                Func<float, Dictionary<string, double>, Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>>>();
+            animations =
+                new Dictionary<string, Func<float, Dictionary<string, double>, ReadOnlyDictionary<string, double>,
+                    Func<Vector2i, RenderCharacter, (Vector2i, RenderCharacter)>>>();
             foreach((string name, CustomAnimation animation) in customAnimations) {
-                animations.Add(name, (time, args) => {
+                animations.Add(name, (time, args, consts) => {
                     AnimationContext context = new AnimationContext();
                     return (pos, character) => {
                         context.x = pos.X;
@@ -182,7 +190,8 @@ namespace PPR.UI {
                         context.fgB = character.foreground.B;
                         context.fgA = character.foreground.A;
                         context.time = time;
-                        context.args = args ?? new Dictionary<string, double>();
+                        context.args = args;
+                        context.consts = consts;
                         Vector2i modPos = pos;
                         RenderCharacter modChar = character;
                         modPos = new Vector2i(animation.x?.Invoke(context) ?? modPos.X,
@@ -200,12 +209,14 @@ namespace PPR.UI {
                     };
                 });
             }
+            
+            animationPresets =
+                JsonConvert.DeserializeObject<Dictionary<string, AnimationSettings>>(File.ReadAllText(presetsPath));
         }
 
-        public static Animation AnimateElement(Element element, string animation, float time, bool endState,
-            Closure endCallback, Dictionary<string, double> args) {
-            Animation anim = new Animation(animation, animations[animation], time,
-                endState, endCallback, args);
+        public static Animation AnimateElement(Element element, string animationPreset, Closure endCallback,
+            Dictionary<string, double> args) {
+            Animation anim = new Animation(animationPresets[animationPreset], endCallback, args);
             if(element == null) {
                 foreach(Element elem in new Dictionary<string, Element>(currentLayout.elements).Values)
                     if(elem.parent == null)
@@ -218,7 +229,7 @@ namespace PPR.UI {
         public static bool StopElementAnimations(Element element, string animation) {
             bool wasPlaying = false;
             foreach(Animation anim in element.animations) {
-                if(animation == null || anim.id != animation) continue;
+                if(animation == null || anim.settings.id != animation) continue;
                 wasPlaying |= element.StopAnimation(anim);
             }
             return wasPlaying;

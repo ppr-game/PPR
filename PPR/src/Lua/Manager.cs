@@ -5,10 +5,10 @@ using MoonSharp.Interpreter;
 
 using NLog;
 
-using PPR.Lua.API.Console.Main;
 using PPR.Lua.API.Console.Main.Managers;
 using PPR.Lua.API.Scripts.IO;
 using PPR.Lua.API.Scripts.Main.Levels;
+using PPR.Main;
 using PPR.UI;
 using PPR.UI.Animations;
 
@@ -17,6 +17,9 @@ using PRR;
 using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
+
+using Game = PPR.Lua.API.Console.Main.Game;
+using Helper = PPR.Lua.API.Console.Main.Helper;
 
 namespace PPR.Lua {
     public static class Manager {
@@ -49,8 +52,11 @@ namespace PPR.Lua {
             UserData.RegisterType<UI.Elements.ProgressBar>();
             UserData.RegisterType<UI.Elements.Slider>();
             UserData.RegisterType<UI.Elements.Text>();
-                
+
             UserData.RegisterType<Animation>();
+            UserData.RegisterType<AnimationSettings>();
+
+            UserData.RegisterType<Stopwatch>();
             
             UserData.RegisterType<SoundManager>();
             UserData.RegisterType<ScoreManager>();

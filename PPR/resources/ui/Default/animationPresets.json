@@ -1,0 +1,74 @@
+﻿{
+    "startup": {
+        "id": "fadeIn",
+        "time": 2,
+        "endState": true,
+        "consts": {
+            "minSpeed": 1,
+            "maxSpeed": 4.5
+        }
+    },
+    "shutdown": {
+        "id": "fadeOut",
+        "time": 1,
+        "endState": false,
+        "consts": {
+            "minSpeed": 1,
+            "maxSpeed": 4.5
+        }
+    },
+    "fadeIn": {
+        "id": "fadeIn",
+        "time": 0.15,
+        "endState": true,
+        "consts": {
+            "minSpeed": 1,
+            "maxSpeed": 4.5
+        }
+    },
+    "fadeOut": {
+        "id": "fadeOut",
+        "time": 0.15,
+        "endState": false,
+        "consts": {
+            "minSpeed": 1,
+            "maxSpeed": 4.5
+        }
+    },
+    "fastFadeIn": {
+        "id": "fadeIn",
+        "time": 0.1,
+        "endState": true,
+        "consts": {
+            "minSpeed": 1,
+            "maxSpeed": 4.5
+        }
+    },
+    "fastFadeOut": {
+        "id": "fadeOut",
+        "time": 0.1,
+        "endState": false,
+        "consts": {
+            "minSpeed": 1,
+            "maxSpeed": 4.5
+        }
+    },
+    "button": {
+        "id": "fadeFromColor",
+        "time": 0.4,
+        "endState": true,
+        "consts": {
+            "minSpeed": 1.2,
+            "maxSpeed": 2
+        }
+    },
+    "progressBar": {
+        "id": "fadeFromColor",
+        "time": 2,
+        "endState": true,
+        "consts": {
+            "minSpeed": 1,
+            "maxSpeed": 13
+        }
+    }
+}

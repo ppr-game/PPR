@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 
 using NCalc;
@@ -25,10 +26,13 @@ namespace PPR.UI.Animations {
         public byte fgB { get; set; }
         public byte fgA { get; set; }
         public float time { get; set; }
+
         public Dictionary<string, double> args;
+        public ReadOnlyDictionary<string, double> consts;
         public static readonly Dictionary<string, double> customVars = new Dictionary<string, double>();
         public double val(string name) => customVars[name];
-        public double arg(string name) => args[name];
+        public double arg(string name) => args?[name] ?? 0d;
+        public double @const(string name) => consts?[name] ?? 0d;
         // ReSharper disable once InconsistentNaming
         private static readonly Random _random = new Random();
         public int randomInt(int min, int max) => _random.Next(min, max);

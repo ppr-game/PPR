@@ -41,13 +41,15 @@ namespace PPR.Lua.API.Console.UI {
 
         public static void SetAnimationValue(string name, double value) => AnimationContext.customVars[name] = value;
 
-        public static PPR.UI.Animations.Animation AnimateElement(string id, string animation, float time, bool endState, Closure endCallback,
+        public static AnimationSettings GetAnimationPreset(string id) => PPR.UI.Manager.animationPresets[id];
+
+        public static PPR.UI.Animations.Animation AnimateElement(string id, string animationPreset, Closure endCallback,
             Dictionary<string, double> args) {
             Element element = null;
             if(id != null && !PPR.UI.Manager.currentLayout.elements.TryGetValue(id, out element))
                 throw new ArgumentException($"Element {id} doesn't exist.");
 
-            return PPR.UI.Manager.AnimateElement(element, animation, time, endState, endCallback, args);
+            return PPR.UI.Manager.AnimateElement(element, animationPreset, endCallback, args);
         }
 
         public static bool StopElementAnimation(string id, PPR.UI.Animations.Animation animation) {

@@ -14,17 +14,11 @@ function table.contains(table, value)
 end
 
 
-ANIMATION_TIME = 1/7
-GAME_ANIMATION_TIME = 1/10
-
-START_ANIMATION_TIME = 1/0.5
-EXIT_ANIMATION_TIME = 1/0.75
-
 game.subscribeEvent(ui.getElement("debugMenu.toggle"), "buttonClicked", function()
     if ui.getElement("debugMenu").enabled then
-        ui.animateElement("debugMenu", "fadeOut", ANIMATION_TIME, false, nil, nil)
+        ui.animateElement("debugMenu", "fadeOut", nil, nil)
     else
-        ui.animateElement("debugMenu", "fadeIn", ANIMATION_TIME, true, nil, nil)
+        ui.animateElement("debugMenu", "fadeIn", nil, nil)
     end
 end)
 
@@ -47,8 +41,8 @@ game.subscribeEvent(ui.getElement("mainMenu.play"), "buttonClicked", function()
     updateEditModeButton()
     ui.getElement("levelSelect.auto").enabled = true
     updateAutoButtons()
-    ui.animateElement("mainMenu", "fadeOut", ANIMATION_TIME, false, function()
-        ui.animateElement("levelSelect", "fadeIn", ANIMATION_TIME, true, nil, nil)
+    ui.animateElement("mainMenu", "fadeOut", function()
+        ui.animateElement("levelSelect", "fadeIn", nil, nil)
     end, nil)
 end)
 
@@ -56,14 +50,14 @@ game.subscribeEvent(ui.getElement("mainMenu.edit"), "buttonClicked", function()
     game.editing = true
     updateEditModeButton()
     ui.getElement("levelSelect.auto").enabled = false
-    ui.animateElement("mainMenu", "fadeOut", ANIMATION_TIME, false, function()
-        ui.animateElement("levelSelect", "fadeIn", ANIMATION_TIME, true, nil, nil)
+    ui.animateElement("mainMenu", "fadeOut", function()
+        ui.animateElement("levelSelect", "fadeIn", nil, nil)
     end, nil)
 end)
 
 game.subscribeEvent(ui.getElement("mainMenu.settings"), "buttonClicked", function()
-    ui.animateElement("mainMenu", "fadeOut", ANIMATION_TIME, false, function()
-        ui.animateElement("settings", "fadeIn", ANIMATION_TIME, true, nil, nil)
+    ui.animateElement("mainMenu", "fadeOut", function()
+        ui.animateElement("settings", "fadeIn", nil, nil)
     end, nil)
 end)
 
@@ -188,24 +182,24 @@ game.subscribeEvent(ui.getElement("levelSelect.scores"), "maskScrolled", functio
 end)
 
 game.subscribeEvent(ui.getElement("lastStats.restart"), "buttonClicked", function()
-    ui.animateElement("lastStats", "fadeOut", GAME_ANIMATION_TIME, false, function()
+    ui.animateElement("lastStats", "fastFadeOut", function()
         reloadLevel = true
-        ui.animateElement("game", "fadeIn", GAME_ANIMATION_TIME, true, nil, nil)
+        ui.animateElement("game", "fastFadeIn", nil, nil)
     end, nil)
 end)
 
 game.subscribeEvent(ui.getElement("lastStats.player.continue"), "buttonClicked", function()
-    ui.animateElement("lastStats", "fadeOut", GAME_ANIMATION_TIME, false, function()
+    ui.animateElement("lastStats", "fastFadeOut", function()
         game.playing = true
         reloadLevel = false
-        ui.animateElement("game", "fadeIn", GAME_ANIMATION_TIME, true, nil, nil)
+        ui.animateElement("game", "fastFadeIn", nil, nil)
     end, nil)
 end)
 
 game.subscribeEvent(ui.getElement("lastStats.editor.continue"), "buttonClicked", function()
-    ui.animateElement("lastStats", "fadeOut", GAME_ANIMATION_TIME, false, function()
+    ui.animateElement("lastStats", "fastFadeOut", function()
         reloadLevel = false
-        ui.animateElement("game", "fadeIn", GAME_ANIMATION_TIME, true, nil, nil)
+        ui.animateElement("game", "fastFadeIn", nil, nil)
     end, nil)
 end)
 
@@ -259,10 +253,10 @@ function registerDebugAnimationOutput(id)
 end
 
 function debugEnterMenu(menu)
-	ui.animateElement(nil, "fadeOut", ANIMATION_TIME, false, function()
+	ui.animateElement(nil, "fadeOut", function()
         ui.getElement("debugMenu.toggle").enabled = true;
-        ui.animateElement("debugMenu", "fadeIn", ANIMATION_TIME, true, nil, nil)
-        ui.animateElement(menu, "fadeIn", ANIMATION_TIME, true, nil, nil)
+        ui.animateElement("debugMenu", "fadeIn", nil, nil)
+        ui.animateElement(menu, "fadeIn", nil, nil)
     end, nil)
 end
 
@@ -299,18 +293,18 @@ end)
 
 function gameStarted()
     updateEditModeButton()
-    ui.animateElement("mainMenu", "fadeIn", START_ANIMATION_TIME, true, nil, nil)
+    ui.animateElement("mainMenu", "startup", nil, nil)
 end
 game.subscribeEvent(nil, "gameStarted", gameStarted)
 
 game.subscribeEvent(nil, "gameExited", function()
-	game.exitTime = EXIT_ANIMATION_TIME + 0.25
-	ui.animateElement(nil, "fadeOut", EXIT_ANIMATION_TIME, false, nil, nil)
+	game.exitTime = ui.getAnimationPreset("shutdown").time + 0.25
+	ui.animateElement(nil, "shutdown", nil, nil)
 end)
 
 game.subscribeEvent(nil, "passedOrFailed", function()
-	ui.animateElement("game", "fadeOut", GAME_ANIMATION_TIME, false, function()
-        ui.animateElement("lastStats", "fadeIn", ANIMATION_TIME, true, nil, nil)
+	ui.animateElement("game", "fastFadeOut", function()
+        ui.animateElement("lastStats", "fadeIn", nil, nil)
     end, nil)
 end)
 
@@ -320,12 +314,12 @@ function onBack()
 	for _, menu in ipairs(menus) do
 		if ui.getElement(menu).enabled then
 			previousMenu = ui.getPreviousMenu(menu)
-			fadeOutTime = ANIMATION_TIME
-			fadeInTime = ANIMATION_TIME
-			if menu == "game" then fadeOutTime = GAME_ANIMATION_TIME end
-			if previousMenu == "game" then fadeInTime = GAME_ANIMATION_TIME end
-			ui.animateElement(menu, "fadeOut", fadeOutTime, false, function()
-                ui.animateElement(previousMenu, "fadeIn", fadeInTime, true, nil, nil)
+			fadeOutAnimation = "fadeOut"
+			fadeInAnimation = "fadeIn"
+			if menu == "game" then fadeOutAnimation = "fastFadeOut" end
+			if previousMenu == "game" then fadeInAnimation = "fastFadeIn" end
+			ui.animateElement(menu, fadeOutAnimation, function()
+                ui.animateElement(previousMenu, fadeInAnimation, nil, nil)
             end, nil)
 		end
 	end
@@ -403,9 +397,9 @@ function onLevelEnter(button)
 	lastLevel, lastDiff = ui.getLevelAndDiffNamesFromButton(button.id)
 	lastLength, lastDifficulty, lastBpm, lastAuthor, lastLua, lastObjectsCount, lastSpeedsCount = ui.getLevelMetadata(lastLevel, lastDiff)
 	
-	ui.animateElement("levelSelect", "fadeOut", GAME_ANIMATION_TIME, false, function()
+	ui.animateElement("levelSelect", "fastFadeOut", function()
         reloadLevel = true
-        ui.animateElement("game", "fadeIn", GAME_ANIMATION_TIME, true, nil, nil)
+        ui.animateElement("game", "fastFadeIn", nil, nil)
     end, nil)
 end
 

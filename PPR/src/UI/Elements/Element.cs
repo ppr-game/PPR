@@ -92,7 +92,7 @@ namespace PPR.UI.Elements {
 
         public void AddAnimation(Animation animation) {
             if(animation == null) return;
-            if(animation.endState) enabled = true;
+            if(animation.settings.endState) enabled = true;
             Lua.Manager.InvokeEvent(this, "animationStarted", this, animation.dynValueId);
             _animations.Add(animation);
         }
@@ -124,7 +124,7 @@ namespace PPR.UI.Elements {
         private void AnimationStopped(Animation animation) {
             _animationsToRemove.Add(animation);
                 
-            if(!animation.endState) enabled = false;
+            if(!animation.settings.endState) enabled = false;
             Lua.Manager.InvokeEvent(this, "animationFinished", this, animation.dynValueId);
             animation.endCallback?.Call();
         }
