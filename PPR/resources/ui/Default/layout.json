@@ -526,7 +526,7 @@
         "position": { "x": 0, "y": 1 },
         "size": { "x": 80, "y": 1 },
         "parent": "game.player",
-        "defaultValue": 0,
+        "defaultValue": 80,
         "maxValue": 80,
         "inAnimation": {
             "id": "fadeFromColor",
