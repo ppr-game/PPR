@@ -17,7 +17,7 @@ namespace PPR.UI.Elements {
                 Bounds parentBounds = mask.bounds;
                 Bounds baseBounds = base.bounds;
                 baseBounds = new Bounds(new Vector2i(
-                    Math.Max(baseBounds.min.X,parentBounds.min.X),
+                    Math.Max(baseBounds.min.X, parentBounds.min.X),
                     Math.Max(baseBounds.min.Y, parentBounds.min.Y)), new Vector2i(
                     Math.Min(baseBounds.max.X, parentBounds.max.X),
                     Math.Min(baseBounds.max.Y, parentBounds.max.Y)));
