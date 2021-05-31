@@ -66,15 +66,15 @@ game.subscribeEvent(ui.getElement("mainMenu.exit"), "buttonClicked", function()
 end)
 
 game.subscribeEvent(ui.getElement("mainMenu.sfml"), "buttonClicked", function()
-    helper.openURL("https://sfml-dev.org")
+    helper.openUrl("https://sfml-dev.org")
 end)
 
 game.subscribeEvent(ui.getElement("mainMenu.github"), "buttonClicked", function()
-    helper.openURL("https://github.com/ppr-game/PPR")
+    helper.openUrl("https://github.com/ppr-game/PPR")
 end)
 
 game.subscribeEvent(ui.getElement("mainMenu.discord"), "buttonClicked", function()
-    helper.openURL("https://discord.gg/AuYUVs5")
+    helper.openUrl("https://discord.gg/AuYUVs5")
 end)
 
 game.subscribeEvent(ui.getElement("mainMenu.music.pause"), "buttonClicked", function()
