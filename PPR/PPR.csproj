@@ -45,7 +45,7 @@
     <PackageReference Include="CoreCLR-NCalc" Version="2.2.88" />
     <PackageReference Include="DiscordRichPresence" Version="1.0.150" />
     <PackageReference Include="MoonSharp" Version="2.0.0" />
-    <PackageReference Include="NLog" Version="4.7.9" />
+    <PackageReference Include="NLog" Version="4.7.10" />
     <PackageReference Include="SFML.Net" Version="2.5.0" />
   </ItemGroup>
 
@@ -65,6 +65,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PER\PER.csproj" />
     <ProjectReference Include="..\PRR\PRR.csproj" />
   </ItemGroup>
 

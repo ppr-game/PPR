@@ -58,7 +58,7 @@ namespace PPR.Main {
     }
     
     public static class RendererExtensions {
-        public static void UpdateFramerateSetting(this Renderer renderer) => renderer.SetFramerateSetting(Settings.GetInt("fpsLimit"));
+        public static void UpdateFramerateSetting(this Renderer renderer) => renderer.SetFramerate(Settings.GetInt("fpsLimit"));
         public static void UpdateWindow(this Renderer renderer) => renderer.UpdateWindow(Settings.GetBool("fullscreen"), Settings.GetInt("fpsLimit"));
         public static void DrawText(this Renderer renderer, Vector2i position, string text,
             Renderer.Alignment align = Renderer.Alignment.Left, bool replacingSpaces = false,

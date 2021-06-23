@@ -126,7 +126,7 @@ namespace PRR {
             }
         } // ReSharper disable once FieldCanBeMadeReadOnly.Global
 
-        public void SetFramerateSetting(int framerate) => this.framerate = window.HasFocus() ? framerate < 60 ? -1 :
+        public void SetFramerate(int framerate) => this.framerate = window.HasFocus() ? framerate < 60 ? -1 :
             framerate > 960 ? 0 : framerate : 30;
 
         private void SubscribeWindowEvents() {
@@ -145,7 +145,7 @@ namespace PRR {
         }
 
         public void SetFullscreen(bool fullscreen) {
-            if(window is { IsOpen: true }) window.Close();
+            if(window.IsOpen) window.Close();
             if(!fullscreen) {
                 windowWidth = width * fontSize.X;
                 windowHeight = height * fontSize.Y;

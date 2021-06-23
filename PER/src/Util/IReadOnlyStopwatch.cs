@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PPR.Main {
+namespace PER.Util {
     public interface IReadOnlyStopwatch {
         public double speed { get; }
         public double preciseTicks { get; }
