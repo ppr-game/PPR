@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <Platforms>AnyCPU;x86;x64</Platforms>
     <StartupObject>PPR.Core</StartupObject>
     <Version>0.10.3-beta</Version>
@@ -22,6 +22,7 @@
     <DisablePatch>false</DisablePatch>
     <BeautyLogLevel>Error</BeautyLogLevel>
     <IsPackable>false</IsPackable>
+    <LangVersion>9</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -42,7 +43,6 @@
   
   <ItemGroup>
     <PackageReference Include="CoreCLR-NCalc" Version="2.2.88" />
-    <PackageReference Include="nulastudio.NetCoreBeauty" Version="1.2.9" />
     <PackageReference Include="DiscordRichPresence" Version="1.0.150" />
     <PackageReference Include="MoonSharp" Version="2.0.0" />
     <PackageReference Include="NLog" Version="4.7.9" />
