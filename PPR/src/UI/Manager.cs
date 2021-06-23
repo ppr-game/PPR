@@ -138,6 +138,9 @@ namespace PPR.UI {
                 bool swapTexts = elem.swapTexts;
                 AnimationSettings inAnimation = animationPresets.GetValueOrDefault(elem.inAnimationPreset ?? type);
                 AnimationSettings outAnimation = animationPresets.GetValueOrDefault(elem.outAnimationPreset ?? type);
+                AnimationSettings idleAnimation = animationPresets.GetValueOrDefault(elem.idleAnimationPreset ?? type);
+                AnimationSettings hoverAnimation = animationPresets.GetValueOrDefault(elem.hoverAnimationPreset ?? type);
+                AnimationSettings clickAnimation = animationPresets.GetValueOrDefault(elem.clickAnimationPreset ?? type);
 
                 Element element = type switch {
                     "panel" => new Panel(id, tags, position, size, anchor, parent),
@@ -145,7 +148,8 @@ namespace PPR.UI {
                     "mask" => new Mask(id, tags, position, size, anchor, parent),
                     "text" => new Elements.Text(id, tags, position, anchor, parent, text, align, replacingSpaces,
                         invertOnDarkBackground),
-                    "button" => new Button(id, tags, position, width, anchor, parent, text, null, align),
+                    "button" => new Button(id, idleAnimation, hoverAnimation, clickAnimation, tags, position, width,
+                        anchor, parent, text, null, align),
                     "slider" => new Slider(id, tags, position, width, anchor, parent, minValue, maxValue, defaultValue,
                         leftText, rightText, align, swapTexts),
                     "progressBar" => new ProgressBar(id, defaultValue, maxValue, inAnimation, outAnimation, tags,
@@ -611,11 +615,14 @@ namespace PPR.UI {
                     DrawGame();
                     break;
             }*/
-
+            
             for(int i = 0; i < currentLayout.elements.Count; i++) {
                 Element element = currentLayout.GetElement(i);
-                
                 element.Update();
+            }
+            
+            for(int i = 0; i < currentLayout.elements.Count; i++) {
+                Element element = currentLayout.GetElement(i);
                 if(element.enabled) element.Draw();
             }
 

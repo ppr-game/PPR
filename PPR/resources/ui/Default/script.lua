@@ -333,7 +333,7 @@ function updateAutoButtons()
 end
 
 function generateLevelSelectLevelButton(levelIndex, levelName)
-	local levelButton = ui.createButton("levelSelect.levels.level." .. levelName, { "levelSelect.temporary", "levelSelect.level" }, 0, levelIndex, 30, 0, 0, "levelSelect.levels", levelName, alignment.left)
+	local levelButton = ui.createButton("levelSelect.levels.level." .. levelName, nil, nil, nil, { "levelSelect.temporary", "levelSelect.level" }, 0, levelIndex, 30, 0, 0, "levelSelect.levels", levelName, alignment.left)
 	if levelIndex == 0 then firstLevelListName = levelName end
 	lastLevelListName = levelName
 	
@@ -363,7 +363,7 @@ end
 function generateLevelSelectDifficultyButton(difficultyIndex, levelName, difficultyName, difficulty)
 	local diffName = getDisplayDifficultyName(difficultyName)
 	
-	local difficultyButton = ui.createButton("levelSelect.difficulties." .. levelName .. ".difficulty." .. difficultyName, { "levelSelect.difficulty" }, 0, difficultyIndex, 30, 0, 0, "levelSelect.difficulties." .. levelName, diffName .. "(" .. difficulty .. ")", alignment.left)
+	local difficultyButton = ui.createButton("levelSelect.difficulties." .. levelName .. ".difficulty." .. difficultyName, nil, nil, nil, { "levelSelect.difficulty" }, 0, difficultyIndex, 30, 0, 0, "levelSelect.difficulties." .. levelName, diffName .. "(" .. difficulty .. ")", alignment.left)
 	
 	local metadataPanel = ui.createPanel("levelSelect.metadatas." .. levelName .. ".difficulty." .. difficultyName, { "levelSelect.temporary", "levelSelect.metadatas" }, 0, 0, 0, 0, 0, 0, "levelSelect.metadatas")
 	local scoresPanel = ui.createPanel("levelSelect.scores." .. levelName .. ".difficulty." .. difficultyName, { "levelSelect.temporary", "levelSelect.scores" }, 0, 0, 0, 0, 0, 0, "levelSelect.scores")

@@ -138,15 +138,23 @@ namespace PPR.Lua.API.Console.UI {
             return newText;
         }
 
-        public static Button CreateButton(string id, List<string> tags, int x, int y, int width,
-            float anchorX, float anchorY, string parent, string text, Renderer.Alignment align) {
+        public static Button CreateButton(string id, string idleAnimationPreset, string hoverAnimationPreset,
+            string clickAnimationPreset, List<string> tags, int x, int y, int width, float anchorX, float anchorY,
+            string parent, string text, Renderer.Alignment align) {
             Element useParent = null;
             if(!string.IsNullOrWhiteSpace(parent) &&
                !PPR.UI.Manager.currentLayout.elements.TryGetValue(parent, out useParent))
                 throw new ArgumentException($"Element {parent} doesn't exist.");
+            
+            AnimationSettings idleAnimation =
+                PPR.UI.Manager.animationPresets.GetValueOrDefault(idleAnimationPreset ?? "button");
+            AnimationSettings hoverAnimation =
+                PPR.UI.Manager.animationPresets.GetValueOrDefault(hoverAnimationPreset ?? "button");
+            AnimationSettings clickAnimation =
+                PPR.UI.Manager.animationPresets.GetValueOrDefault(clickAnimationPreset ?? "button");
 
-            Button newButton = new Button(id, tags, new Vector2i(x, y), width, new Vector2f(anchorX, anchorY),
-                useParent, text, null, align);
+            Button newButton = new Button(id, idleAnimation, hoverAnimation, clickAnimation, tags, new Vector2i(x, y),
+                width, new Vector2f(anchorX, anchorY), useParent, text, null, align);
             PPR.UI.Manager.currentLayout.AddElement(id, newButton);
             return newButton;
         }

@@ -59,7 +59,7 @@ namespace PPR.UI.Elements {
                 for(int y = minY; y < maxY; ++y) {
                     string line = lines[y];
                     int minX = Math.Max(0, maskBounds.min.X - pos.X);
-                    int maxX = Math.Min(line.Length, maskBounds.max.X - pos.X - minX);
+                    int maxX = Math.Min(line.Length, maskBounds.max.X - pos.X - minX + 1);
                     Core.renderer.DrawText(pos + new Vector2i(minX, y), line.Substring(minX, maxX),
                         foregroundColor, backgroundColor, align, replacingSpaces, invertOnDarkBackground,
                         ApplyAnimations);

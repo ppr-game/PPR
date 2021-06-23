@@ -70,7 +70,7 @@ namespace PPR.UI.Elements {
 
         public override void Update() {
             base.Update();
-            if(_currentAnimations is null) return;
+            if(!enabled || _currentAnimations is null) return;
             foreach(Animation animation in _currentAnimations) animation?.Update();
         }
 

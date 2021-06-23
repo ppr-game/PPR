@@ -63,7 +63,7 @@
         }
     },
     "progressBar": {
-        "id": "fadeFromColor",
+        "id": "backgroundFadeFromColor",
         "time": 2,
         "endState": true,
         "consts": {

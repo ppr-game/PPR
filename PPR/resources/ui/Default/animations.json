@@ -29,6 +29,20 @@
     },
     "fadeFromColor": {
         "background": [
+            "lerp(arg('startBgR'), bgR, time * (posRandom(x, y) * (const('maxSpeed') - const('minSpeed')) + const('minSpeed')))",
+            "lerp(arg('startBgG'), bgG, time * (posRandom(x, y) * (const('maxSpeed') - const('minSpeed')) + const('minSpeed')))",
+            "lerp(arg('startBgB'), bgB, time * (posRandom(x, y) * (const('maxSpeed') - const('minSpeed')) + const('minSpeed')))",
+            "lerp(arg('startBgA'), bgA, time * (posRandom(x, y) * (const('maxSpeed') - const('minSpeed')) + const('minSpeed')))"
+        ],
+        "foreground": [
+            "lerp(arg('startFgR'), fgR, time * (posRandom(x, y) * (const('maxSpeed') - const('minSpeed')) + const('minSpeed')))",
+            "lerp(arg('startFgG'), fgG, time * (posRandom(x, y) * (const('maxSpeed') - const('minSpeed')) + const('minSpeed')))",
+            "lerp(arg('startFgB'), fgB, time * (posRandom(x, y) * (const('maxSpeed') - const('minSpeed')) + const('minSpeed')))",
+            "lerp(arg('startFgA'), fgA, time * (posRandom(x, y) * (const('maxSpeed') - const('minSpeed')) + const('minSpeed')))"
+        ]
+    },
+    "backgroundFadeFromColor": {
+        "background": [
             "lerp(arg('startR'), bgR, time * (posRandom(x, y) * (const('maxSpeed') - const('minSpeed')) + const('minSpeed')))",
             "lerp(arg('startG'), bgG, time * (posRandom(x, y) * (const('maxSpeed') - const('minSpeed')) + const('minSpeed')))",
             "lerp(arg('startB'), bgB, time * (posRandom(x, y) * (const('maxSpeed') - const('minSpeed')) + const('minSpeed')))",

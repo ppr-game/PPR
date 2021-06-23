@@ -215,19 +215,19 @@
 	"levelSelect.levels": {
 		"type": "mask",
 		"position": { "x": -15, "y": 12 },
-		"size": { "x": 30, "y": 26 },
+		"size": { "x": 30, "y": 27 },
 		"anchor": { "x": 0.5, "y": 0 }
 	},
 	"levelSelect.difficulties": {
 		"type": "mask",
 		"position": { "x": -15, "y": 40 },
-		"size": { "x": 30, "y": 10 },
+		"size": { "x": 30, "y": 11 },
 		"anchor": { "x": 0.5, "y": 0 }
 	},
 	"levelSelect.scores": {
 		"type": "mask",
 		"position": { "x": 0, "y": 12 },
-		"size": { "x": 25, "y": 38 },
+		"size": { "x": 25, "y": 39 },
 		"anchor": { "x": 0, "y": 0 }
 	},
 	"levelSelect.metadatas": {

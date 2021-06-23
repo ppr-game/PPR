@@ -30,5 +30,8 @@ namespace PPR.UI.Elements {
         public bool swapTexts;
         public string inAnimationPreset;
         public string outAnimationPreset;
+        public string idleAnimationPreset;
+        public string hoverAnimationPreset;
+        public string clickAnimationPreset;
     }
 }

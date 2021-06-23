@@ -45,6 +45,9 @@ namespace PPR.UI.Elements {
         public virtual Bounds bounds {
             get {
                 Vector2i start = globalPosition;
+                Vector2i size = this.size;
+                if(size.X > 0) size.X--;
+                if(size.Y > 0) size.Y--;
                 return new Bounds(start, start + size);
             }
         }
@@ -60,6 +63,16 @@ namespace PPR.UI.Elements {
         }
 
         public virtual Mask mask { get; private set; }
+
+        public virtual Bounds maskBounds {
+            get {
+                if(mask is null)
+                    return new Bounds(new Vector2i(0, 0),
+                        new Vector2i(Core.renderer.width - 1, Core.renderer.height - 1));
+
+                return mask.bounds;
+            }
+        }
 
         public IReadOnlyList<Animation> animations => _animations;
 
@@ -83,12 +96,15 @@ namespace PPR.UI.Elements {
             if(tempSize.Y < 0) tempSize.Y = Core.renderer.height;
             this.size = tempSize;
         }
+        
+        [MoonSharpHidden]
+        public virtual void Update() {
+            if(!enabled) return;
+            UpdateAnimations();
+        }
 
         [MoonSharpHidden]
         public virtual void Draw() { }
-        
-        [MoonSharpHidden]
-        public virtual void Update() => UpdateAnimations();
 
         public void AddAnimation(Animation animation) {
             if(animation == null) return;
