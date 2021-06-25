@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
+using PER.Abstractions.Renderer;
+
 using PPR.UI;
 using PPR.UI.Elements;
 using PPR.Main.Managers;
@@ -263,8 +265,8 @@ namespace PPR.Main.Levels {
             bool onCurrentLayer = directionLayer == Game.currentDirectionLayer;
             
             if((!Game.editing || position.Y <= Map.gameLinePos.Y && onHigherOrCurrentLayer) && // Editor stuff
-               (onCurrentLayer || Core.renderer.GetDisplayedCharacter(position) == '\0')) // Draw below on lower layers
-                Core.renderer.SetCharacter(position, new RenderCharacter(visualCharacter,
+               (onCurrentLayer || Core.renderer.GetCharacter(position).character == '\0')) // Draw below on lower layers
+                Core.renderer.DrawCharacter(position, new RenderCharacter(visualCharacter,
                     ColorScheme.GetColor("transparent"), Color()));
         }
 
@@ -278,7 +280,7 @@ namespace PPR.Main.Levels {
 
         public virtual LevelParticle GetRemoveAnimation(IEnumerable<LevelSpeed> speeds) =>
             new LevelParticle(step, startPosition.X, speeds) {
-            startColor = color, endColor = Core.renderer.background, speed = 3f
+            startColor = color, endColor = Core.renderer.clear, speed = 3f
         };
 
         private Color Color() => Color(directionLayer, Game.currentDirectionLayer, color,
@@ -327,7 +329,7 @@ namespace PPR.Main.Levels {
             position = new Vector2i(position.X, startPosition.Y + Game.roundedOffset);
 
         public override void Draw() {
-            Core.renderer.SetCharacter(position, new RenderCharacter(
+            Core.renderer.DrawCharacter(position, new RenderCharacter(
                 position.Y == Map.linePos.Y ? DisplayChar : '\n',
                 Renderer.LerpColors(startColor, endColor, _animationTime),
                 Renderer.LerpColors(startColor, ColorScheme.GetColor("foreground"), _animationTime)));
@@ -377,7 +379,7 @@ namespace PPR.Main.Levels {
         
         public override LevelParticle GetRemoveAnimation(IEnumerable<LevelSpeed> speeds) =>
             new LevelParticle(step, startPosition.X, speeds) {
-                startColor = removeColor, endColor = Core.renderer.background, speed = 3f
+                startColor = removeColor, endColor = Core.renderer.clear, speed = 3f
             };
 
         protected void CheckHit() => CheckHit(GetHitIndex(Math.Abs(lastNoteDistanceFromLine)));

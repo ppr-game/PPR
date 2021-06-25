@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using PER.Abstractions.Renderer;
+
 using PPR.UI;
 using PPR.Main.Managers;
 
@@ -64,14 +66,14 @@ namespace PPR.Main.Levels {
 
             //   L     I     N     E
             for(int x = 0; x < Core.renderer.width; x++) {
-                Core.renderer.SetCharacter(new Vector2i(linePos.X + x, linePos.Y), 
-                    new RenderCharacter(LineCharacter, Core.renderer.background, ColorScheme.GetColor("foreground")));
+                Core.renderer.DrawCharacter(new Vector2i(linePos.X + x, linePos.Y), 
+                    new RenderCharacter(LineCharacter, Core.renderer.clear, ColorScheme.GetColor("foreground")));
             }
             // Handle line flashing
             for(int x = 0; x < Core.renderer.width; x++) {
                 Vector2i pos = new Vector2i(x, linePos.Y);
-                Core.renderer.SetCellColor(pos, ColorScheme.GetColor("foreground"),
-                    Renderer.LerpColors(Core.renderer.background,
+                Core.renderer.SetCharacterColor(pos, ColorScheme.GetColor("foreground"),
+                    Renderer.LerpColors(Core.renderer.clear,
                         ColorScheme.GetColor("foreground"), lineFlashTimes[x]));
                 lineFlashTimes[x] -= Core.deltaTime * 3f;
             }
@@ -86,7 +88,7 @@ namespace PPR.Main.Levels {
                             _selectionStart = _selectionEnd;
                         }
 
-                        if(Core.renderer.mousePositionF.Y != _prevMPosF.Y) selecting = true;
+                        if(Core.renderer.accurateMousePosition.Y != _prevMPosF.Y) selecting = true;
                     }
 
                 Color foreground = OffsetSelected(Game.roundedOffset) ? ColorScheme.GetColor("selected_note") :
@@ -101,15 +103,15 @@ namespace PPR.Main.Levels {
                     if(useY > gameLinePos.Y) continue;
                     if(y % currentLevel.metadata.linesFrequency == 0)
                         for(int x = 0; x < 80; x++)
-                            Core.renderer.SetCellColor(new Vector2i(x, useY), foreground,
+                            Core.renderer.SetCharacterColor(new Vector2i(x, useY), foreground,
                                 ColorScheme.GetColor(selected ? "selected_light_guidelines" : "light_guidelines"));
                     else if(y % 2 == 0)
                         for(int x = 0; x < 80; x++)
-                            Core.renderer.SetCellColor(new Vector2i(x, useY), foreground,
+                            Core.renderer.SetCharacterColor(new Vector2i(x, useY), foreground,
                                 ColorScheme.GetColor(selected ? "selected_guidelines" : "guidelines"));
                     else if(selected)
                         for(int x = 0; x < 80; x++)
-                            Core.renderer.SetCellColor(new Vector2i(x, useY), foreground,
+                            Core.renderer.SetCharacterColor(new Vector2i(x, useY), foreground,
                                 ColorScheme.GetColor("selection"));
                 }
             }
@@ -120,7 +122,7 @@ namespace PPR.Main.Levels {
             Lua.Manager.DrawMap();
 
             _prevLMB = Core.renderer.leftButtonPressed;
-            _prevMPosF = Core.renderer.mousePositionF;
+            _prevMPosF = Core.renderer.accurateMousePosition;
         }
 
         public static bool OffsetSelected(float offset) {

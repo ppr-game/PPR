@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using PER.Abstractions.Renderer;
+
 using PPR.UI.Animations;
 
 using PRR;
@@ -104,7 +106,7 @@ namespace PPR.UI.Elements {
                     (Vector2i pos, RenderCharacter character) mod =
                         animationModifier?.Invoke(pos, targetCharacter) ?? (pos, targetCharacter);
                     mod = ApplyAnimations(mod.pos, mod.character);
-                    Core.renderer.SetCharacter(mod.pos, mod.character);
+                    Core.renderer.DrawCharacter(mod.pos, mod.character);
                     _currentColors[x, y] = mod.character.background;
                 }
             }

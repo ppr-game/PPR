@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 using MoonSharp.Interpreter;
 
+using PER.Abstractions.Renderer;
+
 using PPR.Main;
 using PPR.Main.Managers;
 
@@ -144,7 +146,7 @@ namespace PPR.UI.Elements {
             UpdateState();
             _animTime = (float)(DateTime.UtcNow - _animStartTime).TotalSeconds;
 
-            if(Core.renderer.window.HasFocus() && currentState == State.Clicked)
+            if(Core.renderer.focused && currentState == State.Clicked)
                 value = Math.Clamp((Core.renderer.mousePosition.X - _posX) * step + minValue, minValue, maxValue);
 
             for(int x = 0; x < width; x++) {
@@ -163,11 +165,11 @@ namespace PPR.UI.Elements {
                 Color foreground = Renderer.AnimateColor(_animTime, _currentColor,
                     currentState == State.Idle ? hoverColor : idleColor, 4f + _animRateOffsets[x]);
                 if(useAnimationModifier == null)
-                    Core.renderer.SetCharacter(pos, new RenderCharacter(curChar, background, foreground));
+                    Core.renderer.DrawCharacter(pos, new RenderCharacter(curChar, background, foreground));
                 else {
                     (Vector2i newPos, RenderCharacter newCharacter) =
                         useAnimationModifier(pos, new RenderCharacter(curChar, background, foreground));
-                    Core.renderer.SetCharacter(newPos, newCharacter);
+                    Core.renderer.DrawCharacter(newPos, newCharacter);
                 }
             }
         }

@@ -1,8 +1,13 @@
 using System;
 using System.Collections.Generic;
 
+using PER.Abstractions.Renderer;
+using PER.Util;
+
 using SFML.Graphics;
 using SFML.System;
+
+using Color = SFML.Graphics.Color;
 
 namespace PRR {
     public class BitmapFont {
@@ -42,7 +47,7 @@ namespace PRR {
         private readonly Vertex[] _quads;
         public readonly uint imageHeight;
         public readonly uint imageWidth;
-        public Dictionary<Vector2i, RenderCharacter> text;
+        public Dictionary<Vector2Int, RenderCharacter> text;
 
         public BitmapText(BitmapFont font, Vector2i size) {
             _font = font;
@@ -60,11 +65,12 @@ namespace PRR {
             bool backgroundChar = _font.characters.TryGetValue('█', out Vector2f[] bgTexCoords);
 
             uint index = 0;
-            foreach((Vector2i pos, RenderCharacter character) in text) {
-                (Vector2f modPos, RenderCharacter modChar) = ((Vector2f)pos, character);
-                if(charactersModifier != null) (modPos, modChar) = charactersModifier.Invoke(pos, character);
+            foreach((Vector2Int pos, RenderCharacter character) in text) {
+                Vector2i sfmlPos = SfmlConverters.ToSfmlVector2Int(pos);
+                (Vector2f modPos, RenderCharacter modChar) = ((Vector2f)sfmlPos, character);
+                if(charactersModifier != null) (modPos, modChar) = charactersModifier.Invoke(sfmlPos, character);
 
-                Vector2f position = new Vector2f(modPos.X * _charWidth + offset.X, modPos.Y * _charHeight + offset.Y);
+                Vector2f position = new(modPos.X * _charWidth + offset.X, modPos.Y * _charHeight + offset.Y);
 
                 _quads[index].Position = position;
                 _quads[index + 1].Position = position + new Vector2f(_charWidth, 0f);
@@ -77,10 +83,11 @@ namespace PRR {
                     _quads[index + 2].TexCoords = bgTexCoords[2];
                     _quads[index + 3].TexCoords = bgTexCoords[3];
 
-                    _quads[index].Color = modChar.background;
-                    _quads[index + 1].Color = modChar.background;
-                    _quads[index + 2].Color = modChar.background;
-                    _quads[index + 3].Color = modChar.background;
+                    Color background = SfmlConverters.ToSfmlColor(modChar.background);
+                    _quads[index].Color = background;
+                    _quads[index + 1].Color = background;
+                    _quads[index + 2].Color = background;
+                    _quads[index + 3].Color = background;
                 }
 
                 if(_font.characters.TryGetValue(modChar.character, out Vector2f[] texCoords)) {
@@ -94,10 +101,11 @@ namespace PRR {
                     _quads[index + 6].TexCoords = texCoords[2];
                     _quads[index + 7].TexCoords = texCoords[3];
 
-                    _quads[index + 4].Color = modChar.foreground;
-                    _quads[index + 5].Color = modChar.foreground;
-                    _quads[index + 6].Color = modChar.foreground;
-                    _quads[index + 7].Color = modChar.foreground;
+                    Color foreground = SfmlConverters.ToSfmlColor(modChar.foreground);
+                    _quads[index + 4].Color = foreground;
+                    _quads[index + 5].Color = foreground;
+                    _quads[index + 6].Color = foreground;
+                    _quads[index + 7].Color = foreground;
                 }
                 else {
                     _quads[index + 4].TexCoords = new Vector2f();

@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 
+using PER.Abstractions.Renderer;
+
 using PRR;
 
 using SFML.Graphics;
@@ -21,7 +23,7 @@ namespace PPR.UI.Elements {
                     Vector2i pos = new Vector2i(x, y);
                     RenderCharacter character = new RenderCharacter('\0', color, color);
                     (pos, character) = ApplyAnimations(pos, character);
-                    Core.renderer.SetCharacter(pos, character);
+                    Core.renderer.DrawCharacter(pos, character);
                 }
             }
         }

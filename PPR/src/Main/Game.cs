@@ -9,6 +9,8 @@ using MoonSharp.Interpreter;
 
 using NLog;
 
+using PER.Abstractions.Renderer;
+
 using PPR.UI;
 using PPR.UI.Elements;
 using PPR.Main.Levels;
@@ -195,29 +197,25 @@ namespace PPR.Main {
             LevelSpeedObject.speedColor = ColorScheme.GetColor("speed");
             LevelSpeedObject.nextDirLayerSpeedColor = ColorScheme.GetColor("next_dir_layer_speed");
         }
+        
         private static void SettingChanged(object caller, SettingChangedEventArgs e) {
             switch (e.settingName) {
                 case "font": {
-                    string[] fontMappingsLines = File.ReadAllLines(Path.Join("resources", "fonts",
-                        Settings.GetPath("font"), "mappings.txt"));
-                    string[] fontSizeStr = fontMappingsLines[0].Split(',');
-                    Core.renderer.fontSize = new Vector2i(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
-                    Core.renderer.windowWidth = Core.renderer.width * Core.renderer.fontSize.X;
-                    Core.renderer.windowHeight = Core.renderer.height * Core.renderer.fontSize.Y;
-
-                    BitmapFont font = new BitmapFont(
-                        new Image(Path.Join("resources", "fonts", Settings.GetPath("font"), "font.png")),
-                        fontMappingsLines[1], Core.renderer.fontSize);
-                    Core.renderer.text = new BitmapText(font, new Vector2i(Core.renderer.width, Core.renderer.height)) {
-                        text = Core.renderer.display
+                    RendererSettings settings = new() {
+                        title = Core.renderer.title,
+                        width = Core.renderer.width,
+                        height = Core.renderer.height,
+                        framerate = Core.renderer.framerate,
+                        fullscreen = Core.renderer.fullscreen,
+                        font = Path.Join("resources", "fonts", Settings.GetPath("font"), "font.png")
                     };
-
-                    Core.renderer.UpdateWindow();
+                    Core.renderer.Stop();
+                    Core.renderer.Setup(settings);
                     break;
                 }
                 case "colorScheme": ColorScheme.Reload();
                     break;
-                case "fullscreen": Core.renderer.SetFullscreen(Settings.GetBool("fullscreen"));
+                case "fullscreen": Core.renderer.fullscreen = Settings.GetBool("fullscreen");
                     break;
                 case "musicVolume":
                     SoundManager.music.Volume = Settings.GetInt("musicVolume");
@@ -398,10 +396,10 @@ namespace PPR.Main {
                 float initialOffset = Map.currentLevel.metadata.musicOffset / 1000f;
                 float duration = SoundManager.music.Duration.AsSeconds() + initialOffset;
                 
-                if(Core.renderer.mousePosition.Y == 0) {
+                if(Core.renderer.mousePosition.y == 0) {
                     if(Core.renderer.leftButtonPressed) { // Is pressed
                         if(!_prevLeftButtonPressed) SoundManager.PauseMusic(); // Just pressed
-                        float mouseProgress = Math.Clamp(Core.renderer.mousePositionF.X / 80f, 0f, 1f);
+                        float mouseProgress = Math.Clamp(Core.renderer.accurateMousePosition.x / 80f, 0f, 1f);
                         levelTime = Time.FromSeconds(duration * mouseProgress);
                         steps = MathF.Round(Calc.MillisecondsToSteps(levelTime.AsMilliseconds()));
                         _offset = Calc.StepsToOffset(steps);

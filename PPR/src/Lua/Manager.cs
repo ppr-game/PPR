@@ -5,6 +5,7 @@ using MoonSharp.Interpreter;
 
 using NLog;
 
+using PER.Abstractions.Renderer;
 using PER.Util;
 
 using PPR.Lua.API.Console.Main.Managers;

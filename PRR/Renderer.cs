@@ -2,61 +2,63 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using PER.Abstractions.Renderer;
+using PER.Util;
+
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
+using Color = PER.Util.Color;
+
 namespace PRR {
-    public readonly struct RenderCharacter {
-        public RenderCharacter(char character, Color background, Color foreground) {
-            this.character = character;
-            this.background = background;
-            this.foreground = foreground;
+    public class Renderer : IRenderer {
+        public string title { get; private set; }
+        public int width { get; private set; }
+        public int height { get; private set; }
+        
+        public int framerate {
+            get => _framerate;
+            set {
+                _framerate = value;
+                if(window == null) return;
+                UpdateFramerate();
+            }
         }
 
-        public RenderCharacter(char character, RenderCharacter oldChar) {
-            this.character = character;
-            background = oldChar.background;
-            foreground = oldChar.foreground;
+        public bool fullscreen {
+            get => _fullscreen;
+            set {
+                _fullscreen = value;
+                Reset();
+            }
         }
 
-        public RenderCharacter(Color background, Color foreground, RenderCharacter oldChar) {
-            character = oldChar.character;
-            this.background = background;
-            this.foreground = foreground;
+        public string font {
+            get => _font;
+            set {
+                _font = value;
+                Reset();
+            }
         }
 
-        public RenderCharacter(Color background, RenderCharacter oldChar) {
-            character = oldChar.character;
-            this.background = background;
-            foreground = oldChar.foreground;
-        }
+        public Vector2Int fontSize { get; private set; }
+        public string icon { get; set; }
 
-        public RenderCharacter(RenderCharacter oldChar, Color foreground) {
-            character = oldChar.character;
-            background = oldChar.background;
-            this.foreground = foreground;
-        }
+        public bool open => window.IsOpen;
+        public bool focused => window.HasFocus();
+        
+        public Color clear { get; set; } = Color.black;
+        
+        public Vector2Int mousePosition { get; private set; } = new(-1, -1);
+        public Vector2 accurateMousePosition { get; private set; } = new(-1f, -1f);
 
-        public bool Equals(RenderCharacter other) => character == other.character &&
-                                                     background.Equals(other.background) &&
-                                                     foreground.Equals(other.foreground);
+        private Dictionary<Vector2Int, RenderCharacter> _display;
 
-        public override bool Equals(object obj) => obj is RenderCharacter other && Equals(other);
-        public override int GetHashCode() => HashCode.Combine(character, background, foreground);
-        public static bool operator ==(RenderCharacter left, RenderCharacter right) => left.Equals(right);
-        public static bool operator !=(RenderCharacter left, RenderCharacter right) => !left.Equals(right);
-
-        public readonly char character;
-        public readonly Color background;
-        public readonly Color foreground;
-    }
-
-    public class Renderer {
-        public enum Alignment { Left, Center, Right }
-
-        public Color background = Color.Black;
-
+        private int _framerate;
+        private bool _fullscreen;
+        private string _font;
+        
         private readonly Shader _bloomFirstPass = Shader.FromString(
             File.ReadAllText(Path.Join("resources", "bloom_vert.glsl")), null,
             File.ReadAllText(Path.Join("resources", "bloom_frag.glsl")));
@@ -65,139 +67,107 @@ namespace PRR {
             File.ReadAllText(Path.Join("resources", "bloom_vert.glsl")), null,
             File.ReadAllText(Path.Join("resources", "bloom_frag.glsl")));
 
-        private readonly Image _icon;
-
-        public readonly Dictionary<Vector2i, RenderCharacter> display;
-        public readonly int height;
-
-        public readonly string title;
-        public readonly int width;
-
         private RenderTexture _bloomRT1;
         private RenderTexture _bloomRT2;
-        private int _framerate;
         public Shader bloomBlend;
 
         public Func<Vector2i, RenderCharacter, (Vector2f position, RenderCharacter character)> charactersModifier;
-        public Vector2i fontSize;
-        public bool leftButtonPressed;
-        public Vector2i mousePosition = new Vector2i(-1, -1);
-
-        public Vector2f mousePositionF = new Vector2f(-1f, -1f);
-        public EventHandler onWindowRecreated;
-        public BitmapText text;
-        public Vector2f textPosition;
+        public EventHandler onWindowCreated;
+        private BitmapText _text;
+        private Vector2f _textPosition;
         public RenderWindow window;
-        public int windowHeight;
-        public int windowWidth;
 
-        public Renderer(string title, int width, int height, int framerate, bool fullscreen, string fontPath) {
-            this.title = title;
-
-            string[] fontMappingsLines = File.ReadAllLines(Path.Join(fontPath, "mappings.txt"));
-            string[] fontSizeStr = fontMappingsLines[0].Split(',');
-            fontSize = new Vector2i(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
-
-            this.width = width;
-            this.height = height;
-
-            display = new Dictionary<Vector2i, RenderCharacter>(this.width * this.height);
-
-            _icon = new Image(Path.Join("resources", "icon.png"));
-
-            BitmapFont font = new BitmapFont(new Image(Path.Join(fontPath, "font.png")), fontMappingsLines[1],
-                fontSize);
-            text = new BitmapText(font, new Vector2i(width, height)) { text = display };
-
-            SetFullscreen(fullscreen);
-
-            this.framerate = framerate;
+        public void Setup(RendererSettings settings) {
+            title = settings.title;
+            width = settings.width;
+            height = settings.height;
+            _framerate = settings.framerate;
+            _fullscreen = settings.fullscreen;
+            _font = settings.font;
+            icon = settings.icon;
+            
+            CreateWindow();
 
             _bloomFirstPass.SetUniform("horizontal", true);
             _bloomSecondPass.SetUniform("horizontal", false);
         }
+        
+        public void Loop() => window.DispatchEvents();
 
-        public int framerate {
-            get => _framerate;
-            set {
-                _framerate = value;
-                window.SetFramerateLimit(value < 0 ? 0 : (uint)value);
-                window.SetVerticalSyncEnabled(value < 0);
-            }
-        } // ReSharper disable once FieldCanBeMadeReadOnly.Global
+        public void Stop() => window.Close();
 
-        public void SetFramerate(int framerate) => this.framerate = window.HasFocus() ? framerate < 60 ? -1 :
-            framerate > 960 ? 0 : framerate : 30;
+        public void Reset() {
+            Stop();
+            Setup(new RendererSettings(this));
+        }
 
-        private void SubscribeWindowEvents() {
-            leftButtonPressed = false;
+        private void CreateWindow() {
+            if(window?.IsOpen ?? false) window.Close();
+            VideoMode videoMode = fullscreen ? VideoMode.FullscreenModes[0] :
+                new VideoMode((uint)(width * fontSize.x), (uint)(height * fontSize.y));
+            Image icon = new(this.icon);
 
-            onWindowRecreated?.Invoke(this, EventArgs.Empty);
-
+            window = new RenderWindow(videoMode, title, fullscreen ? Styles.Fullscreen : Styles.Close);
+            window.SetIcon(icon.Size.X, icon.Size.Y, icon.Pixels);
+            window.SetView(new View(new Vector2f(videoMode.Width / 2f, videoMode.Height / 2f),
+                new Vector2f(videoMode.Width, videoMode.Height)));
+            
             window.MouseMoved += UpdateMousePosition;
-            window.MouseButtonPressed += (_, e) => {
-                if(e.Button == Mouse.Button.Left) leftButtonPressed = true;
-            };
-            window.MouseButtonReleased += (_, e) => {
-                if(e.Button == Mouse.Button.Left) leftButtonPressed = false;
-            };
             window.SetKeyRepeatEnabled(false);
+            
+            onWindowCreated?.Invoke(this, EventArgs.Empty);
+                
+            _bloomRT1 = new RenderTexture(videoMode.Width, videoMode.Height);
+            _bloomRT2 = new RenderTexture(videoMode.Width, videoMode.Height);
+                
+            _textPosition = new Vector2f((videoMode.Width - _text.imageWidth) / 2f,
+                (videoMode.Height - _text.imageHeight) / 2f);
+
+            UpdateFramerate();
+            UpdateFont();
         }
 
-        public void SetFullscreen(bool fullscreen) {
-            if(window.IsOpen) window.Close();
-            if(!fullscreen) {
-                windowWidth = width * fontSize.X;
-                windowHeight = height * fontSize.Y;
-            }
-
-            window = fullscreen
-                ? new RenderWindow(VideoMode.FullscreenModes[0], title, Styles.Fullscreen)
-                : new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), title, Styles.Close);
-            window.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
-            SubscribeWindowEvents();
-            UpdateWindow(fullscreen, framerate);
+        private void UpdateFramerate() {
+            window.SetFramerateLimit(_framerate <= 0 ? 0 : (uint)_framerate);
+            window.SetVerticalSyncEnabled(_framerate == (int)ReservedFramerates.Vsync);
         }
 
-        public void UpdateWindow(bool fullscreen, int framerate) {
-            if(fullscreen) {
-                VideoMode videoMode = VideoMode.FullscreenModes[0];
+        private void UpdateFont() {
+            string[] fontMappingsLines = File.ReadAllLines(Path.Join(this.font, "mappings.txt"));
+            string[] fontSizeStr = fontMappingsLines[0].Split(',');
+            fontSize = new Vector2Int(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
+                
+            _display = new Dictionary<Vector2Int, RenderCharacter>(width * height);
 
-                windowWidth = (int)videoMode.Width;
-                windowHeight = (int)videoMode.Height;
-            }
-            else {
-                window.Size = new Vector2u((uint)windowWidth, (uint)windowHeight);
-                window.SetView(new View(new Vector2f(windowWidth / 2f, windowHeight / 2f),
-                    new Vector2f(windowWidth, windowHeight)));
-            }
-
-            _bloomRT1 = new RenderTexture((uint)windowWidth, (uint)windowHeight);
-            _bloomRT2 = new RenderTexture((uint)windowWidth, (uint)windowHeight);
-            textPosition = new Vector2f((windowWidth - text.imageWidth) / 2f, (windowHeight - text.imageHeight) / 2f);
-
-            this.framerate = framerate;
+            BitmapFont font = new(new Image(Path.Join(this.font, "font.png")), fontMappingsLines[1],
+                SfmlConverters.ToSfmlVector2Int(fontSize));
+            _text = new BitmapText(font, new Vector2i(width, height)) { text = _display };
         }
 
         private void UpdateMousePosition(object caller, MouseMoveEventArgs mouse) {
             if(!window.HasFocus()) {
-                mousePosition = new Vector2i(-1, -1);
+                mousePosition = new Vector2Int(-1, -1);
+                accurateMousePosition = new Vector2(-1f, -1f);
                 return;
             }
 
-            mousePositionF = new Vector2f((mouse.X - windowWidth / 2f + text.imageWidth / 2f) / fontSize.X,
-                (mouse.Y - windowHeight / 2f + text.imageHeight / 2f) / fontSize.Y);
-            mousePosition = new Vector2i((int)mousePositionF.X, (int)mousePositionF.Y);
+            accurateMousePosition = new Vector2((mouse.X - window.Size.X / 2f + _text.imageWidth / 2f) / fontSize.x,
+                (mouse.Y - window.Size.Y / 2f + _text.imageHeight / 2f) / fontSize.y);
+            mousePosition = new Vector2Int((int)accurateMousePosition.x, (int)accurateMousePosition.y);
         }
 
-        public void Clear() => display.Clear();
+        public void Clear() => _display.Clear();
+
+        public void Draw() => Draw(true);
 
         public void Draw(bool bloom) {
-            text.RebuildQuads(textPosition, charactersModifier);
+            SFML.Graphics.Color background = SfmlConverters.ToSfmlColor(this.clear);
+            
+            _text.RebuildQuads(_textPosition, charactersModifier);
 
             if(bloom) {
                 _bloomRT1.Clear(background);
-                text.DrawQuads(_bloomRT1);
+                _text.DrawQuads(_bloomRT1);
 
                 _bloomFirstPass.SetUniform("image", _bloomRT1.Texture);
                 _bloomRT2.Clear(background);
@@ -208,7 +178,7 @@ namespace PRR {
                 _bloomRT1.Draw(new Sprite(_bloomRT2.Texture), new RenderStates(_bloomSecondPass));
 
                 _bloomRT2.Clear(background);
-                text.DrawQuads(_bloomRT2);
+                _text.DrawQuads(_bloomRT2);
 
                 _bloomRT1.Display();
                 _bloomRT2.Display();
@@ -219,130 +189,71 @@ namespace PRR {
             }
             else {
                 window.Clear(background);
-                text.DrawQuads(window);
+                _text.DrawQuads(window);
             }
+            
+            window.Display();
         }
 
-        public void DrawText(Vector2i position, string text, Color foregroundColor, Color backgroundColor,
-            Alignment align = Alignment.Left, bool replacingSpaces = false,
-            bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) {
+        public void DrawText(Vector2Int position, string text, Color foregroundColor, Color backgroundColor,
+            HorizontalAlignment align = HorizontalAlignment.Left, RenderFlags flags = RenderFlags.Default) {
             switch(text.Length) {
-                case 0: return; // Don't do anything if the text is empty
+                case 0: return;
                 case 1: {
-                    if(!replacingSpaces && text[0] == ' ') return;
-                    DrawTextChar(position, text[0], foregroundColor, backgroundColor, invertOnDarkBG, charactersModifier);
+                    DrawCharacter(position, new RenderCharacter(text[0], backgroundColor, foregroundColor), flags);
                     return;
                 }
             }
 
-            int posX = position.X - align switch {
-                Alignment.Right => text.Length - 1,
-                Alignment.Center => (int)MathF.Floor(text.Length / 2f),
+            int posX = position.x - align switch {
+                HorizontalAlignment.Right => text.Length - 1,
+                HorizontalAlignment.Middle => (int)MathF.Floor(text.Length / 2f),
                 _ => 0
             };
 
             int x = 0;
             foreach(char curChar in text) {
-                if(!replacingSpaces && curChar == ' ') {
-                    x++;
-                    continue;
-                }
-
-                Vector2i charPos = new Vector2i(posX + x, position.Y);
-                DrawTextChar(charPos, curChar, foregroundColor, backgroundColor, invertOnDarkBG, charactersModifier);
+                Vector2Int charPos = new(posX + x, position.y);
+                DrawCharacter(charPos, new RenderCharacter(curChar, backgroundColor, foregroundColor), flags);
                 x++;
             }
         }
 
-        private void DrawTextChar(Vector2i position, char character, Color foregroundColor, Color backgroundColor,
-            bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) {
-            Color useFG = foregroundColor;
-            if(invertOnDarkBG) {
-                Color useBGColor = backgroundColor.A == 0 ? GetBackgroundColor(position) : backgroundColor;
-                float luma = 0.299f * useBGColor.R + 0.587f * useBGColor.G + 0.114f * useBGColor.B;
-                if(luma < 127.5f)
-                    useFG = new Color(255, 255, 255, foregroundColor.A) -
-                            new Color(foregroundColor.R, foregroundColor.G,
-                                foregroundColor.B, 0);
+        public void DrawText(Vector2Int position, string[] lines, Color foregroundColor, Color backgroundColor,
+            HorizontalAlignment align = HorizontalAlignment.Left, RenderFlags flags = RenderFlags.Default) {
+            for(int i = 0; i < lines.Length; i++)
+                DrawText(position + new Vector2Int(0, i), lines[i], foregroundColor, backgroundColor,
+                    align, flags);
+        }
+
+        public void DrawCharacter(Vector2Int position, RenderCharacter character,
+            RenderFlags flags = RenderFlags.Default) {
+            if(position.x < 0 || position.y < 0 || position.x >= width || position.y >= height) return;
+            
+            if(flags.HasFlag(RenderFlags.BackgroundAlphaBlending)) {
+                RenderCharacter currentCharacter = GetCharacter(position);
+                Color background = Color.Blend(currentCharacter.background, character.background);
+                //Color foreground = Color.Blend(background, character.foreground);
+                character = new RenderCharacter(background, character.foreground, character);
             }
 
-            Vector2i usePos = position;
-            RenderCharacter useChar = new RenderCharacter(character, backgroundColor, useFG);
-            if(charactersModifier != null) (usePos, useChar) = charactersModifier(position, useChar);
-            SetCharacter(usePos, useChar);
+            if(flags.HasFlag(RenderFlags.InvertedBackgroundAsForegroundColor)) {
+                RenderCharacter currentCharacter = GetCharacter(position);
+                character = new RenderCharacter(character.character, character.background,
+                    Color.white - currentCharacter.background);
+            }
+            
+            if(IsRenderCharacterEmpty(character)) _display.Remove(position);
+            else _display[position] = character;
         }
 
-        public void DrawText(Vector2i position, string[] lines, Color foregroundColor, Color backgroundColor,
-            Alignment align = Alignment.Left, bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier =
-                null) => DrawLines(position, lines, foregroundColor, backgroundColor, align, replacingSpaces,
-            invertOnDarkBG, charactersModifier);
-
-        // ReSharper disable once ParameterTypeCanBeEnumerable.Global
-        public void DrawLines(Vector2i position, string[] lines, Color foregroundColor, Color backgroundColor,
-            Alignment align = Alignment.Left,
-            bool replacingSpaces = false,
-            bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) {
-            for(int i = 0; i < lines.Length; i++)
-                DrawText(position + new Vector2i(0, i), lines[i], foregroundColor, backgroundColor,
-                    align, replacingSpaces, invertOnDarkBG, charactersModifier);
-        }
-
-        public void SetCharacter(Vector2i position, RenderCharacter character) {
-            if(position.X < 0 || position.Y < 0 || position.X >= width || position.Y >= height) return;
-
-            Color currentBackground = GetBackgroundColor(position);
-            Color background = OverlayColors(currentBackground, character.background);
-            Color foreground = OverlayColors(background, character.foreground);
-            display[position] = new RenderCharacter(background, foreground, character);
-            if(IsRenderCharacterEmpty(display[position])) display.Remove(position);
-        }
-
-        public RenderCharacter GetCharacter(Vector2i position) => display.ContainsKey(position) ? display[position] :
-            new RenderCharacter('\0', Color.Transparent, Color.Transparent);
-
-        public char GetDisplayedCharacter(Vector2i position) =>
-            !display.ContainsKey(position) ? '\0' : display[position].character;
-
-        public void SetCellColor(Vector2i position, Color foregroundColor, Color backgroundColor) =>
-            SetCharacter(position, new RenderCharacter(backgroundColor, foregroundColor, GetCharacter(position)));
-
-        public Color GetBackgroundColor(Vector2i position) {
-            if(position.X < 0 || position.Y < 0 || position.X >= width || position.Y >= height ||
-               !display.ContainsKey(position)) return background;
-            return display[position].background;
-        }
+        public RenderCharacter GetCharacter(Vector2Int position) => _display.ContainsKey(position) ? _display[position] :
+            new RenderCharacter('\0', Color.transparent, Color.transparent);
 
         private static bool IsRenderCharacterEmpty(RenderCharacter renderCharacter) =>
-            renderCharacter.background.A == 0 &&
-            (renderCharacter.character == '\0' || renderCharacter.character == ' ' ||
-             renderCharacter.foreground.A == 0);
+            renderCharacter.background.a == 0 &&
+            (IsCharacterEmpty(renderCharacter.character) || renderCharacter.foreground.a == 0);
 
-        public static Color LerpColors(Color a, Color b, float t) => t <= 0f ? a :
-            t >= 1f ? b :
-            new Color((byte)MathF.Floor(a.R + (b.R - a.R) * t),
-                (byte)MathF.Floor(a.G + (b.G - a.G) * t),
-                (byte)MathF.Floor(a.B + (b.B - a.B) * t),
-                (byte)MathF.Floor(a.A + (b.A - a.A) * t));
-
-        public static Color AnimateColor(float time, Color start, Color end, float rate) =>
-            LerpColors(start, end, time * rate);
-
-        public static Color OverlayColors(Color bottom, Color top) {
-            float t = (255f - top.A) * bottom.A / 255f;
-            float a = t + top.A;
-
-            float r = (t * bottom.R + top.A * (float)top.R) / a;
-            float g = (t * bottom.G + top.A * (float)top.G) / a;
-            float b = (t * bottom.B + top.A * (float)top.B) / a;
-
-            return new Color((byte)r, (byte)g, (byte)b, (byte)a);
-        }
-
-        [Obsolete("BlendsColors was renamed to OverlayColors and is now deprecated, use OverlayColors instead.")]
-        public static Color BlendColors(Color bottom, Color top) => OverlayColors(bottom, top);
+        private static bool IsCharacterEmpty(char character) => character is '\0' or ' ';
     }
 }

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using SFML.Graphics;
+using PER.Util;
+
 using SFML.System;
 
 using Alignment = PRR.Renderer.Alignment;
+using Color = SFML.Graphics.Color;
 
 namespace PPR.UI.Elements {
     public class Text : Element {
@@ -49,7 +51,7 @@ namespace PPR.UI.Elements {
             base.Draw();
 
             if(mask == null)
-                Core.renderer.DrawLines(globalPosition, lines, foregroundColor, backgroundColor, align, replacingSpaces,
+                Core.renderer.DrawText(globalPosition, lines, (PER.Util.Color)foregroundColor, (PER.Util.Color)backgroundColor, (HorizontalAlignment)align, replacingSpaces,
                     invertOnDarkBackground, ApplyAnimations);
             else {
                 Vector2i pos = globalPosition;
@@ -60,8 +62,8 @@ namespace PPR.UI.Elements {
                     string line = lines[y];
                     int minX = Math.Max(0, maskBounds.min.X - pos.X);
                     int maxX = Math.Min(line.Length, maskBounds.max.X - pos.X - minX + 1);
-                    Core.renderer.DrawText(pos + new Vector2i(minX, y), line.Substring(minX, maxX),
-                        foregroundColor, backgroundColor, align, replacingSpaces, invertOnDarkBackground,
+                    Core.renderer.DrawText((Vector2Int)(pos + new Vector2i(minX, y)), (string[])line.Substring(minX, maxX),
+                        (PER.Util.Color)foregroundColor, (PER.Util.Color)backgroundColor, (HorizontalAlignment)align, replacingSpaces, invertOnDarkBackground,
                         ApplyAnimations);
                 }
             }

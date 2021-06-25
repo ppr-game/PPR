@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PER", "PER\PER.csproj", "{0
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PER.Abstractions", "PER.Abstractions\PER.Abstractions.csproj", "{9F3AB2B2-463B-4743-A7C2-0DCF6EF30BD0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PER.Util", "PER.Util\PER.Util.csproj", "{8B7D74CE-5C3D-4A6B-8AB9-70739646A8A5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,14 @@ Global
 		{9F3AB2B2-463B-4743-A7C2-0DCF6EF30BD0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9F3AB2B2-463B-4743-A7C2-0DCF6EF30BD0}.Release|x64.ActiveCfg = Release|Any CPU
 		{9F3AB2B2-463B-4743-A7C2-0DCF6EF30BD0}.Release|x64.Build.0 = Release|Any CPU
+		{8B7D74CE-5C3D-4A6B-8AB9-70739646A8A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B7D74CE-5C3D-4A6B-8AB9-70739646A8A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B7D74CE-5C3D-4A6B-8AB9-70739646A8A5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8B7D74CE-5C3D-4A6B-8AB9-70739646A8A5}.Debug|x64.Build.0 = Debug|Any CPU
+		{8B7D74CE-5C3D-4A6B-8AB9-70739646A8A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B7D74CE-5C3D-4A6B-8AB9-70739646A8A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B7D74CE-5C3D-4A6B-8AB9-70739646A8A5}.Release|x64.ActiveCfg = Release|Any CPU
+		{8B7D74CE-5C3D-4A6B-8AB9-70739646A8A5}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

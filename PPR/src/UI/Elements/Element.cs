@@ -4,6 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 
 using MoonSharp.Interpreter;
 
+using PER.Abstractions.Renderer;
+
 using PPR.UI.Animations;
 
 using PRR;

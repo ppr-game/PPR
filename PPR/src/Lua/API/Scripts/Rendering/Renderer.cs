@@ -6,6 +6,8 @@ using MoonSharp.Interpreter;
 
 using NCalc;
 
+using PER.Abstractions.Renderer;
+
 using PPR.Main;
 using PPR.UI;
 
@@ -121,7 +123,7 @@ namespace PPR.Lua.API.Scripts.Rendering {
         public static int getWidth => PPR.Core.renderer.width;
         public static int getHeight => PPR.Core.renderer.height;
         public static Vector2i getMousePosition => PPR.Core.renderer.mousePosition;
-        public static Vector2f getMousePositionF => PPR.Core.renderer.mousePositionF;
+        public static Vector2f getAccurateMousePosition => PPR.Core.renderer.accurateMousePosition;
         public static Func<Color, Color> scriptBackgroundModifier;
         public static List<Dictionary<string, DynValue>> backgroundModifier {
             set {
@@ -249,14 +251,14 @@ namespace PPR.Lua.API.Scripts.Rendering {
                         x = pos.X,
                         y = pos.Y,
                         character = character.character,
-                        bgR = character.background.R,
-                        bgG = character.background.G,
-                        bgB = character.background.B,
-                        bgA = character.background.A,
-                        fgR = character.foreground.R,
-                        fgG = character.foreground.G,
-                        fgB = character.foreground.B,
-                        fgA = character.foreground.A,
+                        bgR = character.background.r,
+                        bgG = character.background.g,
+                        bgB = character.background.b,
+                        bgA = character.background.a,
+                        fgR = character.foreground.r,
+                        fgG = character.foreground.g,
+                        fgB = character.foreground.b,
+                        fgA = character.foreground.a,
                         roundedSteps = Game.roundedSteps,
                         steps = Game.steps,
                         offset = Game.roundedOffset
@@ -272,14 +274,14 @@ namespace PPR.Lua.API.Scripts.Rendering {
                         modPos = new Vector2f(modifier.x?.Invoke(context) ?? modPos.X,
                             modifier.y?.Invoke(context) ?? modPos.Y);
                         modChar = new RenderCharacter(modifier.character?.Invoke(context)[0] ?? modChar.character,
-                            new Color(modifier.bgR?.Invoke(context) ?? modChar.background.R,
-                                modifier.bgG?.Invoke(context) ?? modChar.background.G,
-                                modifier.bgB?.Invoke(context) ?? modChar.background.B,
-                                modifier.bgA?.Invoke(context) ?? modChar.background.A),
-                            new Color(modifier.fgR?.Invoke(context) ?? modChar.foreground.R,
-                                modifier.fgG?.Invoke(context) ?? modChar.foreground.G,
-                                modifier.fgB?.Invoke(context) ?? modChar.foreground.B,
-                                modifier.fgA?.Invoke(context) ?? modChar.foreground.A));
+                            new Color(modifier.bgR?.Invoke(context) ?? modChar.background.r,
+                                modifier.bgG?.Invoke(context) ?? modChar.background.g,
+                                modifier.bgB?.Invoke(context) ?? modChar.background.b,
+                                modifier.bgA?.Invoke(context) ?? modChar.background.a),
+                            new Color(modifier.fgR?.Invoke(context) ?? modChar.foreground.r,
+                                modifier.fgG?.Invoke(context) ?? modChar.foreground.g,
+                                modifier.fgB?.Invoke(context) ?? modChar.foreground.b,
+                                modifier.fgA?.Invoke(context) ?? modChar.foreground.a));
                     }
                     return (modPos, modChar);
                 };
@@ -308,10 +310,10 @@ namespace PPR.Lua.API.Scripts.Rendering {
             charactersModifier);
 
         public static void SetCharacter(int x, int y, RenderCharacter character) =>
-            PPR.Core.renderer.SetCharacter(new Vector2i(x, y), character);
+            PPR.Core.renderer.DrawCharacter(new Vector2i(x, y), character);
         public static RenderCharacter GetCharacter(Vector2i position) => PPR.Core.renderer.GetCharacter(position);
         public static void SetCellColor(int x, int y, Color foregroundColor, Color backgroundColor) =>
-            PPR.Core.renderer.SetCellColor(new Vector2i(x, y), foregroundColor, backgroundColor);
+            PPR.Core.renderer.SetCharacterColor(new Vector2i(x, y), foregroundColor, backgroundColor);
         public static Color LerpColors(Color a, Color b, float t) => PRR.Renderer.LerpColors(a, b, t);
         public static Color AnimateColor(float time, Color start, Color end, float rate) =>
             PRR.Renderer.AnimateColor(time, start, end, rate);

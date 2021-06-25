@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 
 using MoonSharp.Interpreter;
 
+using PER.Abstractions.Renderer;
 using PER.Util;
 
 using PRR;

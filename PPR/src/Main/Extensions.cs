@@ -4,6 +4,8 @@ using System.Text;
 
 using MoonSharp.Interpreter;
 
+using PER.Abstractions.Renderer;
+
 using PPR.UI;
 using PPR.Properties;
 
@@ -58,38 +60,12 @@ namespace PPR.Main {
     }
     
     public static class RendererExtensions {
-        public static void UpdateFramerateSetting(this Renderer renderer) => renderer.SetFramerate(Settings.GetInt("fpsLimit"));
-        public static void UpdateWindow(this Renderer renderer) => renderer.UpdateWindow(Settings.GetBool("fullscreen"), Settings.GetInt("fpsLimit"));
-        public static void DrawText(this Renderer renderer, Vector2i position, string text,
-            Renderer.Alignment align = Renderer.Alignment.Left, bool replacingSpaces = false,
-            bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawText(position, text, ColorScheme.GetColor("foreground"), align,
-            replacingSpaces, invertOnDarkBG, charactersModifier);
-        public static void DrawText(this Renderer renderer, Vector2i position, string text, Color color,
-            Renderer.Alignment align = Renderer.Alignment.Left, bool replacingSpaces = false,
-            bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawText(position, text, color, ColorScheme.GetColor("transparent"), align, replacingSpaces,
-            invertOnDarkBG, charactersModifier);
-        public static void DrawText(this Renderer renderer, Vector2i position, string[] lines, Renderer.Alignment align = Renderer.Alignment.Left,
-            bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawLines(position, lines, align, replacingSpaces, invertOnDarkBG, charactersModifier);
-        public static void DrawText(this Renderer renderer, Vector2i position, string[] lines, Color color, Renderer.Alignment align = Renderer.Alignment.Left,
-            bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawLines(position, lines, color, align, replacingSpaces, invertOnDarkBG, charactersModifier);
-        public static void DrawText(this Renderer renderer, Vector2i position, string[] lines, Color foregroundColor, Color backgroundColor,
-            Renderer.Alignment align = Renderer.Alignment.Left,
-            bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawLines(position, lines, foregroundColor, backgroundColor, align, replacingSpaces,
-            invertOnDarkBG, charactersModifier);
-        public static void DrawLines(this Renderer renderer, Vector2i position, string[] lines, Renderer.Alignment align = Renderer.Alignment.Left,
-            bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawLines(position, lines, ColorScheme.GetColor("foreground"), align, replacingSpaces,
-            invertOnDarkBG, charactersModifier);
-        public static void DrawLines(this Renderer renderer, Vector2i position, string[] lines, Color color, Renderer.Alignment align = Renderer.Alignment.Left,
-            bool replacingSpaces = false, bool invertOnDarkBG = false,
-            Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier = null) => renderer.DrawLines(position, lines, color, ColorScheme.GetColor("transparent"), align, replacingSpaces,
-            invertOnDarkBG, charactersModifier);
+        public static void UpdateFramerateSetting(this Renderer renderer) {
+            int setting = Settings.GetInt("fpsLimit");
+            renderer.framerate = renderer.focused ? setting < 60 ? -1 : setting > 960 ? 0 : setting : 30;
+        }
+
         public static void ResetBackground(this Renderer renderer) =>
-            renderer.background = ColorScheme.GetColor("background");
+            renderer.clear = SfmlConverters.ToPerColor(ColorScheme.GetColor("background"));
     }
 }

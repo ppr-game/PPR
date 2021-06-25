@@ -4,6 +4,7 @@ using System.Reflection;
 using NLog;
 
 using PER.Abstractions;
+using PER.Abstractions.Renderer;
 using PER.Util;
 
 namespace PER {
@@ -21,15 +22,16 @@ namespace PER {
         
         public double tickInterval { get; set; }
         public IGame game { get; init; }
+        public IRenderer renderer { get; init; }
 
         private Stopwatch _clock;
         private TimeSpan _prevTime;
         private double _tickAccumulator;
         
-        public void Start() {
+        public void Start(RendererSettings rendererSettings) {
             try {
                 logger.Info($"PER v{version}");
-                Setup();
+                Setup(rendererSettings);
                 while(Loop()) UpdateDeltaTime();
                 Stop();
             }
@@ -40,10 +42,11 @@ namespace PER {
             }
         }
 
-        private void Setup() {
+        private void Setup(RendererSettings rendererSettings) {
             _clock = new Stopwatch();
             _clock.Reset();
             
+            renderer.Setup(rendererSettings);
             game.Setup();
             
             logger.Info("Setup finished");
@@ -51,10 +54,12 @@ namespace PER {
         }
 
         private bool Loop() {
+            renderer.Clear();
+            renderer.Loop();
             game.Loop();
-
             TryTick();
-            return true;
+            renderer.Draw();
+            return renderer.open;
         }
 
         private void TryTick() {
@@ -78,6 +83,7 @@ namespace PER {
         }
 
         private void Stop() {
+            renderer.Stop();
             game.Stop();
         }
     }

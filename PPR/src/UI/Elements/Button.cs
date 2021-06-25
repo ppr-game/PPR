@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using PER.Abstractions.Renderer;
+
 using PPR.Main;
 using PPR.Main.Managers;
 using PPR.Properties;
@@ -120,7 +122,7 @@ namespace PPR.UI.Elements {
                 foreach(Animation animation in _currentAnimations)
                     animation?.Update();
             
-            if(!Core.renderer.window.HasFocus() || currentState != State.Hovered) {
+            if(!Core.renderer.focused || currentState != State.Hovered) {
                 prevFrameState = currentState;
                 return;
             }
@@ -139,7 +141,7 @@ namespace PPR.UI.Elements {
 
         private void UpdateState() {
             currentState = GetState();
-            _prevHotkeyPressed = Core.renderer.window.HasFocus() && _hotkeyPressed;
+            _prevHotkeyPressed = Core.renderer.focused && _hotkeyPressed;
             if(prevFrameState == currentState) return;
 
             Color color = idleColor;
@@ -204,7 +206,7 @@ namespace PPR.UI.Elements {
                 (Vector2i pos, RenderCharacter character) mod =
                     _currentAnimations[x, 0]?.animationModifier?.Invoke(pos, character) ?? (pos, character);
                 mod = animationModifier(mod.pos, mod.character);
-                Core.renderer.SetCharacter(mod.pos, mod.character);
+                Core.renderer.DrawCharacter(mod.pos, mod.character);
                 _currentBackgroundColors[x, 0] = mod.character.background;
                 _currentForegroundColors[x, 0] = mod.character.foreground;
             }

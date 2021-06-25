@@ -10,6 +10,8 @@ using NCalc;
 
 using Newtonsoft.Json;
 
+using PER.Abstractions.Renderer;
+
 using PPR.Main;
 using PPR.Main.Levels;
 using PPR.Properties;
@@ -185,14 +187,14 @@ namespace PPR.UI {
                         context.x = pos.X;
                         context.y = pos.Y;
                         context.character = character.character;
-                        context.bgR = character.background.R;
-                        context.bgG = character.background.G;
-                        context.bgB = character.background.B;
-                        context.bgA = character.background.A;
-                        context.fgR = character.foreground.R;
-                        context.fgG = character.foreground.G;
-                        context.fgB = character.foreground.B;
-                        context.fgA = character.foreground.A;
+                        context.bgR = character.background.r;
+                        context.bgG = character.background.g;
+                        context.bgB = character.background.b;
+                        context.bgA = character.background.a;
+                        context.fgR = character.foreground.r;
+                        context.fgG = character.foreground.g;
+                        context.fgB = character.foreground.b;
+                        context.fgA = character.foreground.a;
                         context.time = time;
                         context.args = args;
                         context.consts = consts;
@@ -201,14 +203,14 @@ namespace PPR.UI {
                         modPos = new Vector2i(animation.x?.Invoke(context) ?? modPos.X,
                             animation.y?.Invoke(context) ?? modPos.Y);
                         modChar = new RenderCharacter(animation.character?.Invoke(context)[0] ?? modChar.character,
-                            new Color(animation.bgR?.Invoke(context) ?? modChar.background.R,
-                                animation.bgG?.Invoke(context) ?? modChar.background.G,
-                                animation.bgB?.Invoke(context) ?? modChar.background.B,
-                                animation.bgA?.Invoke(context) ?? modChar.background.A),
-                            new Color(animation.fgR?.Invoke(context) ?? modChar.foreground.R,
-                                animation.fgG?.Invoke(context) ?? modChar.foreground.G,
-                                animation.fgB?.Invoke(context) ?? modChar.foreground.B,
-                                animation.fgA?.Invoke(context) ?? modChar.foreground.A));
+                            new Color(animation.bgR?.Invoke(context) ?? modChar.background.r,
+                                animation.bgG?.Invoke(context) ?? modChar.background.g,
+                                animation.bgB?.Invoke(context) ?? modChar.background.b,
+                                animation.bgA?.Invoke(context) ?? modChar.background.a),
+                            new Color(animation.fgR?.Invoke(context) ?? modChar.foreground.r,
+                                animation.fgG?.Invoke(context) ?? modChar.foreground.g,
+                                animation.fgB?.Invoke(context) ?? modChar.foreground.b,
+                                animation.fgA?.Invoke(context) ?? modChar.foreground.a));
                         return (modPos, modChar);
                     };
                 });
@@ -295,7 +297,7 @@ namespace PPR.UI {
             if(currentLayout.IsElementEnabled("game")) {
                 Color? color =
                     Lua.API.Scripts.Rendering.Renderer.scriptBackgroundModifier?.Invoke(ColorScheme.GetColor("background"));
-                if(color.HasValue) Core.renderer.background = color.Value;
+                if(color.HasValue) Core.renderer.clear = color.Value;
                 else Core.renderer.ResetBackground();
             }
             else Core.renderer.ResetBackground();
