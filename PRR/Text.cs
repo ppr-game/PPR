@@ -52,9 +52,13 @@ namespace PRR {
                 _quads[index + 2].Color = background;
                 _quads[index + 3].Color = background;
 
-                if(font.characters.TryGetValue(character.character, out Vector2f[] texCoords)) {
-                    _quads[index + 4].Position = _quads[index].Position;
-                    _quads[index + 5].Position = _quads[index + 1].Position;
+                if(font.characters.TryGetValue((character.character, character.style & RenderStyle.AllPerFont),
+                    out Vector2f[] texCoords)) {
+                    bool italic = character.style.HasFlag(RenderStyle.Italic);
+                    Vector2f italicOffset = italic ? new Vector2f(1f, 0f) : new Vector2f(0f, 0f);
+                    
+                    _quads[index + 4].Position = _quads[index].Position + italicOffset;
+                    _quads[index + 5].Position = _quads[index + 1].Position + italicOffset;
                     _quads[index + 6].Position = _quads[index + 2].Position;
                     _quads[index + 7].Position = _quads[index + 3].Position;
 

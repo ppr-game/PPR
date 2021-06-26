@@ -164,10 +164,17 @@ namespace PRR {
 
         public void Clear() => _display.Clear();
 
-        public void Draw() => Draw(true);
+        public void Draw() => Draw(true, false);
 
-        public void Draw(bool bloom) {
+        public void Draw(bool bloom, bool drawFont) {
             SFML.Graphics.Color background = SfmlConverters.ToSfmlColor(clear);
+            
+            if(drawFont) {
+                _window.Clear(background);
+                _window.Draw(new Sprite(_text.font.texture));
+                _window.Display();
+                return;
+            }
             
             _text.RebuildQuads(_textPosition);
 
@@ -202,11 +209,13 @@ namespace PRR {
         }
 
         public void DrawText(Vector2Int position, string text, Color foregroundColor, Color backgroundColor,
-            HorizontalAlignment align = HorizontalAlignment.Left, RenderFlags flags = RenderFlags.Default) {
+            HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
+            RenderFlags flags = RenderFlags.Default) {
             switch(text.Length) {
                 case 0: return;
                 case 1: {
-                    DrawCharacter(position, new RenderCharacter(text[0], backgroundColor, foregroundColor), flags);
+                    DrawCharacter(position, new RenderCharacter(text[0], backgroundColor, foregroundColor, style),
+                        flags);
                     return;
                 }
             }
@@ -220,16 +229,17 @@ namespace PRR {
             int x = 0;
             foreach(char curChar in text) {
                 Vector2Int charPos = new(posX + x, position.y);
-                DrawCharacter(charPos, new RenderCharacter(curChar, backgroundColor, foregroundColor), flags);
+                DrawCharacter(charPos, new RenderCharacter(curChar, backgroundColor, foregroundColor, style), flags);
                 x++;
             }
         }
 
         public void DrawText(Vector2Int position, string[] lines, Color foregroundColor, Color backgroundColor,
-            HorizontalAlignment align = HorizontalAlignment.Left, RenderFlags flags = RenderFlags.Default) {
+            HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
+            RenderFlags flags = RenderFlags.Default) {
             for(int i = 0; i < lines.Length; i++)
                 DrawText(position + new Vector2Int(0, i), lines[i], foregroundColor, backgroundColor,
-                    align, flags);
+                    align, style, flags);
         }
 
         public void DrawCharacter(Vector2Int position, RenderCharacter character,
@@ -240,13 +250,13 @@ namespace PRR {
                 RenderCharacter currentCharacter = GetCharacter(position);
                 Color background = Color.Blend(currentCharacter.background, character.background);
                 //Color foreground = Color.Blend(background, character.foreground);
-                character = new RenderCharacter(background, character.foreground, character);
+                character = new RenderCharacter(character.character, background, character.foreground, character.style);
             }
 
             if(flags.HasFlag(RenderFlags.InvertedBackgroundAsForegroundColor)) {
                 RenderCharacter currentCharacter = GetCharacter(position);
                 character = new RenderCharacter(character.character, character.background,
-                    Color.white - currentCharacter.background);
+                    Color.white - currentCharacter.background, character.style);
             }
             
             if(IsRenderCharacterEmpty(character)) _display.Remove(position);
@@ -260,6 +270,6 @@ namespace PRR {
             renderCharacter.background.a == 0 &&
             (!CharacterExists(renderCharacter.character) || renderCharacter.foreground.a == 0);
 
-        private bool CharacterExists(char character) => _text.font.characters.ContainsKey(character);
+        private bool CharacterExists(char character) => _text.font.mappings.Contains(character);
     }
 }

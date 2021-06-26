@@ -7,23 +7,14 @@ namespace PER.Abstractions.Renderer {
         public readonly char character;
         public readonly Color background;
         public readonly Color foreground;
+        public readonly RenderStyle style;
         
-        public RenderCharacter(char character, Color background, Color foreground) {
+        public RenderCharacter(char character, Color background, Color foreground,
+            RenderStyle style = RenderStyle.None) {
             this.character = character;
             this.background = background;
             this.foreground = foreground;
-        }
-
-        public RenderCharacter(char character, RenderCharacter oldChar) {
-            this.character = character;
-            background = oldChar.background;
-            foreground = oldChar.foreground;
-        }
-
-        public RenderCharacter(Color background, Color foreground, RenderCharacter oldChar) {
-            character = oldChar.character;
-            this.background = background;
-            this.foreground = foreground;
+            this.style = style;
         }
 
         public bool Equals(RenderCharacter other) => character == other.character &&

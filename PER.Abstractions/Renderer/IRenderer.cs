@@ -29,9 +29,11 @@ namespace PER.Abstractions.Renderer {
         public void Draw();
         public void DrawCharacter(Vector2Int position, RenderCharacter character, RenderFlags flags);
         public void DrawText(Vector2Int position, string text, Color foregroundColor, Color backgroundColor,
-            HorizontalAlignment align = HorizontalAlignment.Left, RenderFlags flags = RenderFlags.Default);
+            HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
+            RenderFlags flags = RenderFlags.Default);
         public void DrawText(Vector2Int position, string[] lines, Color foregroundColor, Color backgroundColor,
-            HorizontalAlignment align = HorizontalAlignment.Left, RenderFlags flags = RenderFlags.Default);
+            HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
+            RenderFlags flags = RenderFlags.Default);
 
         public RenderCharacter GetCharacter(Vector2Int position);
     }
