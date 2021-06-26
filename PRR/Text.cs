@@ -30,8 +30,8 @@ namespace PRR {
         }
 
         public void RebuildQuads(Vector2f offset) {
-            bool backgroundChar = font.characters.TryGetValue('█', out Vector2f[] bgTexCoords);
-
+            Vector2f[] backgroundCharacter = font.backgroundCharacter;
+            
             uint index = 0;
             foreach((Vector2Int pos, RenderCharacter character) in text) {
                 Vector2f position = new(pos.x * _charWidth + offset.X, pos.y * _charHeight + offset.Y);
@@ -41,18 +41,16 @@ namespace PRR {
                 _quads[index + 2].Position = position + new Vector2f(_charWidth, _charHeight);
                 _quads[index + 3].Position = position + new Vector2f(0f, _charHeight);
 
-                if(backgroundChar) {
-                    _quads[index].TexCoords = bgTexCoords[0];
-                    _quads[index + 1].TexCoords = bgTexCoords[1];
-                    _quads[index + 2].TexCoords = bgTexCoords[2];
-                    _quads[index + 3].TexCoords = bgTexCoords[3];
+                _quads[index].TexCoords = backgroundCharacter[0];
+                _quads[index + 1].TexCoords = backgroundCharacter[1];
+                _quads[index + 2].TexCoords = backgroundCharacter[2];
+                _quads[index + 3].TexCoords = backgroundCharacter[3];
 
-                    Color background = SfmlConverters.ToSfmlColor(character.background);
-                    _quads[index].Color = background;
-                    _quads[index + 1].Color = background;
-                    _quads[index + 2].Color = background;
-                    _quads[index + 3].Color = background;
-                }
+                Color background = SfmlConverters.ToSfmlColor(character.background);
+                _quads[index].Color = background;
+                _quads[index + 1].Color = background;
+                _quads[index + 2].Color = background;
+                _quads[index + 3].Color = background;
 
                 if(font.characters.TryGetValue(character.character, out Vector2f[] texCoords)) {
                     _quads[index + 4].Position = _quads[index].Position;

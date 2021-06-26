@@ -142,10 +142,11 @@ namespace PRR {
             string[] fontMappingsLines = File.ReadAllLines(Path.Join(this.font, "mappings.txt"));
             string[] fontSizeStr = fontMappingsLines[0].Split(',');
             fontSize = new Vector2Int(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
+            char background = fontSizeStr[2][0];
                 
             _display = new Dictionary<Vector2Int, RenderCharacter>(width * height);
 
-            Font font = new(new Image(Path.Join(this.font, "font.png")), fontMappingsLines[1], fontSize);
+            Font font = new(new Image(Path.Join(this.font, "font.png")), fontMappingsLines[1], fontSize, background);
             _text = new Text(font, new Vector2Int(width, height)) { text = _display };
         }
 

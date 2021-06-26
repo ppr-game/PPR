@@ -17,6 +17,10 @@ namespace PER.Demo {
 as you can see it works!!1!
 thanks for watching everyone, hit like, subscribe, good luck, bye!!".Split('\n'),
                 new Color(0f, 1f, 0f, 1f), Color.transparent);
+            
+            Core.engine.renderer.DrawText(new Vector2Int(0, 4),
+                "more test", 
+                Color.black, new Color(0f, 1f, 0f, 1f));
         }
         
         public void Tick() { }

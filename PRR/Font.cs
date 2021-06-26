@@ -10,10 +10,11 @@ using Color = SFML.Graphics.Color;
 namespace PRR {
     public class Font {
         public IReadOnlyDictionary<char, Vector2f[]> characters { get; }
+        public Vector2f[] backgroundCharacter { get; } = { new(), new(), new(), new() };
         public Vector2Int characterSize { get; }
         public Texture texture { get; }
 
-        public Font(Image image, string mappings, Vector2Int characterSize) {
+        public Font(Image image, string mappings, Vector2Int characterSize, char backgroundCharacter) {
             this.characterSize = characterSize;
             texture = new Texture(image);
             Dictionary<char, Vector2f[]> characters = new();
@@ -26,6 +27,8 @@ namespace PRR {
                         index++;
                         continue;
                     }
+
+                    char character = mappings[index];
                     
                     Vector2f[] texCoords = new Vector2f[4];
                     // Clockwise
@@ -33,7 +36,10 @@ namespace PRR {
                     texCoords[1] = new Vector2f(x + characterSize.x, y); // top right
                     texCoords[2] = new Vector2f(x + characterSize.x, y + characterSize.y); // bottom right
                     texCoords[3] = new Vector2f(x, y + characterSize.y); // bottom left
-                    characters.Add(mappings[index++], texCoords);
+                    characters.Add(character, texCoords);
+                    if(character == backgroundCharacter) this.backgroundCharacter = texCoords;
+
+                    index++;
                 }
             }
 
