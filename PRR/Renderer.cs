@@ -86,6 +86,9 @@ namespace PRR {
             _font = settings.font;
             icon = settings.icon;
             
+            bloomBlend = Shader.FromString(
+                File.ReadAllText(Path.Join("resources", "bloom_vert.glsl")), null,
+                File.ReadAllText(Path.Join("resources", "bloom-blend_frag.glsl")));
             CreateWindow();
 
             _bloomFirstPass.SetUniform("horizontal", true);
@@ -94,24 +97,32 @@ namespace PRR {
         
         public void Loop() => window.DispatchEvents();
 
-        public void Stop() => window.Close();
+        public void Stop() => window?.Close();
 
-        public void Reset() {
+        public void Reset(RendererSettings settings) {
             Stop();
-            Setup(new RendererSettings(this));
+            Setup(settings);
         }
+
+        public void Reset() => Reset(new RendererSettings(this));
 
         private void CreateWindow() {
             if(window?.IsOpen ?? false) window.Close();
+            UpdateFont();
+            
             VideoMode videoMode = fullscreen ? VideoMode.FullscreenModes[0] :
                 new VideoMode((uint)(width * fontSize.x), (uint)(height * fontSize.y));
-            Image icon = new(this.icon);
 
             window = new RenderWindow(videoMode, title, fullscreen ? Styles.Fullscreen : Styles.Close);
-            window.SetIcon(icon.Size.X, icon.Size.Y, icon.Pixels);
             window.SetView(new View(new Vector2f(videoMode.Width / 2f, videoMode.Height / 2f),
                 new Vector2f(videoMode.Width, videoMode.Height)));
             
+            if(File.Exists(this.icon)) {
+                Image icon = new(this.icon);
+                window.SetIcon(icon.Size.X, icon.Size.Y, icon.Pixels);
+            }
+            
+            window.Closed += (_, _) => Stop();
             window.MouseMoved += UpdateMousePosition;
             window.SetKeyRepeatEnabled(false);
             
@@ -124,7 +135,6 @@ namespace PRR {
                 (videoMode.Height - _text.imageHeight) / 2f);
 
             UpdateFramerate();
-            UpdateFont();
         }
 
         private void UpdateFramerate() {
@@ -161,7 +171,7 @@ namespace PRR {
         public void Draw() => Draw(true);
 
         public void Draw(bool bloom) {
-            SFML.Graphics.Color background = SfmlConverters.ToSfmlColor(this.clear);
+            SFML.Graphics.Color background = SfmlConverters.ToSfmlColor(clear);
             
             _text.RebuildQuads(_textPosition, charactersModifier);
 

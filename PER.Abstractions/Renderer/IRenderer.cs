@@ -23,6 +23,7 @@ namespace PER.Abstractions.Renderer {
         public void Loop();
         public void Stop();
         public void Reset();
+        public void Reset(RendererSettings settings);
         
         public void Clear();
         public void Draw();
