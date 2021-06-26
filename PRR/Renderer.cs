@@ -21,7 +21,7 @@ namespace PRR {
             get => _framerate;
             set {
                 _framerate = value;
-                if(window == null) return;
+                if(_window == null) return;
                 UpdateFramerate();
             }
         }
@@ -45,8 +45,8 @@ namespace PRR {
         public Vector2Int fontSize { get; private set; }
         public string icon { get; set; }
 
-        public bool open => window.IsOpen;
-        public bool focused => window.HasFocus();
+        public bool open => _window.IsOpen;
+        public bool focused => _window.HasFocus();
         
         public Color clear { get; set; } = Color.black;
         
@@ -67,15 +67,16 @@ namespace PRR {
             File.ReadAllText(Path.Join("resources", "bloom_vert.glsl")), null,
             File.ReadAllText(Path.Join("resources", "bloom_frag.glsl")));
 
+        private readonly Shader _bloomBlend = Shader.FromString(
+            File.ReadAllText(Path.Join("resources", "bloom_vert.glsl")), null,
+            File.ReadAllText(Path.Join("resources", "bloom-blend_frag.glsl")));
+        
         private RenderTexture _bloomRT1;
         private RenderTexture _bloomRT2;
-        public Shader bloomBlend;
 
-        public Func<Vector2i, RenderCharacter, (Vector2f position, RenderCharacter character)> charactersModifier;
-        public EventHandler onWindowCreated;
-        private BitmapText _text;
+        private Text _text;
         private Vector2f _textPosition;
-        public RenderWindow window;
+        private RenderWindow _window;
 
         public void Setup(RendererSettings settings) {
             title = settings.title;
@@ -86,18 +87,15 @@ namespace PRR {
             _font = settings.font;
             icon = settings.icon;
             
-            bloomBlend = Shader.FromString(
-                File.ReadAllText(Path.Join("resources", "bloom_vert.glsl")), null,
-                File.ReadAllText(Path.Join("resources", "bloom-blend_frag.glsl")));
             CreateWindow();
 
             _bloomFirstPass.SetUniform("horizontal", true);
             _bloomSecondPass.SetUniform("horizontal", false);
         }
         
-        public void Loop() => window.DispatchEvents();
+        public void Loop() => _window.DispatchEvents();
 
-        public void Stop() => window?.Close();
+        public void Stop() => _window?.Close();
 
         public void Reset(RendererSettings settings) {
             Stop();
@@ -107,26 +105,24 @@ namespace PRR {
         public void Reset() => Reset(new RendererSettings(this));
 
         private void CreateWindow() {
-            if(window?.IsOpen ?? false) window.Close();
+            if(_window?.IsOpen ?? false) _window.Close();
             UpdateFont();
             
             VideoMode videoMode = fullscreen ? VideoMode.FullscreenModes[0] :
                 new VideoMode((uint)(width * fontSize.x), (uint)(height * fontSize.y));
 
-            window = new RenderWindow(videoMode, title, fullscreen ? Styles.Fullscreen : Styles.Close);
-            window.SetView(new View(new Vector2f(videoMode.Width / 2f, videoMode.Height / 2f),
+            _window = new RenderWindow(videoMode, title, fullscreen ? Styles.Fullscreen : Styles.Close);
+            _window.SetView(new View(new Vector2f(videoMode.Width / 2f, videoMode.Height / 2f),
                 new Vector2f(videoMode.Width, videoMode.Height)));
             
             if(File.Exists(this.icon)) {
                 Image icon = new(this.icon);
-                window.SetIcon(icon.Size.X, icon.Size.Y, icon.Pixels);
+                _window.SetIcon(icon.Size.X, icon.Size.Y, icon.Pixels);
             }
             
-            window.Closed += (_, _) => Stop();
-            window.MouseMoved += UpdateMousePosition;
-            window.SetKeyRepeatEnabled(false);
-            
-            onWindowCreated?.Invoke(this, EventArgs.Empty);
+            _window.Closed += (_, _) => Stop();
+            _window.MouseMoved += UpdateMousePosition;
+            _window.SetKeyRepeatEnabled(false);
                 
             _bloomRT1 = new RenderTexture(videoMode.Width, videoMode.Height);
             _bloomRT2 = new RenderTexture(videoMode.Width, videoMode.Height);
@@ -138,8 +134,8 @@ namespace PRR {
         }
 
         private void UpdateFramerate() {
-            window.SetFramerateLimit(_framerate <= 0 ? 0 : (uint)_framerate);
-            window.SetVerticalSyncEnabled(_framerate == (int)ReservedFramerates.Vsync);
+            _window.SetFramerateLimit(_framerate <= 0 ? 0 : (uint)_framerate);
+            _window.SetVerticalSyncEnabled(_framerate == (int)ReservedFramerates.Vsync);
         }
 
         private void UpdateFont() {
@@ -149,20 +145,19 @@ namespace PRR {
                 
             _display = new Dictionary<Vector2Int, RenderCharacter>(width * height);
 
-            BitmapFont font = new(new Image(Path.Join(this.font, "font.png")), fontMappingsLines[1],
-                SfmlConverters.ToSfmlVector2Int(fontSize));
-            _text = new BitmapText(font, new Vector2i(width, height)) { text = _display };
+            Font font = new(new Image(Path.Join(this.font, "font.png")), fontMappingsLines[1], fontSize);
+            _text = new Text(font, new Vector2Int(width, height)) { text = _display };
         }
 
         private void UpdateMousePosition(object caller, MouseMoveEventArgs mouse) {
-            if(!window.HasFocus()) {
+            if(!_window.HasFocus()) {
                 mousePosition = new Vector2Int(-1, -1);
                 accurateMousePosition = new Vector2(-1f, -1f);
                 return;
             }
 
-            accurateMousePosition = new Vector2((mouse.X - window.Size.X / 2f + _text.imageWidth / 2f) / fontSize.x,
-                (mouse.Y - window.Size.Y / 2f + _text.imageHeight / 2f) / fontSize.y);
+            accurateMousePosition = new Vector2((mouse.X - _window.Size.X / 2f + _text.imageWidth / 2f) / fontSize.x,
+                (mouse.Y - _window.Size.Y / 2f + _text.imageHeight / 2f) / fontSize.y);
             mousePosition = new Vector2Int((int)accurateMousePosition.x, (int)accurateMousePosition.y);
         }
 
@@ -173,7 +168,7 @@ namespace PRR {
         public void Draw(bool bloom) {
             SFML.Graphics.Color background = SfmlConverters.ToSfmlColor(clear);
             
-            _text.RebuildQuads(_textPosition, charactersModifier);
+            _text.RebuildQuads(_textPosition);
 
             if(bloom) {
                 _bloomRT1.Clear(background);
@@ -193,16 +188,16 @@ namespace PRR {
                 _bloomRT1.Display();
                 _bloomRT2.Display();
 
-                bloomBlend.SetUniform("imageA", _bloomRT2.Texture);
-                bloomBlend.SetUniform("imageB", _bloomRT1.Texture);
-                window.Draw(new Sprite(_bloomRT1.Texture), new RenderStates(bloomBlend));
+                _bloomBlend.SetUniform("imageA", _bloomRT2.Texture);
+                _bloomBlend.SetUniform("imageB", _bloomRT1.Texture);
+                _window.Draw(new Sprite(_bloomRT1.Texture), new RenderStates(_bloomBlend));
             }
             else {
-                window.Clear(background);
-                _text.DrawQuads(window);
+                _window.Clear(background);
+                _text.DrawQuads(_window);
             }
             
-            window.Display();
+            _window.Display();
         }
 
         public void DrawText(Vector2Int position, string text, Color foregroundColor, Color backgroundColor,
@@ -260,10 +255,10 @@ namespace PRR {
         public RenderCharacter GetCharacter(Vector2Int position) => _display.ContainsKey(position) ? _display[position] :
             new RenderCharacter('\0', Color.transparent, Color.transparent);
 
-        private static bool IsRenderCharacterEmpty(RenderCharacter renderCharacter) =>
+        private bool IsRenderCharacterEmpty(RenderCharacter renderCharacter) =>
             renderCharacter.background.a == 0 &&
-            (IsCharacterEmpty(renderCharacter.character) || renderCharacter.foreground.a == 0);
+            (!CharacterExists(renderCharacter.character) || renderCharacter.foreground.a == 0);
 
-        private static bool IsCharacterEmpty(char character) => character is '\0' or ' ';
+        private bool CharacterExists(char character) => _text.font.characters.ContainsKey(character);
     }
 }
