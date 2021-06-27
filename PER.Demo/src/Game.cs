@@ -14,7 +14,9 @@ namespace PER.Demo {
                 Color.white, Color.transparent);
             
             Core.engine.renderer.DrawText(new Vector2Int(0, 1),
-                "hello everyone! this is \fcf00FF00FFcb\fConfiG\fcfFFFFFFFFcb\f and today i'm gonna show you my engine!!\nas you can see \fbiu\fit works!!1!\fbiu\f\n\fcf000000FFbFF0000FFc\fthanks for watching\fcfFFFFFFFFb00000000c\f everyone, \fu\fhit like, subscribe, good luck, \fb\fbye!!".Split('\n'),
+                @"hello everyone! this is cf00FF00FFcbConfiGcfFFFFFFFFcb and today i'm gonna show you my engine!!
+as you can see biuit works!!1!biu
+cf000000FFbFF0000FFcthanks for watchingcfFFFFFFFFb00000000c everyone, uhit like, subscribe, good luck, bbye!!".Split('\n'),
                 Color.white, Color.transparent);
             
             Core.engine.renderer.DrawText(new Vector2Int(0, 4),

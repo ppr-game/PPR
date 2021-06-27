@@ -77,7 +77,7 @@ namespace PRR {
             if(bold) stylesImage.Copy(sourceImage, 1, imageOffset, new IntRect(), true);
 
             if(!underline && !strikethrough) return;
-            uint underlineThickness = (uint)characterSize.y / 5;
+            uint underlineThickness = (uint)characterSize.y / 10;
             uint strikethroughThickness = (uint)characterSize.y / 10;
             for(uint y = 0; y < sourceImage.Size.Y; y += (uint)characterSize.y) {
                 if(underline)
