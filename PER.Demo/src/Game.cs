@@ -14,10 +14,8 @@ namespace PER.Demo {
                 Color.white, Color.transparent);
             
             Core.engine.renderer.DrawText(new Vector2Int(0, 1),
-                @"hello everyone! this is ConfiG and today i'm gonna show you my engine!!
-as you can see it works!!1!
-thanks for watching everyone, hit like, subscribe, good luck, bye!!".Split('\n'),
-                new Color(0f, 1f, 0f, 1f), Color.transparent);
+                "hello everyone! this is \fcf00FF00FFcb\fConfiG\fcfFFFFFFFFcb\f and today i'm gonna show you my engine!!\nas you can see \fbiu\fit works!!1!\fbiu\f\n\fcf000000FFbFF0000FFc\fthanks for watching\fcfFFFFFFFFb00000000c\f everyone, \fu\fhit like, subscribe, good luck, \fb\fbye!!".Split('\n'),
+                Color.white, Color.transparent);
             
             Core.engine.renderer.DrawText(new Vector2Int(0, 4),
                 "more test", Color.black, new Color(0f, 1f, 0f, 1f));
@@ -26,6 +24,19 @@ thanks for watching everyone, hit like, subscribe, good luck, bye!!".Split('\n')
                 Core.engine.renderer.DrawText(new Vector2Int(0, 5 + (int)style),
                     "styles test", Color.white, Color.transparent, HorizontalAlignment.Left, style);
             }
+            
+            Core.engine.renderer.DrawText(new Vector2Int(39, 6),
+                "left test even", Color.white, Color.transparent);
+            Core.engine.renderer.DrawText(new Vector2Int(39, 7),
+                "left test odd", Color.white, Color.transparent);
+            Core.engine.renderer.DrawText(new Vector2Int(39, 8),
+                "middle test even", Color.white, Color.transparent, HorizontalAlignment.Middle);
+            Core.engine.renderer.DrawText(new Vector2Int(39, 9),
+                "middle test odd", Color.white, Color.transparent, HorizontalAlignment.Middle);
+            Core.engine.renderer.DrawText(new Vector2Int(39, 10),
+                "right testeven", Color.white, Color.transparent, HorizontalAlignment.Right);
+            Core.engine.renderer.DrawText(new Vector2Int(39, 11),
+                "right testodd", Color.white, Color.transparent, HorizontalAlignment.Right);
         }
         
         public void Tick() { }

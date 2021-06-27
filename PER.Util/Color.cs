@@ -18,6 +18,13 @@ namespace PER.Util {
             this.a = a;
         }
 
+        public Color(byte r, byte g, byte b, byte a) {
+            this.r = r / 255f;
+            this.g = g / 255f;
+            this.b = b / 255f;
+            this.a = a / 255f;
+        }
+
         public static Color Blend(Color bottom, Color top) {
             float t = (1f - top.a) * bottom.a;
             float a = t + top.a;
