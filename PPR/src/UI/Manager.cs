@@ -297,7 +297,7 @@ namespace PPR.UI {
             if(currentLayout.IsElementEnabled("game")) {
                 Color? color =
                     Lua.API.Scripts.Rendering.Renderer.scriptBackgroundModifier?.Invoke(ColorScheme.GetColor("background"));
-                if(color.HasValue) Core.renderer.clear = color.Value;
+                if(color.HasValue) Core.renderer.background = color.Value;
                 else Core.renderer.ResetBackground();
             }
             else Core.renderer.ResetBackground();

@@ -1,4 +1,6 @@
-﻿using PER.Util;
+﻿using System.Collections.Generic;
+
+using PER.Util;
 
 namespace PER.Abstractions.Renderer {
     public interface IRenderer {
@@ -14,10 +16,12 @@ namespace PER.Abstractions.Renderer {
         public bool open { get; }
         public bool focused { get; }
         
-        public Color clear { get; set; }
+        public Color background { get; set; }
         
         public Vector2Int mousePosition { get; }
         public Vector2 accurateMousePosition { get; }
+        
+        public List<IEffectContainer> ppEffects { get; }
 
         public void Setup(RendererSettings settings);
         public void Loop();

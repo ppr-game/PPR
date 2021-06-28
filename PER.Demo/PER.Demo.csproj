@@ -25,9 +25,6 @@
         <None Update="resources\bloom_frag.glsl">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-        <None Update="resources\bloom-blend_frag.glsl">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
     </ItemGroup>
 
 </Project>

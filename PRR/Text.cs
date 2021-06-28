@@ -7,6 +7,7 @@ using SFML.Graphics;
 using SFML.System;
 
 using Color = SFML.Graphics.Color;
+using Shader = SFML.Graphics.Shader;
 
 namespace PRR {
     public class Text {
@@ -84,8 +85,8 @@ namespace PRR {
             }
         }
 
-        public void DrawQuads(RenderTarget target) => target.Draw(_quads, 0, (uint)(text.Count * 8),
-            PrimitiveType.Quads,
-            new RenderStates(font.texture));
+        public void DrawQuads(RenderTarget target, BlendMode blendMode, Shader shader = null) => target.Draw(_quads, 0,
+            (uint)(text.Count * 8), PrimitiveType.Quads,
+            new RenderStates(blendMode, Transform.Identity, font.texture, shader));
     }
 }

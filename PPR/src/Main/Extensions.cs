@@ -66,6 +66,6 @@ namespace PPR.Main {
         }
 
         public static void ResetBackground(this Renderer renderer) =>
-            renderer.clear = SfmlConverters.ToPerColor(ColorScheme.GetColor("background"));
+            renderer.background = SfmlConverters.ToPerColor(ColorScheme.GetColor("background"));
     }
 }

@@ -1,16 +1,36 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
+using System.IO;
 
 using PER.Abstractions;
 using PER.Abstractions.Renderer;
 using PER.Util;
 
+using PRR;
+
 namespace PER.Demo {
     public class Game : IGame {
-        public void Setup() { }
+        private int _fps;
+        private int _avgFPS;
+        private int _tempAvgFPS;
+        private int _tempAvgFPSCounter;
+
+        public void Setup() {
+            Core.engine.renderer.ppEffects.Add(new EffectContainer { effect = new BloomEffect() });
+        }
 
         public void Loop() {
+            _fps = (int)Math.Round(1d / Core.engine.deltaTime);
+            _tempAvgFPS += _fps;
+            _tempAvgFPSCounter++;
+            if(_tempAvgFPSCounter >= _avgFPS) {
+                _avgFPS = _tempAvgFPS / _tempAvgFPSCounter;
+                _tempAvgFPS = 0;
+                _tempAvgFPSCounter = 0;
+            }
+            
             Core.engine.renderer.DrawText(new Vector2Int(0, 0),
-                $"{(1d / Core.engine.deltaTime).ToString(CultureInfo.InvariantCulture)} FPS", 
+                $"{_fps.ToString()}/{_avgFPS.ToString()} FPS", 
                 Color.white, Color.transparent);
             
             Core.engine.renderer.DrawText(new Vector2Int(0, 1),

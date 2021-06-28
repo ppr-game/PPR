@@ -10,6 +10,7 @@ using SFML.System;
 using SFML.Window;
 
 using Color = PER.Util.Color;
+using Shader = SFML.Graphics.Shader;
 
 namespace PRR {
     public class Renderer : IRenderer {
@@ -48,31 +49,30 @@ namespace PRR {
         public bool open => _window.IsOpen;
         public bool focused => _window.HasFocus();
         
-        public Color clear { get; set; } = Color.black;
+        public Color background { get; set; } = Color.black;
         
         public Vector2Int mousePosition { get; private set; } = new(-1, -1);
         public Vector2 accurateMousePosition { get; private set; } = new(-1f, -1f);
+        
+        public List<IEffectContainer> ppEffects { get; private set; }
 
         private Dictionary<Vector2Int, RenderCharacter> _display;
+        private Dictionary<Vector2Int, EffectContainer> _effects;
 
         private int _framerate;
         private bool _fullscreen;
         private string _font;
-        
-        private readonly Shader _bloomFirstPass = Shader.FromString(
-            File.ReadAllText(Path.Join("resources", "bloom_vert.glsl")), null,
-            File.ReadAllText(Path.Join("resources", "bloom_frag.glsl")));
 
-        private readonly Shader _bloomSecondPass = Shader.FromString(
-            File.ReadAllText(Path.Join("resources", "bloom_vert.glsl")), null,
-            File.ReadAllText(Path.Join("resources", "bloom_frag.glsl")));
+        private bool _swapTextures;
 
-        private readonly Shader _bloomBlend = Shader.FromString(
-            File.ReadAllText(Path.Join("resources", "bloom_vert.glsl")), null,
-            File.ReadAllText(Path.Join("resources", "bloom-blend_frag.glsl")));
+        private RenderTexture currentRenderTexture => _swapTextures ? _additionalRenderTexture : _mainRenderTexture;
+        private RenderTexture otherRenderTexture => _swapTextures ? _mainRenderTexture : _additionalRenderTexture;
+        private Sprite currentSprite => _swapTextures ? _additionalSprite : _mainSprite;
         
-        private RenderTexture _bloomRT1;
-        private RenderTexture _bloomRT2;
+        private RenderTexture _mainRenderTexture;
+        private RenderTexture _additionalRenderTexture;
+        private Sprite _mainSprite;
+        private Sprite _additionalSprite;
 
         private Text _text;
         private Vector2f _textPosition;
@@ -88,9 +88,6 @@ namespace PRR {
             icon = settings.icon;
             
             CreateWindow();
-
-            _bloomFirstPass.SetUniform("horizontal", true);
-            _bloomSecondPass.SetUniform("horizontal", false);
         }
         
         public void Loop() => _window.DispatchEvents();
@@ -124,8 +121,10 @@ namespace PRR {
             _window.MouseMoved += UpdateMousePosition;
             _window.SetKeyRepeatEnabled(false);
                 
-            _bloomRT1 = new RenderTexture(videoMode.Width, videoMode.Height);
-            _bloomRT2 = new RenderTexture(videoMode.Width, videoMode.Height);
+            _mainRenderTexture = new RenderTexture(videoMode.Width, videoMode.Height);
+            _additionalRenderTexture = new RenderTexture(videoMode.Width, videoMode.Height);
+            _mainSprite = new Sprite(_mainRenderTexture.Texture);
+            _additionalSprite = new Sprite(_additionalRenderTexture.Texture);
                 
             _textPosition = new Vector2f((videoMode.Width - _text.imageWidth) / 2f,
                 (videoMode.Height - _text.imageHeight) / 2f);
@@ -145,6 +144,15 @@ namespace PRR {
             char background = fontSizeStr[2][0];
                 
             _display = new Dictionary<Vector2Int, RenderCharacter>(width * height);
+            _effects = new Dictionary<Vector2Int, EffectContainer>(width * height);
+            for(int x = 0; x < width; x++) {
+                for(int y = 0; y < width; y++) {
+                    Vector2Int position = new(x, y);
+                    _effects.Add(position, new EffectContainer());
+                }
+            }
+
+            ppEffects = new List<IEffectContainer>();
 
             Font font = new(new Image(Path.Join(this.font, "font.png")), fontMappingsLines[1], fontSize, background);
             _text = new Text(font, new Vector2Int(width, height)) { text = _display };
@@ -167,7 +175,7 @@ namespace PRR {
         public void Draw() => Draw(true, false);
 
         public void Draw(bool bloom, bool drawFont) {
-            SFML.Graphics.Color background = SfmlConverters.ToSfmlColor(clear);
+            SFML.Graphics.Color background = SfmlConverters.ToSfmlColor(this.background);
             
             if(drawFont) {
                 _window.Clear(background);
@@ -177,32 +185,32 @@ namespace PRR {
             }
             
             _text.RebuildQuads(_textPosition);
+            
+            _window.Clear(background);
+            _text.DrawQuads(_window, BlendMode.Alpha);
 
             if(bloom) {
-                _bloomRT1.Clear(background);
-                _text.DrawQuads(_bloomRT1);
+                _mainRenderTexture.Clear(background);
+                _additionalRenderTexture.Clear(background);
+                _mainRenderTexture.Display();
+                _additionalRenderTexture.Display();
+                
+                _text.DrawQuads(currentRenderTexture, BlendMode.Alpha);
 
-                _bloomFirstPass.SetUniform("image", _bloomRT1.Texture);
-                _bloomRT2.Clear(background);
-                _bloomRT2.Draw(new Sprite(_bloomRT1.Texture), new RenderStates(_bloomFirstPass));
+                // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
+                foreach(IEffectContainer effectContainer in ppEffects) {
+                    if(effectContainer.effect.ppShaders is null) continue;
+                    EffectContainer effect = (EffectContainer)effectContainer;
+                    for(int i = 0; i < effect.ppShaders.Length; i++) {
+                        Shader shader = effect.ppShaders[i];
+                        shader.SetUniform("image", Shader.CurrentTexture);
+                        shader.SetUniform("pass", i);
+                        otherRenderTexture.Draw(currentSprite, new RenderStates(shader));
+                        _swapTextures = !_swapTextures;
+                    }
+                }
 
-                _bloomSecondPass.SetUniform("image", _bloomRT2.Texture);
-                _bloomRT1.Clear(background);
-                _bloomRT1.Draw(new Sprite(_bloomRT2.Texture), new RenderStates(_bloomSecondPass));
-
-                _bloomRT2.Clear(background);
-                _text.DrawQuads(_bloomRT2);
-
-                _bloomRT1.Display();
-                _bloomRT2.Display();
-
-                _bloomBlend.SetUniform("imageA", _bloomRT2.Texture);
-                _bloomBlend.SetUniform("imageB", _bloomRT1.Texture);
-                _window.Draw(new Sprite(_bloomRT1.Texture), new RenderStates(_bloomBlend));
-            }
-            else {
-                _window.Clear(background);
-                _text.DrawQuads(_window);
+                _window.Draw(currentSprite, new RenderStates(BlendMode.Add));
             }
             
             _window.Display();
