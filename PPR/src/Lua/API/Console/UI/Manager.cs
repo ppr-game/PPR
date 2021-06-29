@@ -19,7 +19,7 @@ using PRR;
 using SFML.Graphics;
 using SFML.System;
 
-using Renderer = PRR.Renderer;
+using Renderer = PRR.Sfml.Renderer;
 using Text = PPR.UI.Elements.Text;
 
 namespace PPR.Lua.API.Console.UI {

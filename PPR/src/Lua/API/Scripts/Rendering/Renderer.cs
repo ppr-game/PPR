@@ -292,7 +292,7 @@ namespace PPR.Lua.API.Scripts.Rendering {
         public static void RegenPositionRandoms() => UI.Manager.RegenPositionRandoms();
         
         public static void DrawText(int x, int y, string text, Color? foregroundColor = null,
-            Color? backgroundColor = null, PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left,
+            Color? backgroundColor = null, PRR.Sfml.Renderer.Alignment align = PRR.Sfml.Renderer.Alignment.Left,
             bool replacingSpaces = false, bool invertOnDarkBG = false,
             Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier =
                 null) => PPR.Core.renderer.DrawText(new Vector2i(x, y), text,
@@ -301,7 +301,7 @@ namespace PPR.Lua.API.Scripts.Rendering {
             charactersModifier);
         
         public static void DrawLines(int x, int y, string[] lines, Color? foregroundColor = null,
-            Color? backgroundColor = null, PRR.Renderer.Alignment align = PRR.Renderer.Alignment.Left,
+            Color? backgroundColor = null, PRR.Sfml.Renderer.Alignment align = PRR.Sfml.Renderer.Alignment.Left,
             bool replacingSpaces = false, bool invertOnDarkBG = false,
             Func<Vector2i, RenderCharacter, (Vector2i position, RenderCharacter character)> charactersModifier =
                 null) => PPR.Core.renderer.DrawLines(new Vector2i(x, y), lines,
@@ -314,9 +314,9 @@ namespace PPR.Lua.API.Scripts.Rendering {
         public static RenderCharacter GetCharacter(Vector2i position) => PPR.Core.renderer.GetCharacter(position);
         public static void SetCellColor(int x, int y, Color foregroundColor, Color backgroundColor) =>
             PPR.Core.renderer.SetCharacterColor(new Vector2i(x, y), foregroundColor, backgroundColor);
-        public static Color LerpColors(Color a, Color b, float t) => PRR.Renderer.LerpColors(a, b, t);
+        public static Color LerpColors(Color a, Color b, float t) => PRR.Sfml.Renderer.LerpColors(a, b, t);
         public static Color AnimateColor(float time, Color start, Color end, float rate) =>
-            PRR.Renderer.AnimateColor(time, start, end, rate);
-        public static Color BlendColors(Color bottom, Color top) => PRR.Renderer.OverlayColors(bottom, top);
+            PRR.Sfml.Renderer.AnimateColor(time, start, end, rate);
+        public static Color BlendColors(Color bottom, Color top) => PRR.Sfml.Renderer.OverlayColors(bottom, top);
     }
 }

@@ -23,7 +23,7 @@ using PRR;
 using SFML.Graphics;
 using SFML.System;
 
-using Alignment = PRR.Renderer.Alignment;
+using Alignment = PRR.Sfml.Renderer.Alignment;
 
 namespace PPR.UI {
     public static class Manager {

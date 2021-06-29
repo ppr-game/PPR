@@ -5,7 +5,7 @@ using PER.Util;
 
 using SFML.System;
 
-using Alignment = PRR.Renderer.Alignment;
+using Alignment = PRR.Sfml.Renderer.Alignment;
 using Color = SFML.Graphics.Color;
 
 namespace PPR.UI.Elements {

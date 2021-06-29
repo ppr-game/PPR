@@ -9,6 +9,7 @@ using PPR.UI;
 using PPR.Main.Managers;
 
 using PRR;
+using PRR.Sfml;
 
 using SFML.Graphics;
 using SFML.System;

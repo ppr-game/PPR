@@ -9,8 +9,7 @@ namespace PER.Abstractions.Renderer {
         public int height { get; }
         public int framerate { get; set; }
         public bool fullscreen { get; set; }
-        public string font { get; set; }
-        public Vector2Int fontSize { get; }
+        public IFont font { get; set; }
         public string icon { get; set; }
         
         public bool open { get; }

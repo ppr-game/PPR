@@ -4,7 +4,7 @@ using SFML.Graphics;
 
 using BlendMode = SFML.Graphics.BlendMode;
 
-namespace PRR {
+namespace PRR.Sfml {
     public struct CachedPostProcessingStep {
         public PostProcessingStep.Type type { get; init; }
         public Shader shader { get; init; }

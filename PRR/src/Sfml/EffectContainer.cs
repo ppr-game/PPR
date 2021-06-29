@@ -2,6 +2,8 @@
 
 using PER.Abstractions.Renderer;
 
+using PRR.Sfml;
+
 using SFML.Graphics;
 
 using BlendMode = SFML.Graphics.BlendMode;

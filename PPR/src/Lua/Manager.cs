@@ -16,6 +16,7 @@ using PPR.UI;
 using PPR.UI.Animations;
 
 using PRR;
+using PRR.Sfml;
 
 using SFML.Audio;
 using SFML.Graphics;

@@ -10,6 +10,7 @@ using PPR.UI;
 using PPR.Properties;
 
 using PRR;
+using PRR.Sfml;
 
 using SFML.Graphics;
 using SFML.System;

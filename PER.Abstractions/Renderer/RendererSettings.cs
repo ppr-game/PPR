@@ -5,7 +5,7 @@
         public int height { get; init; }
         public int framerate { get; init; }
         public bool fullscreen { get; init; }
-        public string font { get; init; }
+        public IFont font { get; init; }
         public string icon { get; init; }
 
         public RendererSettings(IRenderer renderer) {

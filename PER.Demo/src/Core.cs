@@ -1,6 +1,7 @@
 ﻿using PER.Abstractions.Renderer;
 
 using PRR;
+using PRR.Sfml;
 
 namespace PER.Demo {
     public static class Core {
@@ -14,7 +15,7 @@ namespace PER.Demo {
                 height = 60,
                 framerate = 0,
                 fullscreen = false,
-                font = "resources",
+                font = new Font("resources"),
                 icon = null
             });
         }

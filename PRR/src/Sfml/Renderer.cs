@@ -9,11 +9,10 @@ using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
-using BlendMode = SFML.Graphics.BlendMode;
 using Color = PER.Util.Color;
 using Shader = SFML.Graphics.Shader;
 
-namespace PRR {
+namespace PRR.Sfml {
     public class Renderer : IRenderer {
         public string title { get; private set; }
         public int width { get; private set; }
@@ -36,7 +35,7 @@ namespace PRR {
             }
         }
 
-        public string font {
+        public IFont font {
             get => _font;
             set {
                 _font = value;
@@ -44,7 +43,6 @@ namespace PRR {
             }
         }
 
-        public Vector2Int fontSize { get; private set; }
         public string icon { get; set; }
 
         public bool open => _window.IsOpen;
@@ -62,7 +60,7 @@ namespace PRR {
 
         private int _framerate;
         private bool _fullscreen;
-        private string _font;
+        private IFont _font;
 
         private bool _swapTextures;
 
@@ -108,14 +106,14 @@ namespace PRR {
             UpdateFont();
             
             VideoMode videoMode = fullscreen ? VideoMode.FullscreenModes[0] :
-                new VideoMode((uint)(width * fontSize.x), (uint)(height * fontSize.y));
+                new VideoMode((uint)(width * font.size.x), (uint)(height * font.size.y));
 
             _window = new RenderWindow(videoMode, title, fullscreen ? Styles.Fullscreen : Styles.Close);
             _window.SetView(new View(new Vector2f(videoMode.Width / 2f, videoMode.Height / 2f),
                 new Vector2f(videoMode.Width, videoMode.Height)));
             
             if(File.Exists(this.icon)) {
-                Image icon = new(this.icon);
+                SFML.Graphics.Image icon = new(this.icon);
                 _window.SetIcon(icon.Size.X, icon.Size.Y, icon.Pixels);
             }
             
@@ -140,11 +138,6 @@ namespace PRR {
         }
 
         private void UpdateFont() {
-            string[] fontMappingsLines = File.ReadAllLines(Path.Join(this.font, "mappings.txt"));
-            string[] fontSizeStr = fontMappingsLines[0].Split(',');
-            fontSize = new Vector2Int(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
-            char background = fontSizeStr[2][0];
-                
             _display = new Dictionary<Vector2Int, RenderCharacter>(width * height);
             _effects = new Dictionary<Vector2Int, EffectContainer>(width * height);
             for(int x = 0; x < width; x++) {
@@ -155,8 +148,7 @@ namespace PRR {
             }
 
             ppEffects = new List<IEffectContainer>();
-
-            Font font = new(new Image(Path.Join(this.font, "font.png")), fontMappingsLines[1], fontSize, background);
+            
             _text = new Text(font, new Vector2Int(width, height)) { text = _display };
         }
 
@@ -167,8 +159,8 @@ namespace PRR {
                 return;
             }
 
-            accurateMousePosition = new Vector2((mouse.X - _window.Size.X / 2f + _text.imageWidth / 2f) / fontSize.x,
-                (mouse.Y - _window.Size.Y / 2f + _text.imageHeight / 2f) / fontSize.y);
+            accurateMousePosition = new Vector2((mouse.X - _window.Size.X / 2f + _text.imageWidth / 2f) / font.size.x,
+                (mouse.Y - _window.Size.Y / 2f + _text.imageHeight / 2f) / font.size.y);
             mousePosition = new Vector2Int((int)accurateMousePosition.x, (int)accurateMousePosition.y);
         }
 
@@ -181,7 +173,7 @@ namespace PRR {
             
             if(drawFont) {
                 _window.Clear(background);
-                _window.Draw(new Sprite(_text.font.texture));
+                _text.DrawFont(_window);
                 _window.Display();
                 return;
             }

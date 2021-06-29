@@ -1,7 +1,15 @@
-﻿using PER.Abstractions.Renderer;
+﻿using System;
+
 using PER.Util;
 
+using SFML.Graphics;
 using SFML.System;
+
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+
+using BlendMode = PER.Abstractions.Renderer.BlendMode;
+using Color = PER.Util.Color;
 
 namespace PRR {
     public static class SfmlConverters {
@@ -29,5 +37,18 @@ namespace PRR {
                 (SFML.Graphics.BlendMode.Factor)blendMode.alphaSrcFactor,
                 (SFML.Graphics.BlendMode.Factor)blendMode.colorDstFactor,
                 (SFML.Graphics.BlendMode.Equation)blendMode.alphaEquation);
+
+        public static SFML.Graphics.Image ToSfmlImage(Image<Rgba32> image) {
+            SFML.Graphics.Image sfmlImage = new((uint)image.Width, (uint)image.Height);
+            for(int y = 0; y < image.Height; y++) {
+                Span<Rgba32> row = image.GetPixelRowSpan(y);
+                for(int x = 0; x < row.Length; x++) {
+                    Rgba32 pixel = row[x];
+                    sfmlImage.SetPixel((uint)x, (uint)y, new SFML.Graphics.Color(pixel.R, pixel.G, pixel.B, pixel.A));
+                }
+            }
+
+            return sfmlImage;
+        }
     }
 }
