@@ -16,5 +16,18 @@ namespace PRR {
         
         public static Vector2 ToPerVector2(Vector2f vector) => new(vector.X, vector.Y);
         public static Vector2f ToSfmlVector2(Vector2 vector) => new(vector.x, vector.y);
+
+        public static BlendMode ToPerBlendMode(SFML.Graphics.BlendMode blendMode) =>
+            new((BlendMode.Factor)blendMode.ColorSrcFactor, (BlendMode.Factor)blendMode.ColorDstFactor,
+                (BlendMode.Equation)blendMode.ColorEquation, (BlendMode.Factor)blendMode.AlphaSrcFactor,
+                (BlendMode.Factor)blendMode.AlphaDstFactor, (BlendMode.Equation)blendMode.AlphaEquation);
+
+        public static SFML.Graphics.BlendMode ToSfmlBlendMode(BlendMode blendMode) =>
+            new((SFML.Graphics.BlendMode.Factor)blendMode.colorSrcFactor,
+                (SFML.Graphics.BlendMode.Factor)blendMode.colorDstFactor,
+                (SFML.Graphics.BlendMode.Equation)blendMode.colorEquation,
+                (SFML.Graphics.BlendMode.Factor)blendMode.alphaSrcFactor,
+                (SFML.Graphics.BlendMode.Factor)blendMode.colorDstFactor,
+                (SFML.Graphics.BlendMode.Equation)blendMode.alphaEquation);
     }
 }

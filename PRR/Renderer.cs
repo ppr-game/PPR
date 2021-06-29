@@ -9,6 +9,7 @@ using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
+using BlendMode = SFML.Graphics.BlendMode;
 using Color = PER.Util.Color;
 using Shader = SFML.Graphics.Shader;
 
@@ -68,6 +69,7 @@ namespace PRR {
         private RenderTexture currentRenderTexture => _swapTextures ? _additionalRenderTexture : _mainRenderTexture;
         private RenderTexture otherRenderTexture => _swapTextures ? _mainRenderTexture : _additionalRenderTexture;
         private Sprite currentSprite => _swapTextures ? _additionalSprite : _mainSprite;
+        private Sprite otherSprite => _swapTextures ? _mainSprite : _additionalSprite;
         
         private RenderTexture _mainRenderTexture;
         private RenderTexture _additionalRenderTexture;
@@ -172,9 +174,9 @@ namespace PRR {
 
         public void Clear() => _display.Clear();
 
-        public void Draw() => Draw(true, false);
+        public void Draw() => Draw(false);
 
-        public void Draw(bool bloom, bool drawFont) {
+        public void Draw(bool drawFont) {
             SFML.Graphics.Color background = SfmlConverters.ToSfmlColor(this.background);
             
             if(drawFont) {
@@ -187,30 +189,52 @@ namespace PRR {
             _text.RebuildQuads(_textPosition);
             
             _window.Clear(background);
-            _text.DrawQuads(_window, BlendMode.Alpha);
+            _mainRenderTexture.Clear(background);
+            _additionalRenderTexture.Clear(background);
+            _mainRenderTexture.Display();
+            _additionalRenderTexture.Display();
 
-            if(bloom) {
-                _mainRenderTexture.Clear(background);
-                _additionalRenderTexture.Clear(background);
-                _mainRenderTexture.Display();
-                _additionalRenderTexture.Display();
+            for(int i = 0; i < ppEffects.Count; i++) {
+                IEffectContainer effectContainer = ppEffects[i];
+                while(effectContainer.effect.ended) {
+                    ppEffects.RemoveAt(i);
+                    effectContainer = ppEffects[i];
+                }
                 
-                _text.DrawQuads(currentRenderTexture, BlendMode.Alpha);
-
-                // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-                foreach(IEffectContainer effectContainer in ppEffects) {
-                    if(effectContainer.effect.ppShaders is null) continue;
-                    EffectContainer effect = (EffectContainer)effectContainer;
-                    for(int i = 0; i < effect.ppShaders.Length; i++) {
-                        Shader shader = effect.ppShaders[i];
-                        shader.SetUniform("image", Shader.CurrentTexture);
-                        shader.SetUniform("pass", i);
-                        otherRenderTexture.Draw(currentSprite, new RenderStates(shader));
-                        _swapTextures = !_swapTextures;
+                if(effectContainer.effect.postProcessing is null) continue;
+                
+                EffectContainer effect = (EffectContainer)effectContainer;
+                for(int j = 0; j < effect.postProcessing.Length; j++) {
+                    CachedPostProcessingStep step = effect.postProcessing[j];
+                    step.shader?.SetUniform("step", j);
+                    switch(step.type) {
+                        case PostProcessingStep.Type.Text:
+                            step.shader?.SetUniform("current", currentRenderTexture.Texture);
+                            step.shader?.SetUniform("target", otherRenderTexture.Texture);
+                            _text.DrawQuads(_window, step.blendMode, step.shader);
+                            break;
+                        case PostProcessingStep.Type.Screen:
+                            step.shader?.SetUniform("current", currentRenderTexture.Texture);
+                            step.shader?.SetUniform("target", otherRenderTexture.Texture);
+                            currentSprite.Draw(_window, step.renderState);
+                            break;
+                        case PostProcessingStep.Type.TemporaryText:
+                            step.shader?.SetUniform("current", Shader.CurrentTexture);
+                            _text.DrawQuads(currentRenderTexture, step.blendMode, step.shader);
+                            break;
+                        case PostProcessingStep.Type.TemporaryScreen:
+                            step.shader?.SetUniform("current", Shader.CurrentTexture);
+                            step.shader?.SetUniform("target", currentRenderTexture.Texture);
+                            otherSprite.Draw(currentRenderTexture, step.renderState);
+                            break;
+                        case PostProcessingStep.Type.SwapBuffer:
+                            _swapTextures = !_swapTextures;
+                            break;
+                        case PostProcessingStep.Type.ClearBuffer:
+                            currentRenderTexture.Clear();
+                            break;
                     }
                 }
-
-                _window.Draw(currentSprite, new RenderStates(BlendMode.Add));
             }
             
             _window.Display();

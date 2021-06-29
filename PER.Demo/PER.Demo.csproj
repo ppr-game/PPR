@@ -19,10 +19,13 @@
         <None Update="resources\*">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-        <None Update="resources\bloom_vert.glsl">
+        <None Update="resources\default_vert.glsl">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <None Update="resources\bloom_frag.glsl">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="resources\blend-max_frag.glsl">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>

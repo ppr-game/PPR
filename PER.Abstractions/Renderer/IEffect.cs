@@ -1,8 +1,10 @@
-﻿using PER.Util;
+﻿using System.Collections.Generic;
+
+using PER.Util;
 
 namespace PER.Abstractions.Renderer {
     public interface IEffect {
-        public Shader textShader { get; }
-        public Shader[] ppShaders { get; }
+        public IEnumerable<PostProcessingStep> postProcessing { get; }
+        public bool ended { get; }
     }
 }

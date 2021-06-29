@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Globalization;
-using System.IO;
 
 using PER.Abstractions;
 using PER.Abstractions.Renderer;

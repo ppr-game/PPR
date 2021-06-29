@@ -6,6 +6,7 @@ using PER.Util;
 using SFML.Graphics;
 using SFML.System;
 
+using BlendMode = SFML.Graphics.BlendMode;
 using Color = SFML.Graphics.Color;
 using Shader = SFML.Graphics.Shader;
 
