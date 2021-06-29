@@ -65,7 +65,7 @@ namespace PRR.Sfml {
 
                 if(_characters.TryGetValue((character.character, character.style & RenderStyle.AllPerFont),
                     out Vector2f[] texCoords)) {
-                    bool italic = character.style.HasFlag(RenderStyle.Italic);
+                    bool italic = (character.style & RenderStyle.Italic) != 0;
                     Vector2f italicOffset = italic ? new Vector2f(1f, 0f) : new Vector2f(0f, 0f);
                     
                     _quads[index + 4].Position = _quads[index].Position + italicOffset;
