@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 using PER.Abstractions.Renderer;
@@ -10,7 +11,7 @@ using SFML.Window;
 using Shader = SFML.Graphics.Shader;
 
 namespace PRR.Sfml {
-    public class Renderer : RendererBase {
+    public class Renderer : RendererBase, IDisposable {
         public override bool open => _window.IsOpen;
         public override bool focused => _window.HasFocus();
 
@@ -30,9 +31,9 @@ namespace PRR.Sfml {
         private Vector2f _textPosition;
         private RenderWindow _window;
 
-        public override void Loop() => _window.DispatchEvents();
+        public override void Update() => _window.DispatchEvents();
 
-        public override void Stop() => _window?.Close();
+        public override void Finish() => _window?.Close();
 
         protected override void CreateWindow() {
             if(_window?.IsOpen ?? false) _window.Close();
@@ -50,7 +51,7 @@ namespace PRR.Sfml {
                 _window.SetIcon(icon.Size.X, icon.Size.Y, icon.Pixels);
             }
             
-            _window.Closed += (_, _) => Stop();
+            _window.Closed += (_, _) => Finish();
             _window.MouseMoved += UpdateMousePosition;
             _window.SetKeyRepeatEnabled(false);
                 
@@ -155,6 +156,16 @@ namespace PRR.Sfml {
                     currentRenderTexture.Clear();
                     break;
             }
+        }
+
+        public void Dispose() {
+            _mainRenderTexture?.Dispose();
+            _additionalRenderTexture?.Dispose();
+            _mainSprite?.Dispose();
+            _additionalSprite?.Dispose();
+            _text?.Dispose();
+            _window?.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -32,8 +32,8 @@ namespace PER {
             try {
                 logger.Info($"PER v{version}");
                 Setup(rendererSettings);
-                while(Loop()) UpdateDeltaTime();
-                Stop();
+                while(Update()) UpdateDeltaTime();
+                Finish();
             }
             catch(Exception exception) {
                 logger.Error("Uncaught exception! Please, report the text below to the developer of the game.");
@@ -53,10 +53,10 @@ namespace PER {
             setupFinished?.Invoke(this, EventArgs.Empty);
         }
 
-        private bool Loop() {
+        private bool Update() {
             renderer.Clear();
-            renderer.Loop();
-            game.Loop();
+            renderer.Update();
+            game.Update();
             TryTick();
             renderer.Draw();
             return renderer.open;
@@ -82,9 +82,9 @@ namespace PER {
             _prevTime = time;
         }
 
-        private void Stop() {
-            renderer.Stop();
-            game.Stop();
+        private void Finish() {
+            renderer.Finish();
+            game.Finish();
         }
     }
 }

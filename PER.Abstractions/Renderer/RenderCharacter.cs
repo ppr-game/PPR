@@ -4,10 +4,10 @@ using PER.Util;
 
 namespace PER.Abstractions.Renderer {
     public readonly struct RenderCharacter {
-        public readonly char character;
-        public readonly Color background;
-        public readonly Color foreground;
-        public readonly RenderStyle style;
+        public char character { get; }
+        public Color background { get; }
+        public Color foreground { get; }
+        public RenderStyle style { get; }
         
         public RenderCharacter(char character, Color background, Color foreground,
             RenderStyle style = RenderStyle.None) {

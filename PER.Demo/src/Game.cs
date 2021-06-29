@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 using PER.Abstractions;
 using PER.Abstractions.Renderer;
@@ -17,7 +18,7 @@ namespace PER.Demo {
             Core.engine.renderer.ppEffects.Add(new EffectContainer { effect = new BloomEffect() });
         }
 
-        public void Loop() {
+        public void Update() {
             _fps = (int)Math.Round(1d / Core.engine.deltaTime);
             _tempAvgFPS += _fps;
             _tempAvgFPSCounter++;
@@ -28,7 +29,7 @@ namespace PER.Demo {
             }
             
             Core.engine.renderer.DrawText(new Vector2Int(0, 0),
-                $"{_fps.ToString()}/{_avgFPS.ToString()} FPS", 
+                $"{_fps.ToString(CultureInfo.InvariantCulture)}/{_avgFPS.ToString(CultureInfo.InvariantCulture)} FPS", 
                 Color.white, Color.transparent);
             
             Core.engine.renderer.DrawText(new Vector2Int(0, 1),
@@ -61,6 +62,6 @@ as you can see biuit works!!1!biu
         
         public void Tick() { }
         
-        public void Stop() { }
+        public void Finish() { }
     }
 }

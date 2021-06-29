@@ -64,7 +64,7 @@ namespace PPR {
 
                 Clock fpsClock = new();
                 while(renderer.open) { // Executes every frame
-                    renderer.Loop();
+                    renderer.Update();
 
                     game.Update();
 
@@ -84,7 +84,7 @@ namespace PPR {
                         UI.Manager.tempAvgFPSCounter = 0;
                     }
                     
-                    if(Game.exiting && Game.exitTime <= 0f) renderer.Stop();
+                    if(Game.exiting && Game.exitTime <= 0f) renderer.Finish();
                 }
 #if !DEBUG
             }

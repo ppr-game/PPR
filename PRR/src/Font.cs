@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 
 using PER.Abstractions.Renderer;
@@ -24,7 +25,8 @@ namespace PRR {
             string[] fontMappingsLines = File.ReadAllLines(Path.Join(folderPath, "mappings.txt"));
             string[] fontSizeStr = fontMappingsLines[0].Split(',');
             mappings = fontMappingsLines[1];
-            size = new Vector2Int(int.Parse(fontSizeStr[0]), int.Parse(fontSizeStr[1]));
+            size = new Vector2Int(int.Parse(fontSizeStr[0], CultureInfo.InvariantCulture),
+                int.Parse(fontSizeStr[1], CultureInfo.InvariantCulture));
 
             Setup(fontSizeStr[2][0]);
         }

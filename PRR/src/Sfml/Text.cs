@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using PER.Abstractions.Renderer;
@@ -12,7 +13,7 @@ using Color = SFML.Graphics.Color;
 using Shader = SFML.Graphics.Shader;
 
 namespace PRR.Sfml {
-    public class Text {
+    public class Text : IDisposable {
         public Dictionary<Vector2Int, RenderCharacter> text { get; set; }
         public IFont font { get; }
         public uint imageWidth { get; }
@@ -99,5 +100,10 @@ namespace PRR.Sfml {
             new RenderStates(blendMode, Transform.Identity, _texture, shader));
 
         public void DrawFont(RenderTarget target) => target.Draw(new Sprite(_texture));
+
+        public void Dispose() {
+            _texture?.Dispose();
+            GC.SuppressFinalize(this);
+        }
     }
 }

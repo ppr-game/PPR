@@ -23,20 +23,20 @@ namespace PER.Abstractions.Renderer {
         public List<IEffectContainer> ppEffects { get; }
 
         public void Setup(RendererSettings settings);
-        public void Loop();
-        public void Stop();
+        public void Update();
+        public void Finish();
         public void Reset();
         public void Reset(RendererSettings settings);
         
         public void Clear();
         public void Draw();
-        public void DrawCharacter(Vector2Int position, RenderCharacter character, RenderFlags flags);
+        public void DrawCharacter(Vector2Int position, RenderCharacter character, RenderOptions options);
         public void DrawText(Vector2Int position, string text, Color foregroundColor, Color backgroundColor,
             HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
-            RenderFlags flags = RenderFlags.Default);
+            RenderOptions options = RenderOptions.Default);
         public void DrawText(Vector2Int position, string[] lines, Color foregroundColor, Color backgroundColor,
             HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
-            RenderFlags flags = RenderFlags.Default);
+            RenderOptions options = RenderOptions.Default);
 
         public RenderCharacter GetCharacter(Vector2Int position);
     }

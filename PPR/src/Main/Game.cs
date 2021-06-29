@@ -209,7 +209,7 @@ namespace PPR.Main {
                         fullscreen = Core.renderer.fullscreen,
                         font = Path.Join("resources", "fonts", Settings.GetPath("font"), "font.png")
                     };
-                    Core.renderer.Stop();
+                    Core.renderer.Finish();
                     Core.renderer.Setup(settings);
                     break;
                 }

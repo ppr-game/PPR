@@ -20,7 +20,7 @@ namespace PRR {
                         Shader.FromString(step.vertexShader, null, step.fragmentShader);
                     BlendMode blendMode = SfmlConverters.ToSfmlBlendMode(step.blendMode);
                     CachedPostProcessingStep cachedStep = new() {
-                        type = step.type,
+                        type = step.stepType,
                         shader = shader,
                         blendMode = blendMode,
                         renderState = new RenderStates(blendMode, Transform.Identity, null, shader)

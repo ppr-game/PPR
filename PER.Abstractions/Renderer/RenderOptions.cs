@@ -2,7 +2,7 @@
 
 namespace PER.Abstractions.Renderer {
     [Flags]
-    public enum RenderFlags : byte {
+    public enum RenderOptions : byte {
         Default = BackgroundAlphaBlending,
         None = 0,
         BackgroundAlphaBlending = 0b1,

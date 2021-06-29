@@ -67,11 +67,11 @@ namespace PER.Abstractions.Renderer {
         protected abstract void CreateWindow();
         protected abstract void UpdateFramerate();
 
-        public abstract void Loop();
-        public abstract void Stop();
+        public abstract void Update();
+        public abstract void Finish();
 
         public virtual void Reset(RendererSettings settings) {
-            Stop();
+            Finish();
             Setup(settings);
         }
 
@@ -99,17 +99,17 @@ namespace PER.Abstractions.Renderer {
         public abstract void Draw();
 
         public virtual void DrawCharacter(Vector2Int position, RenderCharacter character,
-            RenderFlags flags = RenderFlags.Default) {
+            RenderOptions options = RenderOptions.Default) {
             if(position.x < 0 || position.y < 0 || position.x >= width || position.y >= height) return;
             
-            if((flags & RenderFlags.BackgroundAlphaBlending) != 0) {
+            if((options & RenderOptions.BackgroundAlphaBlending) != 0) {
                 RenderCharacter currentCharacter = GetCharacter(position);
                 Color background = Color.Blend(currentCharacter.background, character.background);
                 //Color foreground = Color.Blend(background, character.foreground);
                 character = new RenderCharacter(character.character, background, character.foreground, character.style);
             }
 
-            if((flags & RenderFlags.InvertedBackgroundAsForegroundColor) != 0) {
+            if((options & RenderOptions.InvertedBackgroundAsForegroundColor) != 0) {
                 RenderCharacter currentCharacter = GetCharacter(position);
                 character = new RenderCharacter(character.character, character.background,
                     Color.white - currentCharacter.background, character.style);
@@ -121,7 +121,7 @@ namespace PER.Abstractions.Renderer {
 
         public virtual void DrawText(Vector2Int position, string text, Color foregroundColor, Color backgroundColor,
             HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
-            RenderFlags flags = RenderFlags.Default) {
+            RenderOptions options = RenderOptions.Default) {
             if(text.Length == 0) return;
 
             int actualTextLength = GetTextLengthWithoutFormatting(text);
@@ -150,10 +150,10 @@ namespace PER.Abstractions.Renderer {
 
                 if(formatting)
                     ProcessFormatting(curChar, ref color, ref foreground, ref background, colorsRecord,
-                        ref foregroundColor, ref backgroundColor, ref style, ref flags);
+                        ref foregroundColor, ref backgroundColor, ref style, ref options);
                 else {
                     Vector2Int charPos = new(position.x + x, position.y);
-                    DrawCharacter(charPos, new RenderCharacter(curChar, backgroundColor, foregroundColor, style), flags);
+                    DrawCharacter(charPos, new RenderCharacter(curChar, backgroundColor, foregroundColor, style), options);
                     x++;
                 }
             }
@@ -161,10 +161,10 @@ namespace PER.Abstractions.Renderer {
 
         public virtual void DrawText(Vector2Int position, string[] lines, Color foregroundColor, Color backgroundColor,
             HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
-            RenderFlags flags = RenderFlags.Default) {
+            RenderOptions options = RenderOptions.Default) {
             for(int i = 0; i < lines.Length; i++)
                 DrawText(position + new Vector2Int(0, i), lines[i], foregroundColor, backgroundColor,
-                    align, style, flags);
+                    align, style, options);
         }
 
         public virtual RenderCharacter GetCharacter(Vector2Int position) => display.ContainsKey(position) ? display[position] :
@@ -178,15 +178,15 @@ namespace PER.Abstractions.Renderer {
 
         private static void ProcessFormatting(char character, ref bool color, ref bool foreground, ref bool background,
             IList<char> colorsRecord, ref Color foregroundColor, ref Color backgroundColor, ref RenderStyle style,
-            ref RenderFlags flags) {
+            ref RenderOptions options) {
             if(color)
                 ProcessColorFormatting(character, ref color, ref foreground, ref background, colorsRecord,
                     ref foregroundColor, ref backgroundColor);
-            else ProcessNormalFormatting(character, ref color, ref style, ref flags);
+            else ProcessNormalFormatting(character, ref color, ref style, ref options);
         }
 
         private static void ProcessNormalFormatting(char character, ref bool color, ref RenderStyle style,
-            ref RenderFlags flags) {
+            ref RenderOptions options) {
             switch(character) {
                 case 'c': color = true;
                     break;
@@ -198,9 +198,9 @@ namespace PER.Abstractions.Renderer {
                     break;
                 case 'i': style ^= RenderStyle.Italic;
                     break;
-                case 'a': flags ^= RenderFlags.BackgroundAlphaBlending;
+                case 'a': options ^= RenderOptions.BackgroundAlphaBlending;
                     break;
-                case 'x': flags ^= RenderFlags.InvertedBackgroundAsForegroundColor;
+                case 'x': options ^= RenderOptions.InvertedBackgroundAsForegroundColor;
                     break;
             }
         }

@@ -2,7 +2,7 @@
     public struct PostProcessingStep {
         public enum Type { Text, Screen, TemporaryText, TemporaryScreen, SwapBuffer, ClearBuffer }
 
-        public Type type { get; init; }
+        public Type stepType { get; init; }
         public string vertexShader { get; init; }
         public string fragmentShader { get; init; }
         public BlendMode blendMode { get; init; }

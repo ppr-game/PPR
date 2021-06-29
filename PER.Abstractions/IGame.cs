@@ -1,8 +1,8 @@
 ﻿namespace PER.Abstractions {
     public interface IGame {
         public void Setup();
-        public void Loop();
+        public void Update();
         public void Tick();
-        public void Stop();
+        public void Finish();
     }
 }
