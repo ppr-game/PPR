@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
 
 using PER.Abstractions.Renderer;
@@ -9,58 +7,12 @@ using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
-using Color = PER.Util.Color;
 using Shader = SFML.Graphics.Shader;
 
 namespace PRR.Sfml {
-    public class Renderer : IRenderer {
-        public string title { get; private set; }
-        public int width { get; private set; }
-        public int height { get; private set; }
-        
-        public int framerate {
-            get => _framerate;
-            set {
-                _framerate = value;
-                if(_window == null) return;
-                UpdateFramerate();
-            }
-        }
-
-        public bool fullscreen {
-            get => _fullscreen;
-            set {
-                _fullscreen = value;
-                Reset();
-            }
-        }
-
-        public IFont font {
-            get => _font;
-            set {
-                _font = value;
-                Reset();
-            }
-        }
-
-        public string icon { get; set; }
-
-        public bool open => _window.IsOpen;
-        public bool focused => _window.HasFocus();
-        
-        public Color background { get; set; } = Color.black;
-        
-        public Vector2Int mousePosition { get; private set; } = new(-1, -1);
-        public Vector2 accurateMousePosition { get; private set; } = new(-1f, -1f);
-        
-        public List<IEffectContainer> ppEffects { get; private set; }
-
-        private Dictionary<Vector2Int, RenderCharacter> _display;
-        private Dictionary<Vector2Int, EffectContainer> _effects;
-
-        private int _framerate;
-        private bool _fullscreen;
-        private IFont _font;
+    public class Renderer : RendererBase {
+        public override bool open => _window.IsOpen;
+        public override bool focused => _window.HasFocus();
 
         private bool _swapTextures;
 
@@ -78,30 +30,11 @@ namespace PRR.Sfml {
         private Vector2f _textPosition;
         private RenderWindow _window;
 
-        public void Setup(RendererSettings settings) {
-            title = settings.title;
-            width = settings.width;
-            height = settings.height;
-            _framerate = settings.framerate;
-            _fullscreen = settings.fullscreen;
-            _font = settings.font;
-            icon = settings.icon;
-            
-            CreateWindow();
-        }
-        
-        public void Loop() => _window.DispatchEvents();
+        public override void Loop() => _window.DispatchEvents();
 
-        public void Stop() => _window?.Close();
+        public override void Stop() => _window?.Close();
 
-        public void Reset(RendererSettings settings) {
-            Stop();
-            Setup(settings);
-        }
-
-        public void Reset() => Reset(new RendererSettings(this));
-
-        private void CreateWindow() {
+        protected override void CreateWindow() {
             if(_window?.IsOpen ?? false) _window.Close();
             UpdateFont();
             
@@ -132,24 +65,14 @@ namespace PRR.Sfml {
             UpdateFramerate();
         }
 
-        private void UpdateFramerate() {
-            _window.SetFramerateLimit(_framerate <= 0 ? 0 : (uint)_framerate);
-            _window.SetVerticalSyncEnabled(_framerate == (int)ReservedFramerates.Vsync);
-        }
+        protected override IEffectContainer CreateEffectContainer() => new EffectContainer();
+        protected override void CreateText() =>
+            _text = new Text(font, new Vector2Int(width, height)) { text = display };
 
-        private void UpdateFont() {
-            _display = new Dictionary<Vector2Int, RenderCharacter>(width * height);
-            _effects = new Dictionary<Vector2Int, EffectContainer>(width * height);
-            for(int x = 0; x < width; x++) {
-                for(int y = 0; y < width; y++) {
-                    Vector2Int position = new(x, y);
-                    _effects.Add(position, new EffectContainer());
-                }
-            }
-
-            ppEffects = new List<IEffectContainer>();
-            
-            _text = new Text(font, new Vector2Int(width, height)) { text = _display };
+        protected override void UpdateFramerate() {
+            if(_window is null) return;
+            _window.SetFramerateLimit(framerate <= 0 ? 0 : (uint)framerate);
+            _window.SetVerticalSyncEnabled(framerate == (int)ReservedFramerates.Vsync);
         }
 
         private void UpdateMousePosition(object caller, MouseMoveEventArgs mouse) {
@@ -164,11 +87,9 @@ namespace PRR.Sfml {
             mousePosition = new Vector2Int((int)accurateMousePosition.x, (int)accurateMousePosition.y);
         }
 
-        public void Clear() => _display.Clear();
+        public override void Draw() => Draw(false);
 
-        public void Draw() => Draw(false);
-
-        public void Draw(bool drawFont) {
+        private void Draw(bool drawFont) {
             SFML.Graphics.Color background = SfmlConverters.ToSfmlColor(this.background);
             
             if(drawFont) {
@@ -198,202 +119,42 @@ namespace PRR.Sfml {
                 EffectContainer effect = (EffectContainer)effectContainer;
                 for(int j = 0; j < effect.postProcessing.Length; j++) {
                     CachedPostProcessingStep step = effect.postProcessing[j];
-                    step.shader?.SetUniform("step", j);
-                    switch(step.type) {
-                        case PostProcessingStep.Type.Text:
-                            step.shader?.SetUniform("current", currentRenderTexture.Texture);
-                            step.shader?.SetUniform("target", otherRenderTexture.Texture);
-                            _text.DrawQuads(_window, step.blendMode, step.shader);
-                            break;
-                        case PostProcessingStep.Type.Screen:
-                            step.shader?.SetUniform("current", currentRenderTexture.Texture);
-                            step.shader?.SetUniform("target", otherRenderTexture.Texture);
-                            currentSprite.Draw(_window, step.renderState);
-                            break;
-                        case PostProcessingStep.Type.TemporaryText:
-                            step.shader?.SetUniform("current", Shader.CurrentTexture);
-                            _text.DrawQuads(currentRenderTexture, step.blendMode, step.shader);
-                            break;
-                        case PostProcessingStep.Type.TemporaryScreen:
-                            step.shader?.SetUniform("current", Shader.CurrentTexture);
-                            step.shader?.SetUniform("target", currentRenderTexture.Texture);
-                            otherSprite.Draw(currentRenderTexture, step.renderState);
-                            break;
-                        case PostProcessingStep.Type.SwapBuffer:
-                            _swapTextures = !_swapTextures;
-                            break;
-                        case PostProcessingStep.Type.ClearBuffer:
-                            currentRenderTexture.Clear();
-                            break;
-                    }
+                    RunPostProcessingStep(step, j);
                 }
             }
             
             _window.Display();
         }
 
-        public void DrawCharacter(Vector2Int position, RenderCharacter character,
-            RenderFlags flags = RenderFlags.Default) {
-            if(position.x < 0 || position.y < 0 || position.x >= width || position.y >= height) return;
-            
-            if((flags & RenderFlags.BackgroundAlphaBlending) != 0) {
-                RenderCharacter currentCharacter = GetCharacter(position);
-                Color background = Color.Blend(currentCharacter.background, character.background);
-                //Color foreground = Color.Blend(background, character.foreground);
-                character = new RenderCharacter(character.character, background, character.foreground, character.style);
-            }
-
-            if((flags & RenderFlags.InvertedBackgroundAsForegroundColor) != 0) {
-                RenderCharacter currentCharacter = GetCharacter(position);
-                character = new RenderCharacter(character.character, character.background,
-                    Color.white - currentCharacter.background, character.style);
-            }
-            
-            if(IsRenderCharacterEmpty(character)) _display.Remove(position);
-            else _display[position] = character;
-        }
-
-        public void DrawText(Vector2Int position, string text, Color foregroundColor, Color backgroundColor,
-            HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
-            RenderFlags flags = RenderFlags.Default) {
-            if(text.Length == 0) return;
-
-            int actualTextLength = GetTextLengthWithoutFormatting(text);
-
-            int x = align switch {
-                HorizontalAlignment.Left => 0,
-                HorizontalAlignment.Middle => -actualTextLength + actualTextLength / 2 + 1,
-                HorizontalAlignment.Right => -actualTextLength + 1,
-                _ => throw new ArgumentOutOfRangeException(nameof(align), align, "wtf")
-            };
-
-            bool formatting = false;
-            bool color = false;
-            bool foreground = false;
-            bool background = false;
-            IList<char> colorsRecord = new List<char>(8);
-            foreach(char curChar in text) {
-                if(curChar == '\f') {
-                    formatting = !formatting;
-                    color = false;
-                    foreground = false;
-                    background = false;
-                    colorsRecord.Clear();
-                    continue;
-                }
-
-                if(formatting)
-                    ProcessFormatting(curChar, ref color, ref foreground, ref background, colorsRecord,
-                        ref foregroundColor, ref backgroundColor, ref style, ref flags);
-                else {
-                    Vector2Int charPos = new(position.x + x, position.y);
-                    DrawCharacter(charPos, new RenderCharacter(curChar, backgroundColor, foregroundColor, style), flags);
-                    x++;
-                }
-            }
-        }
-
-        public void DrawText(Vector2Int position, string[] lines, Color foregroundColor, Color backgroundColor,
-            HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
-            RenderFlags flags = RenderFlags.Default) {
-            for(int i = 0; i < lines.Length; i++)
-                DrawText(position + new Vector2Int(0, i), lines[i], foregroundColor, backgroundColor,
-                    align, style, flags);
-        }
-
-        public RenderCharacter GetCharacter(Vector2Int position) => _display.ContainsKey(position) ? _display[position] :
-            new RenderCharacter('\0', Color.transparent, Color.transparent);
-
-        private bool IsRenderCharacterEmpty(RenderCharacter renderCharacter) =>
-            renderCharacter.background.a == 0 &&
-            (!CharacterExists(renderCharacter.character) || renderCharacter.foreground.a == 0);
-
-        private bool CharacterExists(char character) => _text.font.mappings.Contains(character);
-
-        private static void ProcessFormatting(char character, ref bool color, ref bool foreground, ref bool background,
-            IList<char> colorsRecord, ref Color foregroundColor, ref Color backgroundColor, ref RenderStyle style,
-            ref RenderFlags flags) {
-            if(color)
-                ProcessColorFormatting(character, ref color, ref foreground, ref background, colorsRecord,
-                    ref foregroundColor, ref backgroundColor);
-            else ProcessNormalFormatting(character, ref color, ref style, ref flags);
-        }
-
-        private static void ProcessNormalFormatting(char character, ref bool color, ref RenderStyle style,
-            ref RenderFlags flags) {
-            switch(character) {
-                case 'c': color = true;
+        private void RunPostProcessingStep(CachedPostProcessingStep step, int index) {
+            step.shader?.SetUniform("step", index);
+            switch(step.type) {
+                case PostProcessingStep.Type.Text:
+                    step.shader?.SetUniform("current", currentRenderTexture.Texture);
+                    step.shader?.SetUniform("target", otherRenderTexture.Texture);
+                    _text.DrawQuads(_window, step.blendMode, step.shader);
                     break;
-                case 'b': style ^= RenderStyle.Bold;
+                case PostProcessingStep.Type.Screen:
+                    step.shader?.SetUniform("current", currentRenderTexture.Texture);
+                    step.shader?.SetUniform("target", otherRenderTexture.Texture);
+                    currentSprite.Draw(_window, step.renderState);
                     break;
-                case 'u': style ^= RenderStyle.Underline;
+                case PostProcessingStep.Type.TemporaryText:
+                    step.shader?.SetUniform("current", Shader.CurrentTexture);
+                    _text.DrawQuads(currentRenderTexture, step.blendMode, step.shader);
                     break;
-                case 's': style ^= RenderStyle.Strikethrough;
+                case PostProcessingStep.Type.TemporaryScreen:
+                    step.shader?.SetUniform("current", Shader.CurrentTexture);
+                    step.shader?.SetUniform("target", currentRenderTexture.Texture);
+                    otherSprite.Draw(currentRenderTexture, step.renderState);
                     break;
-                case 'i': style ^= RenderStyle.Italic;
+                case PostProcessingStep.Type.SwapBuffer:
+                    _swapTextures = !_swapTextures;
                     break;
-                case 'a': flags ^= RenderFlags.BackgroundAlphaBlending;
-                    break;
-                case 'x': flags ^= RenderFlags.InvertedBackgroundAsForegroundColor;
+                case PostProcessingStep.Type.ClearBuffer:
+                    currentRenderTexture.Clear();
                     break;
             }
-        }
-
-        private static void ProcessColorFormatting(char character, ref bool color, ref bool foreground,
-            ref bool background, IList<char> colorsRecord, ref Color foregroundColor, ref Color backgroundColor) {
-            if(foreground || background) {
-                ProcessColor(character, ref foreground, ref background, colorsRecord, ref foregroundColor, ref backgroundColor);
-            }
-            else {
-                switch(character) {
-                    case 'c': color = false;
-                        break;
-                    case 'f': foreground = true;
-                        break;
-                    case 'b': background = true;
-                        break;
-                }
-            }
-        }
-
-        private static void ProcessColor(char character, ref bool foreground, ref bool background,
-            IList<char> colorsRecord, ref Color foregroundColor, ref Color backgroundColor) {
-            colorsRecord.Add(character);
-            if(colorsRecord.Count < 8) return;
-            byte[] colorArray = new byte[4];
-            for(int i = 0; i < 4; i++)
-                colorArray[i] =
-                    (byte)(GetHexVal(colorsRecord[i * 2]) * 0xF + GetHexVal(colorsRecord[i * 2 + 1]));
-
-            if(foreground) {
-                foregroundColor = new Color(colorArray[0], colorArray[1], colorArray[2], colorArray[3]);
-                foreground = false;
-            }
-            else {
-                backgroundColor = new Color(colorArray[0], colorArray[1], colorArray[2], colorArray[3]);
-                background = false;
-            }
-            
-            colorsRecord.Clear();
-        }
-
-        private static int GetHexVal(char hex) {
-            int val = hex;
-            return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
-        }
-
-        private static int GetTextLengthWithoutFormatting(string text) {
-            int actualTextLength = text.Length;
-            bool formatting = false;
-            foreach(char curChar in text) {
-                if(curChar == '\f') {
-                    formatting = !formatting;
-                    actualTextLength--;
-                }
-                else if(formatting) actualTextLength--;
-            }
-
-            return actualTextLength;
         }
     }
 }
