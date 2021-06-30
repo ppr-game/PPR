@@ -16,17 +16,21 @@ namespace PER.Demo.Effects {
             position = new Vector2(position.x + RandomFloat() * 0.1f, position.y);
             string mappings = Core.engine.renderer.font.mappings;
             character = new RenderCharacter(
-                RandomFloat() <= 0.95f ? character.character : mappings[random.Next(0, mappings.Length)], new Color(
-                    character.background.r + RandomFloat() * 0.5f, character.background.g + RandomFloat() * 0.5f,
-                    character.background.b + RandomFloat() * 0.5f, character.background.a + RandomFloat() * 0.5f),
-                new Color(
-                    character.foreground.r + RandomFloat() * 0.5f, character.foreground.g + RandomFloat() * 0.5f,
-                    character.foreground.b + RandomFloat() * 0.5f, character.foreground.a + RandomFloat() * 0.5f),
-                RandomFloat() <= 0.9f ? character.style :
+                RandomPositiveFloat() <= 0.98f ? character.character : mappings[random.Next(0, mappings.Length)],
+                RandomizeColor(character.background), RandomizeColor(character.foreground),
+                RandomPositiveFloat() <= 0.95f ? character.style :
                     (RenderStyle)random.Next((int)RenderStyle.None, (int)RenderStyle.All));
             return (position, character);
         }
 
         private static float RandomFloat() => random.Next(-100000, 100000) / 100000f;
+        private static float RandomPositiveFloat() => random.Next(0, 100000) / 100000f;
+        private static float RandomColorComponent(float current) => current + RandomFloat() * 0.3f;
+
+        private static Color RandomizeColor(Color current) => RandomPositiveFloat() <= 0.98f ?
+            new Color(RandomColorComponent(current.r), RandomColorComponent(current.g),
+                RandomColorComponent(current.b), RandomColorComponent(current.a)) :
+            random.Next(0, 2) == 0 ? new Color(1f, 0f, 0f, 1f) :
+                random.Next(0, 2) == 0 ? new Color(0f, 1f, 0f, 1f) : new Color(0f, 0f, 1f, 1f);
     }
 }
