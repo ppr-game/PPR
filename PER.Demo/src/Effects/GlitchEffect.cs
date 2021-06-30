@@ -21,7 +21,9 @@ namespace PER.Demo.Effects {
                     character.background.b + RandomFloat() * 0.5f, character.background.a + RandomFloat() * 0.5f),
                 new Color(
                     character.foreground.r + RandomFloat() * 0.5f, character.foreground.g + RandomFloat() * 0.5f,
-                    character.foreground.b + RandomFloat() * 0.5f, character.foreground.a + RandomFloat() * 0.5f));
+                    character.foreground.b + RandomFloat() * 0.5f, character.foreground.a + RandomFloat() * 0.5f),
+                RandomFloat() <= 0.9f ? character.style :
+                    (RenderStyle)random.Next((int)RenderStyle.None, (int)RenderStyle.All));
             return (position, character);
         }
 
