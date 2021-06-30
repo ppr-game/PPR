@@ -72,9 +72,7 @@ namespace PER {
             }
         }
 
-        private void Tick() {
-            game.Tick();
-        }
+        private void Tick() => game.Tick();
 
         private void UpdateDeltaTime() {
             TimeSpan time = clock.time;

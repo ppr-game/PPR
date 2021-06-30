@@ -54,8 +54,8 @@ namespace PER.Abstractions.Renderer {
         private int _framerate;
         private bool _fullscreen;
         private IFont _font;
-        private IList<char> _formattingColorsRecord = new List<char>(8);
-        private StringBuilder _formattingEffectTextBuilder = new();
+        private readonly IList<char> _formattingColorsRecord = new List<char>(8);
+        private readonly StringBuilder _formattingEffectTextBuilder = new();
 
         public virtual void Setup(RendererSettings settings) {
             title = settings.title;

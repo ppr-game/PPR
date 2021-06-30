@@ -6,10 +6,10 @@ namespace PER.Util {
         public static Color black => new(0f, 0f, 0f, 1f);
         public static Color white => new(1f, 1f, 1f, 1f);
         
-        public readonly float r;
-        public readonly float g;
-        public readonly float b;
-        public readonly float a;
+        public float r { get; }
+        public float g { get; }
+        public float b { get; }
+        public float a { get; }
 
         public Color(float r, float g, float b, float a) {
             this.r = r;

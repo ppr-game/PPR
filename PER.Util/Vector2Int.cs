@@ -2,8 +2,8 @@
 
 namespace PER.Util {
     public readonly struct Vector2Int : IEquatable<Vector2Int> {
-        public readonly int x;
-        public readonly int y;
+        public int x { get; }
+        public int y { get; }
 
         public Vector2Int(int x, int y) {
             this.x = x;
