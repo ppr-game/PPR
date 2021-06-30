@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace PER.Util {
-    public readonly struct Vector2 {
+    public readonly struct Vector2 : IEquatable<Vector2> {
         public readonly float x;
         public readonly float y;
 
@@ -26,7 +26,7 @@ namespace PER.Util {
 
         public bool Equals(Vector2 other) => x == other.x && y == other.y;
 
-        public override bool Equals(object obj) => obj is Vector2Int other && Equals(other);
+        public override bool Equals(object obj) => obj is Vector2 other && Equals(other);
 
         public override int GetHashCode() => HashCode.Combine(x, y);
 

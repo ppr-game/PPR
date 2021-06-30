@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace PER.Util {
-    public readonly struct Vector2Int {
+    public readonly struct Vector2Int : IEquatable<Vector2Int> {
         public readonly int x;
         public readonly int y;
 
