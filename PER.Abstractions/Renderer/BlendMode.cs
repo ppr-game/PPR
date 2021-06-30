@@ -8,7 +8,7 @@ namespace PER.Abstractions.Renderer {
             OneMinusDstAlpha
         }
         
-        public enum Equation { Add, Subtract, ReverseSubtract/*, Min, Max*/ }
+        public enum Equation { Add, Subtract, ReverseSubtract, Min, Max }
 
         public static readonly BlendMode alpha =
             new(Factor.SrcAlpha, Factor.OneMinusSrcAlpha, Equation.Add, Factor.One, Factor.OneMinusSrcAlpha, Equation
@@ -16,8 +16,8 @@ namespace PER.Abstractions.Renderer {
         public static readonly BlendMode add =
             new(Factor.SrcAlpha, Factor.One, Equation.Add, Factor.One, Factor.One, Equation.Add);
         public static readonly BlendMode multiply = new(Factor.DstColor, Factor.Zero);
-        /*public static readonly BlendMode min = new(Factor.One, Factor.One, Equation.Min);
-        public static readonly BlendMode max = new(Factor.One, Factor.One, Equation.Max);*/
+        public static readonly BlendMode min = new(Factor.One, Factor.One, Equation.Min);
+        public static readonly BlendMode max = new(Factor.One, Factor.One, Equation.Max);
         public static readonly BlendMode none = new(Factor.One, Factor.Zero);
 
         public BlendMode(Factor sourceFactor, Factor destinationFactor) : this(sourceFactor, destinationFactor,

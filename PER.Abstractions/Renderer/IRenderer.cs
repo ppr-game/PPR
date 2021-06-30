@@ -20,7 +20,7 @@ namespace PER.Abstractions.Renderer {
         public Vector2Int mousePosition { get; }
         public Vector2 accurateMousePosition { get; }
         
-        public List<IEffectContainer> ppEffects { get; }
+        public Dictionary<string, IEffect> formattingEffects { get; }
 
         public void Setup(RendererSettings settings);
         public void Update();
@@ -30,14 +30,18 @@ namespace PER.Abstractions.Renderer {
         
         public void Clear();
         public void Draw();
-        public void DrawCharacter(Vector2Int position, RenderCharacter character, RenderOptions options);
+        public void DrawCharacter(Vector2Int position, RenderCharacter character,
+            RenderOptions options = RenderOptions.Default, IEffect effect = null);
         public void DrawText(Vector2Int position, string text, Color foregroundColor, Color backgroundColor,
             HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
-            RenderOptions options = RenderOptions.Default);
+            RenderOptions options = RenderOptions.Default, IEffect effect = null);
         public void DrawText(Vector2Int position, string[] lines, Color foregroundColor, Color backgroundColor,
             HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
-            RenderOptions options = RenderOptions.Default);
+            RenderOptions options = RenderOptions.Default, IEffect effect = null);
 
         public RenderCharacter GetCharacter(Vector2Int position);
+
+        public void AddEffect(IEffect effect);
+        public void AddEffect(Vector2Int position, IEffect effect);
     }
 }

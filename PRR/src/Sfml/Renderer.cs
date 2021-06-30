@@ -100,7 +100,7 @@ namespace PRR.Sfml {
                 return;
             }
             
-            _text.RebuildQuads(_textPosition);
+            _text.RebuildQuads(_textPosition, fullscreenEffects, effects);
             
             _window.Clear(background);
             _mainRenderTexture.Clear(background);
@@ -108,51 +108,55 @@ namespace PRR.Sfml {
             _mainRenderTexture.Display();
             _additionalRenderTexture.Display();
 
-            for(int i = 0; i < ppEffects.Count; i++) {
-                IEffectContainer effectContainer = ppEffects[i];
-                while(effectContainer.effect.ended) {
-                    ppEffects.RemoveAt(i);
-                    effectContainer = ppEffects[i];
-                }
-                
-                if(effectContainer.effect.postProcessing is null) continue;
-                
-                EffectContainer effect = (EffectContainer)effectContainer;
-                for(int j = 0; j < effect.postProcessing.Length; j++) {
-                    CachedPostProcessingStep step = effect.postProcessing[j];
-                    RunPostProcessingStep(step, j);
-                }
-            }
+            RunPipeline();
             
             _window.Display();
         }
 
-        private void RunPostProcessingStep(CachedPostProcessingStep step, int index) {
+        private void RunPipeline() {
+            for(int i = 0; i < fullscreenEffects.Count; i++) {
+                IEffectContainer effectContainer = fullscreenEffects[i];
+                while(effectContainer.effect.ended) {
+                    fullscreenEffects.RemoveAt(i);
+                    effectContainer = fullscreenEffects[i];
+                }
+
+                if(effectContainer.effect.pipeline is null) continue;
+
+                EffectContainer effect = (EffectContainer)effectContainer;
+                for(int j = 0; j < effect.pipeline.Length; j++) {
+                    CachedPipelineStep step = effect.pipeline[j];
+                    RunPipelineStep(step, j);
+                }
+            }
+        }
+
+        private void RunPipelineStep(CachedPipelineStep step, int index) {
             step.shader?.SetUniform("step", index);
             switch(step.type) {
-                case PostProcessingStep.Type.Text:
+                case PipelineStep.Type.Text:
                     step.shader?.SetUniform("current", currentRenderTexture.Texture);
                     step.shader?.SetUniform("target", otherRenderTexture.Texture);
                     _text.DrawQuads(_window, step.blendMode, step.shader);
                     break;
-                case PostProcessingStep.Type.Screen:
+                case PipelineStep.Type.Screen:
                     step.shader?.SetUniform("current", currentRenderTexture.Texture);
                     step.shader?.SetUniform("target", otherRenderTexture.Texture);
                     currentSprite.Draw(_window, step.renderState);
                     break;
-                case PostProcessingStep.Type.TemporaryText:
+                case PipelineStep.Type.TemporaryText:
                     step.shader?.SetUniform("current", Shader.CurrentTexture);
                     _text.DrawQuads(currentRenderTexture, step.blendMode, step.shader);
                     break;
-                case PostProcessingStep.Type.TemporaryScreen:
+                case PipelineStep.Type.TemporaryScreen:
                     step.shader?.SetUniform("current", Shader.CurrentTexture);
                     step.shader?.SetUniform("target", currentRenderTexture.Texture);
                     otherSprite.Draw(currentRenderTexture, step.renderState);
                     break;
-                case PostProcessingStep.Type.SwapBuffer:
+                case PipelineStep.Type.SwapBuffer:
                     _swapTextures = !_swapTextures;
                     break;
-                case PostProcessingStep.Type.ClearBuffer:
+                case PipelineStep.Type.ClearBuffer:
                     currentRenderTexture.Clear();
                     break;
             }

@@ -2,24 +2,22 @@
 
 using PER.Abstractions.Renderer;
 
-using PRR.Sfml;
-
 using SFML.Graphics;
 
 using BlendMode = SFML.Graphics.BlendMode;
 using Shader = SFML.Graphics.Shader;
 
-namespace PRR {
+namespace PRR.Sfml {
     public class EffectContainer : IEffectContainer {
         public IEffect effect {
             get => _effect;
             set {
                 _effect = value;
-                postProcessing = value?.postProcessing?.Select(step => {
+                pipeline = value?.pipeline?.Select(step => {
                     Shader shader = step.vertexShader is null || step.fragmentShader is null ? null :
                         Shader.FromString(step.vertexShader, null, step.fragmentShader);
                     BlendMode blendMode = SfmlConverters.ToSfmlBlendMode(step.blendMode);
-                    CachedPostProcessingStep cachedStep = new() {
+                    CachedPipelineStep cachedStep = new() {
                         type = step.stepType,
                         shader = shader,
                         blendMode = blendMode,
@@ -30,7 +28,7 @@ namespace PRR {
             }
         }
         
-        public CachedPostProcessingStep[] postProcessing { get; private set; }
+        public CachedPipelineStep[] pipeline { get; private set; }
 
         private IEffect _effect;
     }

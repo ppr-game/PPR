@@ -42,10 +42,16 @@ namespace PRR.Sfml {
                 pair.Value.Select(vector => SfmlConverters.ToSfmlVector2(vector)).ToArray());
         }
 
-        public void RebuildQuads(Vector2f offset) {
+        public void RebuildQuads(Vector2f offset, List<IEffectContainer> fullscreenEffects,
+            Dictionary<Vector2Int, IEffectContainer> effects) {
             uint index = 0;
             foreach((Vector2Int pos, RenderCharacter character) in text) {
-                Vector2f position = new(pos.x * _charWidth + offset.X, pos.y * _charHeight + offset.Y);
+                (Vector2 position, RenderCharacter character) mod = (new Vector2(pos.x, pos.y), character);
+                effects[pos].ApplyModifiers(ref mod);
+                foreach(IEffectContainer effectContainer in fullscreenEffects) effectContainer.ApplyModifiers(ref mod);
+
+                Vector2f position =
+                    new(mod.position.x * _charWidth + offset.X, mod.position.y * _charHeight + offset.Y);
 
                 _quads[index].Position = position;
                 _quads[index + 1].Position = position + new Vector2f(_charWidth, 0f);
@@ -63,9 +69,9 @@ namespace PRR.Sfml {
                 _quads[index + 2].Color = background;
                 _quads[index + 3].Color = background;
 
-                if(_characters.TryGetValue((character.character, character.style & RenderStyle.AllPerFont),
+                if(_characters.TryGetValue((mod.character.character, mod.character.style & RenderStyle.AllPerFont),
                     out Vector2f[] texCoords)) {
-                    bool italic = (character.style & RenderStyle.Italic) != 0;
+                    bool italic = (mod.character.style & RenderStyle.Italic) != 0;
                     Vector2f italicOffset = italic ? new Vector2f(1f, 0f) : new Vector2f(0f, 0f);
                     
                     _quads[index + 4].Position = _quads[index].Position + italicOffset;
@@ -78,7 +84,7 @@ namespace PRR.Sfml {
                     _quads[index + 6].TexCoords = texCoords[2];
                     _quads[index + 7].TexCoords = texCoords[3];
 
-                    Color foreground = SfmlConverters.ToSfmlColor(character.foreground);
+                    Color foreground = SfmlConverters.ToSfmlColor(mod.character.foreground);
                     _quads[index + 4].Color = foreground;
                     _quads[index + 5].Color = foreground;
                     _quads[index + 6].Color = foreground;

@@ -33,10 +33,14 @@ namespace PRR {
         public static SFML.Graphics.BlendMode ToSfmlBlendMode(BlendMode blendMode) =>
             new((SFML.Graphics.BlendMode.Factor)blendMode.colorSrcFactor,
                 (SFML.Graphics.BlendMode.Factor)blendMode.colorDstFactor,
-                (SFML.Graphics.BlendMode.Equation)blendMode.colorEquation,
+                (SFML.Graphics.BlendMode.Equation)( // fallback to Add if using Max or Min because
+                    blendMode.colorEquation is BlendMode.Equation.Max or BlendMode.Equation.Min ? // the current version
+                        BlendMode.Equation.Add : blendMode.colorEquation), // of SFML doesn't support Max and Min
                 (SFML.Graphics.BlendMode.Factor)blendMode.alphaSrcFactor,
                 (SFML.Graphics.BlendMode.Factor)blendMode.colorDstFactor,
-                (SFML.Graphics.BlendMode.Equation)blendMode.alphaEquation);
+                (SFML.Graphics.BlendMode.Equation)( // same as above
+                    blendMode.alphaEquation is BlendMode.Equation.Max or BlendMode.Equation.Min ?
+                        BlendMode.Equation.Add : blendMode.alphaEquation));
 
         public static SFML.Graphics.Image ToSfmlImage(Image<Rgba32> image) {
             SFML.Graphics.Image sfmlImage = new((uint)image.Width, (uint)image.Height);

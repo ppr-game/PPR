@@ -1,5 +1,5 @@
 ﻿namespace PER.Abstractions.Renderer {
-    public struct PostProcessingStep {
+    public struct PipelineStep {
         public enum Type { Text, Screen, TemporaryText, TemporaryScreen, SwapBuffer, ClearBuffer }
 
         public Type stepType { get; init; }

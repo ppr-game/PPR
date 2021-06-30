@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 using PER.Util;
 
@@ -42,8 +43,10 @@ namespace PER.Abstractions.Renderer {
 
         public virtual Vector2Int mousePosition { get; protected set; } = new(-1, -1);
         public virtual Vector2 accurateMousePosition { get; protected set; } = new(-1f, -1f);
+
+        public Dictionary<string, IEffect> formattingEffects { get; } = new();
         
-        public virtual List<IEffectContainer> ppEffects { get; private set; }
+        protected List<IEffectContainer> fullscreenEffects { get; private set; }
 
         protected Dictionary<Vector2Int, RenderCharacter> display { get; private set; }
         protected Dictionary<Vector2Int, IEffectContainer> effects { get; private set; }
@@ -51,6 +54,8 @@ namespace PER.Abstractions.Renderer {
         private int _framerate;
         private bool _fullscreen;
         private IFont _font;
+        private IList<char> _formattingColorsRecord = new List<char>(8);
+        private StringBuilder _formattingEffectTextBuilder = new();
 
         public virtual void Setup(RendererSettings settings) {
             title = settings.title;
@@ -87,7 +92,9 @@ namespace PER.Abstractions.Renderer {
                 }
             }
 
-            ppEffects = new List<IEffectContainer>();
+            fullscreenEffects = new List<IEffectContainer>();
+            
+            formattingEffects.Clear();
             
             CreateText();
         }
@@ -99,7 +106,7 @@ namespace PER.Abstractions.Renderer {
         public abstract void Draw();
 
         public virtual void DrawCharacter(Vector2Int position, RenderCharacter character,
-            RenderOptions options = RenderOptions.Default) {
+            RenderOptions options = RenderOptions.Default, IEffect effect = null) {
             if(position.x < 0 || position.y < 0 || position.x >= width || position.y >= height) return;
             
             if((options & RenderOptions.BackgroundAlphaBlending) != 0) {
@@ -116,12 +123,15 @@ namespace PER.Abstractions.Renderer {
             }
             
             if(IsRenderCharacterEmpty(character)) display.Remove(position);
-            else display[position] = character;
+            else {
+                display[position] = character;
+                AddEffect(position, effect);
+            }
         }
 
         public virtual void DrawText(Vector2Int position, string text, Color foregroundColor, Color backgroundColor,
             HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
-            RenderOptions options = RenderOptions.Default) {
+            RenderOptions options = RenderOptions.Default, IEffect effect = null) {
             if(text.Length == 0) return;
 
             int actualTextLength = GetTextLengthWithoutFormatting(text);
@@ -133,27 +143,33 @@ namespace PER.Abstractions.Renderer {
                 _ => throw new ArgumentOutOfRangeException(nameof(align), align, "wtf")
             };
 
-            bool formatting = false;
-            bool color = false;
-            bool foreground = false;
-            bool background = false;
-            IList<char> colorsRecord = new List<char>(8);
+            bool formattingMode = false;
+            bool colorSetMode = false;
+            bool effectSetMode = false;
+            bool foregroundSetMode = false;
+            bool backgroundSetMode = false;
+            _formattingColorsRecord.Clear();
+            _formattingEffectTextBuilder.Clear();
             foreach(char curChar in text) {
                 if(curChar == '\f') {
-                    formatting = !formatting;
-                    color = false;
-                    foreground = false;
-                    background = false;
-                    colorsRecord.Clear();
+                    formattingMode = !formattingMode;
+                    colorSetMode = false;
+                    effectSetMode = false;
+                    foregroundSetMode = false;
+                    backgroundSetMode = false;
+                    _formattingColorsRecord.Clear();
+                    _formattingEffectTextBuilder.Clear();
                     continue;
                 }
 
-                if(formatting)
-                    ProcessFormatting(curChar, ref color, ref foreground, ref background, colorsRecord,
-                        ref foregroundColor, ref backgroundColor, ref style, ref options);
+                if(formattingMode)
+                    ProcessFormatting(curChar, ref colorSetMode, ref foregroundSetMode, ref backgroundSetMode, ref effectSetMode,
+                        _formattingColorsRecord, ref foregroundColor, ref backgroundColor, ref style, ref options,
+                        _formattingEffectTextBuilder, ref effect, formattingEffects);
                 else {
                     Vector2Int charPos = new(position.x + x, position.y);
-                    DrawCharacter(charPos, new RenderCharacter(curChar, backgroundColor, foregroundColor, style), options);
+                    DrawCharacter(charPos, new RenderCharacter(curChar, backgroundColor, foregroundColor, style),
+                        options, effect);
                     x++;
                 }
             }
@@ -161,14 +177,22 @@ namespace PER.Abstractions.Renderer {
 
         public virtual void DrawText(Vector2Int position, string[] lines, Color foregroundColor, Color backgroundColor,
             HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
-            RenderOptions options = RenderOptions.Default) {
+            RenderOptions options = RenderOptions.Default, IEffect effect = null) {
             for(int i = 0; i < lines.Length; i++)
                 DrawText(position + new Vector2Int(0, i), lines[i], foregroundColor, backgroundColor,
-                    align, style, options);
+                    align, style, options, effect);
         }
 
         public virtual RenderCharacter GetCharacter(Vector2Int position) => display.ContainsKey(position) ? display[position] :
             new RenderCharacter('\0', Color.transparent, Color.transparent);
+
+        public virtual void AddEffect(IEffect effect) {
+            IEffectContainer effectContainer = CreateEffectContainer();
+            effectContainer.effect = effect;
+            fullscreenEffects.Add(effectContainer);
+        }
+
+        public virtual void AddEffect(Vector2Int position, IEffect effect) => effects[position].effect = effect;
 
         private bool IsRenderCharacterEmpty(RenderCharacter renderCharacter) =>
             renderCharacter.background.a == 0 &&
@@ -176,19 +200,24 @@ namespace PER.Abstractions.Renderer {
 
         private bool CharacterExists(char character) => font.mappings.Contains(character);
 
-        private static void ProcessFormatting(char character, ref bool color, ref bool foreground, ref bool background,
-            IList<char> colorsRecord, ref Color foregroundColor, ref Color backgroundColor, ref RenderStyle style,
-            ref RenderOptions options) {
-            if(color)
-                ProcessColorFormatting(character, ref color, ref foreground, ref background, colorsRecord,
-                    ref foregroundColor, ref backgroundColor);
-            else ProcessNormalFormatting(character, ref color, ref style, ref options);
+        private static void ProcessFormatting(char character, ref bool colorSetMode, ref bool foregroundSetMode,
+            ref bool backgroundSetMode, ref bool effectSetMode, IList<char> colorsRecord, ref Color foregroundColor,
+            ref Color backgroundColor, ref RenderStyle style, ref RenderOptions options,
+            StringBuilder effectTextBuilder, ref IEffect effect, IReadOnlyDictionary<string, IEffect> effects) {
+            if(colorSetMode)
+                ProcessColorFormatting(character, ref colorSetMode, ref foregroundSetMode, ref backgroundSetMode,
+                    colorsRecord, ref foregroundColor, ref backgroundColor);
+            else if(effectSetMode)
+                ProcessEffectFormatting(character, ref effectSetMode, effectTextBuilder, ref effect, effects);
+            else ProcessNormalFormatting(character, ref colorSetMode, ref effectSetMode, ref style, ref options);
         }
 
-        private static void ProcessNormalFormatting(char character, ref bool color, ref RenderStyle style,
-            ref RenderOptions options) {
+        private static void ProcessNormalFormatting(char character, ref bool colorSetMode, ref bool effectSetMode,
+            ref RenderStyle style, ref RenderOptions options) {
             switch(character) {
-                case 'c': color = true;
+                case 'c': colorSetMode = true;
+                    break;
+                case 'e': effectSetMode = true;
                     break;
                 case 'b': style ^= RenderStyle.Bold;
                     break;
@@ -205,24 +234,42 @@ namespace PER.Abstractions.Renderer {
             }
         }
 
-        private static void ProcessColorFormatting(char character, ref bool color, ref bool foreground,
-            ref bool background, IList<char> colorsRecord, ref Color foregroundColor, ref Color backgroundColor) {
-            if(foreground || background) {
-                ProcessColor(character, ref foreground, ref background, colorsRecord, ref foregroundColor, ref backgroundColor);
+        private static void ProcessEffectFormatting(char character, ref bool effectSetMode,
+            StringBuilder textBuilder, ref IEffect effect, IReadOnlyDictionary<string, IEffect> effects) {
+            switch(character) {
+                case 'e': effectSetMode = false;
+                    break;
+                default:
+                    if(char.IsLower(character)) break;
+                    textBuilder.Append(character);
+                    break;
+            }
+
+            if(effectSetMode) return;
+            string text = textBuilder.ToString();
+            effect = effects[text];
+        }
+
+        private static void ProcessColorFormatting(char character, ref bool colorSetMode, ref bool foregroundSetMode,
+            ref bool backgroundSetMode, IList<char> colorsRecord, ref Color foregroundColor,
+            ref Color backgroundColor) {
+            if(foregroundSetMode || backgroundSetMode) {
+                ProcessColor(character, ref foregroundSetMode, ref backgroundSetMode, colorsRecord, ref foregroundColor,
+                    ref backgroundColor);
             }
             else {
                 switch(character) {
-                    case 'c': color = false;
+                    case 'c': colorSetMode = false;
                         break;
-                    case 'f': foreground = true;
+                    case 'f': foregroundSetMode = true;
                         break;
-                    case 'b': background = true;
+                    case 'b': backgroundSetMode = true;
                         break;
                 }
             }
         }
 
-        private static void ProcessColor(char character, ref bool foreground, ref bool background,
+        private static void ProcessColor(char character, ref bool foregroundSetMode, ref bool backgroundSetMode,
             IList<char> colorsRecord, ref Color foregroundColor, ref Color backgroundColor) {
             colorsRecord.Add(character);
             if(colorsRecord.Count < 8) return;
@@ -231,13 +278,13 @@ namespace PER.Abstractions.Renderer {
                 colorArray[i] =
                     (byte)(GetHexVal(colorsRecord[i * 2]) * 0xF + GetHexVal(colorsRecord[i * 2 + 1]));
 
-            if(foreground) {
+            if(foregroundSetMode) {
                 foregroundColor = new Color(colorArray[0], colorArray[1], colorArray[2], colorArray[3]);
-                foreground = false;
+                foregroundSetMode = false;
             }
             else {
                 backgroundColor = new Color(colorArray[0], colorArray[1], colorArray[2], colorArray[3]);
-                background = false;
+                backgroundSetMode = false;
             }
             
             colorsRecord.Clear();
