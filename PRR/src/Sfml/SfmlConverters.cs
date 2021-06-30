@@ -2,7 +2,6 @@
 
 using PER.Util;
 
-using SFML.Graphics;
 using SFML.System;
 
 using SixLabors.ImageSharp;
@@ -11,13 +10,14 @@ using SixLabors.ImageSharp.PixelFormats;
 using BlendMode = PER.Abstractions.Renderer.BlendMode;
 using Color = PER.Util.Color;
 
-namespace PRR {
+namespace PRR.Sfml {
     public static class SfmlConverters {
         public static Color ToPerColor(SFML.Graphics.Color color) =>
             new(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255f);
         
         public static SFML.Graphics.Color ToSfmlColor(Color color) =>
-            new((byte)(color.r * 255), (byte)(color.g * 255), (byte)(color.b * 255), (byte)(color.a * 255));
+            new((byte)Math.Clamp(color.r * 255f, 0f, 255f), (byte)Math.Clamp(color.g * 255f, 0f, 255f),
+                (byte)Math.Clamp(color.b * 255f, 0f, 255f), (byte)Math.Clamp(color.a * 255f, 0f, 255f));
         
         public static Vector2Int ToPerVector2Int(Vector2i vector) => new(vector.X, vector.Y);
         public static Vector2i ToSfmlVector2Int(Vector2Int vector) => new(vector.x, vector.y);
