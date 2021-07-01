@@ -12,5 +12,7 @@ namespace PER.Abstractions.Renderer {
         Vector2Int size { get; }
         Image<Rgba32> image { get; }
         string mappings { get; }
+        
+        bool IsCharacterDrawable(char character, RenderStyle style);
     }
 }

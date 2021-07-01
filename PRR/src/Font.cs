@@ -19,6 +19,8 @@ namespace PRR {
         public Image<Rgba32> image { get; private set; }
         public string mappings { get; }
 
+        private readonly HashSet<(char, RenderStyle)> _drawable = new();
+
         public Font(string folderPath) {
             image = Image.Load<Rgba32>(Path.Join(folderPath, "font.png"));
             
@@ -38,6 +40,8 @@ namespace PRR {
             Setup(backgroundCharacter);
         }
 
+        public bool IsCharacterDrawable(char character, RenderStyle style) => _drawable.Contains((character, style));
+
         private void Setup(char backgroundCharacter) {
             int originalHeight = image.Height;
             image = GenerateFontStyles(image, size);
@@ -55,6 +59,7 @@ namespace PRR {
 
                     RenderStyle style = (RenderStyle)(y / originalHeight);
                     char character = mappings[index];
+                    _drawable.Add((character, style));
 
                     Vector2[] texCoords = new Vector2[4];
                     // Clockwise

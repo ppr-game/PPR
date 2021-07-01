@@ -122,7 +122,7 @@ namespace PER.Abstractions.Renderer {
                     Color.white - currentCharacter.background, character.style);
             }
             
-            if(IsRenderCharacterEmpty(character)) display.Remove(position);
+            if(IsCharacterEmpty(character)) display.Remove(position);
             else {
                 display[position] = character;
                 AddEffect(position, effect);
@@ -183,8 +183,8 @@ namespace PER.Abstractions.Renderer {
                     align, style, options, effect);
         }
 
-        public virtual RenderCharacter GetCharacter(Vector2Int position) => display.ContainsKey(position) ? display[position] :
-            new RenderCharacter('\0', Color.transparent, Color.transparent);
+        public virtual RenderCharacter GetCharacter(Vector2Int position) => IsCharacterEmpty(position) ?
+            new RenderCharacter('\0', Color.transparent, Color.transparent) : display[position];
 
         public virtual void AddEffect(IEffect effect) {
             IEffectContainer effectContainer = CreateEffectContainer();
@@ -194,11 +194,15 @@ namespace PER.Abstractions.Renderer {
 
         public virtual void AddEffect(Vector2Int position, IEffect effect) => effects[position].effect = effect;
 
-        private bool IsRenderCharacterEmpty(RenderCharacter renderCharacter) =>
-            renderCharacter.background.a == 0 &&
-            (!CharacterExists(renderCharacter.character) || renderCharacter.foreground.a == 0);
+        public virtual bool IsCharacterEmpty(Vector2Int position) => !display.ContainsKey(position);
+        
+        public virtual bool IsCharacterEmpty(RenderCharacter renderCharacter) =>
+            renderCharacter.background.a == 0f &&
+            (!IsCharacterDrawable(renderCharacter.character, renderCharacter.style) ||
+             renderCharacter.foreground.a == 0f);
 
-        private bool CharacterExists(char character) => font.mappings.Contains(character);
+        public virtual bool IsCharacterDrawable(char character, RenderStyle style) =>
+            font.IsCharacterDrawable(character, style);
 
         private static void ProcessFormatting(char character, ref bool colorSetMode, ref bool foregroundSetMode,
             ref bool backgroundSetMode, ref bool effectSetMode, IList<char> colorsRecord, ref Color foregroundColor,

@@ -43,5 +43,9 @@ namespace PER.Abstractions.Renderer {
 
         public void AddEffect(IEffect effect);
         public void AddEffect(Vector2Int position, IEffect effect);
+
+        public bool IsCharacterEmpty(Vector2Int position);
+        public bool IsCharacterEmpty(RenderCharacter renderCharacter);
+        public bool IsCharacterDrawable(char character, RenderStyle style);
     }
 }
