@@ -101,9 +101,11 @@ namespace PRR.Sfml {
             }
         }
 
-        public void DrawQuads(RenderTarget target, BlendMode blendMode, Shader shader = null) => target.Draw(_quads, 0,
-            (uint)(text.Count * 8), PrimitiveType.Quads,
-            new RenderStates(blendMode, Transform.Identity, _texture, shader));
+        public void DrawQuads(RenderTarget target, BlendMode blendMode, Shader shader = null) {
+            shader?.SetUniform("font", _texture);
+            target.Draw(_quads, 0, (uint)(text.Count * 8), PrimitiveType.Quads,
+                new RenderStates(blendMode, Transform.Identity, _texture, shader));
+        }
 
         public void DrawFont(RenderTarget target) => target.Draw(new Sprite(_texture));
 
