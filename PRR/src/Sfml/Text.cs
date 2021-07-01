@@ -63,7 +63,7 @@ namespace PRR.Sfml {
                 _quads[index + 2].TexCoords = _backgroundCharacter[2];
                 _quads[index + 3].TexCoords = _backgroundCharacter[3];
 
-                Color background = SfmlConverters.ToSfmlColor(character.background);
+                Color background = SfmlConverters.ToSfmlColor(mod.character.background);
                 _quads[index].Color = background;
                 _quads[index + 1].Color = background;
                 _quads[index + 2].Color = background;
