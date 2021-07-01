@@ -99,7 +99,10 @@ namespace PRR.Sfml {
                 _window.Display();
                 return;
             }
-            
+
+            DrawEffects();
+            DrawFullscreenEffects();
+
             _text.RebuildQuads(_textPosition, fullscreenEffects, effects);
             
             _window.Clear(background);
@@ -108,12 +111,12 @@ namespace PRR.Sfml {
             _mainRenderTexture.Display();
             _additionalRenderTexture.Display();
 
-            RunPipeline();
+            RunPipelines();
             
             _window.Display();
         }
 
-        private void RunPipeline() {
+        private void DrawFullscreenEffects() {
             for(int i = 0; i < fullscreenEffects.Count; i++) {
                 IEffectContainer effectContainer = fullscreenEffects[i];
                 while(effectContainer.effect.ended) {
@@ -121,12 +124,31 @@ namespace PRR.Sfml {
                     effectContainer = fullscreenEffects[i];
                 }
 
+                IEffect effect = effectContainer.effect;
+                if(!effect.drawable) continue;
+                for(int y = 0; y < height; y++)
+                    for(int x = 0; x < width; x++)
+                        effect.Draw(new Vector2Int(x, y));
+            }
+        }
+
+        private void DrawEffects() {
+            foreach((Vector2Int position, IEffectContainer effectContainer) in effects) {
+                IEffect effect = effectContainer.effect;
+                if(effect is null || !effect.drawable) continue;
+                effect.Draw(position);
+            }
+        }
+
+        private void RunPipelines() {
+            // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
+            foreach(IEffectContainer effectContainer in fullscreenEffects) {
                 if(effectContainer.effect.pipeline is null) continue;
 
                 EffectContainer effect = (EffectContainer)effectContainer;
-                for(int j = 0; j < effect.pipeline.Length; j++) {
-                    CachedPipelineStep step = effect.pipeline[j];
-                    RunPipelineStep(step, j);
+                for(int i = 0; i < effect.pipeline.Length; i++) {
+                    CachedPipelineStep step = effect.pipeline[i];
+                    RunPipelineStep(step, i);
                 }
             }
         }

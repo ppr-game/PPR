@@ -104,7 +104,6 @@ namespace PER.Abstractions.Renderer {
             if((options & RenderOptions.BackgroundAlphaBlending) != 0) {
                 RenderCharacter currentCharacter = GetCharacter(position);
                 Color background = Color.Blend(currentCharacter.background, character.background);
-                //Color foreground = Color.Blend(background, character.foreground);
                 character = new RenderCharacter(character.character, background, character.foreground, character.style);
             }
 
@@ -115,10 +114,8 @@ namespace PER.Abstractions.Renderer {
             }
             
             if(IsCharacterEmpty(character)) display.Remove(position);
-            else {
-                display[position] = character;
-                AddEffect(position, effect);
-            }
+            else display[position] = character;
+            AddEffect(position, effect);
         }
 
         public virtual void DrawText(Vector2Int position, string text, Color foregroundColor, Color backgroundColor,

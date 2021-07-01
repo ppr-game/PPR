@@ -12,6 +12,7 @@ namespace PRR.Sfml {
         public IEffect effect {
             get => _effect;
             set {
+                if(_effect == value) return;
                 _effect = value;
                 pipeline = value?.pipeline?.Select(step => {
                     Shader shader = step.vertexShader is null || step.fragmentShader is null ? null :
