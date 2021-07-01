@@ -86,7 +86,7 @@ namespace PER.Abstractions.Renderer {
             display = new Dictionary<Vector2Int, RenderCharacter>(width * height);
             effects = new Dictionary<Vector2Int, IEffectContainer>(width * height);
             for(int x = 0; x < width; x++) {
-                for(int y = 0; y < width; y++) {
+                for(int y = 0; y < height; y++) {
                     Vector2Int position = new(x, y);
                     effects.Add(position, CreateEffectContainer());
                 }
