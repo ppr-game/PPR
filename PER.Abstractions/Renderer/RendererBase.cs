@@ -85,15 +85,7 @@ namespace PER.Abstractions.Renderer {
         protected virtual void UpdateFont() {
             display = new Dictionary<Vector2Int, RenderCharacter>(width * height);
             effects = new Dictionary<Vector2Int, IEffectContainer>(width * height);
-            for(int x = 0; x < width; x++) {
-                for(int y = 0; y < height; y++) {
-                    Vector2Int position = new(x, y);
-                    effects.Add(position, CreateEffectContainer());
-                }
-            }
-
             fullscreenEffects = new List<IEffectContainer>();
-            
             formattingEffects.Clear();
             
             CreateText();
@@ -192,7 +184,14 @@ namespace PER.Abstractions.Renderer {
             fullscreenEffects.Add(effectContainer);
         }
 
-        public virtual void AddEffect(Vector2Int position, IEffect effect) => effects[position].effect = effect;
+        public virtual void AddEffect(Vector2Int position, IEffect effect) {
+            if(effects.ContainsKey(position)) effects[position].effect = effect;
+            else {
+                IEffectContainer effectContainer = CreateEffectContainer();
+                effectContainer.effect = effect;
+                effects.Add(position, effectContainer);
+            }
+        }
 
         public virtual bool IsCharacterEmpty(Vector2Int position) => !display.ContainsKey(position);
         
