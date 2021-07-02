@@ -14,14 +14,13 @@ namespace PER.Demo {
         private int _tempAvgFPS;
         private int _tempAvgFPSCounter;
 
+        private readonly DrawTextEffect _drawTextEffect = new();
+        private readonly BloomEffect _bloomEffect = new();
         private readonly GlitchEffect _glitchEffect = new();
 
         public void Setup() {
             Core.engine.renderer.formattingEffects.Add("NONE", null);
             Core.engine.renderer.formattingEffects.Add("GLITCH", _glitchEffect);
-            
-            Core.engine.renderer.AddEffect(new DrawTextEffect());
-            Core.engine.renderer.AddEffect(new BloomEffect());
         }
 
         public void Update() {
@@ -33,6 +32,9 @@ namespace PER.Demo {
                 _tempAvgFPS = 0;
                 _tempAvgFPSCounter = 0;
             }
+            
+            Core.engine.renderer.AddEffect(_drawTextEffect);
+            Core.engine.renderer.AddEffect(_bloomEffect);
             
             Core.engine.renderer.DrawText(new Vector2Int(0, 0),
                 $"{_fps.ToString(CultureInfo.InvariantCulture)}/{_avgFPS.ToString(CultureInfo.InvariantCulture)} FPS", 

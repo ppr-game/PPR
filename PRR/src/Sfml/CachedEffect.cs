@@ -8,7 +8,7 @@ using BlendMode = SFML.Graphics.BlendMode;
 using Shader = SFML.Graphics.Shader;
 
 namespace PRR.Sfml {
-    public class EffectContainer : IEffectContainer {
+    public class CachedEffect {
         public IEffect effect {
             get => _effect;
             set {

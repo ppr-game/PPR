@@ -45,10 +45,10 @@ namespace PER.Abstractions.Renderer {
         public IInputManager input { get; protected set; }
         public Dictionary<string, IEffect> formattingEffects { get; } = new();
         
-        protected List<IEffectContainer> fullscreenEffects { get; private set; }
+        protected List<IEffect> fullscreenEffects { get; private set; }
 
         protected Dictionary<Vector2Int, RenderCharacter> display { get; private set; }
-        protected Dictionary<Vector2Int, IEffectContainer> effects { get; private set; }
+        protected Dictionary<Vector2Int, IEffect> effects { get; private set; }
 
         private int _framerate;
         private bool _fullscreen;
@@ -83,14 +83,13 @@ namespace PER.Abstractions.Renderer {
 
         protected virtual void UpdateFont() {
             display = new Dictionary<Vector2Int, RenderCharacter>(width * height);
-            effects = new Dictionary<Vector2Int, IEffectContainer>(width * height);
-            fullscreenEffects = new List<IEffectContainer>();
+            effects = new Dictionary<Vector2Int, IEffect>(width * height);
+            fullscreenEffects = new List<IEffect>();
             formattingEffects.Clear();
             
             CreateText();
         }
 
-        protected abstract IEffectContainer CreateEffectContainer();
         protected abstract void CreateText();
 
         public virtual void Clear() => display.Clear();
@@ -102,27 +101,16 @@ namespace PER.Abstractions.Renderer {
         }
 
         private void DrawEffects() {
-            foreach((Vector2Int position, IEffectContainer effectContainer) in effects) {
-                IEffect effect = effectContainer.effect;
-                if(effect is null || effect.ended) {
-                    effectContainer.effect = null;
-                    continue;
-                }
-
+            foreach((Vector2Int position, IEffect effect) in effects) {
+                effect.Update(false);
                 if(!effect.drawable) continue;
                 effect.Draw(position);
             }
         }
 
         private void DrawFullscreenEffects() {
-            for(int i = 0; i < fullscreenEffects.Count; i++) {
-                IEffectContainer effectContainer = fullscreenEffects[i];
-                while(effectContainer.effect.ended) {
-                    fullscreenEffects.RemoveAt(i);
-                    effectContainer = fullscreenEffects[i];
-                }
-
-                IEffect effect = effectContainer.effect;
+            foreach(IEffect effect in fullscreenEffects) {
+                effect.Update(true);
                 if(!effect.drawable) continue;
                 for(int y = 0; y < height; y++)
                     for(int x = 0; x < width; x++)
@@ -209,18 +197,16 @@ namespace PER.Abstractions.Renderer {
             new RenderCharacter('\0', Color.transparent, Color.transparent) : display[position];
 
         public virtual void AddEffect(IEffect effect) {
-            IEffectContainer effectContainer = CreateEffectContainer();
-            effectContainer.effect = effect;
-            fullscreenEffects.Add(effectContainer);
+            if(effect is null) return;
+            fullscreenEffects.Add(effect);
         }
 
         public virtual void AddEffect(Vector2Int position, IEffect effect) {
-            if(effects.ContainsKey(position)) effects[position].effect = effect;
-            else {
-                IEffectContainer effectContainer = CreateEffectContainer();
-                effectContainer.effect = effect;
-                effects.Add(position, effectContainer);
+            if(effect is null) {
+                effects.Remove(position);
+                return;
             }
+            effects[position] = effect;
         }
 
         public virtual bool IsCharacterEmpty(Vector2Int position) => !display.ContainsKey(position);

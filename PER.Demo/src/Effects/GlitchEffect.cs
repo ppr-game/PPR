@@ -9,7 +9,6 @@ namespace PER.Demo.Effects {
         public IEnumerable<PipelineStep> pipeline => null;
         public bool hasModifiers => true;
         public bool drawable => true;
-        public bool ended => false;
 
         private static readonly Random random = new();
 
@@ -26,11 +25,12 @@ namespace PER.Demo.Effects {
             return (position, character);
         }
 
+        public void Update(bool fullscreen) { }
+
         public void Draw(Vector2Int position) {
             if(position.x % random.Next(3, 10) == 0 || position.y % random.Next(3, 10) == 0)
                 _draw = RandomPositiveFloat() > 0.95f;
             if(!_draw || !Core.engine.renderer.IsCharacterEmpty(position)) return;
-            //if(!Core.engine.renderer.IsCharacterEmpty(position) || RandomPositiveFloat() <= 0.95f) return;
             string mappings = Core.engine.renderer.font.mappings;
             Core.engine.renderer.DrawCharacter(position, new RenderCharacter(
                 mappings[random.Next(0, mappings.Length)],

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 using PER.Abstractions.Renderer;
@@ -17,6 +18,8 @@ namespace PRR.Sfml {
         
         public Text text { get; private set; }
         public RenderWindow window { get; private set; }
+
+        private Dictionary<IEffect, CachedEffect> _cachedFullscreenEffects;
 
         private bool _swapTextures;
 
@@ -75,14 +78,25 @@ namespace PRR.Sfml {
             input.Setup();
         }
 
-        protected override IEffectContainer CreateEffectContainer() => new EffectContainer();
-        protected override void CreateText() =>
-            text = new Text(font, new Vector2Int(width, height)) { text = display };
-
         protected override void UpdateFramerate() {
             if(window is null) return;
             window.SetFramerateLimit(framerate <= 0 ? 0 : (uint)framerate);
             window.SetVerticalSyncEnabled(framerate == (int)ReservedFramerates.Vsync);
+        }
+
+        protected override void UpdateFont() {
+            _cachedFullscreenEffects = new Dictionary<IEffect, CachedEffect>();
+            base.UpdateFont();
+        }
+
+        protected override void CreateText() =>
+            text = new Text(font, new Vector2Int(width, height)) { text = display };
+
+        public override void AddEffect(IEffect effect) {
+            base.AddEffect(effect);
+            if(effect is null || _cachedFullscreenEffects.ContainsKey(effect)) return;
+            CachedEffect cachedEffect = new() { effect = effect };
+            _cachedFullscreenEffects.Add(effect, cachedEffect);
         }
 
         public override void Draw() => Draw(false);
@@ -110,16 +124,19 @@ namespace PRR.Sfml {
             RunPipelines();
             
             window.Display();
+            
+            effects.Clear();
+            fullscreenEffects.Clear();
         }
 
         private void RunPipelines() {
             // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-            foreach(IEffectContainer effectContainer in fullscreenEffects) {
-                if(effectContainer.effect.pipeline is null) continue;
-
-                EffectContainer effect = (EffectContainer)effectContainer;
-                for(int i = 0; i < effect.pipeline.Length; i++) {
-                    CachedPipelineStep step = effect.pipeline[i];
+            foreach(IEffect effect in fullscreenEffects) {
+                if(effect.pipeline is null) continue;
+                
+                CachedEffect cachedEffect = _cachedFullscreenEffects[effect];
+                for(int i = 0; i < cachedEffect.pipeline.Length; i++) {
+                    CachedPipelineStep step = cachedEffect.pipeline[i];
                     RunPipelineStep(step, i);
                 }
             }

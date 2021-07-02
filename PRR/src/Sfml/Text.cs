@@ -42,13 +42,14 @@ namespace PRR.Sfml {
                 pair.Value.Select(vector => SfmlConverters.ToSfmlVector2(vector)).ToArray());
         }
 
-        public void RebuildQuads(Vector2f offset, List<IEffectContainer> fullscreenEffects,
-            Dictionary<Vector2Int, IEffectContainer> effects) {
+        public void RebuildQuads(Vector2f offset, List<IEffect> fullscreenEffects,
+            Dictionary<Vector2Int, IEffect> effects) {
             uint index = 0;
             foreach((Vector2Int pos, RenderCharacter character) in text) {
                 (Vector2 position, RenderCharacter character) mod = (new Vector2(pos.x, pos.y), character);
-                effects[pos].ApplyModifiers(ref mod);
-                foreach(IEffectContainer effectContainer in fullscreenEffects) effectContainer.ApplyModifiers(ref mod);
+                if(effects.TryGetValue(pos, out IEffect effect)) IEffect.ApplyModifiers(effect, ref mod);
+                foreach(IEffect fullscreenEffect in fullscreenEffects)
+                    IEffect.ApplyModifiers(fullscreenEffect, ref mod);
 
                 Vector2f position =
                     new(mod.position.x * _charWidth + offset.X, mod.position.y * _charHeight + offset.Y);

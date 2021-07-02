@@ -36,10 +36,11 @@ namespace PER.Demo.Effects {
         };
         public bool hasModifiers => false;
         public bool drawable => false;
-        public bool ended => false;
 
         public (Vector2, RenderCharacter) ApplyModifiers(Vector2 position, RenderCharacter character) =>
             (position, character);
+
+        public void Update(bool fullscreen) { }
 
         public void Draw(Vector2Int position) { }
     }
