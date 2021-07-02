@@ -1,8 +1,10 @@
 ﻿using System;
 
+using PER.Abstractions.Input;
 using PER.Util;
 
 using SFML.System;
+using SFML.Window;
 
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -54,5 +56,11 @@ namespace PRR.Sfml {
 
             return sfmlImage;
         }
+
+        public static KeyCode ToPerKey(Keyboard.Key key) => (KeyCode)key;
+        public static Keyboard.Key ToSfmlKey(KeyCode key) => (Keyboard.Key)key;
+
+        public static MouseButton ToPerMouseButton(Mouse.Button button) => (MouseButton)button;
+        public static Mouse.Button ToSfmlMouseButton(MouseButton button) => (Mouse.Button)button;
     }
 }

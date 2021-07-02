@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
+using PER.Abstractions.Input;
 using PER.Util;
 
 namespace PER.Abstractions.Renderer {
@@ -41,9 +42,7 @@ namespace PER.Abstractions.Renderer {
 
         public virtual Color background { get; set; } = Color.black;
 
-        public virtual Vector2Int mousePosition { get; protected set; } = new(-1, -1);
-        public virtual Vector2 accurateMousePosition { get; protected set; } = new(-1f, -1f);
-
+        public IInputManager input { get; protected set; }
         public Dictionary<string, IEffect> formattingEffects { get; } = new();
         
         protected List<IEffectContainer> fullscreenEffects { get; private set; }

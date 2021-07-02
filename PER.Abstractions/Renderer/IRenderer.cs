@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 
+using PER.Abstractions.Input;
 using PER.Util;
 
 namespace PER.Abstractions.Renderer {
@@ -17,8 +18,7 @@ namespace PER.Abstractions.Renderer {
         
         public Color background { get; set; }
         
-        public Vector2Int mousePosition { get; }
-        public Vector2 accurateMousePosition { get; }
+        public IInputManager input { get; }
         
         public Dictionary<string, IEffect> formattingEffects { get; }
 

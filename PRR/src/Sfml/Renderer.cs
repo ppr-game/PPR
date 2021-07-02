@@ -12,8 +12,11 @@ using Shader = SFML.Graphics.Shader;
 
 namespace PRR.Sfml {
     public class Renderer : RendererBase, IDisposable {
-        public override bool open => _window.IsOpen;
-        public override bool focused => _window.HasFocus();
+        public override bool open => window.IsOpen;
+        public override bool focused => window.HasFocus();
+        
+        public Text text { get; private set; }
+        public RenderWindow window { get; private set; }
 
         private bool _swapTextures;
 
@@ -27,65 +30,59 @@ namespace PRR.Sfml {
         private Sprite _mainSprite;
         private Sprite _additionalSprite;
 
-        private Text _text;
         private Vector2f _textPosition;
-        private RenderWindow _window;
 
-        public override void Update() => _window.DispatchEvents();
+        public override void Update() {
+            window.DispatchEvents();
+            input.Update();
+        }
 
-        public override void Finish() => _window?.Close();
+        public override void Finish() {
+            input.Finish();
+            window?.Close();
+        }
 
         protected override void CreateWindow() {
-            if(_window?.IsOpen ?? false) _window.Close();
+            if(window?.IsOpen ?? false) window.Close();
             UpdateFont();
             
             VideoMode videoMode = fullscreen ? VideoMode.FullscreenModes[0] :
                 new VideoMode((uint)(width * font.size.x), (uint)(height * font.size.y));
 
-            _window = new RenderWindow(videoMode, title, fullscreen ? Styles.Fullscreen : Styles.Close);
-            _window.SetView(new View(new Vector2f(videoMode.Width / 2f, videoMode.Height / 2f),
+            window = new RenderWindow(videoMode, title, fullscreen ? Styles.Fullscreen : Styles.Close);
+            window.SetView(new View(new Vector2f(videoMode.Width / 2f, videoMode.Height / 2f),
                 new Vector2f(videoMode.Width, videoMode.Height)));
             
             if(File.Exists(this.icon)) {
                 SFML.Graphics.Image icon = new(this.icon);
-                _window.SetIcon(icon.Size.X, icon.Size.Y, icon.Pixels);
+                window.SetIcon(icon.Size.X, icon.Size.Y, icon.Pixels);
             }
             
-            _window.Closed += (_, _) => Finish();
-            _window.MouseMoved += UpdateMousePosition;
-            _window.SetKeyRepeatEnabled(false);
+            window.Closed += (_, _) => Finish();
+            window.SetKeyRepeatEnabled(false);
                 
             _mainRenderTexture = new RenderTexture(videoMode.Width, videoMode.Height);
             _additionalRenderTexture = new RenderTexture(videoMode.Width, videoMode.Height);
             _mainSprite = new Sprite(_mainRenderTexture.Texture);
             _additionalSprite = new Sprite(_additionalRenderTexture.Texture);
                 
-            _textPosition = new Vector2f((videoMode.Width - _text.imageWidth) / 2f,
-                (videoMode.Height - _text.imageHeight) / 2f);
+            _textPosition = new Vector2f((videoMode.Width - text.imageWidth) / 2f,
+                (videoMode.Height - text.imageHeight) / 2f);
 
             UpdateFramerate();
+
+            input = new InputManager { renderer = this };
+            input.Setup();
         }
 
         protected override IEffectContainer CreateEffectContainer() => new EffectContainer();
         protected override void CreateText() =>
-            _text = new Text(font, new Vector2Int(width, height)) { text = display };
+            text = new Text(font, new Vector2Int(width, height)) { text = display };
 
         protected override void UpdateFramerate() {
-            if(_window is null) return;
-            _window.SetFramerateLimit(framerate <= 0 ? 0 : (uint)framerate);
-            _window.SetVerticalSyncEnabled(framerate == (int)ReservedFramerates.Vsync);
-        }
-
-        private void UpdateMousePosition(object caller, MouseMoveEventArgs mouse) {
-            if(!_window.HasFocus()) {
-                mousePosition = new Vector2Int(-1, -1);
-                accurateMousePosition = new Vector2(-1f, -1f);
-                return;
-            }
-
-            accurateMousePosition = new Vector2((mouse.X - _window.Size.X / 2f + _text.imageWidth / 2f) / font.size.x,
-                (mouse.Y - _window.Size.Y / 2f + _text.imageHeight / 2f) / font.size.y);
-            mousePosition = new Vector2Int((int)accurateMousePosition.x, (int)accurateMousePosition.y);
+            if(window is null) return;
+            window.SetFramerateLimit(framerate <= 0 ? 0 : (uint)framerate);
+            window.SetVerticalSyncEnabled(framerate == (int)ReservedFramerates.Vsync);
         }
 
         public override void Draw() => Draw(false);
@@ -94,17 +91,17 @@ namespace PRR.Sfml {
             SFML.Graphics.Color background = SfmlConverters.ToSfmlColor(this.background);
             
             if(drawFont) {
-                _window.Clear(background);
-                _text.DrawFont(_window);
-                _window.Display();
+                window.Clear(background);
+                text.DrawFont(window);
+                window.Display();
                 return;
             }
 
             DrawAllEffects();
 
-            _text.RebuildQuads(_textPosition, fullscreenEffects, effects);
+            text.RebuildQuads(_textPosition, fullscreenEffects, effects);
             
-            _window.Clear(background);
+            window.Clear(background);
             _mainRenderTexture.Clear(background);
             _additionalRenderTexture.Clear(background);
             _mainRenderTexture.Display();
@@ -112,7 +109,7 @@ namespace PRR.Sfml {
 
             RunPipelines();
             
-            _window.Display();
+            window.Display();
         }
 
         private void RunPipelines() {
@@ -134,16 +131,16 @@ namespace PRR.Sfml {
                 case PipelineStep.Type.Text:
                     step.shader?.SetUniform("current", currentRenderTexture.Texture);
                     step.shader?.SetUniform("target", otherRenderTexture.Texture);
-                    _text.DrawQuads(_window, step.blendMode, step.shader);
+                    text.DrawQuads(window, step.blendMode, step.shader);
                     break;
                 case PipelineStep.Type.Screen:
                     step.shader?.SetUniform("current", currentRenderTexture.Texture);
                     step.shader?.SetUniform("target", otherRenderTexture.Texture);
-                    currentSprite.Draw(_window, step.renderState);
+                    currentSprite.Draw(window, step.renderState);
                     break;
                 case PipelineStep.Type.TemporaryText:
                     step.shader?.SetUniform("current", Shader.CurrentTexture);
-                    _text.DrawQuads(currentRenderTexture, step.blendMode, step.shader);
+                    text.DrawQuads(currentRenderTexture, step.blendMode, step.shader);
                     break;
                 case PipelineStep.Type.TemporaryScreen:
                     step.shader?.SetUniform("current", Shader.CurrentTexture);
@@ -164,8 +161,8 @@ namespace PRR.Sfml {
             _additionalRenderTexture?.Dispose();
             _mainSprite?.Dispose();
             _additionalSprite?.Dispose();
-            _text?.Dispose();
-            _window?.Dispose();
+            text?.Dispose();
+            window?.Dispose();
             GC.SuppressFinalize(this);
         }
     }

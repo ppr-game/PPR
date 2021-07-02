@@ -2,6 +2,7 @@
 using System.Globalization;
 
 using PER.Abstractions;
+using PER.Abstractions.Input;
 using PER.Abstractions.Renderer;
 using PER.Demo.Effects;
 using PER.Util;
@@ -36,6 +37,8 @@ namespace PER.Demo {
             Core.engine.renderer.DrawText(new Vector2Int(0, 0),
                 $"{_fps.ToString(CultureInfo.InvariantCulture)}/{_avgFPS.ToString(CultureInfo.InvariantCulture)} FPS", 
                 Color.white, Color.transparent);
+
+            if(Core.engine.renderer.input.KeyPressed(KeyCode.F)) return;
             
             Core.engine.renderer.DrawText(new Vector2Int(0, 1),
                 @"hello everyone! this is cf00FF00FFcbConfiGcfFFFFFFFFcb and today i'm gonna show you my eGLITCHeengineeNONEe!!

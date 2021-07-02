@@ -14,7 +14,7 @@ using Shader = SFML.Graphics.Shader;
 
 namespace PRR.Sfml {
     public class Text : IDisposable {
-        public Dictionary<Vector2Int, RenderCharacter> text { get; set; }
+        public Dictionary<Vector2Int, RenderCharacter> text { get; internal set; }
         public IFont font { get; }
         public uint imageWidth { get; }
         public uint imageHeight { get; }
