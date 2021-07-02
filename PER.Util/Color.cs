@@ -26,6 +26,19 @@ namespace PER.Util {
         }
 
         public static Color Blend(Color bottom, Color top) {
+            // i've spent SO MUCH time fixing this bug_
+            // so, when i tried drawing something over a character which previously had a transparent background,
+            // the background was transparent, even tho i wasn't drawing it with a transparent background.
+            // i tried *everything*, and when i finally decided to actually debug it,
+            // it turned out the the RGB of the color was NaN for some reason.
+            // i immediately realized i was dividing by 0 somewhere.
+            // i went here, and the only pace that had division was... yep, it's here, RGB of the color.
+            // when i drew transparent over transparent, both bottom.a and top.a were 0,
+            // which caused a to be 0, which caused a division by 0, which caused the RGB of the color be NaN,NaN,NaN,
+            // which caused any other operation with that color return NaN, which was displaying as if it was black...
+            // i wanna f---ing die.
+            if(bottom.a == 0f && top.a == 0f) return transparent;
+            
             float t = (1f - top.a) * bottom.a;
             float a = t + top.a;
 
@@ -49,7 +62,7 @@ namespace PER.Util {
             new(left.r + right.r, left.g + right.g, left.b + right.b, left.a + right.a);
 
         public static Color operator -(Color left, Color right) =>
-            new(left.r - right.r, left.g - right.g, left.b - right.b, left.a - right.a);
+            new(left.r - right.r, left.g - right.g, left.b - right.b, right.a);
 
         public static Color operator *(Color left, float right) =>
             new(left.r * right, left.g * right, left.b * right, left.a * right);
