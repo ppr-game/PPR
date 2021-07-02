@@ -104,7 +104,12 @@ namespace PER.Abstractions.Renderer {
         private void DrawEffects() {
             foreach((Vector2Int position, IEffectContainer effectContainer) in effects) {
                 IEffect effect = effectContainer.effect;
-                if(effect is null || !effect.drawable) continue;
+                if(effect is null || effect.ended) {
+                    effectContainer.effect = null;
+                    continue;
+                }
+
+                if(!effect.drawable) continue;
                 effect.Draw(position);
             }
         }
@@ -131,7 +136,7 @@ namespace PER.Abstractions.Renderer {
             
             if((options & RenderOptions.BackgroundAlphaBlending) != 0) {
                 RenderCharacter currentCharacter = GetCharacter(position);
-                Color background = Color.Blend(currentCharacter.background, character.background);
+                Color background = currentCharacter.background.Blend(character.background);
                 character = new RenderCharacter(character.character, background, character.foreground, character.style);
             }
 
