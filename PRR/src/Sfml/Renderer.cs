@@ -100,8 +100,7 @@ namespace PRR.Sfml {
                 return;
             }
 
-            DrawEffects();
-            DrawFullscreenEffects();
+            DrawAllEffects();
 
             _text.RebuildQuads(_textPosition, fullscreenEffects, effects);
             
@@ -114,30 +113,6 @@ namespace PRR.Sfml {
             RunPipelines();
             
             _window.Display();
-        }
-
-        private void DrawFullscreenEffects() {
-            for(int i = 0; i < fullscreenEffects.Count; i++) {
-                IEffectContainer effectContainer = fullscreenEffects[i];
-                while(effectContainer.effect.ended) {
-                    fullscreenEffects.RemoveAt(i);
-                    effectContainer = fullscreenEffects[i];
-                }
-
-                IEffect effect = effectContainer.effect;
-                if(!effect.drawable) continue;
-                for(int y = 0; y < height; y++)
-                    for(int x = 0; x < width; x++)
-                        effect.Draw(new Vector2Int(x, y));
-            }
-        }
-
-        private void DrawEffects() {
-            foreach((Vector2Int position, IEffectContainer effectContainer) in effects) {
-                IEffect effect = effectContainer.effect;
-                if(effect is null || !effect.drawable) continue;
-                effect.Draw(position);
-            }
         }
 
         private void RunPipelines() {

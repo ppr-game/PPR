@@ -97,6 +97,35 @@ namespace PER.Abstractions.Renderer {
         public virtual void Clear() => display.Clear();
         public abstract void Draw();
 
+        protected void DrawAllEffects() {
+            DrawEffects();
+            DrawFullscreenEffects();
+        }
+
+        private void DrawEffects() {
+            foreach((Vector2Int position, IEffectContainer effectContainer) in effects) {
+                IEffect effect = effectContainer.effect;
+                if(effect is null || !effect.drawable) continue;
+                effect.Draw(position);
+            }
+        }
+
+        private void DrawFullscreenEffects() {
+            for(int i = 0; i < fullscreenEffects.Count; i++) {
+                IEffectContainer effectContainer = fullscreenEffects[i];
+                while(effectContainer.effect.ended) {
+                    fullscreenEffects.RemoveAt(i);
+                    effectContainer = fullscreenEffects[i];
+                }
+
+                IEffect effect = effectContainer.effect;
+                if(!effect.drawable) continue;
+                for(int y = 0; y < height; y++)
+                    for(int x = 0; x < width; x++)
+                        effect.Draw(new Vector2Int(x, y));
+            }
+        }
+
         public virtual void DrawCharacter(Vector2Int position, RenderCharacter character,
             RenderOptions options = RenderOptions.Default, IEffect effect = null) {
             if(position.x < 0 || position.y < 0 || position.x >= width || position.y >= height) return;
