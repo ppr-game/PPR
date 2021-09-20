@@ -20,6 +20,9 @@ Visuals inspired by [Cogmind](https://store.steampowered.com/app/722730/Cogmind)
 
 
 ## How to play
+### Downloading
+Go to [releases](https://github.com/ppr-game/PPR/releases) tab and download the game from assets. (Windows/Linux)
+
 ### Install levels
 Unpack levels in `game's folder/levels` to play them
 
