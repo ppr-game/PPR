@@ -9,6 +9,11 @@ namespace PER.Util {
             this.x = x;
             this.y = y;
         }
+        
+        public bool InBounds(int minX, int minY, int maxX, int maxY) =>
+            x >= minX && x <= maxX && y >= minY && y <= maxY;
+        public bool InBounds(Vector2Int min, Vector2Int max) => InBounds(min.x, min.y, max.x, max.y);
+        public bool InBounds(Bounds bounds) => InBounds(bounds.min, bounds.max);
 
         public static Vector2Int operator +(Vector2Int left, Vector2Int right) =>
             new(left.x + right.x, left.y + right.y);

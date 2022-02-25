@@ -5,7 +5,7 @@ namespace PER.Util {
         public static Color transparent => new(0f, 0f, 0f, 0f);
         public static Color black => new(0f, 0f, 0f, 1f);
         public static Color white => new(1f, 1f, 1f, 1f);
-        
+
         public float r { get; }
         public float g { get; }
         public float b { get; }
@@ -38,7 +38,7 @@ namespace PER.Util {
             // which caused any other operation with that color return NaN, which was displaying as if it was black...
             // i wanna f---ing die.
             if(bottom.a == 0f && top.a == 0f) return transparent;
-            
+
             float t = (1f - top.a) * bottom.a;
             float a = t + top.a;
 
@@ -53,10 +53,10 @@ namespace PER.Util {
 
         public static Color LerpColors(Color a, Color b, float t) => t <= 0f ? a :
             t >= 1f ? b :
-            new Color(MathF.Floor(a.r + (b.r - a.r) * t),
-                g: MathF.Floor(a.g + (b.g - a.g) * t),
-                MathF.Floor(a.b + (b.b - a.b) * t),
-                MathF.Floor(a.a + (b.a - a.a) * t));
+            new Color(a.r + (b.r - a.r) * t,
+                a.g + (b.g - a.g) * t,
+                a.b + (b.b - a.b) * t,
+                a.a + (b.a - a.a) * t);
 
         public static Color operator +(Color left, Color right) =>
             new(left.r + right.r, left.g + right.g, left.b + right.b, left.a + right.a);

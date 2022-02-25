@@ -2,7 +2,7 @@
 
 namespace PER.Abstractions.Renderer {
     [Flags]
-    public enum RenderStyle {
+    public enum RenderStyle : byte {
         None = 0,
         All = 0b1111,
         AllPerFont = 0b0111,

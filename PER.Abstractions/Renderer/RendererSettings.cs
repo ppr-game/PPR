@@ -6,7 +6,7 @@
         public int framerate { get; init; }
         public bool fullscreen { get; init; }
         public IFont font { get; init; }
-        public string icon { get; init; }
+        public string? icon { get; init; }
 
         public RendererSettings(IRenderer renderer) {
             title = renderer.title;
