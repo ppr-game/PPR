@@ -21,8 +21,8 @@ public interface IInputManager {
     public Vector2 accurateMousePosition { get; }
     public Vector2 normalizedMousePosition { get; }
 
-    public event EventHandler<TextEnteredEventArgs> textEntered;
-    public event EventHandler<IInputManager.ScrolledEventArgs> scrolled;
+    public event EventHandler<TextEnteredEventArgs>? textEntered;
+    public event EventHandler<IInputManager.ScrolledEventArgs>? scrolled;
 
     public void Setup();
     public void Update();

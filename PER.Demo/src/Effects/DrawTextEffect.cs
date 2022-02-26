@@ -3,22 +3,22 @@
 using PER.Abstractions.Renderer;
 using PER.Util;
 
-namespace PER.Demo.Effects {
-    public class DrawTextEffect : IEffect {
-        public IEnumerable<PipelineStep> pipeline { get; } = new[] {
-            new PipelineStep {
-                stepType = PipelineStep.Type.Text,
-                blendMode = BlendMode.alpha
-            }
-        };
-        public bool hasModifiers => false;
-        public bool drawable => false;
+namespace PER.Demo.Effects;
 
-        public (Vector2, RenderCharacter) ApplyModifiers(Vector2 position, RenderCharacter character) =>
-            (position, character);
+public class DrawTextEffect : IEffect {
+    public IEnumerable<PipelineStep>? pipeline { get; } = new[] {
+        new PipelineStep {
+            stepType = PipelineStep.Type.Text,
+            blendMode = BlendMode.alpha
+        }
+    };
+    public bool hasModifiers => false;
+    public bool drawable => false;
 
-        public void Update(bool fullscreen) { }
+    public (Vector2, RenderCharacter) ApplyModifiers(Vector2 position, RenderCharacter character) =>
+        (position, character);
 
-        public void Draw(Vector2Int position) { }
-    }
+    public void Update(bool fullscreen) { }
+
+    public void Draw(Vector2Int position) { }
 }

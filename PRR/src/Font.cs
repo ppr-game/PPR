@@ -11,137 +11,138 @@ using SixLabors.ImageSharp.Processing;
 
 using Image = SixLabors.ImageSharp.Image;
 
-namespace PRR {
-    public class Font : IFont {
-        public IReadOnlyDictionary<(char, RenderStyle), Vector2[]> characters { get; private set; }
-        public Vector2[] backgroundCharacter { get; private set; } = { new(), new(), new(), new() };
-        public Vector2Int size { get; }
-        public Image<Rgba32> image { get; private set; }
-        public string mappings { get; }
+namespace PRR;
 
-        private readonly HashSet<(char, RenderStyle)> _drawable = new();
+public class Font : IFont {
+    public IReadOnlyDictionary<(char, RenderStyle), Vector2[]> characters => _characters;
+    public Vector2[] backgroundCharacter { get; private set; } = { new(), new(), new(), new() };
+    public Vector2Int size { get; }
+    public Image<Rgba32> image { get; private set; }
+    public string mappings { get; }
 
-        public Font(string folderPath) {
-            image = Image.Load<Rgba32>(Path.Join(folderPath, "font.png"));
-            
-            string[] fontMappingsLines = File.ReadAllLines(Path.Join(folderPath, "mappings.txt"));
-            string[] fontSizeStr = fontMappingsLines[0].Split(',');
-            mappings = fontMappingsLines[1];
-            size = new Vector2Int(int.Parse(fontSizeStr[0], CultureInfo.InvariantCulture),
-                int.Parse(fontSizeStr[1], CultureInfo.InvariantCulture));
+    private readonly HashSet<(char, RenderStyle)> _drawable = new();
+    private readonly Dictionary<(char, RenderStyle), Vector2[]> _characters = new();
 
-            Setup(fontSizeStr[2][0]);
+    public Font(string folderPath) {
+        image = Image.Load<Rgba32>(Path.Join(folderPath, "font.png"));
+
+        string[] fontMappingsLines = File.ReadAllLines(Path.Join(folderPath, "mappings.txt"));
+        string[] fontSizeStr = fontMappingsLines[0].Split(',');
+        mappings = fontMappingsLines[1];
+        size = new Vector2Int(int.Parse(fontSizeStr[0], CultureInfo.InvariantCulture),
+            int.Parse(fontSizeStr[1], CultureInfo.InvariantCulture));
+
+        Setup(fontSizeStr[2][0]);
+    }
+
+    public Font(Image<Rgba32> image, string mappings, Vector2Int size, char backgroundCharacter) {
+        this.image = image;
+        this.size = size;
+        this.mappings = mappings;
+        Setup(backgroundCharacter);
+    }
+
+    public bool IsCharacterDrawable(char character, RenderStyle style) => _drawable.Contains((character, style));
+
+    private void Setup(char backgroundCharacter) {
+        int originalHeight = image.Height;
+        image = GenerateFontStyles(image, size);
+
+        _characters.Clear();
+
+        int index = 0;
+        for(int y = 0; y < image.Height; y += size.y)
+            for(int x = 0; x < image.Width; x += size.x)
+                AddCharacter(x, y, ref index, originalHeight, backgroundCharacter);
+    }
+
+    private void AddCharacter(int x, int y, ref int index, int originalHeight, char backgroundCharacter) {
+        if(mappings.Length <= index) index = 0;
+        if(IsCharacterEmpty(image, x, y, size)) {
+            index++;
+            return;
         }
 
-        public Font(Image<Rgba32> image, string mappings, Vector2Int size, char backgroundCharacter) {
-            this.image = image;
-            this.size = size;
-            this.mappings = mappings;
-            Setup(backgroundCharacter);
+        RenderStyle style = (RenderStyle)(y / originalHeight);
+        char character = mappings[index];
+        _drawable.Add((character, style));
+
+        Vector2[] texCoords = new Vector2[4];
+        // Clockwise
+        texCoords[0] = new Vector2(x, y); // top left
+        texCoords[1] = new Vector2(x + size.x, y); // top right
+        texCoords[2] = new Vector2(x + size.x, y + size.y); // bottom right
+        texCoords[3] = new Vector2(x, y + size.y); // bottom left
+        _characters.Add((character, style), texCoords);
+
+        if(character == backgroundCharacter && style == RenderStyle.None) this.backgroundCharacter = texCoords;
+
+        index++;
+    }
+
+    private static Image<Rgba32> GenerateFontStyles(Image image, Vector2Int characterSize) {
+        Image<Rgba32> newImage = new(image.Width, image.Height * ((int)RenderStyle.AllPerFont + 1));
+
+        for(RenderStyle style = RenderStyle.None; style <= RenderStyle.AllPerFont; style++) {
+            int imageOffset = image.Height * (int)style;
+            GenerateStyle(image, newImage, style, characterSize, imageOffset);
         }
 
-        public bool IsCharacterDrawable(char character, RenderStyle style) => _drawable.Contains((character, style));
+        return newImage;
+    }
 
-        private void Setup(char backgroundCharacter) {
-            int originalHeight = image.Height;
-            image = GenerateFontStyles(image, size);
+    private static void GenerateStyle(Image sourceImage, Image<Rgba32> stylesImage, RenderStyle style,
+        Vector2Int characterSize, int imageOffset) {
+        stylesImage.Mutate(ipc =>
+            ipc.DrawImage(sourceImage, new Point(0, imageOffset), new GraphicsOptions { Antialias = false }));
 
-            Dictionary<(char, RenderStyle), Vector2[]> characters = new();
+        bool bold = style.HasFlag(RenderStyle.Bold);
+        bool underline = style.HasFlag(RenderStyle.Underline);
+        bool strikethrough = style.HasFlag(RenderStyle.Strikethrough);
 
-            int index = 0;
-            for(int y = 0; y < image.Height; y += size.y) {
-                for(int x = 0; x < image.Width; x += size.x) {
-                    if(mappings.Length <= index) index = 0;
-                    if(IsCharacterEmpty(image, x, y, size)) {
-                        index++;
-                        continue;
-                    }
-
-                    RenderStyle style = (RenderStyle)(y / originalHeight);
-                    char character = mappings[index];
-                    _drawable.Add((character, style));
-
-                    Vector2[] texCoords = new Vector2[4];
-                    // Clockwise
-                    texCoords[0] = new Vector2(x, y); // top left
-                    texCoords[1] = new Vector2(x + size.x, y); // top right
-                    texCoords[2] = new Vector2(x + size.x, y + size.y); // bottom right
-                    texCoords[3] = new Vector2(x, y + size.y); // bottom left
-                    characters.Add((character, style), texCoords);
-
-                    if(character == backgroundCharacter && style == RenderStyle.None) this.backgroundCharacter = texCoords;
-
-                    index++;
-                }
-            }
-
-            this.characters = characters;
-        }
-
-        private static Image<Rgba32> GenerateFontStyles(Image image, Vector2Int characterSize) {
-            Image<Rgba32> newImage = new(image.Width, image.Height * ((int)RenderStyle.AllPerFont + 1));
-            
-            for(RenderStyle style = RenderStyle.None; style <= RenderStyle.AllPerFont; style++) {
-                int imageOffset = image.Height * (int)style;
-                GenerateStyle(image, newImage, style, characterSize, imageOffset);
-            }
-
-            return newImage;
-        }
-
-        private static void GenerateStyle(Image sourceImage, Image<Rgba32> stylesImage, RenderStyle style,
-            Vector2Int characterSize, int imageOffset) {
+        if(bold)
             stylesImage.Mutate(ipc =>
-                ipc.DrawImage(sourceImage, new Point(0, imageOffset), new GraphicsOptions { Antialias = false }));
-                
-            bool bold = style.HasFlag(RenderStyle.Bold);
-            bool underline = style.HasFlag(RenderStyle.Underline);
-            bool strikethrough = style.HasFlag(RenderStyle.Strikethrough);
+                ipc.DrawImage(sourceImage, new Point(1, imageOffset), new GraphicsOptions { Antialias = false }));
 
-            if(bold)
-                stylesImage.Mutate(ipc =>
-                    ipc.DrawImage(sourceImage, new Point(1, imageOffset), new GraphicsOptions { Antialias = false }));
+        if(!underline && !strikethrough) return;
+        int underlineThickness = characterSize.y / 10;
+        int strikethroughThickness = characterSize.y / 10;
+        for(int y = 0; y < sourceImage.Height; y += characterSize.y) {
+            if(underline)
+                AddUnderline(stylesImage, y + imageOffset, characterSize.y, underlineThickness);
 
-            if(!underline && !strikethrough) return;
-            int underlineThickness = characterSize.y / 10;
-            int strikethroughThickness = characterSize.y / 10;
-            for(int y = 0; y < sourceImage.Height; y += characterSize.y) {
-                if(underline)
-                    AddUnderline(stylesImage, y + imageOffset, characterSize.y, underlineThickness);
-                    
-                if(strikethrough)
-                    AddStrikethrough(stylesImage, y + imageOffset, characterSize.y,
-                        strikethroughThickness);
-            }
+            if(strikethrough)
+                AddStrikethrough(stylesImage, y + imageOffset, characterSize.y,
+                    strikethroughThickness);
         }
+    }
 
-        private static void AddUnderline(Image<Rgba32> image, int y, int characterHeight, int thickness) {
-            for(int x = 0; x < image.Width; x++)
-                AddUnderline(image, x, y, characterHeight, thickness);
-        }
+    private static void AddUnderline(Image<Rgba32> image, int y, int characterHeight, int thickness) {
+        for(int x = 0; x < image.Width; x++)
+            AddUnderline(image, x, y, characterHeight, thickness);
+    }
 
-        private static void AddUnderline(Image<Rgba32> image, int x, int y, int characterHeight, int thickness) {
-            for(int i = 0; i < thickness; i++)
-                image[x, y + characterHeight - 1 - i] = new Rgba32(255, 255, 255);
-        }
+    private static void AddUnderline(Image<Rgba32> image, int x, int y, int characterHeight, int thickness) {
+        for(int i = 0; i < thickness; i++)
+            image[x, y + characterHeight - 1 - i] = new Rgba32(255, 255, 255);
+    }
 
-        private static void AddStrikethrough(Image<Rgba32> image, int y, int characterHeight, int thickness) {
-            for(int x = 0; x < image.Width; x++)
-                AddStrikethrough(image, x, y, characterHeight, thickness);
-        }
+    private static void AddStrikethrough(Image<Rgba32> image, int y, int characterHeight, int thickness) {
+        for(int x = 0; x < image.Width; x++)
+            AddStrikethrough(image, x, y, characterHeight, thickness);
+    }
 
-        private static void AddStrikethrough(Image<Rgba32> image, int x, int y, int characterHeight, int thickness) {
-            for(int i = 0; i < thickness; i++)
-                image[x, y + (characterHeight - thickness) / 2 + i] = new Rgba32(255, 255, 255);
-        }
+    private static void AddStrikethrough(Image<Rgba32> image, int x, int y, int characterHeight, int thickness) {
+        for(int i = 0; i < thickness; i++)
+            image[x, y + (characterHeight - thickness) / 2 + i] = new Rgba32(255, 255, 255);
+    }
 
-        private static bool IsCharacterEmpty(Image<Rgba32> image, int startX, int startY, Vector2Int characterSize) {
-            for(int y = startY; y < startY + characterSize.y; y++)
-                for(int x = startX; x < startX + characterSize.x; x++)
-                    if(image[x, y].A != 0)
-                        return false;
+    private static bool IsCharacterEmpty(Image<Rgba32> image, int startX, int startY, Vector2Int characterSize) {
+        for(int y = startY; y < startY + characterSize.y; y++)
+            for(int x = startX; x < startX + characterSize.x; x++)
+                if(image[x, y].A != 0)
+                    return false;
 
-            return true;
-        }
+        return true;
     }
 }
