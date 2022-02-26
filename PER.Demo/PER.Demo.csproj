@@ -32,22 +32,21 @@
         <None Update="resources\graphics\default_vert.glsl">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-        <None Update="resources\graphics\font.png">
+        <None Update="resources\graphics\font\font.png">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-        <None Update="resources\graphics\mappings.txt">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="resources\audio\buttonClick.wav">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="resources\audio\slider.wav">
+        <None Update="resources\graphics\font\mappings.txt">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
     
     <ItemGroup>
       <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <Folder Include="resources\Default\resources" />
+      <Folder Include="resources\_SomeOtherResources\resources\graphics" />
     </ItemGroup>
 
 </Project>

@@ -22,9 +22,16 @@ public class AudioManager : IAudio, IDisposable {
     public bool TryGetPlayable(string id, [MaybeNullWhen(false)] out IPlayable playable) =>
         _storedPlayables.TryGetValue(id, out playable);
 
+    public void Reset() {
+        Sound.Reset();
+        _allPlayables.Clear();
+        _storedPlayables.Clear();
+    }
+
     public void Finish() {
         Sound.Finish();
         Dispose();
+        Reset();
     }
 
     public void Dispose() {

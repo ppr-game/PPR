@@ -86,7 +86,6 @@ public abstract class RendererBase : IRenderer {
         display = new Dictionary<Vector2Int, RenderCharacter>(width * height);
         effects = new Dictionary<Vector2Int, IEffect>(width * height);
         fullscreenEffects = new List<IEffect>();
-        formattingEffects.Clear();
 
         CreateText();
     }

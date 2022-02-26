@@ -7,10 +7,12 @@ using PER.Abstractions;
 using PER.Abstractions.Audio;
 using PER.Abstractions.Input;
 using PER.Abstractions.Renderer;
+using PER.Abstractions.Resources;
 using PER.Abstractions.UI;
 using PER.Demo.Effects;
 using PER.Util;
 
+using PRR;
 using PRR.UI;
 
 namespace PER.Demo;
@@ -21,22 +23,58 @@ public class Game : IGame {
     private int _tempAvgFPS;
     private int _tempAvgFPSCounter;
 
-    private readonly DrawTextEffect _drawTextEffect = new();
-    private readonly BloomEffect _bloomEffect = new();
-    private readonly GlitchEffect _glitchEffect = new();
+    private DrawTextEffect? _drawTextEffect;
+    private BloomEffect? _bloomEffect;
+    private GlitchEffect? _glitchEffect;
 
     private readonly List<Element> _ui = new();
     private ProgressBar? _testProgressBar;
 
-    public void Setup() {
+    private void InitialLoad() {
+        //foreach(ResourcePackData packData in Core.engine.resources.GetAvailablePacks())
+        //    Core.engine.resources.TryAddPack(packData);
+
+        Core.engine.resources.Load();
+
+        _drawTextEffect = new DrawTextEffect();
+        _bloomEffect = new BloomEffect();
+        _glitchEffect = new GlitchEffect();
+
+        Core.engine.renderer.formattingEffects.Clear();
         Core.engine.renderer.formattingEffects.Add("NONE", null);
         Core.engine.renderer.formattingEffects.Add("GLITCH", _glitchEffect);
-
-        CreateUi();
-        CreateAudio();
     }
 
-    private void CreateUi() {
+    public void Load() {
+        foreach(ResourcePackData packData in Core.engine.resources.GetAvailablePacks()) {
+            if(packData.name != "Default") continue;
+            Core.engine.resources.TryAddPack(packData);
+            break;
+        }
+        InitialLoad();
+        if(!Core.engine.resources.TryGetResource(Path.Combine("graphics", "font"), out string? fontPath)) return;
+        Core.engine.resources.TryGetResource(Path.Combine("graphics", "icon"), out string? iconPath);
+        Core.engine.Start(new RendererSettings {
+            title = "PER Demo Pog",
+            width = 80,
+            height = 60,
+            framerate = 0,
+            fullscreen = false,
+            font = new Font(fontPath),
+            icon = iconPath
+        });
+    }
+
+    public void Reload() {
+        Core.engine.resources.Unload();
+        foreach(ResourcePackData packData in Core.engine.resources.GetAvailablePacks())
+            Core.engine.resources.TryAddPack(packData);
+        InitialLoad();
+        if(Core.engine.resources.TryGetResource(Path.Combine("graphics", "font"), out string? fontPath))
+            Core.engine.renderer.font = new Font(fontPath);
+    }
+
+    public void Setup() {
         IRenderer renderer = Core.engine.renderer;
         IAudio audio = Core.engine.audio;
 
@@ -114,33 +152,38 @@ public class Game : IGame {
         Slider testSlider = new(renderer) {
             audio = audio,
             position = new Vector2Int(0, 47),
-            width = 20,
-            minValue = 0.1f,
-            maxValue = 2f
+            width = 21,
+            minValue = 0f,
+            maxValue = 1f
         };
         testSlider.onValueChanged += (_, _) => {
             testSliderText.text = testSlider.value.ToString(CultureInfo.InvariantCulture);
+
+            if(Core.engine.audio.TryGetPlayable(Button.ClickSoundId, out IPlayable? playable))
+                playable.volume = testSlider.value;
+
+            if(Core.engine.audio.TryGetPlayable(Slider.ValueChangedSoundId, out playable))
+                playable.volume = testSlider.value;
         };
-        testSlider.value = 0.1f;
+        testSlider.value = 0.2f;
         _ui.Add(testSlider);
+
+        Button testButton3 = new(renderer) {
+            audio = audio,
+            position = new Vector2Int(0, 49),
+            size = new Vector2Int(6, 1),
+            text = "reload"
+        };
+        testButton3.onClick += (_, _) => {
+            Reload();
+        };
+        _ui.Add(testButton3);
 
         _testProgressBar = new ProgressBar(renderer) {
             position = new Vector2Int(0, 58),
             size = new Vector2Int(80, 2)
         };
         _ui.Add(_testProgressBar);
-    }
-
-    private static void CreateAudio() {
-        IAudio audio = Core.engine.audio;
-
-        IPlayable buttonClick = audio.CreateSound(Path.Combine(Engine.audioPath, "buttonClick.wav"));
-        buttonClick.volume = 0.3f;
-        audio.TryStorePlayable(Button.ClickSoundId, buttonClick);
-
-        IPlayable sliderValueChanged = audio.CreateSound(Path.Combine(Engine.audioPath, "slider.wav"));
-        sliderValueChanged.volume = 0.3f;
-        audio.TryStorePlayable(Slider.ValueChangedSoundId, sliderValueChanged);
     }
 
     public void Update() {
@@ -152,6 +195,8 @@ public class Game : IGame {
             _tempAvgFPS = 0;
             _tempAvgFPSCounter = 0;
         }
+
+        if(_drawTextEffect is null || _bloomEffect is null) return;
 
         IRenderer renderer = Core.engine.renderer;
 

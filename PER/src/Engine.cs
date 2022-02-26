@@ -7,6 +7,7 @@ using NLog;
 using PER.Abstractions;
 using PER.Abstractions.Audio;
 using PER.Abstractions.Renderer;
+using PER.Abstractions.Resources;
 using PER.Util;
 
 namespace PER;
@@ -20,10 +21,6 @@ public class Engine {
 
     public event EventHandler? setupFinished;
 
-    public static string resourcesPath => "resources";
-    public static string graphicsPath => Path.Combine(resourcesPath, "graphics");
-    public static string audioPath => Path.Combine(resourcesPath, "audio");
-
     public IReadOnlyStopwatch clock => _clock;
     public double deltaTime { get; private set; }
 
@@ -31,16 +28,20 @@ public class Engine {
     public IGame game { get; }
     public IRenderer renderer { get; }
     public IAudio audio { get; }
+    public IResources resources { get; }
 
     private readonly Stopwatch _clock = new();
     private TimeSpan _prevTime;
     private double _tickAccumulator;
 
-    public Engine(IGame game, IRenderer renderer, IAudio audio) {
+    public Engine(IGame game, IRenderer renderer, IAudio audio, IResources resources) {
         this.game = game;
         this.renderer = renderer;
         this.audio = audio;
+        this.resources = resources;
     }
+
+    public void Load() => game.Load();
 
     public void Start(RendererSettings rendererSettings) {
         try {

@@ -30,6 +30,7 @@ public class Slider : Element {
         set {
             if(_value == value) return;
             _value = value;
+            _relativeValue = (int)(width * _value);
             if(valueChangedSound is not null) valueChangedSound.status = PlaybackStatus.Playing;
             else if(audio is not null && audio.TryGetPlayable(ValueChangedSoundId, out IPlayable? playable))
                 playable.status = PlaybackStatus.Playing;

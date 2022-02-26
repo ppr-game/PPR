@@ -12,5 +12,6 @@ public interface IAudio {
     public bool TryStorePlayable(string id, IPlayable playable);
     public bool TryGetPlayable(string id, [MaybeNullWhen(false)] out IPlayable playable);
 
+    public void Reset();
     public void Finish();
 }
