@@ -1,9 +1,11 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 
 using NLog;
 
 using PER.Abstractions;
+using PER.Abstractions.Audio;
 using PER.Abstractions.Renderer;
 using PER.Util;
 
@@ -18,20 +20,26 @@ public class Engine {
 
     public event EventHandler? setupFinished;
 
+    public static string resourcesPath => "resources";
+    public static string graphicsPath => Path.Combine(resourcesPath, "graphics");
+    public static string audioPath => Path.Combine(resourcesPath, "audio");
+
     public IReadOnlyStopwatch clock => _clock;
     public double deltaTime { get; private set; }
 
     public double tickInterval { get; set; }
     public IGame game { get; }
     public IRenderer renderer { get; }
+    public IAudio audio { get; }
 
     private readonly Stopwatch _clock = new();
     private TimeSpan _prevTime;
     private double _tickAccumulator;
 
-    public Engine(IGame game, IRenderer renderer) {
+    public Engine(IGame game, IRenderer renderer, IAudio audio) {
         this.game = game;
         this.renderer = renderer;
+        this.audio = audio;
     }
 
     public void Start(RendererSettings rendererSettings) {
@@ -88,5 +96,6 @@ public class Engine {
     private void Finish() {
         renderer.Finish();
         game.Finish();
+        audio.Finish();
     }
 }

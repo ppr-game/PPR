@@ -17,8 +17,8 @@ public class MaxBlendBloomEffect : IEffect {
         },
         new PipelineStep {
             stepType = PipelineStep.Type.TemporaryScreen,
-            vertexShader = File.ReadAllText(Path.Join("resources", "default_vert.glsl")),
-            fragmentShader = File.ReadAllText(Path.Join("resources", "bloom_frag.glsl")),
+            vertexShader = File.ReadAllText(Path.Join(Engine.graphicsPath, "default_vert.glsl")),
+            fragmentShader = File.ReadAllText(Path.Join(Engine.graphicsPath, "bloom_frag.glsl")),
             blendMode = BlendMode.alpha
         },
         new PipelineStep {
@@ -26,8 +26,8 @@ public class MaxBlendBloomEffect : IEffect {
         },
         new PipelineStep {
             stepType = PipelineStep.Type.TemporaryScreen,
-            vertexShader = File.ReadAllText(Path.Join("resources", "default_vert.glsl")),
-            fragmentShader = File.ReadAllText(Path.Join("resources", "bloom_frag.glsl")),
+            vertexShader = File.ReadAllText(Path.Join(Engine.graphicsPath, "default_vert.glsl")),
+            fragmentShader = File.ReadAllText(Path.Join(Engine.graphicsPath, "bloom_frag.glsl")),
             blendMode = BlendMode.alpha
         },
         new PipelineStep {
@@ -42,8 +42,8 @@ public class MaxBlendBloomEffect : IEffect {
         },
         new PipelineStep {
             stepType = PipelineStep.Type.Screen,
-            vertexShader = File.ReadAllText(Path.Join("resources", "default_vert.glsl")),
-            fragmentShader = File.ReadAllText(Path.Join("resources", "blend-max_frag.glsl")),
+            vertexShader = File.ReadAllText(Path.Join(Engine.graphicsPath, "default_vert.glsl")),
+            fragmentShader = File.ReadAllText(Path.Join(Engine.graphicsPath, "blend-max_frag.glsl")),
             blendMode = BlendMode.alpha
         }
     };

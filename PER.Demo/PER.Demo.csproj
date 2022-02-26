@@ -9,6 +9,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\PER.Abstractions\PER.Abstractions.csproj" />
+      <ProjectReference Include="..\PER.Audio\PER.Audio.csproj" />
       <ProjectReference Include="..\PER.Util\PER.Util.csproj" />
       <ProjectReference Include="..\PER\PER.csproj" />
       <ProjectReference Include="..\PRR.UI\PRR.UI.csproj" />
@@ -22,13 +23,25 @@
         <None Update="resources\*">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-        <None Update="resources\default_vert.glsl">
+        <None Update="resources\graphics\blend-max_frag.glsl">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-        <None Update="resources\bloom_frag.glsl">
+        <None Update="resources\graphics\bloom_frag.glsl">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-        <None Update="resources\blend-max_frag.glsl">
+        <None Update="resources\graphics\default_vert.glsl">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="resources\graphics\font.png">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="resources\graphics\mappings.txt">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="resources\audio\buttonClick.wav">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="resources\audio\slider.wav">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>

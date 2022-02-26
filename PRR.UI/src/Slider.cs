@@ -1,4 +1,5 @@
-﻿using PER.Abstractions.Input;
+﻿using PER.Abstractions.Audio;
+using PER.Abstractions.Input;
 using PER.Abstractions.Renderer;
 using PER.Abstractions.UI;
 using PER.Util;
@@ -6,8 +7,10 @@ using PER.Util;
 namespace PRR.UI;
 
 public class Slider : Element {
-
     public enum State { None, Inactive, Idle, Hovered, Clicked }
+
+    public const string ValueChangedSoundId = "slider";
+    public IAudio? audio { get; set; }
 
     public override Vector2Int size {
         get => new(width, 1);
@@ -27,6 +30,9 @@ public class Slider : Element {
         set {
             if(_value == value) return;
             _value = value;
+            if(valueChangedSound is not null) valueChangedSound.status = PlaybackStatus.Playing;
+            else if(audio is not null && audio.TryGetPlayable(ValueChangedSoundId, out IPlayable? playable))
+                playable.status = PlaybackStatus.Playing;
             onValueChanged?.Invoke(this, EventArgs.Empty);
         }
     }
@@ -42,6 +48,7 @@ public class Slider : Element {
     public Color hoverColor { get; set; } = Color.white;
     public Color clickColor { get; set; } = new(0.4f, 0.4f, 0.4f, 1f);
 
+    public IPlayable? valueChangedSound;
     public event EventHandler? onValueChanged;
 
     public State currentState { get; private set; } = State.None;

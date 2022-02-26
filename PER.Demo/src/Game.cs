@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 
 using PER.Abstractions;
+using PER.Abstractions.Audio;
 using PER.Abstractions.Input;
 using PER.Abstractions.Renderer;
 using PER.Abstractions.UI;
@@ -27,10 +29,16 @@ public class Game : IGame {
     private ProgressBar? _testProgressBar;
 
     public void Setup() {
-        IRenderer renderer = Core.engine.renderer;
+        Core.engine.renderer.formattingEffects.Add("NONE", null);
+        Core.engine.renderer.formattingEffects.Add("GLITCH", _glitchEffect);
 
-        renderer.formattingEffects.Add("NONE", null);
-        renderer.formattingEffects.Add("GLITCH", _glitchEffect);
+        CreateUi();
+        CreateAudio();
+    }
+
+    private void CreateUi() {
+        IRenderer renderer = Core.engine.renderer;
+        IAudio audio = Core.engine.audio;
 
         _ui.Add(new Panel(renderer) {
             enabled = false,
@@ -39,12 +47,10 @@ public class Game : IGame {
             character = new RenderCharacter('a', Color.transparent, Color.white)
         });
 
-        _ui.Add(new Text(renderer) {
-            position = new Vector2Int(0, 30),
-            text = "hi ui test"
-        });
+        _ui.Add(new Text(renderer) { position = new Vector2Int(0, 30), text = "hi ui test" });
 
         Button testButton1 = new(renderer) {
+            audio = audio,
             position = new Vector2Int(0, 32),
             size = new Vector2Int(6, 1),
             text = "button"
@@ -57,6 +63,7 @@ public class Game : IGame {
 
         int counter = 0;
         Button testButton2 = new(renderer) {
+            audio = audio,
             position = new Vector2Int(0, 34),
             size = new Vector2Int(6, 1),
             text = counter.ToString()
@@ -68,19 +75,21 @@ public class Game : IGame {
         _ui.Add(testButton2);
 
         _ui.Add(new Button(renderer) {
+            audio = audio,
             position = new Vector2Int(0, 36),
             size = new Vector2Int(16, 2),
             text = "big\nbutton"
         });
 
         _ui.Add(new Button(renderer) {
-            active = false,
-            position = new Vector2Int(0, 39),
+            audio = audio,
+            active = false, position = new Vector2Int(0, 39),
             size = new Vector2Int(16, 2),
             text = "big inactive\nbutton"
         });
 
         _ui.Add(new Button(renderer) {
+            audio = audio,
             active = false,
             toggled = true,
             position = new Vector2Int(0, 42),
@@ -89,6 +98,7 @@ public class Game : IGame {
         });
 
         _ui.Add(new Button(renderer) {
+            audio = audio,
             position = new Vector2Int(0, 44),
             size = new Vector2Int(16, 2),
             text = "big glitch\nbutton",
@@ -102,6 +112,7 @@ public class Game : IGame {
         _ui.Add(testSliderText);
 
         Slider testSlider = new(renderer) {
+            audio = audio,
             position = new Vector2Int(0, 47),
             width = 20,
             minValue = 0.1f,
@@ -118,6 +129,18 @@ public class Game : IGame {
             size = new Vector2Int(80, 2)
         };
         _ui.Add(_testProgressBar);
+    }
+
+    private static void CreateAudio() {
+        IAudio audio = Core.engine.audio;
+
+        IPlayable buttonClick = audio.CreateSound(Path.Combine(Engine.audioPath, "buttonClick.wav"));
+        buttonClick.volume = 0.3f;
+        audio.TryStorePlayable(Button.ClickSoundId, buttonClick);
+
+        IPlayable sliderValueChanged = audio.CreateSound(Path.Combine(Engine.audioPath, "slider.wav"));
+        sliderValueChanged.volume = 0.3f;
+        audio.TryStorePlayable(Slider.ValueChangedSoundId, sliderValueChanged);
     }
 
     public void Update() {

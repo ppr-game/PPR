@@ -1,4 +1,5 @@
-﻿using PER.Abstractions.Input;
+﻿using PER.Abstractions.Audio;
+using PER.Abstractions.Input;
 using PER.Abstractions.Renderer;
 using PER.Abstractions.UI;
 using PER.Util;
@@ -7,6 +8,9 @@ namespace PRR.UI;
 
 public class Button : Element {
     public enum State { None, Inactive, Idle, Hovered, Clicked, Hotkey }
+
+    public const string ClickSoundId = "buttonClick";
+    public IAudio? audio { get; set; }
 
     public override Vector2Int size {
         get => _size;
@@ -33,6 +37,7 @@ public class Button : Element {
     public Color hoverColor { get; set; } = Color.white;
     public Color clickColor { get; set; } = new(0.4f, 0.4f, 0.4f, 1f);
 
+    public IPlayable? clickSound { get; set; }
     public event EventHandler? onClick;
 
     public State currentState { get; private set; } = State.None;
@@ -73,17 +78,24 @@ public class Button : Element {
                     toggled ? inactiveColor : inactiveToggledColor);
                 break;
             case State.Idle:
-                if(from == State.Hotkey) onClick?.Invoke(this, EventArgs.Empty);
+                if(from == State.Hotkey) Click();
                 StartAnimation(clock, toggled ? clickColor : idleColor, toggled ? idleColor : hoverColor);
                 break;
             case State.Hovered:
-                if(from is State.Clicked or State.Hotkey) onClick?.Invoke(this, EventArgs.Empty);
+                if(from is State.Clicked or State.Hotkey) Click();
                 StartAnimation(clock, hoverColor, idleColor);
                 break;
             case State.Clicked:
                 StartAnimation(clock, clickColor, idleColor);
                 break;
         }
+    }
+
+    private void Click() {
+        if(clickSound is not null) clickSound.status = PlaybackStatus.Playing;
+        else if(audio is not null && audio.TryGetPlayable(ClickSoundId, out IPlayable? playable))
+            playable.status = PlaybackStatus.Playing;
+        onClick?.Invoke(this, EventArgs.Empty);
     }
 
     private void StartAnimation(IReadOnlyStopwatch clock, Color background, Color foreground) {
