@@ -11,6 +11,10 @@ public class InputManager : IInputManager {
     public Vector2 accurateMousePosition { get; private set; } = new(-1f, -1f);
     public Vector2 normalizedMousePosition { get; private set; } = new(-1f, -1f);
 
+    public Vector2Int previousMousePosition { get; private set; } = new(-1, -1);
+    public Vector2 previousAccurateMousePosition { get; private set; } = new(-1, -1);
+    public Vector2 previousNormalizedMousePosition { get; private set; } = new(-1, -1);
+
     public event EventHandler<IInputManager.TextEnteredEventArgs>? textEntered;
     public event EventHandler<IInputManager.ScrolledEventArgs>? scrolled;
 
@@ -75,11 +79,19 @@ public class InputManager : IInputManager {
 
     private void UpdateMousePosition(int mouseX, int mouseY) {
         if(!_renderer.focused) {
+            previousMousePosition = new Vector2Int(-1, -1);
+            previousAccurateMousePosition = new Vector2(-1f, -1f);
+            previousNormalizedMousePosition = new Vector2(-1f, -1f);
+
             mousePosition = new Vector2Int(-1, -1);
             accurateMousePosition = new Vector2(-1f, -1f);
             normalizedMousePosition = new Vector2(-1f, -1f);
             return;
         }
+
+        previousMousePosition = mousePosition;
+        previousAccurateMousePosition = accurateMousePosition;
+        previousNormalizedMousePosition = normalizedMousePosition;
 
         Vector2 pixelMousePosition = new(
             mouseX - _renderer.window?.Size.X * 0.5f + _renderer.text?.imageWidth * 0.5f ?? 0f,

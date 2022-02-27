@@ -57,36 +57,36 @@ public class Button : Element {
     public Button(IRenderer renderer) : base(renderer) { }
 
     private void UpdateState(IReadOnlyStopwatch clock) {
+        bool mouseWasOver = renderer.input is not null &&
+                            bounds.IntersectsLine(renderer.input.previousMousePosition, renderer.input.mousePosition);
         bool mouseOver = renderer.input?.mousePosition.InBounds(bounds) ?? false;
         bool mouseClicked = renderer.input?.MouseButtonPressed(MouseButton.Left) ?? false;
         bool hotkeyPressed = hotkey.HasValue && (renderer.input?.KeyPressed(hotkey.Value) ?? false);
         State prevState = currentState;
         currentState = active ? hotkeyPressed ? State.Hotkey :
-            mouseOver ? mouseClicked ? State.Clicked : State.Hovered : State.Idle : State.Inactive;
+            mouseWasOver ? mouseOver && mouseClicked ?
+                State.Clicked : State.Hovered : State.Idle : State.Inactive;
         if(currentState != prevState) StateChanged(clock, prevState, currentState);
     }
 
     private void StateChanged(IReadOnlyStopwatch clock, State from, State to) {
-        if(from == State.None) {
-            _animBackgroundColorEnd = Color.transparent;
-            _animForegroundColorEnd = Color.transparent;
-        }
+        bool instant = from == State.None;
 
         switch(to) {
             case State.Inactive:
                 StartAnimation(clock, toggled ? inactiveToggledColor : inactiveColor,
-                    toggled ? inactiveColor : inactiveToggledColor);
+                    toggled ? inactiveColor : inactiveToggledColor, instant);
                 break;
             case State.Idle:
                 if(from == State.Hotkey) Click();
-                StartAnimation(clock, toggled ? clickColor : idleColor, toggled ? idleColor : hoverColor);
+                StartAnimation(clock, toggled ? clickColor : idleColor, toggled ? idleColor : hoverColor, instant);
                 break;
             case State.Hovered:
                 if(from is State.Clicked or State.Hotkey) Click();
-                StartAnimation(clock, hoverColor, idleColor);
+                StartAnimation(clock, hoverColor, idleColor, instant);
                 break;
             case State.Clicked:
-                StartAnimation(clock, clickColor, idleColor);
+                StartAnimation(clock, clickColor, idleColor, instant);
                 break;
         }
     }
@@ -98,14 +98,14 @@ public class Button : Element {
         onClick?.Invoke(this, EventArgs.Empty);
     }
 
-    private void StartAnimation(IReadOnlyStopwatch clock, Color background, Color foreground) {
+    private void StartAnimation(IReadOnlyStopwatch clock, Color background, Color foreground, bool instant) {
         for(int y = 0; y < size.y; y++)
             for(int x = 0; x < size.x; x++)
                 _animSpeeds[y, x] = Random.Shared.NextSingle(MinSpeed, MaxSpeed);
         _animStartTime = clock.time;
-        _animBackgroundColorStart = _animBackgroundColorEnd;
+        _animBackgroundColorStart = instant ? background : _animBackgroundColorEnd;
         _animBackgroundColorEnd = background;
-        _animForegroundColorStart = _animForegroundColorEnd;
+        _animForegroundColorStart = instant ? foreground : _animForegroundColorEnd;
         _animForegroundColorEnd = foreground;
     }
 

@@ -69,32 +69,32 @@ public class Slider : Element {
     public Slider(IRenderer renderer) : base(renderer) { }
 
     private void UpdateState(IReadOnlyStopwatch clock) {
+        bool mouseWasOver = renderer.input is not null &&
+                            bounds.IntersectsLine(renderer.input.previousMousePosition, renderer.input.mousePosition);
         bool mouseOver = renderer.input?.mousePosition.InBounds(bounds) ?? false;
         bool mouseClicked = renderer.input?.MouseButtonPressed(MouseButton.Left) ?? false;
         State prevState = currentState;
-        currentState = active ? mouseOver ? mouseClicked ? State.Clicked : State.Hovered : State.Idle : State.Inactive;
+        currentState = active ? mouseWasOver ? mouseOver && mouseClicked ?
+            State.Clicked : State.Hovered : State.Idle : State.Inactive;
         if(currentState != prevState) StateChanged(clock, prevState, currentState);
         if(currentState == State.Clicked) UpdateValue();
     }
 
     private void StateChanged(IReadOnlyStopwatch clock, State from, State to) {
-        if(from == State.None) {
-            _animBackgroundColorEnd = Color.transparent;
-            _animForegroundColorEnd = Color.transparent;
-        }
+        bool instant = from == State.None;
 
         switch(to) {
             case State.Inactive:
-                StartAnimation(clock, inactiveColor, inactiveToggledColor);
+                StartAnimation(clock, inactiveColor, inactiveToggledColor, instant);
                 break;
             case State.Idle:
-                StartAnimation(clock, idleColor, hoverColor);
+                StartAnimation(clock, idleColor, hoverColor, instant);
                 break;
             case State.Hovered:
-                StartAnimation(clock, hoverColor, idleColor);
+                StartAnimation(clock, hoverColor, idleColor, instant);
                 break;
             case State.Clicked:
-                StartAnimation(clock, clickColor, idleColor);
+                StartAnimation(clock, clickColor, idleColor, instant);
                 break;
         }
     }
@@ -112,13 +112,13 @@ public class Slider : Element {
             playable.status = PlaybackStatus.Playing;
     }
 
-    private void StartAnimation(IReadOnlyStopwatch clock, Color background, Color foreground) {
+    private void StartAnimation(IReadOnlyStopwatch clock, Color background, Color foreground, bool instant) {
         for(int x = 0; x < width; x++)
             _animSpeeds[x] = Random.Shared.NextSingle(MinSpeed, MaxSpeed);
         _animStartTime = clock.time;
-        _animBackgroundColorStart = _animBackgroundColorEnd;
+        _animBackgroundColorStart = instant ? background : _animBackgroundColorEnd;
         _animBackgroundColorEnd = background;
-        _animForegroundColorStart = _animForegroundColorEnd;
+        _animForegroundColorStart = instant ? foreground : _animForegroundColorEnd;
         _animForegroundColorEnd = foreground;
     }
 
