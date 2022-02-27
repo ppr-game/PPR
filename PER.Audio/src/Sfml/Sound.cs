@@ -56,11 +56,12 @@ public class Sound : IPlayable, IDisposable {
         _sound = new SFML.Audio.Sound(buffer);
     }
 
-    internal static void Reset() => cachedBuffers.Clear();
-
-    internal static void Finish() {
+    internal static void Reset() {
         foreach((string? _, SoundBuffer? buffer) in cachedBuffers) buffer.Dispose();
+        cachedBuffers.Clear();
     }
+
+    internal static void Finish() => Reset();
 
     public void Dispose() {
         _sound.Dispose();

@@ -4,7 +4,7 @@ using PER.Abstractions.Audio;
 
 namespace PER.Audio.Sfml;
 
-public class AudioManager : IAudio, IDisposable {
+public class AudioManager : IAudio {
     private readonly List<IPlayable> _allPlayables = new();
     private readonly Dictionary<string, IPlayable> _storedPlayables = new();
 
@@ -24,20 +24,15 @@ public class AudioManager : IAudio, IDisposable {
 
     public void Reset() {
         Sound.Reset();
+        foreach(IPlayable? playable in _allPlayables)
+            if(playable is IDisposable disposable)
+                disposable.Dispose();
         _allPlayables.Clear();
         _storedPlayables.Clear();
     }
 
     public void Finish() {
         Sound.Finish();
-        Dispose();
         Reset();
-    }
-
-    public void Dispose() {
-        foreach(IPlayable? playable in _allPlayables)
-            if(playable is IDisposable disposable)
-                disposable.Dispose();
-        GC.SuppressFinalize(this);
     }
 }

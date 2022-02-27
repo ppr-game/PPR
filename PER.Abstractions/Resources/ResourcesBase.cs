@@ -8,22 +8,48 @@ namespace PER.Abstractions.Resources;
 
 public abstract class ResourcesBase : IResources {
     public int currentVersion => 0;
-    public IReadOnlyList<ResourcePackData> loadedPacks => mutableLoadedPacks;
-    protected List<ResourcePackData> mutableLoadedPacks { get; } = new();
+    public bool loaded { get; private set; }
+    public IReadOnlyList<ResourcePackData> loadedPacks => _loadedPacks;
     protected virtual string resourcesRoot => "resources";
     protected virtual string resourcePackMeta => "metadata.json";
     protected virtual string resourcesInPack => "resources";
 
-    protected bool loaded { get; set; }
+    private bool _loading;
 
-    private readonly Dictionary<string, string> _resourcesCache = new();
+    private readonly List<ResourcePackData> _loadedPacks = new();
+    private readonly Dictionary<string, IResource> _resources = new();
+    private readonly Dictionary<string, string> _cachedPaths = new();
 
-    public abstract void Load();
+    public virtual bool Load() {
+        if(_loading) return false;
+        if(loaded) return true;
+        _loading = true;
 
-    public void Unload() {
+        foreach((string? id, IResource? resource) in _resources) {
+            if(resource.Load(id, this)) continue;
+            _loading = false;
+            return false;
+        }
+
+        _loading = false;
+        loaded = true;
+        return true;
+    }
+
+    public virtual bool Unload() {
+        if(!loaded) return true;
+
+        foreach((string? id, IResource? resource) in _resources) {
+            if(resource.Unload(id, this)) continue;
+            return false;
+        }
+
+        _loadedPacks.Clear();
+        _cachedPaths.Clear();
+        _resources.Clear();
+
         loaded = false;
-        mutableLoadedPacks.Clear();
-        _resourcesCache.Clear();
+        return true;
     }
 
     public IEnumerable<ResourcePackData> GetAvailablePacks() {
@@ -52,27 +78,42 @@ public abstract class ResourcesBase : IResources {
     }
 
     public bool TryAddPack(ResourcePackData data) {
-        if(loaded) return false;
-        mutableLoadedPacks.Add(data);
+        if(loaded || _loading) return false;
+        _loadedPacks.Add(data);
         return true;
     }
 
-    public bool TryGetResource(string relativePath, [MaybeNullWhen(false)] out string fullPath) {
-        fullPath = null;
-        if(!loaded) return false;
+    public bool TryAddResource<TResource>(string id, TResource resource) where TResource : class, IResource =>
+        !loaded && _resources.TryAdd(id, resource);
 
-        if(_resourcesCache.TryGetValue(relativePath, out fullPath))
+    public bool TryGetPath(string relativePath, [MaybeNullWhen(false)] out string fullPath) {
+        fullPath = null;
+        if(!loaded && !_loading) return false;
+
+        if(_cachedPaths.TryGetValue(relativePath, out fullPath))
             return true;
 
         for(int i = loadedPacks.Count - 1; i >= 0; i--) {
             ResourcePackData data = loadedPacks[i];
             string resourcePath = Path.Combine(data.fullPath, relativePath);
-            if(!File.Exists(resourcePath) && !Directory.Exists(resourcePath)) continue;
+            if(!File.Exists(resourcePath)) continue;
             fullPath = resourcePath;
-            _resourcesCache.Add(relativePath, fullPath);
+            _cachedPaths.Add(relativePath, fullPath);
             return true;
         }
 
         return false;
+    }
+
+    public bool TryGetResource<TResource>(string id, [MaybeNullWhen(false)] out TResource resource)
+        where TResource : class?, IResource? {
+        resource = null;
+        if(!loaded) return false;
+
+        if(!_resources.TryGetValue(id, out IResource? cachedResource) ||
+           cachedResource is not TResource actualResource) return false;
+
+        resource = actualResource;
+        return true;
     }
 }

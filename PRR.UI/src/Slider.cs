@@ -31,9 +31,6 @@ public class Slider : Element {
             if(_value == value) return;
             _value = value;
             _relativeValue = (int)(width * _value);
-            if(valueChangedSound is not null) valueChangedSound.status = PlaybackStatus.Playing;
-            else if(audio is not null && audio.TryGetPlayable(ValueChangedSoundId, out IPlayable? playable))
-                playable.status = PlaybackStatus.Playing;
             onValueChanged?.Invoke(this, EventArgs.Empty);
         }
     }
@@ -49,7 +46,7 @@ public class Slider : Element {
     public Color hoverColor { get; set; } = Color.white;
     public Color clickColor { get; set; } = new(0.4f, 0.4f, 0.4f, 1f);
 
-    public IPlayable? valueChangedSound;
+    public IPlayable? valueChangedSound { get; set; }
     public event EventHandler? onValueChanged;
 
     public State currentState { get; private set; } = State.None;
@@ -109,6 +106,10 @@ public class Slider : Element {
         float tempValue = (float)_relativeValue / (width - 1);
         tempValue = minValue + tempValue * (maxValue - minValue);
         value = Math.Min(Math.Max(tempValue, minValue), maxValue);
+
+        if(valueChangedSound is not null) valueChangedSound.status = PlaybackStatus.Playing;
+        else if(audio is not null && audio.TryGetPlayable(ValueChangedSoundId, out IPlayable? playable))
+            playable.status = PlaybackStatus.Playing;
     }
 
     private void StartAnimation(IReadOnlyStopwatch clock, Color background, Color foreground) {

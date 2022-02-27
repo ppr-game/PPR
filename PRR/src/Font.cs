@@ -23,10 +23,10 @@ public class Font : IFont {
     private readonly HashSet<(char, RenderStyle)> _drawable = new();
     private readonly Dictionary<(char, RenderStyle), Vector2[]> _characters = new();
 
-    public Font(string folderPath) {
-        image = Image.Load<Rgba32>(Path.Join(folderPath, "font.png"));
+    public Font(string imagePath, string mappingsPath) {
+        image = Image.Load<Rgba32>(imagePath);
 
-        string[] fontMappingsLines = File.ReadAllLines(Path.Join(folderPath, "mappings.txt"));
+        string[] fontMappingsLines = File.ReadAllLines(mappingsPath);
         string[] fontSizeStr = fontMappingsLines[0].Split(',');
         mappings = fontMappingsLines[1];
         size = new Vector2Int(int.Parse(fontSizeStr[0], CultureInfo.InvariantCulture),

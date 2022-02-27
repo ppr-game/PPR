@@ -19,42 +19,49 @@ public class Engine {
         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
         ?.InformationalVersion ?? "0.0.0";
 
-    public event EventHandler? setupFinished;
-
     public IReadOnlyStopwatch clock => _clock;
     public double deltaTime { get; private set; }
 
     public double tickInterval { get; set; }
+    public IResources resources { get; }
     public IGame game { get; }
     public IRenderer renderer { get; }
     public IAudio audio { get; }
-    public IResources resources { get; }
 
     private readonly Stopwatch _clock = new();
     private TimeSpan _prevTime;
     private double _tickAccumulator;
 
-    public Engine(IGame game, IRenderer renderer, IAudio audio, IResources resources) {
+    public Engine(IResources resources, IGame game, IRenderer renderer, IAudio audio) {
+        this.resources = resources;
         this.game = game;
         this.renderer = renderer;
         this.audio = audio;
-        this.resources = resources;
     }
 
-    public void Load() => game.Load();
-
-    public void Start(RendererSettings rendererSettings) {
+    public bool Reload() {
         try {
-            logger.Info($"PER v{version}");
-            Setup(rendererSettings);
-            while(Update()) UpdateDeltaTime();
-            Finish();
+            if(resources.loaded) {
+                if(!resources.Unload()) return false;
+                game.Unload();
+            }
+            game.Load();
+            if(!resources.Load()) return false;
+            game.Loaded();
+            return true;
         }
         catch(Exception exception) {
             logger.Error("Uncaught exception! Please, report the text below to the developer of the game.");
             logger.Fatal(exception);
             throw;
         }
+    }
+
+    public void Start(RendererSettings rendererSettings) {
+        logger.Info($"PER v{version}");
+        Setup(rendererSettings);
+        while(Update()) UpdateDeltaTime();
+        Finish();
     }
 
     private void Setup(RendererSettings rendererSettings) {
@@ -64,7 +71,6 @@ public class Engine {
         game.Setup();
 
         logger.Info("Setup finished");
-        setupFinished?.Invoke(this, EventArgs.Empty);
     }
 
     private bool Update() {
@@ -95,6 +101,7 @@ public class Engine {
     }
 
     private void Finish() {
+        resources.Unload();
         renderer.Finish();
         game.Finish();
         audio.Finish();

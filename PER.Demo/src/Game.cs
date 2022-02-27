@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 
 using PER.Abstractions;
 using PER.Abstractions.Audio;
@@ -10,9 +9,9 @@ using PER.Abstractions.Renderer;
 using PER.Abstractions.Resources;
 using PER.Abstractions.UI;
 using PER.Demo.Effects;
+using PER.Demo.Resources;
 using PER.Util;
 
-using PRR;
 using PRR.UI;
 
 namespace PER.Demo;
@@ -30,48 +29,56 @@ public class Game : IGame {
     private readonly List<Element> _ui = new();
     private ProgressBar? _testProgressBar;
 
-    private void InitialLoad() {
-        //foreach(ResourcePackData packData in Core.engine.resources.GetAvailablePacks())
-        //    Core.engine.resources.TryAddPack(packData);
+    public void Unload() { }
 
-        Core.engine.resources.Load();
+    public void Load() {
+        IResources resources = Core.engine.resources;
+
+        if(Core.engine.renderer.open) {
+            foreach(ResourcePackData packData in resources.GetAvailablePacks())
+                resources.TryAddPack(packData);
+        }
+        else {
+            foreach(ResourcePackData packData in resources.GetAvailablePacks()) {
+                if(packData.name != "Default") continue;
+                resources.TryAddPack(packData);
+                break;
+            }
+        }
+
+        resources.TryAddResource("audio", new AudioResources());
+
+        resources.TryAddResource("graphics/font", new FontResource());
+        resources.TryAddResource("graphics/effects/bloom", new BloomEffect());
+        resources.TryAddResource("graphics/effects/maxBlendBloom", new BloomEffect());
+    }
+
+    public void Loaded() {
+        if(!Core.engine.resources.TryGetResource("graphics/font", out FontResource? font) ||
+           font?.font is null) return;
+        Core.engine.resources.TryGetResource("graphics/icon", out IconResource? icon);
 
         _drawTextEffect = new DrawTextEffect();
-        _bloomEffect = new BloomEffect();
         _glitchEffect = new GlitchEffect();
+
+        Core.engine.resources.TryGetResource("graphics/effects/bloom", out _bloomEffect);
 
         Core.engine.renderer.formattingEffects.Clear();
         Core.engine.renderer.formattingEffects.Add("NONE", null);
         Core.engine.renderer.formattingEffects.Add("GLITCH", _glitchEffect);
-    }
 
-    public void Load() {
-        foreach(ResourcePackData packData in Core.engine.resources.GetAvailablePacks()) {
-            if(packData.name != "Default") continue;
-            Core.engine.resources.TryAddPack(packData);
-            break;
+        if(Core.engine.renderer.open) Core.engine.renderer.font = font.font;
+        else {
+            Core.engine.Start(new RendererSettings {
+                title = "PER Demo Pog",
+                width = 80,
+                height = 60,
+                framerate = 0,
+                fullscreen = false,
+                font = font.font,
+                icon = icon?.icon
+            });
         }
-        InitialLoad();
-        if(!Core.engine.resources.TryGetResource(Path.Combine("graphics", "font"), out string? fontPath)) return;
-        Core.engine.resources.TryGetResource(Path.Combine("graphics", "icon"), out string? iconPath);
-        Core.engine.Start(new RendererSettings {
-            title = "PER Demo Pog",
-            width = 80,
-            height = 60,
-            framerate = 0,
-            fullscreen = false,
-            font = new Font(fontPath),
-            icon = iconPath
-        });
-    }
-
-    public void Reload() {
-        Core.engine.resources.Unload();
-        foreach(ResourcePackData packData in Core.engine.resources.GetAvailablePacks())
-            Core.engine.resources.TryAddPack(packData);
-        InitialLoad();
-        if(Core.engine.resources.TryGetResource(Path.Combine("graphics", "font"), out string? fontPath))
-            Core.engine.renderer.font = new Font(fontPath);
     }
 
     public void Setup() {
@@ -175,7 +182,7 @@ public class Game : IGame {
             text = "reload"
         };
         testButton3.onClick += (_, _) => {
-            Reload();
+            Core.engine.Reload();
         };
         _ui.Add(testButton3);
 

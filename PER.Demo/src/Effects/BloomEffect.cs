@@ -2,19 +2,22 @@
 using System.IO;
 
 using PER.Abstractions.Renderer;
+using PER.Abstractions.Resources;
 using PER.Util;
 
 namespace PER.Demo.Effects;
 
-public class BloomEffect : IEffect {
-    public IEnumerable<PipelineStep>? pipeline { get; }
+public class BloomEffect : IEffect, IResource {
+    public IEnumerable<PipelineStep>? pipeline { get; private set; }
     public bool hasModifiers => false;
     public bool drawable => false;
 
-    public BloomEffect() {
-        if(!Core.engine.resources.TryGetResource(Path.Join("graphics", "default_vert.glsl"), out string? vertexPath) ||
-           !Core.engine.resources.TryGetResource(Path.Join("graphics", "bloom_frag.glsl"), out string? fragmentPath))
-            return;
+    public bool Load(string id, IResources resources) {
+        if(!Core.engine.resources.TryGetPath(Path.Join("graphics", "shaders", "default_vert.glsl"),
+               out string? vertexPath) ||
+           !Core.engine.resources.TryGetPath(Path.Join("graphics", "shaders", "bloom_frag.glsl"),
+               out string? fragmentPath))
+            return false;
 
         pipeline = new[] {
             new PipelineStep {
@@ -44,6 +47,13 @@ public class BloomEffect : IEffect {
                 blendMode = BlendMode.max
             }
         };
+
+        return true;
+    }
+
+    public bool Unload(string id, IResources resources) {
+        pipeline = null;
+        return true;
     }
 
     public (Vector2, RenderCharacter) ApplyModifiers(Vector2 position, RenderCharacter character) =>
