@@ -7,7 +7,7 @@ using PER.Util;
 namespace PRR.UI;
 
 public class Button : Element {
-    public enum State { None, Inactive, Idle, Hovered, Clicked, Hotkey }
+    public enum State { None, Inactive, Idle, FakeHovered, Hovered, Clicked, Hotkey }
 
     public const string ClickSoundId = "buttonClick";
     public IAudio? audio { get; set; }
@@ -64,8 +64,8 @@ public class Button : Element {
         bool hotkeyPressed = hotkey.HasValue && (renderer.input?.KeyPressed(hotkey.Value) ?? false);
         State prevState = currentState;
         currentState = active ? hotkeyPressed ? State.Hotkey :
-            mouseWasOver ? mouseOver && mouseClicked ?
-                State.Clicked : State.Hovered : State.Idle : State.Inactive;
+            mouseWasOver ? mouseOver ? mouseClicked ?
+                State.Clicked : State.Hovered : State.FakeHovered : State.Idle : State.Inactive;
         if(currentState != prevState) StateChanged(clock, prevState, currentState);
     }
 
@@ -80,6 +80,9 @@ public class Button : Element {
             case State.Idle:
                 if(from == State.Hotkey) Click();
                 StartAnimation(clock, toggled ? clickColor : idleColor, toggled ? idleColor : hoverColor, instant);
+                break;
+            case State.FakeHovered:
+                StartAnimation(clock, hoverColor, idleColor, instant);
                 break;
             case State.Hovered:
                 if(from is State.Clicked or State.Hotkey) Click();
