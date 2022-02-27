@@ -3,6 +3,7 @@
 namespace PER.Abstractions.Audio;
 
 public interface IPlayable {
+    public IAudioMixer mixer { get; set; }
     public PlaybackStatus status { get; set; }
     public TimeSpan time { get; set; }
     public float volume { get; set; }

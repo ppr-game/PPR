@@ -5,6 +5,8 @@ using SFML.Audio;
 namespace PER.Audio.Sfml;
 
 public class Sound : IPlayable, IDisposable {
+    public IAudioMixer mixer { get; set; }
+
     public PlaybackStatus status {
         get => SfmlConverters.ToPerPlaybackStatus(_sound.Status);
         set {
@@ -28,8 +30,11 @@ public class Sound : IPlayable, IDisposable {
     }
 
     public float volume {
-        get => _sound.Volume / 100f;
-        set => _sound.Volume = value * 100f;
+        get => _volume;
+        set {
+            _volume = value;
+            _sound.Volume = value * mixer.volume * 100f;
+        }
     }
 
     public bool looped {
@@ -47,13 +52,16 @@ public class Sound : IPlayable, IDisposable {
     private static readonly Dictionary<string, SoundBuffer> cachedBuffers = new();
 
     private readonly SFML.Audio.Sound _sound;
+    private float _volume = 1f;
 
-    public Sound(string filename) {
+    public Sound(string filename, IAudioMixer mixer) {
         if(!cachedBuffers.TryGetValue(filename, out SoundBuffer? buffer)) {
             buffer = new SoundBuffer(filename);
             cachedBuffers.Add(filename, buffer);
         }
         _sound = new SFML.Audio.Sound(buffer);
+
+        this.mixer = mixer;
     }
 
     internal static void Reset() {

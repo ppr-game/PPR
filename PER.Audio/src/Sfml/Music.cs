@@ -3,6 +3,8 @@
 namespace PER.Audio.Sfml;
 
 public class Music : IPlayable, IDisposable {
+    public IAudioMixer mixer { get; set; }
+
     public PlaybackStatus status {
         get => SfmlConverters.ToPerPlaybackStatus(_music.Status);
         set {
@@ -26,8 +28,11 @@ public class Music : IPlayable, IDisposable {
     }
 
     public float volume {
-        get => _music.Volume / 100f;
-        set => _music.Volume = value * 100f;
+        get => _volume;
+        set {
+            _volume = value;
+            _music.Volume = value * mixer.volume * 100f;
+        }
     }
 
     public bool looped {
@@ -43,10 +48,16 @@ public class Music : IPlayable, IDisposable {
     public TimeSpan duration => SfmlConverters.ToTimeSpan(_music.Duration);
 
     private readonly SFML.Audio.Music _music;
+    private float _volume = 1f;
 
-    public Music(string filename) => _music = new SFML.Audio.Music(filename);
-    public Music(byte[] bytes) => _music = new SFML.Audio.Music(bytes);
-    public Music(Stream stream) => _music = new SFML.Audio.Music(stream);
+    private Music(SFML.Audio.Music music, IAudioMixer mixer) {
+        _music = music;
+        this.mixer = mixer;
+    }
+
+    public Music(string filename, IAudioMixer mixer) : this(new SFML.Audio.Music(filename), mixer) { }
+    public Music(byte[] bytes, IAudioMixer mixer) : this(new SFML.Audio.Music(bytes), mixer) { }
+    public Music(Stream stream, IAudioMixer mixer) : this(new SFML.Audio.Music(stream), mixer) { }
 
     public void Dispose() {
         _music.Dispose();

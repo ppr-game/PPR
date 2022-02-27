@@ -166,11 +166,10 @@ public class Game : IGame {
         testSlider.onValueChanged += (_, _) => {
             testSliderText.text = testSlider.value.ToString(CultureInfo.InvariantCulture);
 
-            if(Core.engine.audio.TryGetPlayable(Button.ClickSoundId, out IPlayable? playable))
-                playable.volume = testSlider.value;
+            if(Core.engine.audio.TryGetMixer("master", out IAudioMixer? mixer))
+                mixer.volume = testSlider.value;
 
-            if(Core.engine.audio.TryGetPlayable(Slider.ValueChangedSoundId, out playable))
-                playable.volume = testSlider.value;
+            Core.engine.audio.UpdateVolumes();
         };
         testSlider.value = 0.2f;
         _ui.Add(testSlider);
