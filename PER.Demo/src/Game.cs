@@ -32,7 +32,7 @@ public class Game : IGame {
     private GlitchEffect? _glitchEffect;
 
     private readonly List<Element> _ui = new();
-    private readonly List<Element> _resourcePackSelector = new();
+    private readonly List<Element> _packSelector = new();
     private ProgressBar? _testProgressBar;
 
     public void Unload() => _settings.Save(SettingsPath);
@@ -189,7 +189,7 @@ public class Game : IGame {
                 GenerateResourcePackSelector(new Vector2Int(30, 20), 30,
                     Core.engine.resources.GetUnloadedAvailablePacks().Select(data => data.name),
                     Core.engine.resources.loadedPacks.Select(data => data.name));
-            else _resourcePackSelector.Clear();
+            else _packSelector.Clear();
         };
         _ui.Add(packsButton);
 
@@ -226,13 +226,14 @@ public class Game : IGame {
         IEnumerable<string> loadedPacks) {
         List<string> availablePacks = new();
         availablePacks.AddRange(loadedPacks);
-        availablePacks.AddRange(unloadedPacks);
+        availablePacks.AddRange(unloadedPacks.Reverse());
         GenerateResourcePackSelector(position, width, availablePacks, loadedPacks.ToHashSet());
     }
 
     private void GenerateResourcePackSelector(Vector2Int position, int width, IList<string> availablePacks,
         ISet<string> loadedPacks) {
-        _resourcePackSelector.Clear();
+        _packSelector.Clear();
+
         int maxY = availablePacks.Count - 1;
         int y = maxY;
 
@@ -240,52 +241,18 @@ public class Game : IGame {
             string name = availablePacks[i];
             bool loaded = loadedPacks.Contains(name);
             bool canUnload = loadedPacks.Count > 1 && name != Core.engine.resources.defaultPackName;
+
+            bool canToggle = canUnload || !loaded;
             bool canMoveUp = y > 0 && name != Core.engine.resources.defaultPackName;
             bool canMoveDown = y < maxY && availablePacks[i - 1] != Core.engine.resources.defaultPackName;
-            Button toggleButton = new(Core.engine.renderer) {
-                audio = Core.engine.audio,
-                position = position + new Vector2Int(0, y),
-                size = new Vector2Int(width - 2, 1),
-                text = name,
-                toggled = loaded,
-                active = canUnload || !loaded
-            };
-            toggleButton.onClick += (_, _) => {
-                if(loaded) loadedPacks.Remove(name);
-                else loadedPacks.Add(name);
-                GenerateResourcePackSelector(position, width, availablePacks, loadedPacks);
-            };
-            _resourcePackSelector.Add(toggleButton);
 
-            int index = i;
+            (Button toggleButton, Button moveUpButton, Button moveDownButton) =
+                CreatePackListEntryButtons(i, position, y, width, availablePacks, loadedPacks, name, loaded,
+                    canToggle, canMoveUp, canMoveDown);
 
-            Button moveUpButton = new(Core.engine.renderer) {
-                audio = Core.engine.audio,
-                position = position + new Vector2Int(width - 2, y),
-                size = new Vector2Int(1, 1),
-                text = "▲",
-                active = canMoveUp
-            };
-            moveUpButton.onClick += (_, _) => {
-                availablePacks.RemoveAt(index);
-                availablePacks.Insert(index + 1, name);
-                GenerateResourcePackSelector(position, width, availablePacks, loadedPacks);
-            };
-            _resourcePackSelector.Add(moveUpButton);
-
-            Button moveDownButton = new(Core.engine.renderer) {
-                audio = Core.engine.audio,
-                position = position + new Vector2Int(width - 1, y),
-                size = new Vector2Int(1, 1),
-                text = "▼",
-                active = canMoveDown
-            };
-            moveDownButton.onClick += (_, _) => {
-                availablePacks.RemoveAt(index);
-                availablePacks.Insert(index - 1, name);
-                GenerateResourcePackSelector(position, width, availablePacks, loadedPacks);
-            };
-            _resourcePackSelector.Add(moveDownButton);
+            _packSelector.Add(toggleButton);
+            _packSelector.Add(moveUpButton);
+            _packSelector.Add(moveDownButton);
 
             y--;
         }
@@ -299,7 +266,53 @@ public class Game : IGame {
         applyButton.onClick += (_, _) => {
             _settings.packs = availablePacks.Where(loadedPacks.Contains).ToArray();
         };
-        _resourcePackSelector.Add(applyButton);
+        _packSelector.Add(applyButton);
+    }
+
+    private (Button toggleButton, Button moveUpButton, Button moveDownButton) CreatePackListEntryButtons(int index,
+        Vector2Int position, int y, int width, IList<string> availablePacks, ISet<string> loadedPacks,
+        string name, bool loaded, bool canToggle, bool canMoveUp, bool canMoveDown) {
+        Button toggleButton = new(Core.engine.renderer) {
+            audio = Core.engine.audio,
+            position = position + new Vector2Int(0, y),
+            size = new Vector2Int(width - 2, 1),
+            text = name,
+            toggled = loaded,
+            active = canToggle
+        };
+        toggleButton.onClick += (_, _) => {
+            if(loaded) loadedPacks.Remove(name);
+            else loadedPacks.Add(name);
+            GenerateResourcePackSelector(position, width, availablePacks, loadedPacks);
+        };
+
+        Button moveUpButton = new(Core.engine.renderer) {
+            audio = Core.engine.audio,
+            position = position + new Vector2Int(width - 2, y),
+            size = new Vector2Int(1, 1),
+            text = "▲",
+            active = canMoveUp
+        };
+        moveUpButton.onClick += (_, _) => {
+            availablePacks.RemoveAt(index);
+            availablePacks.Insert(index + 1, name);
+            GenerateResourcePackSelector(position, width, availablePacks, loadedPacks);
+        };
+
+        Button moveDownButton = new(Core.engine.renderer) {
+            audio = Core.engine.audio,
+            position = position + new Vector2Int(width - 1, y),
+            size = new Vector2Int(1, 1),
+            text = "▼",
+            active = canMoveDown
+        };
+        moveDownButton.onClick += (_, _) => {
+            availablePacks.RemoveAt(index);
+            availablePacks.Insert(index - 1, name);
+            GenerateResourcePackSelector(position, width, availablePacks, loadedPacks);
+        };
+
+        return (toggleButton, moveUpButton, moveDownButton);
     }
 
     public void Update() {
@@ -370,8 +383,8 @@ as you can see biuit works!!1!biu
 
     private void DrawUi() {
         foreach(Element element in _ui) element.Update(Core.engine.clock);
-        for(int i = 0; i < _resourcePackSelector.Count; i++) {
-            Element element = _resourcePackSelector[i];
+        for(int i = 0; i < _packSelector.Count; i++) {
+            Element element = _packSelector[i];
             element.Update(Core.engine.clock);
         }
     }
