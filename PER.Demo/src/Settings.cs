@@ -6,7 +6,7 @@ using PER.Abstractions.Audio;
 namespace PER.Demo;
 
 public class Settings {
-    public bool loadOnlyDefault { get; set; } = true;
+    public string[] packs { get; set; } = { "Default" };
     public float volume { get; set; } = 0.2f;
 
     public static Settings Load(string path) => !File.Exists(path) ? new Settings() :

@@ -1,6 +1,6 @@
 ﻿namespace PER.Abstractions.Resources;
 
-public struct ResourcePackMeta {
+public readonly struct ResourcePackMeta {
     public string description { get; }
     public int version { get; }
 

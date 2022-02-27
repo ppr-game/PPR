@@ -10,6 +10,7 @@ public abstract class ResourcesBase : IResources {
     public int currentVersion => 0;
     public bool loaded { get; private set; }
     public IReadOnlyList<ResourcePackData> loadedPacks => _loadedPacks;
+    public virtual string defaultPackName => "Default";
     protected virtual string resourcesRoot => "resources";
     protected virtual string resourcePackMeta => "metadata.json";
     protected virtual string resourcesInPack => "resources";

@@ -7,6 +7,7 @@ public interface IResources {
     public int currentVersion { get; }
     public bool loaded { get; }
     public IReadOnlyList<ResourcePackData> loadedPacks { get; }
+    public string defaultPackName { get; }
 
     public bool Load();
     public bool Unload();

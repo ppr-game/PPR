@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
-using System.IO;
+using System.Linq;
 
 using PER.Abstractions;
 using PER.Abstractions.Audio;
@@ -31,6 +32,7 @@ public class Game : IGame {
     private GlitchEffect? _glitchEffect;
 
     private readonly List<Element> _ui = new();
+    private readonly List<Element> _resourcePackSelector = new();
     private ProgressBar? _testProgressBar;
 
     public void Unload() => _settings.Save(SettingsPath);
@@ -40,16 +42,12 @@ public class Game : IGame {
 
         _settings = Settings.Load(SettingsPath);
 
-        if(_settings.loadOnlyDefault) {
-            foreach(ResourcePackData packData in resources.GetAvailablePacks()) {
-                if(packData.name != "Default") continue;
-                resources.TryAddPack(packData);
-                break;
-            }
-        }
-        else {
-            foreach(ResourcePackData packData in resources.GetAvailablePacks())
-                resources.TryAddPack(packData);
+        ImmutableDictionary<string, ResourcePackData> availablePacks =
+            resources.GetAvailablePacks().ToImmutableDictionary(data => data.name);
+        foreach(string packName in _settings.packs) {
+            if(!availablePacks.TryGetValue(packName, out ResourcePackData data))
+                continue;
+            resources.TryAddPack(data);
         }
 
         resources.TryAddResource("audio", new AudioResources());
@@ -178,18 +176,22 @@ public class Game : IGame {
         testSlider.value = _settings.volume;
         _ui.Add(testSlider);
 
-        Button onlyDefaultButton = new(renderer) {
+        Button packsButton = new(renderer) {
             audio = audio,
             position = new Vector2Int(0, 49),
-            size = new Vector2Int(12, 1),
-            text = "only default",
-            toggled = _settings.loadOnlyDefault
+            size = new Vector2Int(5, 1),
+            text = "packs",
+            toggled = false
         };
-        onlyDefaultButton.onClick += (_, _) => {
-            onlyDefaultButton.toggled = !onlyDefaultButton.toggled;
-            _settings.loadOnlyDefault = onlyDefaultButton.toggled;
+        packsButton.onClick += (_, _) => {
+            packsButton.toggled = !packsButton.toggled;
+            if(packsButton.toggled)
+                GenerateResourcePackSelector(new Vector2Int(30, 20), 30,
+                    Core.engine.resources.GetUnloadedAvailablePacks().Select(data => data.name),
+                    Core.engine.resources.loadedPacks.Select(data => data.name));
+            else _resourcePackSelector.Clear();
         };
-        _ui.Add(onlyDefaultButton);
+        _ui.Add(packsButton);
 
         Button applyButton = new(renderer) {
             audio = audio,
@@ -218,6 +220,86 @@ public class Game : IGame {
             size = new Vector2Int(80, 2)
         };
         _ui.Add(_testProgressBar);
+    }
+
+    private void GenerateResourcePackSelector(Vector2Int position, int width, IEnumerable<string> unloadedPacks,
+        IEnumerable<string> loadedPacks) {
+        List<string> availablePacks = new();
+        availablePacks.AddRange(loadedPacks);
+        availablePacks.AddRange(unloadedPacks);
+        GenerateResourcePackSelector(position, width, availablePacks, loadedPacks.ToHashSet());
+    }
+
+    private void GenerateResourcePackSelector(Vector2Int position, int width, IList<string> availablePacks,
+        ISet<string> loadedPacks) {
+        _resourcePackSelector.Clear();
+        int maxY = availablePacks.Count - 1;
+        int y = maxY;
+
+        for(int i = 0; i < availablePacks.Count; i++) {
+            string name = availablePacks[i];
+            bool loaded = loadedPacks.Contains(name);
+            bool canUnload = loadedPacks.Count > 1 && name != Core.engine.resources.defaultPackName;
+            bool canMoveUp = y > 0 && name != Core.engine.resources.defaultPackName;
+            bool canMoveDown = y < maxY && availablePacks[i - 1] != Core.engine.resources.defaultPackName;
+            Button toggleButton = new(Core.engine.renderer) {
+                audio = Core.engine.audio,
+                position = position + new Vector2Int(0, y),
+                size = new Vector2Int(width - 2, 1),
+                text = name,
+                toggled = loaded,
+                active = canUnload || !loaded
+            };
+            toggleButton.onClick += (_, _) => {
+                if(loaded) loadedPacks.Remove(name);
+                else loadedPacks.Add(name);
+                GenerateResourcePackSelector(position, width, availablePacks, loadedPacks);
+            };
+            _resourcePackSelector.Add(toggleButton);
+
+            int index = i;
+
+            Button moveUpButton = new(Core.engine.renderer) {
+                audio = Core.engine.audio,
+                position = position + new Vector2Int(width - 2, y),
+                size = new Vector2Int(1, 1),
+                text = "▲",
+                active = canMoveUp
+            };
+            moveUpButton.onClick += (_, _) => {
+                availablePacks.RemoveAt(index);
+                availablePacks.Insert(index + 1, name);
+                GenerateResourcePackSelector(position, width, availablePacks, loadedPacks);
+            };
+            _resourcePackSelector.Add(moveUpButton);
+
+            Button moveDownButton = new(Core.engine.renderer) {
+                audio = Core.engine.audio,
+                position = position + new Vector2Int(width - 1, y),
+                size = new Vector2Int(1, 1),
+                text = "▼",
+                active = canMoveDown
+            };
+            moveDownButton.onClick += (_, _) => {
+                availablePacks.RemoveAt(index);
+                availablePacks.Insert(index - 1, name);
+                GenerateResourcePackSelector(position, width, availablePacks, loadedPacks);
+            };
+            _resourcePackSelector.Add(moveDownButton);
+
+            y--;
+        }
+
+        Button applyButton = new(Core.engine.renderer) {
+            audio = Core.engine.audio,
+            position = position + new Vector2Int(0, maxY + 2),
+            size = new Vector2Int(width, 1),
+            text = "apply"
+        };
+        applyButton.onClick += (_, _) => {
+            _settings.packs = availablePacks.Where(loadedPacks.Contains).ToArray();
+        };
+        _resourcePackSelector.Add(applyButton);
     }
 
     public void Update() {
@@ -288,6 +370,10 @@ as you can see biuit works!!1!biu
 
     private void DrawUi() {
         foreach(Element element in _ui) element.Update(Core.engine.clock);
+        for(int i = 0; i < _resourcePackSelector.Count; i++) {
+            Element element = _resourcePackSelector[i];
+            element.Update(Core.engine.clock);
+        }
     }
 
     public void Tick() { }
