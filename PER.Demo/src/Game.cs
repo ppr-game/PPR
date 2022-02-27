@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 
 using PER.Abstractions;
 using PER.Abstractions.Audio;
@@ -22,6 +23,9 @@ public class Game : IGame {
     private int _tempAvgFPS;
     private int _tempAvgFPSCounter;
 
+    private const string SettingsPath = "config.json";
+    private Settings _settings = new();
+
     private DrawTextEffect? _drawTextEffect;
     private BloomEffect? _bloomEffect;
     private GlitchEffect? _glitchEffect;
@@ -29,21 +33,23 @@ public class Game : IGame {
     private readonly List<Element> _ui = new();
     private ProgressBar? _testProgressBar;
 
-    public void Unload() { }
+    public void Unload() => _settings.Save(SettingsPath);
 
     public void Load() {
         IResources resources = Core.engine.resources;
 
-        if(Core.engine.renderer.open) {
-            foreach(ResourcePackData packData in resources.GetAvailablePacks())
-                resources.TryAddPack(packData);
-        }
-        else {
+        _settings = Settings.Load(SettingsPath);
+
+        if(_settings.loadOnlyDefault) {
             foreach(ResourcePackData packData in resources.GetAvailablePacks()) {
                 if(packData.name != "Default") continue;
                 resources.TryAddPack(packData);
                 break;
             }
+        }
+        else {
+            foreach(ResourcePackData packData in resources.GetAvailablePacks())
+                resources.TryAddPack(packData);
         }
 
         resources.TryAddResource("audio", new AudioResources());
@@ -66,6 +72,8 @@ public class Game : IGame {
         Core.engine.renderer.formattingEffects.Clear();
         Core.engine.renderer.formattingEffects.Add("NONE", null);
         Core.engine.renderer.formattingEffects.Add("GLITCH", _glitchEffect);
+
+        _settings.Apply();
 
         if(Core.engine.renderer.open) Core.engine.renderer.font = font.font;
         else {
@@ -165,25 +173,45 @@ public class Game : IGame {
         };
         testSlider.onValueChanged += (_, _) => {
             testSliderText.text = testSlider.value.ToString(CultureInfo.InvariantCulture);
-
-            if(Core.engine.audio.TryGetMixer("master", out IAudioMixer? mixer))
-                mixer.volume = testSlider.value;
-
-            Core.engine.audio.UpdateVolumes();
+            _settings.volume = testSlider.value;
         };
-        testSlider.value = 0.2f;
+        testSlider.value = _settings.volume;
         _ui.Add(testSlider);
 
-        Button testButton3 = new(renderer) {
+        Button onlyDefaultButton = new(renderer) {
             audio = audio,
             position = new Vector2Int(0, 49),
+            size = new Vector2Int(12, 1),
+            text = "only default",
+            toggled = _settings.loadOnlyDefault
+        };
+        onlyDefaultButton.onClick += (_, _) => {
+            onlyDefaultButton.toggled = !onlyDefaultButton.toggled;
+            _settings.loadOnlyDefault = onlyDefaultButton.toggled;
+        };
+        _ui.Add(onlyDefaultButton);
+
+        Button applyButton = new(renderer) {
+            audio = audio,
+            position = new Vector2Int(0, 51),
+            size = new Vector2Int(5, 1),
+            text = "apply"
+        };
+        applyButton.onClick += (_, _) => {
+            _settings.Apply();
+        };
+        _ui.Add(applyButton);
+
+        Button reloadButton = new(renderer) {
+            audio = audio,
+            position = new Vector2Int(6, 51),
             size = new Vector2Int(6, 1),
             text = "reload"
         };
-        testButton3.onClick += (_, _) => {
+        reloadButton.onClick += (_, _) => {
             Core.engine.Reload();
         };
-        _ui.Add(testButton3);
+        _ui.Add(reloadButton);
 
         _testProgressBar = new ProgressBar(renderer) {
             position = new Vector2Int(0, 58),
