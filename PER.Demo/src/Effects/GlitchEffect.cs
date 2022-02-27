@@ -36,7 +36,7 @@ public class GlitchEffect : IEffect {
         Core.engine.renderer.DrawCharacter(position, new RenderCharacter(
             mappings[random.Next(0, mappings.Length)],
             RandomizeColor(Color.transparent), RandomizeColor(Color.white),
-            (RenderStyle)random.Next((int)RenderStyle.None, (int)RenderStyle.All)));
+            (RenderStyle)random.Next((int)RenderStyle.None, (int)RenderStyle.All + 1)));
     }
 
     private static float RandomFloat() => random.Next(-100000, 100000) / 100000f;
