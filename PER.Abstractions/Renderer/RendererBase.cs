@@ -214,7 +214,7 @@ public abstract class RendererBase : IRenderer {
          renderCharacter.foreground.a == 0f);
 
     public virtual bool IsCharacterDrawable(char character, RenderStyle style) =>
-        font?.IsCharacterDrawable(character, style) ?? false;
+        font?.IsCharacterDrawable(character, style & RenderStyle.AllPerFont) ?? false;
 
     private static void ProcessFormatting(char character, ref bool colorSetMode, ref bool foregroundSetMode,
         ref bool backgroundSetMode, ref bool effectSetMode, IList<char> colorsRecord, ref Color foregroundColor,
