@@ -27,6 +27,8 @@ public class Game : IGame {
     private const string SettingsPath = "config.json";
     private Settings _settings = new();
 
+    private Dictionary<string, Color> _colors = new();
+
     private DrawTextEffect? _drawTextEffect;
     private BloomEffect? _bloomEffect;
     private GlitchEffect? _glitchEffect;
@@ -54,7 +56,9 @@ public class Game : IGame {
 
         resources.TryAddResource("graphics/font", new FontResource());
         resources.TryAddResource("graphics/effects/bloom", new BloomEffect());
-        resources.TryAddResource("graphics/effects/maxBlendBloom", new BloomEffect());
+        resources.TryAddResource("graphics/effects/maxBlendBloom", new MaxBlendBloomEffect());
+
+        resources.TryAddResource("graphics/colors", new ColorsResource());
     }
 
     public void Loaded() {
@@ -70,6 +74,9 @@ public class Game : IGame {
         Core.engine.renderer.formattingEffects.Clear();
         Core.engine.renderer.formattingEffects.Add("NONE", null);
         Core.engine.renderer.formattingEffects.Add("GLITCH", _glitchEffect);
+
+        if(Core.engine.resources.TryGetResource("graphics/colors", out ColorsResource? colors))
+            _colors = colors!.colors;
 
         _settings.Apply();
 
@@ -104,7 +111,10 @@ public class Game : IGame {
             audio = audio,
             position = new Vector2Int(0, 32),
             size = new Vector2Int(6, 1),
-            text = "button"
+            text = "button",
+            idleColor = _colors["button_mainMenu.play_idle"],
+            hoverColor = _colors["button_mainMenu.play_hover"],
+            clickColor = _colors["button_mainMenu.play_click"]
         };
         testButton1.onClick += (_, _) => {
             testButton1.toggled = !testButton1.toggled;

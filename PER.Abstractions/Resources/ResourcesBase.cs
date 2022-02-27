@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -87,6 +88,27 @@ public abstract class ResourcesBase : IResources {
     public bool TryAddResource<TResource>(string id, TResource resource) where TResource : class, IResource =>
         !loaded && _resources.TryAdd(id, resource);
 
+    public IEnumerable<string> GetAllPaths(string relativePath) {
+        if(!loaded && !_loading) yield break;
+
+        foreach(ResourcePackData data in loadedPacks) {
+            string resourcePath = Path.Combine(data.fullPath, relativePath);
+            if(!File.Exists(resourcePath)) continue;
+            yield return resourcePath;
+        }
+    }
+
+    public IEnumerable<string> GetAllPathsReverse(string relativePath) {
+        if(!loaded && !_loading) yield break;
+
+        for(int i = loadedPacks.Count - 1; i >= 0; i--) {
+            ResourcePackData data = loadedPacks[i];
+            string resourcePath = Path.Combine(data.fullPath, relativePath);
+            if(!File.Exists(resourcePath)) continue;
+            yield return resourcePath;
+        }
+    }
+
     public bool TryGetPath(string relativePath, [MaybeNullWhen(false)] out string fullPath) {
         fullPath = null;
         if(!loaded && !_loading) return false;
@@ -94,16 +116,10 @@ public abstract class ResourcesBase : IResources {
         if(_cachedPaths.TryGetValue(relativePath, out fullPath))
             return true;
 
-        for(int i = loadedPacks.Count - 1; i >= 0; i--) {
-            ResourcePackData data = loadedPacks[i];
-            string resourcePath = Path.Combine(data.fullPath, relativePath);
-            if(!File.Exists(resourcePath)) continue;
-            fullPath = resourcePath;
-            _cachedPaths.Add(relativePath, fullPath);
-            return true;
-        }
-
-        return false;
+        fullPath = GetAllPathsReverse(relativePath).FirstOrDefault((string?)null);
+        if(fullPath is null) return false;
+        _cachedPaths.Add(relativePath, fullPath);
+        return true;
     }
 
     public bool TryGetResource<TResource>(string id, [MaybeNullWhen(false)] out TResource resource)
