@@ -40,6 +40,7 @@ public abstract class RendererBase : IRenderer {
 
     public abstract bool open { get; }
     public abstract bool focused { get; }
+    public abstract event EventHandler? closed;
 
     public virtual Color background { get; set; } = Color.black;
 
@@ -73,6 +74,7 @@ public abstract class RendererBase : IRenderer {
     protected abstract void UpdateFramerate();
 
     public abstract void Update();
+    public abstract void Close();
     public abstract void Finish();
 
     public virtual void Reset(RendererSettings settings) {

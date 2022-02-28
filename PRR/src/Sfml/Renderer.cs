@@ -16,6 +16,7 @@ namespace PRR.Sfml;
 public class Renderer : RendererBase, IDisposable {
     public override bool open => window?.IsOpen ?? false;
     public override bool focused => window?.HasFocus() ?? false;
+    public override event EventHandler? closed;
 
     public Text? text { get; private set; }
     public RenderWindow? window { get; private set; }
@@ -41,6 +42,8 @@ public class Renderer : RendererBase, IDisposable {
         input?.Update();
     }
 
+    public override void Close() => window?.Close();
+
     public override void Finish() {
         input?.Finish();
         window?.Close();
@@ -62,7 +65,7 @@ public class Renderer : RendererBase, IDisposable {
             window.SetIcon(icon.Size.X, icon.Size.Y, icon.Pixels);
         }
 
-        window.Closed += (_, _) => Finish();
+        window.Closed += (_, _) => closed?.Invoke(this, EventArgs.Empty);
         window.SetKeyRepeatEnabled(false);
 
         _mainRenderTexture = new RenderTexture(videoMode.Width, videoMode.Height);

@@ -8,14 +8,14 @@ Visuals inspired by [Cogmind](https://store.steampowered.com/app/722730/Cogmind)
 ## Screenshots
 <details>
  <summary>hinkik - Time Leaper</summary>
- 
- ![hinkik - Time Leaper](screenshots/Screenshot-0.png)
+
+ ![hinkik - Time Leaper](Screenshot-0.png)
 </details>
 
 <details>
  <summary>LeaF - Aleph-0</summary>
- 
- ![LeaF - Aleph-0](screenshots/Screenshot-1.png)
+
+ ![LeaF - Aleph-0](Screenshot-1.png)
 </details>
 
 
@@ -122,20 +122,20 @@ to make this place fit the speed of the song and (sometimes) make it easier to r
 #### Use the keyboard "lines" for (at least obviously) different parts and keys/"positions" for the current note (or just draw pars that seem to fit to the current place)
 ##### Lines
 
-For example, if the current part of the song/level is going on the ASDF line and then the instrument changes, 
+For example, if the current part of the song/level is going on the ASDF line and then the instrument changes,
 the line should change too (for example too QWER)
 
 There are 4 lines in total you can use (1234, QWER, ASDF and ZXCV)
 
 ##### Notes
 
-Use the keyboard keys to show the *relation* of the current note to the next note, 
+Use the keyboard keys to show the *relation* of the current note to the next note,
 a specific key doesn't always have to be one exact note
 
-That means that if the next note is higher than the current note, then put the next in-game note one key to the right 
+That means that if the next note is higher than the current note, then put the next in-game note one key to the right
 (for example if the current note is 'g', then the next note will be 'h')
 
-Or if the next note is higher than just higher than the current note, place the in-game note two or three or how much 
+Or if the next note is higher than just higher than the current note, place the in-game note two or three or how much
 keys you think it's relevant in the current situation
 
 Same goes for lower notes but place them to the left
@@ -143,7 +143,7 @@ Same goes for lower notes but place them to the left
 #### Leave some space before putting the first note
 Give the players time to prepare and see what they need to press, usually about 1-3 seconds is enough
 
-If the song starts right away you can start the map at the next part of the song or the next after that or 
+If the song starts right away you can start the map at the next part of the song or the next after that or
 where you think it's relevant
 
 #### Don't make the player press more than 2 keys at the same time

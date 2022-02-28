@@ -1,77 +1,100 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
-    <Platforms>AnyCPU;x86;x64</Platforms>
-    <StartupObject>PPR.Core</StartupObject>
-    <Version>0.10.3-beta</Version>
-    <Authors>ConfiG</Authors>
-    <PackageId>com.github.cgytrus.PPR</PackageId>
-    <RepositoryUrl>https://github.com/cgytrus/PPR</RepositoryUrl>
-    <RepositoryType>Git</RepositoryType>
-    <ApplicationIcon>icon.ico</ApplicationIcon>
-    <NoWin32Manifest>true</NoWin32Manifest>
-    <Title>Press Press Revolution</Title>
-    <PublishTrimmed>true</PublishTrimmed>
-    <PublishReadyToRun>false</PublishReadyToRun>
-    <PublishReadyToRunShowWarnings>true</PublishReadyToRunShowWarnings>
-    <BeautyLibsDir>libraries</BeautyLibsDir>
-    <DisableBeauty>false</DisableBeauty>
-    <ForceBeauty>false</ForceBeauty>
-    <DisablePatch>false</DisablePatch>
-    <BeautyLogLevel>Error</BeautyLogLevel>
-    <IsPackable>false</IsPackable>
-    <LangVersion>9</LangVersion>
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <ApplicationIcon>icon.ico</ApplicationIcon>
+        <IsPackable>false</IsPackable>
+        <PackageVersion>0.11.0</PackageVersion>
+        <Authors>ConfiG</Authors>
+        <RepositoryUrl>https://github.com/ppr-game/PPR</RepositoryUrl>
+        <RepositoryType>Git</RepositoryType>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <Prefer32Bit>true</Prefer32Bit>
-    <Optimize>false</Optimize>
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+    <ItemGroup>
+      <None Update="NLog.config">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\colors\Default\Classic (Lighter Blue)\colors.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\colors\Default\Classic\bloom-blend_frag.glsl">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\colors\Default\Classic\colors.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\colors\Default\White\bloom-blend_frag.glsl">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\ui\Default\animationPresets.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\ui\Default\animations.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\ui\Default\keybinds.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\ui\Default\lastStats.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\ui\Default\layout.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\ui\Default\levelSelect.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\ui\Default\mainMenu.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\ui\Default\notifications.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\ui\Default\script.lua">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\ui\Default\settings.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="levels\_template\level.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\Default\resources\graphics\icon.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\Default\resources\audio\sfx\buttonClick.wav">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\Default\resources\audio\sfx\pass.wav">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\Default\resources\audio\sfx\tick.wav">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\Default\resources\audio\sfx\slider.wav">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\Default\resources\audio\sfx\fail.wav">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\Default\resources\audio\sfx\hit.wav">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="resources\Default\resources\audio\music\mainMenu.ogg">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Prefer32Bit>true</Prefer32Bit>
-    <Optimize>false</Optimize>
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="CoreCLR-NCalc" Version="2.2.88" />
-    <PackageReference Include="DiscordRichPresence" Version="1.0.150" />
-    <PackageReference Include="MoonSharp" Version="2.0.0" />
-    <PackageReference Include="NLog" Version="4.7.10" />
-    <PackageReference Include="SFML.Net" Version="2.5.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="levels\_template\level.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="NLog.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="resources\**\*">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="layout.schema.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\PER\PER.csproj" />
-    <ProjectReference Include="..\PRR\PRR.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="logs" />
-    <Folder Include="src\Lua\API" />
-  </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\PER.Abstractions\PER.Abstractions.csproj" />
+      <ProjectReference Include="..\PER.Audio\PER.Audio.csproj" />
+      <ProjectReference Include="..\PER.Util\PER.Util.csproj" />
+      <ProjectReference Include="..\PER\PER.csproj" />
+      <ProjectReference Include="..\PRR.UI\PRR.UI.csproj" />
+      <ProjectReference Include="..\PRR\PRR.csproj" />
+    </ItemGroup>
 
 </Project>

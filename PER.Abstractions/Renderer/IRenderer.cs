@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using PER.Abstractions.Input;
 using PER.Util;
@@ -16,6 +17,7 @@ public interface IRenderer {
 
     public bool open { get; }
     public bool focused { get; }
+    public event EventHandler closed;
 
     public Color background { get; set; }
 
@@ -25,6 +27,7 @@ public interface IRenderer {
 
     public void Setup(RendererSettings settings);
     public void Update();
+    public void Close();
     public void Finish();
     public void Reset();
     public void Reset(RendererSettings settings);

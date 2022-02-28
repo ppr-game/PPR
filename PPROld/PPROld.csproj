@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <Platforms>AnyCPU;x86;x64</Platforms>
+    <StartupObject>PPR.Core</StartupObject>
+    <Version>0.11.0</Version>
+    <Authors>ConfiG</Authors>
+    <PackageId>com.github.cgytrus.PPR</PackageId>
+    <RepositoryUrl>https://github.com/cgytrus/PPR</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+    <NoWin32Manifest>true</NoWin32Manifest>
+    <Title>Press Press Revolution</Title>
+    <IsPackable>false</IsPackable>
+    <LangVersion>10</LangVersion>
+    <PackageVersion>0.11.0</PackageVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="CoreCLR-NCalc" Version="2.2.88" />
+    <PackageReference Include="DiscordRichPresence" Version="1.0.150" />
+    <PackageReference Include="NLog" Version="4.7.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="levels\_template\level.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="NLog.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="resources\**\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PER.Audio\PER.Audio.csproj" />
+    <ProjectReference Include="..\PER\PER.csproj" />
+    <ProjectReference Include="..\PRR.UI\PRR.UI.csproj" />
+    <ProjectReference Include="..\PRR\PRR.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="logs" />
+  </ItemGroup>
+</Project>

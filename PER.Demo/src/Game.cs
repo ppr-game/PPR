@@ -98,6 +98,8 @@ public class Game : IGame {
         IRenderer renderer = Core.engine.renderer;
         IAudio audio = Core.engine.audio;
 
+        renderer.closed += (_, _) => renderer.Close();
+
         _ui.Add(new Panel(renderer) {
             enabled = false,
             position = new Vector2Int(30, 30),

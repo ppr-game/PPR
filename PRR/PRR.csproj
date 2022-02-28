@@ -16,6 +16,7 @@
         <PackageIcon>icon128x.png</PackageIcon>
         <LangVersion>10</LangVersion>
         <Nullable>enable</Nullable>
+        <PackageVersion>0.2.0</PackageVersion>
     </PropertyGroup>
     
     <ItemGroup>
