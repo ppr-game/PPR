@@ -37,17 +37,11 @@ public class Renderer : RendererBase, IDisposable {
 
     private Vector2f _textPosition;
 
-    public override void Update() {
-        window?.DispatchEvents();
-        input?.Update();
-    }
+    public override void Update() => window?.DispatchEvents();
 
     public override void Close() => window?.Close();
 
-    public override void Finish() {
-        input?.Finish();
-        window?.Close();
-    }
+    public override void Finish() { }
 
     protected override void CreateWindow() {
         if(window?.IsOpen ?? false) window.Close();
@@ -77,9 +71,6 @@ public class Renderer : RendererBase, IDisposable {
             (videoMode.Height - text?.imageHeight ?? 0) / 2f);
 
         UpdateFramerate();
-
-        input = new InputManager(this);
-        input.Setup();
     }
 
     protected override void UpdateFramerate() {

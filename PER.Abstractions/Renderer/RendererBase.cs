@@ -44,7 +44,6 @@ public abstract class RendererBase : IRenderer {
 
     public virtual Color background { get; set; } = Color.black;
 
-    public IInputManager? input { get; protected set; }
     public Dictionary<string, IEffect?> formattingEffects { get; } = new();
 
     protected List<IEffect> fullscreenEffects { get; private set; } = new();

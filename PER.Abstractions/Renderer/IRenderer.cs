@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using PER.Abstractions.Input;
 using PER.Util;
 
 namespace PER.Abstractions.Renderer;
@@ -20,8 +19,6 @@ public interface IRenderer {
     public event EventHandler closed;
 
     public Color background { get; set; }
-
-    public IInputManager? input { get; }
 
     public Dictionary<string, IEffect?> formattingEffects { get; }
 

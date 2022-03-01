@@ -96,6 +96,7 @@ public class Game : IGame {
 
     public void Setup() {
         IRenderer renderer = Core.engine.renderer;
+        IInputManager input = Core.engine.input;
         IAudio audio = Core.engine.audio;
 
         renderer.closed += (_, _) => renderer.Close();
@@ -109,8 +110,7 @@ public class Game : IGame {
 
         _ui.Add(new Text(renderer) { position = new Vector2Int(0, 30), text = "hi ui test" });
 
-        Button testButton1 = new(renderer) {
-            audio = audio,
+        Button testButton1 = new(renderer, input, audio) {
             position = new Vector2Int(0, 32),
             size = new Vector2Int(6, 1),
             text = "button",
@@ -125,8 +125,7 @@ public class Game : IGame {
         _ui.Add(testButton1);
 
         int counter = 0;
-        Button testButton2 = new(renderer) {
-            audio = audio,
+        Button testButton2 = new(renderer, input, audio) {
             position = new Vector2Int(0, 34),
             size = new Vector2Int(6, 1),
             text = counter.ToString()
@@ -137,22 +136,19 @@ public class Game : IGame {
         };
         _ui.Add(testButton2);
 
-        _ui.Add(new Button(renderer) {
-            audio = audio,
+        _ui.Add(new Button(renderer, input, audio) {
             position = new Vector2Int(0, 36),
             size = new Vector2Int(16, 2),
             text = "big\nbutton"
         });
 
-        _ui.Add(new Button(renderer) {
-            audio = audio,
+        _ui.Add(new Button(renderer, input, audio) {
             active = false, position = new Vector2Int(0, 39),
             size = new Vector2Int(16, 2),
             text = "big inactive\nbutton"
         });
 
-        _ui.Add(new Button(renderer) {
-            audio = audio,
+        _ui.Add(new Button(renderer, input, audio) {
             active = false,
             toggled = true,
             position = new Vector2Int(0, 42),
@@ -160,8 +156,7 @@ public class Game : IGame {
             text = "inactive toggled"
         });
 
-        _ui.Add(new Button(renderer) {
-            audio = audio,
+        _ui.Add(new Button(renderer, input, audio) {
             position = new Vector2Int(0, 44),
             size = new Vector2Int(16, 2),
             text = "big glitch\nbutton",
@@ -174,8 +169,7 @@ public class Game : IGame {
         };
         _ui.Add(testSliderText);
 
-        Slider testSlider = new(renderer) {
-            audio = audio,
+        Slider testSlider = new(renderer, input, audio) {
             position = new Vector2Int(0, 47),
             width = 21,
             minValue = 0f,
@@ -188,8 +182,7 @@ public class Game : IGame {
         testSlider.value = _settings.volume;
         _ui.Add(testSlider);
 
-        Button packsButton = new(renderer) {
-            audio = audio,
+        Button packsButton = new(renderer, input, audio) {
             position = new Vector2Int(0, 49),
             size = new Vector2Int(5, 1),
             text = "packs",
@@ -205,8 +198,7 @@ public class Game : IGame {
         };
         _ui.Add(packsButton);
 
-        Button applyButton = new(renderer) {
-            audio = audio,
+        Button applyButton = new(renderer, input, audio) {
             position = new Vector2Int(0, 51),
             size = new Vector2Int(5, 1),
             text = "apply"
@@ -216,8 +208,7 @@ public class Game : IGame {
         };
         _ui.Add(applyButton);
 
-        Button reloadButton = new(renderer) {
-            audio = audio,
+        Button reloadButton = new(renderer, input, audio) {
             position = new Vector2Int(6, 51),
             size = new Vector2Int(6, 1),
             text = "reload"
@@ -269,8 +260,7 @@ public class Game : IGame {
             y--;
         }
 
-        Button applyButton = new(Core.engine.renderer) {
-            audio = Core.engine.audio,
+        Button applyButton = new(Core.engine.renderer, Core.engine.input, Core.engine.audio) {
             position = position + new Vector2Int(0, maxY + 2),
             size = new Vector2Int(width, 1),
             text = "apply"
@@ -284,8 +274,7 @@ public class Game : IGame {
     private (Button toggleButton, Button moveUpButton, Button moveDownButton) CreatePackListEntryButtons(int index,
         Vector2Int position, int y, int width, IList<string> availablePacks, ISet<string> loadedPacks,
         string name, bool loaded, bool canToggle, bool canMoveUp, bool canMoveDown) {
-        Button toggleButton = new(Core.engine.renderer) {
-            audio = Core.engine.audio,
+        Button toggleButton = new(Core.engine.renderer, Core.engine.input, Core.engine.audio) {
             position = position + new Vector2Int(0, y),
             size = new Vector2Int(width - 2, 1),
             text = name,
@@ -298,8 +287,7 @@ public class Game : IGame {
             GenerateResourcePackSelector(position, width, availablePacks, loadedPacks);
         };
 
-        Button moveUpButton = new(Core.engine.renderer) {
-            audio = Core.engine.audio,
+        Button moveUpButton = new(Core.engine.renderer, Core.engine.input, Core.engine.audio) {
             position = position + new Vector2Int(width - 2, y),
             size = new Vector2Int(1, 1),
             text = "▲",
@@ -311,8 +299,7 @@ public class Game : IGame {
             GenerateResourcePackSelector(position, width, availablePacks, loadedPacks);
         };
 
-        Button moveDownButton = new(Core.engine.renderer) {
-            audio = Core.engine.audio,
+        Button moveDownButton = new(Core.engine.renderer, Core.engine.input, Core.engine.audio) {
             position = position + new Vector2Int(width - 1, y),
             size = new Vector2Int(1, 1),
             text = "▼",
@@ -340,6 +327,7 @@ public class Game : IGame {
         if(_drawTextEffect is null || _bloomEffect is null) return;
 
         IRenderer renderer = Core.engine.renderer;
+        IInputManager input = Core.engine.input;
 
         renderer.AddEffect(_drawTextEffect);
         renderer.AddEffect(_bloomEffect);
@@ -348,7 +336,7 @@ public class Game : IGame {
             $"{_fps.ToString(CultureInfo.InvariantCulture)}/{_avgFPS.ToString(CultureInfo.InvariantCulture)} FPS",
             Color.white, Color.transparent);
 
-        if(renderer.input?.KeyPressed(KeyCode.F) ?? false) return;
+        if(input.KeyPressed(KeyCode.F)) return;
 
         renderer.DrawText(new Vector2Int(0, 1),
             @"hello everyone! this is cf00FF00FFcbConfiGcfFFFFFFFFcb and today i'm gonna show you my eGLITCHeengineeNONEe!!
@@ -385,9 +373,9 @@ as you can see biuit works!!1!biu
             "-right test odd", Color.white, Color.transparent, HorizontalAlignment.Right);
 
         if(_testProgressBar is not null &&
-           (renderer.input?.mousePosition.InBounds(_testProgressBar.bounds) ?? false) &&
-           renderer.input.MouseButtonPressed(MouseButton.Left)) {
-            _testProgressBar.value = renderer.input.normalizedMousePosition.x;
+           input.mousePosition.InBounds(_testProgressBar.bounds) &&
+           input.MouseButtonPressed(MouseButton.Left)) {
+            _testProgressBar.value = input.normalizedMousePosition.x;
         }
 
         DrawUi();

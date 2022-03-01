@@ -8,8 +8,9 @@ namespace PRR.UI;
 
 public class Slider : Element {
     public enum State { None, Inactive, Idle, Hovered, Clicked }
-
     public const string ValueChangedSoundId = "slider";
+
+    public IInputManager input { get; set; }
     public IAudio? audio { get; set; }
 
     public override Vector2Int size {
@@ -66,13 +67,15 @@ public class Slider : Element {
     private Color _animForegroundColorStart;
     private Color _animForegroundColorEnd;
 
-    public Slider(IRenderer renderer) : base(renderer) { }
+    public Slider(IRenderer renderer, IInputManager input, IAudio? audio = null) : base(renderer) {
+        this.input = input;
+        this.audio = audio;
+    }
 
     private void UpdateState(IReadOnlyStopwatch clock) {
-        bool mouseWasOver = renderer.input is not null &&
-                            bounds.IntersectsLine(renderer.input.previousMousePosition, renderer.input.mousePosition);
-        bool mouseOver = renderer.input?.mousePosition.InBounds(bounds) ?? false;
-        bool mouseClicked = renderer.input?.MouseButtonPressed(MouseButton.Left) ?? false;
+        bool mouseWasOver = bounds.IntersectsLine(input.previousMousePosition, input.mousePosition);
+        bool mouseOver = input.mousePosition.InBounds(bounds);
+        bool mouseClicked = input.MouseButtonPressed(MouseButton.Left);
         State prevState = currentState;
         currentState = active ? mouseWasOver ? mouseOver && mouseClicked ?
             State.Clicked : State.Hovered : State.Idle : State.Inactive;
@@ -101,7 +104,7 @@ public class Slider : Element {
 
     private void UpdateValue() {
         int prevRelativeValue = _relativeValue;
-        _relativeValue = renderer.input?.mousePosition.x - position.x ?? 0;
+        _relativeValue = input.mousePosition.x - position.x;
         if(prevRelativeValue == _relativeValue) return;
         float tempValue = (float)_relativeValue / (width - 1);
         tempValue = minValue + tempValue * (maxValue - minValue);

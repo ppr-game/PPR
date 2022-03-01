@@ -5,6 +5,7 @@ using NLog;
 
 using PER.Abstractions;
 using PER.Abstractions.Audio;
+using PER.Abstractions.Input;
 using PER.Abstractions.Renderer;
 using PER.Abstractions.Resources;
 using PER.Util;
@@ -25,16 +26,18 @@ public class Engine {
     public IResources resources { get; }
     public IGame game { get; }
     public IRenderer renderer { get; }
+    public IInputManager input { get; }
     public IAudio audio { get; }
 
     private readonly Stopwatch _clock = new();
     private TimeSpan _prevTime;
     private double _tickAccumulator;
 
-    public Engine(IResources resources, IGame game, IRenderer renderer, IAudio audio) {
+    public Engine(IResources resources, IGame game, IRenderer renderer, IInputManager input, IAudio audio) {
         this.resources = resources;
         this.game = game;
         this.renderer = renderer;
+        this.input = input;
         this.audio = audio;
     }
 
@@ -67,6 +70,7 @@ public class Engine {
         _clock.Reset();
 
         renderer.Setup(rendererSettings);
+        input.Setup();
         game.Setup();
 
         logger.Info("Setup finished");
@@ -75,6 +79,7 @@ public class Engine {
     private bool Update() {
         renderer.Clear();
         renderer.Update();
+        input.Update();
         game.Update();
         TryTick();
         renderer.Draw();
@@ -101,6 +106,7 @@ public class Engine {
 
     private void Finish() {
         resources.Unload();
+        input.Finish();
         renderer.Finish();
         game.Finish();
         audio.Finish();

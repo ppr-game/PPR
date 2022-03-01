@@ -1,4 +1,5 @@
 ﻿using PER.Abstractions.Audio;
+using PER.Abstractions.Input;
 using PER.Abstractions.Renderer;
 using PER.Abstractions.UI;
 using PER.Util;
@@ -22,10 +23,10 @@ public class MainMenuScreen : IScreen {
             _colors = colors!.colors;
 
         IRenderer renderer = Core.engine.renderer;
+        IInputManager input = Core.engine.input;
         IAudio audio = Core.engine.audio;
 
-        Button playButton = new(renderer) {
-            audio = audio,
+        Button playButton = new(renderer, input, audio) {
             position = new Vector2Int(40 - 2, 25),
             size = new Vector2Int(4, 1),
             text = "PLAY",
@@ -37,8 +38,7 @@ public class MainMenuScreen : IScreen {
         };
         _ui.Add(playButton);
 
-        Button editButton = new(renderer) {
-            audio = audio,
+        Button editButton = new(renderer, input, audio) {
             position = new Vector2Int(40 - 2, 27),
             size = new Vector2Int(4, 1),
             text = "EDIT",
@@ -50,8 +50,7 @@ public class MainMenuScreen : IScreen {
         };
         _ui.Add(editButton);
 
-        Button settingsButton = new(renderer) {
-            audio = audio,
+        Button settingsButton = new(renderer, input, audio) {
             position = new Vector2Int(40 - 4, 29),
             size = new Vector2Int(8, 1),
             text = "SETTINGS",
@@ -63,8 +62,7 @@ public class MainMenuScreen : IScreen {
         };
         _ui.Add(settingsButton);
 
-        Button exitButton = new(renderer) {
-            audio = audio,
+        Button exitButton = new(renderer, input, audio) {
             position = new Vector2Int(40 - 2, 31),
             size = new Vector2Int(4, 1),
             text = "EXIT",
