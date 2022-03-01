@@ -128,11 +128,11 @@ public class Game : IGame {
         Button testButton2 = new(renderer, input, audio) {
             position = new Vector2Int(0, 34),
             size = new Vector2Int(6, 1),
-            text = counter.ToString()
+            text = counter.ToString(CultureInfo.InvariantCulture)
         };
         testButton2.onClick += (_, _) => {
             counter++;
-            testButton2.text = counter.ToString();
+            testButton2.text = counter.ToString(CultureInfo.InvariantCulture);
         };
         _ui.Add(testButton2);
 
