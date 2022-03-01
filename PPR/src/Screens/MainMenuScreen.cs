@@ -1,6 +1,9 @@
-﻿using PER.Abstractions.Audio;
+﻿using System.Text.Json;
+
+using PER.Abstractions.Audio;
 using PER.Abstractions.Input;
 using PER.Abstractions.Renderer;
+using PER.Abstractions.Resources;
 using PER.Abstractions.UI;
 using PER.Util;
 
@@ -10,79 +13,40 @@ using PRR.UI;
 
 namespace PPR.Screens;
 
-public class MainMenuScreen : IScreen {
-    private Dictionary<string, Color> _colors = new();
-    private readonly List<Element> _ui = new();
+public class MainMenuScreen : ScreenResourceBase {
+    //private Dictionary<string, Color> _colors = new();
 
-    public void Enter() => Open();
-    public void Quit() => Close();
-    public bool QuitUpdate() => true;
+    protected override string layoutName => "mainMenu";
+    protected override IReadOnlyDictionary<string, Type> elementTypes { get; } = new Dictionary<string, Type> {
+        { "title.red", typeof(LayoutText) },
+        { "title.green", typeof(LayoutText) },
+        { "title.blue", typeof(LayoutText) },
+        { "play", typeof(LayoutButton) },
+        { "edit", typeof(LayoutButton) },
+        { "settings", typeof(LayoutButton) },
+        { "exit", typeof(LayoutButton) }
+    };
 
-    public void Open() {
-        if(Core.engine.resources.TryGetResource("graphics/colors", out ColorsResource? colors))
-            _colors = colors!.colors;
+    public override void Enter() => Open();
+    public override void Quit() => Close();
+    public override bool QuitUpdate() => true;
+
+    public override void Open() {
+        //if(Core.engine.resources.TryGetResource("graphics/colors", out ColorsResource? colors))
+        //    _colors = colors!.colors;
 
         IRenderer renderer = Core.engine.renderer;
-        IInputManager input = Core.engine.input;
-        IAudio audio = Core.engine.audio;
 
-        Button playButton = new(renderer, input, audio) {
-            position = new Vector2Int(40 - 2, 25),
-            size = new Vector2Int(4, 1),
-            text = "PLAY",
-            idleColor = _colors["button_mainMenu.play_idle"],
-            hoverColor = _colors["button_mainMenu.play_hover"],
-            clickColor = _colors["button_mainMenu.play_click"]
+        if(elements["exit"] is Button button) button.onClick += (_, _) => {
+            renderer.Close();
         };
-        playButton.onClick += (_, _) => {
-        };
-        _ui.Add(playButton);
-
-        Button editButton = new(renderer, input, audio) {
-            position = new Vector2Int(40 - 2, 27),
-            size = new Vector2Int(4, 1),
-            text = "EDIT",
-            idleColor = _colors["button_mainMenu.edit_idle"],
-            hoverColor = _colors["button_mainMenu.edit_hover"],
-            clickColor = _colors["button_mainMenu.edit_click"]
-        };
-        editButton.onClick += (_, _) => {
-        };
-        _ui.Add(editButton);
-
-        Button settingsButton = new(renderer, input, audio) {
-            position = new Vector2Int(40 - 4, 29),
-            size = new Vector2Int(8, 1),
-            text = "SETTINGS",
-            idleColor = _colors["button_mainMenu.settings_idle"],
-            hoverColor = _colors["button_mainMenu.settings_hover"],
-            clickColor = _colors["button_mainMenu.settings_click"]
-        };
-        settingsButton.onClick += (_, _) => {
-        };
-        _ui.Add(settingsButton);
-
-        Button exitButton = new(renderer, input, audio) {
-            position = new Vector2Int(40 - 2, 31),
-            size = new Vector2Int(4, 1),
-            text = "EXIT",
-            idleColor = _colors["button_mainMenu.exit_idle"],
-            hoverColor = _colors["button_mainMenu.exit_hover"],
-            clickColor = _colors["button_mainMenu.exit_click"]
-        };
-        exitButton.onClick += (_, _) => {
-            Core.engine.renderer.Close();
-        };
-        _ui.Add(exitButton);
     }
 
-    public void Close() {
-        _ui.Clear();
+    public override void Close() { }
+
+    public override void Update() {
+        foreach((string _, Element element) in elements) element.Update(Core.engine.clock);
     }
 
-    public void Update() {
-        foreach(Element element in _ui) element.Update(Core.engine.clock);
-    }
-
-    public void Tick() { }
+    public override void Tick() { }
 }

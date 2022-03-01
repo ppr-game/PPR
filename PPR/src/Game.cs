@@ -25,7 +25,7 @@ public class Game : IGame {
     private BloomEffect? _bloomEffect;
     private GlitchEffect? _glitchEffect;
 
-    private IScreen _currentScreen = new MainMenuScreen();
+    private IScreen? _currentScreen;
 
     public void Unload() => _settings.Save(SettingsPath);
 
@@ -49,6 +49,8 @@ public class Game : IGame {
         resources.TryAddResource("graphics/effects/bloom", new BloomEffect());
 
         resources.TryAddResource("graphics/colors", new ColorsResource());
+
+        resources.TryAddResource("graphics/layouts/mainMenu", new MainMenuScreen());
     }
 
     public void Loaded() {
@@ -84,7 +86,10 @@ public class Game : IGame {
     public void Setup() {
         IRenderer renderer = Core.engine.renderer;
         renderer.closed += (_, _) => renderer.Close();
-        _currentScreen.Enter();
+        if(!Core.engine.resources.TryGetResource("graphics/layouts/mainMenu", out MainMenuScreen? mainMenuScreen))
+            return;
+        _currentScreen = mainMenuScreen;
+        _currentScreen?.Enter();
     }
 
     public void Update() {
@@ -108,10 +113,10 @@ public class Game : IGame {
             $"{_fps.ToString(CultureInfo.InvariantCulture)}/{_avgFPS.ToString(CultureInfo.InvariantCulture)} FPS",
             Color.white, Color.transparent, HorizontalAlignment.Right);
 
-        _currentScreen.Update();
+        _currentScreen?.Update();
     }
 
-    public void Tick() => _currentScreen.Tick();
+    public void Tick() => _currentScreen?.Tick();
 
     public void Finish() { }
 }

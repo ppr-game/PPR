@@ -125,8 +125,6 @@ public abstract class ResourcesBase : IResources {
     public bool TryGetResource<TResource>(string id, [MaybeNullWhen(false)] out TResource resource)
         where TResource : class?, IResource? {
         resource = null;
-        if(!loaded) return false;
-
         if(!_resources.TryGetValue(id, out IResource? cachedResource) ||
            cachedResource is not TResource actualResource) return false;
 
