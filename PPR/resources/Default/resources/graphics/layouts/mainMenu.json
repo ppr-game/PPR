@@ -1,17 +1,20 @@
 ﻿{
+    "frame": {
+        "path": "mainMenu.txt"
+    },
     "title.red": {
         "text": "PRE   PRE   RE O UTIO ",
-        "position": { "x": 29, "y": 0 },
+        "position": { "x": 29, "y": 8 },
         "align": "middle"
     },
     "title.green": {
         "text": "   SS    SS     L     ",
-        "position": { "x": 29, "y": 0 },
+        "position": { "x": 29, "y": 8 },
         "align": "middle"
     },
     "title.blue": {
         "text": "              V      N",
-        "position": { "x": 29, "y": 0 },
+        "position": { "x": 29, "y": 8 },
         "align": "middle"
     },
     "play": {
@@ -30,7 +33,7 @@
         "text": "SETTINGS"
     },
     "exit": {
-        "position": { "x": 28, "y": 31 },
+        "position": { "x": 38, "y": 31 },
         "size": { "x": 4, "y": 1 },
         "text": "EXIT"
     }

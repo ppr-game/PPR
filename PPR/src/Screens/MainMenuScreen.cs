@@ -18,6 +18,7 @@ public class MainMenuScreen : ScreenResourceBase {
 
     protected override string layoutName => "mainMenu";
     protected override IReadOnlyDictionary<string, Type> elementTypes { get; } = new Dictionary<string, Type> {
+        { "frame", typeof(LayoutText) },
         { "title.red", typeof(LayoutText) },
         { "title.green", typeof(LayoutText) },
         { "title.blue", typeof(LayoutText) },

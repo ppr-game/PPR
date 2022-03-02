@@ -26,7 +26,7 @@ public abstract class ScreenResourceBase : IScreen, IResource {
             this.size = size;
         }
 
-        public abstract Element GetElement(IRenderer renderer, IInputManager input, IAudio audio,
+        public abstract Element GetElement(IResources resources, IRenderer renderer, IInputManager input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id);
 
         protected static bool TryGetColor(Dictionary<string, Color> colors, string type, string layoutName, string id,
@@ -36,6 +36,7 @@ public abstract class ScreenResourceBase : IScreen, IResource {
     }
 
     protected class LayoutText : LayoutElement {
+        public string? path { get; }
         public string? text { get; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public HorizontalAlignment? align { get; }
@@ -44,21 +45,27 @@ public abstract class ScreenResourceBase : IScreen, IResource {
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public RenderOptions? options { get; }
 
-        public LayoutText(bool? enabled, Vector2Int position, Vector2Int size, string? text,
+        public LayoutText(bool? enabled, Vector2Int position, Vector2Int size, string? path, string? text,
             HorizontalAlignment? align, RenderStyle? style, RenderOptions? options) : base(enabled, position, size) {
+            this.path = path;
             this.text = text;
             this.align = align;
             this.style = style;
             this.options = options;
         }
 
-        public override Element GetElement(IRenderer renderer, IInputManager input, IAudio audio,
+        public override Element GetElement(IResources resources, IRenderer renderer, IInputManager input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
             Text element = new(renderer) {
                 position = position,
                 size = size,
                 text = text
             };
+            if(path is not null &&
+               // kill me please
+               resources.TryGetPath(Path.Join(new string[] { "graphics", "layouts" }.Concat(path.Split('/')).ToArray()),
+                   out string? filePath))
+                element.text = File.ReadAllText(filePath);
             if(enabled.HasValue) element.enabled = enabled.Value;
             if(align.HasValue) element.align = align.Value;
             if(style.HasValue) element.style = style.Value;
@@ -88,7 +95,7 @@ public abstract class ScreenResourceBase : IScreen, IResource {
             this.toggled = toggled;
         }
 
-        public override Element GetElement(IRenderer renderer, IInputManager input, IAudio audio,
+        public override Element GetElement(IResources resources, IRenderer renderer, IInputManager input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
             Button element = new(renderer, input, audio) {
                 position = position,
@@ -136,7 +143,7 @@ public abstract class ScreenResourceBase : IScreen, IResource {
             if(!layout.TryGetValue(elementId, out JsonElement jsonElement) ||
                type.BaseType != typeof(LayoutElement)) return false;
             LayoutElement? layoutElement = (LayoutElement?)jsonElement.Deserialize(type);
-            Element? element = layoutElement?.GetElement(Core.engine.renderer,
+            Element? element = layoutElement?.GetElement(resources, Core.engine.renderer,
                 Core.engine.input, Core.engine.audio, colors!.colors, layoutName, elementId);
             if(element is not null) elements.Add(elementId, element);
         }
