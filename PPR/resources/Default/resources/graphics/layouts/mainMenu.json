@@ -2,20 +2,15 @@
     "frame": {
         "path": "mainMenu.txt"
     },
-    "title.red": {
-        "text": "PRE   PRE   RE O UTIO ",
-        "position": { "x": 29, "y": 8 },
-        "align": "middle"
-    },
-    "title.green": {
-        "text": "   SS    SS     L     ",
-        "position": { "x": 29, "y": 8 },
-        "align": "middle"
-    },
-    "title.blue": {
-        "text": "              V      N",
-        "position": { "x": 29, "y": 8 },
-        "align": "middle"
+    "title": {
+        "text": "\frPRE\fgSS \frPRE\fgSS \frRE\fbV\frO\fgL\frUTIO\fbN",
+        "position": { "x": 39, "y": 8 },
+        "align": "middle",
+        "formatting": {
+            "r": { "foregroundColor": "text_@title.red_fg" },
+            "g": { "foregroundColor": "text_@title.green_fg" },
+            "b": { "foregroundColor": "text_@title.blue_fg" }
+        }
     },
     "play": {
         "position": { "x": 38, "y": 25 },

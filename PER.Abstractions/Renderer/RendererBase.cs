@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 
-using PER.Abstractions.Input;
 using PER.Util;
 
 namespace PER.Abstractions.Renderer;
@@ -54,8 +53,6 @@ public abstract class RendererBase : IRenderer {
     private int _framerate;
     private bool _fullscreen;
     private IFont? _font;
-    private readonly IList<char> _formattingColorsRecord = new List<char>(8);
-    private readonly StringBuilder _formattingEffectTextBuilder = new();
 
     public virtual void Setup(RendererSettings settings) {
         title = settings.title;
@@ -140,59 +137,58 @@ public abstract class RendererBase : IRenderer {
         AddEffect(position, effect);
     }
 
-    public virtual void DrawText(Vector2Int position, string text, Color foregroundColor, Color backgroundColor,
-        HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
-        RenderOptions options = RenderOptions.Default, IEffect? effect = null) {
+    public virtual void DrawText(Vector2Int position, string text, Func<char, Formatting> formatter,
+        HorizontalAlignment align = HorizontalAlignment.Left) {
         if(text.Length == 0) return;
 
-        int actualTextLength = GetTextLengthWithoutFormatting(text);
+        char formattingFlag = '\0';
+        int startIndex = 0;
+        int width = 0;
+        int y = 0;
+        for(int i = 0; i <= text.Length; i++) {
+            char currentCharacter = i >= text.Length ? '\n' : text[i];
+            switch(currentCharacter) {
+                case '\n':
+                    int x = GetAlignOffset(align, width);
+                    DrawTextCharacter(position, text, startIndex, x, y, width, formatter, ref formattingFlag);
 
-        int x = align switch {
-            HorizontalAlignment.Left => 0,
-            HorizontalAlignment.Middle => -actualTextLength + actualTextLength / 2 + 1,
-            HorizontalAlignment.Right => -actualTextLength + 1,
-            _ => throw new ArgumentOutOfRangeException(nameof(align), align, "wtf")
-        };
-
-        bool formattingMode = false;
-        bool colorSetMode = false;
-        bool effectSetMode = false;
-        bool foregroundSetMode = false;
-        bool backgroundSetMode = false;
-        _formattingColorsRecord.Clear();
-        _formattingEffectTextBuilder.Clear();
-        foreach(char curChar in text) {
-            if(curChar == '\f') {
-                formattingMode = !formattingMode;
-                colorSetMode = false;
-                effectSetMode = false;
-                foregroundSetMode = false;
-                backgroundSetMode = false;
-                _formattingColorsRecord.Clear();
-                _formattingEffectTextBuilder.Clear();
-                continue;
-            }
-
-            if(formattingMode)
-                ProcessFormatting(curChar, ref colorSetMode, ref foregroundSetMode, ref backgroundSetMode, ref effectSetMode,
-                    _formattingColorsRecord, ref foregroundColor, ref backgroundColor, ref style, ref options,
-                    _formattingEffectTextBuilder, ref effect, formattingEffects);
-            else {
-                Vector2Int charPos = new(position.x + x, position.y);
-                DrawCharacter(charPos, new RenderCharacter(curChar, backgroundColor, foregroundColor, style),
-                    options, effect);
-                x++;
+                    startIndex = i + 1;
+                    width = 0;
+                    y++;
+                    break;
+                case '\f': i++; // skip 2 characters
+                    break;
+                case not '\r': width++;
+                    break;
             }
         }
     }
 
-    public virtual void DrawText(Vector2Int position, string[] lines, Color foregroundColor, Color backgroundColor,
-        HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
-        RenderOptions options = RenderOptions.Default, IEffect? effect = null) {
-        for(int i = 0; i < lines.Length; i++)
-            DrawText(position + new Vector2Int(0, i), lines[i], foregroundColor, backgroundColor,
-                align, style, options, effect);
+    private void DrawTextCharacter(Vector2Int position, string text, int startIndex, int x, int y, int width,
+        Func<char, Formatting> formatter, ref char formattingFlag) {
+        for(int i = startIndex; i < startIndex + width; i++) {
+            char toDraw = text[i];
+            if(toDraw == '\f') {
+                formattingFlag = text[++i];
+                width += 2;
+                continue;
+            }
+
+            Formatting formatting = formatter(formattingFlag);
+            Vector2Int charPos = new(position.x + x, position.y + y);
+            DrawCharacter(charPos,
+                new RenderCharacter(toDraw, formatting.backgroundColor, formatting.foregroundColor,
+                    formatting.style), formatting.options, formatting.effect);
+            x++;
+        }
     }
+
+    private static int GetAlignOffset(HorizontalAlignment align, int width) => align switch {
+        HorizontalAlignment.Left => 0,
+        HorizontalAlignment.Middle => -width + width / 2 + 1,
+        HorizontalAlignment.Right => -width + 1,
+        _ => 0
+    };
 
     public virtual RenderCharacter GetCharacter(Vector2Int position) => IsCharacterEmpty(position) ?
         new RenderCharacter('\0', Color.transparent, Color.transparent) : display[position];
@@ -216,113 +212,4 @@ public abstract class RendererBase : IRenderer {
 
     public virtual bool IsCharacterDrawable(char character, RenderStyle style) =>
         font?.IsCharacterDrawable(character, style & RenderStyle.AllPerFont) ?? false;
-
-    private static void ProcessFormatting(char character, ref bool colorSetMode, ref bool foregroundSetMode,
-        ref bool backgroundSetMode, ref bool effectSetMode, IList<char> colorsRecord, ref Color foregroundColor,
-        ref Color backgroundColor, ref RenderStyle style, ref RenderOptions options,
-        StringBuilder effectTextBuilder, ref IEffect? effect, IReadOnlyDictionary<string, IEffect?> effects) {
-        if(colorSetMode)
-            ProcessColorFormatting(character, ref colorSetMode, ref foregroundSetMode, ref backgroundSetMode,
-                colorsRecord, ref foregroundColor, ref backgroundColor);
-        else if(effectSetMode)
-            ProcessEffectFormatting(character, ref effectSetMode, effectTextBuilder, ref effect, effects);
-        else ProcessNormalFormatting(character, ref colorSetMode, ref effectSetMode, ref style, ref options);
-    }
-
-    private static void ProcessNormalFormatting(char character, ref bool colorSetMode, ref bool effectSetMode,
-        ref RenderStyle style, ref RenderOptions options) {
-        switch(character) {
-            case 'c': colorSetMode = true;
-                break;
-            case 'e': effectSetMode = true;
-                break;
-            case 'b': style ^= RenderStyle.Bold;
-                break;
-            case 'u': style ^= RenderStyle.Underline;
-                break;
-            case 's': style ^= RenderStyle.Strikethrough;
-                break;
-            case 'i': style ^= RenderStyle.Italic;
-                break;
-            case 'a': options ^= RenderOptions.BackgroundAlphaBlending;
-                break;
-            case 'x': options ^= RenderOptions.InvertedBackgroundAsForegroundColor;
-                break;
-        }
-    }
-
-    private static void ProcessEffectFormatting(char character, ref bool effectSetMode,
-        StringBuilder textBuilder, ref IEffect? effect, IReadOnlyDictionary<string, IEffect?> effects) {
-        switch(character) {
-            case 'e': effectSetMode = false;
-                break;
-            default:
-                if(char.IsLower(character)) break;
-                textBuilder.Append(character);
-                break;
-        }
-
-        if(effectSetMode) return;
-        string text = textBuilder.ToString();
-        effect = effects[text];
-    }
-
-    private static void ProcessColorFormatting(char character, ref bool colorSetMode, ref bool foregroundSetMode,
-        ref bool backgroundSetMode, IList<char> colorsRecord, ref Color foregroundColor,
-        ref Color backgroundColor) {
-        if(foregroundSetMode || backgroundSetMode) {
-            ProcessColor(character, ref foregroundSetMode, ref backgroundSetMode, colorsRecord, ref foregroundColor,
-                ref backgroundColor);
-        }
-        else {
-            switch(character) {
-                case 'c': colorSetMode = false;
-                    break;
-                case 'f': foregroundSetMode = true;
-                    break;
-                case 'b': backgroundSetMode = true;
-                    break;
-            }
-        }
-    }
-
-    private static void ProcessColor(char character, ref bool foregroundSetMode, ref bool backgroundSetMode,
-        IList<char> colorsRecord, ref Color foregroundColor, ref Color backgroundColor) {
-        colorsRecord.Add(character);
-        if(colorsRecord.Count < 8) return;
-        byte[] colorArray = new byte[4];
-        for(int i = 0; i < 4; i++)
-            colorArray[i] =
-                (byte)(GetHexVal(colorsRecord[i * 2]) * 0xF + GetHexVal(colorsRecord[i * 2 + 1]));
-
-        if(foregroundSetMode) {
-            foregroundColor = new Color(colorArray[0], colorArray[1], colorArray[2], colorArray[3]);
-            foregroundSetMode = false;
-        }
-        else {
-            backgroundColor = new Color(colorArray[0], colorArray[1], colorArray[2], colorArray[3]);
-            backgroundSetMode = false;
-        }
-
-        colorsRecord.Clear();
-    }
-
-    private static int GetHexVal(char hex) {
-        int val = hex;
-        return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
-    }
-
-    private static int GetTextLengthWithoutFormatting(string text) {
-        int actualTextLength = text.Length;
-        bool formatting = false;
-        foreach(char curChar in text) {
-            if(curChar == '\f') {
-                formatting = !formatting;
-                actualTextLength--;
-            }
-            else if(formatting) actualTextLength--;
-        }
-
-        return actualTextLength;
-    }
 }

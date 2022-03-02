@@ -36,22 +36,56 @@ public abstract class ScreenResourceBase : IScreen, IResource {
     }
 
     protected class LayoutText : LayoutElement {
+        public readonly struct TextFormatting {
+            public string? foregroundColor { get; }
+            public string? backgroundColor { get; }
+            [JsonConverter(typeof(JsonStringEnumConverter))]
+            public RenderStyle? style { get; }
+            [JsonConverter(typeof(JsonStringEnumConverter))]
+            public RenderOptions? options { get; }
+            public string? effect { get; }
+
+            [JsonConstructor]
+            public TextFormatting(string? foregroundColor, string? backgroundColor, RenderStyle? style,
+                RenderOptions? options, string? effect = null) {
+                this.foregroundColor = foregroundColor;
+                this.backgroundColor = backgroundColor;
+                this.style = style;
+                this.options = options;
+                this.effect = effect;
+            }
+
+            public Formatting GetFormatting(Dictionary<string, Color> colors, Dictionary<string, IEffect?> effects,
+                string layoutName, string id) {
+                Color foregroundColor = Color.white;
+                Color backgroundColor = Color.transparent;
+                RenderStyle style = RenderStyle.None;
+                RenderOptions options = RenderOptions.Default;
+                IEffect? effect = null;
+                if(this.foregroundColor is not null && colors.TryGetValue(this.foregroundColor, out Color color))
+                    foregroundColor = color;
+                if(this.backgroundColor is not null && colors.TryGetValue(this.backgroundColor, out color))
+                    backgroundColor = color;
+                if(this.style.HasValue) style = this.style.Value;
+                if(this.options.HasValue) options = this.options.Value;
+                if(this.effect is not null) effects.TryGetValue(this.effect, out effect);
+                return new Formatting(foregroundColor, backgroundColor, style, options, effect);
+            }
+        }
+
         public string? path { get; }
         public string? text { get; }
+        public Dictionary<char, TextFormatting>? formatting { get; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public HorizontalAlignment? align { get; }
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public RenderStyle? style { get; }
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public RenderOptions? options { get; }
 
         public LayoutText(bool? enabled, Vector2Int position, Vector2Int size, string? path, string? text,
-            HorizontalAlignment? align, RenderStyle? style, RenderOptions? options) : base(enabled, position, size) {
+            Dictionary<char, TextFormatting>? formatting, HorizontalAlignment? align) :
+            base(enabled, position, size) {
             this.path = path;
             this.text = text;
+            this.formatting = formatting;
             this.align = align;
-            this.style = style;
-            this.options = options;
         }
 
         public override Element GetElement(IResources resources, IRenderer renderer, IInputManager input, IAudio audio,
@@ -67,29 +101,25 @@ public abstract class ScreenResourceBase : IScreen, IResource {
                    out string? filePath))
                 element.text = File.ReadAllText(filePath);
             if(enabled.HasValue) element.enabled = enabled.Value;
+            if(formatting is not null)
+                foreach((char flag, TextFormatting textFormatting) in formatting)
+                    element.formatting.Add(flag,
+                        textFormatting.GetFormatting(colors, renderer.formattingEffects, layoutName, id));
             if(align.HasValue) element.align = align.Value;
-            if(style.HasValue) element.style = style.Value;
-            if(options.HasValue) element.options = options.Value;
-            if(TryGetColor(colors, "text", layoutName, id, "fg", out Color color))
-                element.foregroundColor = color;
-            if(TryGetColor(colors, "text", layoutName, id, "bg", out color))
-                element.backgroundColor = color;
             return element;
         }
     }
 
     protected class LayoutButton : LayoutElement {
         public string? text { get; }
-        public string[]? lines { get; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public RenderStyle? style { get; }
         public bool? active { get; }
         public bool? toggled { get; }
 
-        public LayoutButton(bool? enabled, Vector2Int position, Vector2Int size, string? text, string[]? lines,
+        public LayoutButton(bool? enabled, Vector2Int position, Vector2Int size, string? text,
             RenderStyle? style, bool? active, bool? toggled) : base(enabled, position, size) {
             this.text = text;
-            this.lines = lines;
             this.style = style;
             this.active = active;
             this.toggled = toggled;
@@ -103,7 +133,6 @@ public abstract class ScreenResourceBase : IScreen, IResource {
                 text = text
             };
             if(enabled.HasValue) element.enabled = enabled.Value;
-            if(lines is not null) element.lines = lines;
             if(style.HasValue) element.style = style.Value;
             if(active.HasValue) element.active = active.Value;
             if(toggled.HasValue) element.toggled = toggled.Value;

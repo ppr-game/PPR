@@ -50,6 +50,13 @@ public class Game : IGame {
 
         resources.TryAddResource("graphics/colors", new ColorsResource());
 
+        _drawTextEffect = new DrawTextEffect();
+        _glitchEffect = new GlitchEffect();
+
+        Core.engine.renderer.formattingEffects.Clear();
+        Core.engine.renderer.formattingEffects.Add("none", null);
+        Core.engine.renderer.formattingEffects.Add("glitch", _glitchEffect);
+
         resources.TryAddResource("graphics/layouts/mainMenu", new MainMenuScreen());
     }
 
@@ -58,14 +65,7 @@ public class Game : IGame {
            font?.font is null) return;
         Core.engine.resources.TryGetResource("graphics/icon", out IconResource? icon);
 
-        _drawTextEffect = new DrawTextEffect();
-        _glitchEffect = new GlitchEffect();
-
         Core.engine.resources.TryGetResource("graphics/effects/bloom", out _bloomEffect);
-
-        Core.engine.renderer.formattingEffects.Clear();
-        Core.engine.renderer.formattingEffects.Add("NONE", null);
-        Core.engine.renderer.formattingEffects.Add("GLITCH", _glitchEffect);
 
         _settings.Apply();
 
@@ -109,11 +109,11 @@ public class Game : IGame {
         renderer.AddEffect(_drawTextEffect);
         renderer.AddEffect(_bloomEffect);
 
+        _currentScreen?.Update();
+
         renderer.DrawText(new Vector2Int(renderer.width - 1, renderer.height - 1),
             $"{_fps.ToString(CultureInfo.InvariantCulture)}/{_avgFPS.ToString(CultureInfo.InvariantCulture)} FPS",
-            Color.white, Color.transparent, HorizontalAlignment.Right);
-
-        _currentScreen?.Update();
+            _ => new Formatting(Color.white, Color.transparent), HorizontalAlignment.Right);
     }
 
     public void Tick() => _currentScreen?.Tick();

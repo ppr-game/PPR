@@ -33,12 +33,8 @@ public interface IRenderer {
     public void Draw();
     public void DrawCharacter(Vector2Int position, RenderCharacter character,
         RenderOptions options = RenderOptions.Default, IEffect? effect = null);
-    public void DrawText(Vector2Int position, string text, Color foregroundColor, Color backgroundColor,
-        HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
-        RenderOptions options = RenderOptions.Default, IEffect? effect = null);
-    public void DrawText(Vector2Int position, string[] lines, Color foregroundColor, Color backgroundColor,
-        HorizontalAlignment align = HorizontalAlignment.Left, RenderStyle style = RenderStyle.None,
-        RenderOptions options = RenderOptions.Default, IEffect? effect = null);
+    public void DrawText(Vector2Int position, string text, Func<char, Formatting> formatter,
+        HorizontalAlignment align = HorizontalAlignment.Left);
 
     public RenderCharacter GetCharacter(Vector2Int position);
 

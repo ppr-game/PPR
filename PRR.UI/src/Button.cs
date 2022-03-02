@@ -23,10 +23,7 @@ public class Button : Element {
 
     public KeyCode? hotkey { get; set; }
 
-    public string? text {
-        set => lines = value?.Split('\n');
-    }
-    public string[]? lines { get; set; }
+    public string? text { get; set; }
     public RenderStyle style { get; set; } = RenderStyle.None;
 
     public bool active { get; set; } = true;
@@ -123,9 +120,10 @@ public class Button : Element {
 
         UpdateState(clock);
 
-        if(lines is not null)
-            renderer.DrawText(center, lines, Color.white, Color.transparent,
-                HorizontalAlignment.Middle, style, RenderOptions.Default, effect);
+        if(text is not null)
+            renderer.DrawText(center, text,
+                _ => new Formatting(Color.white, Color.transparent, style, RenderOptions.Default, effect),
+                HorizontalAlignment.Middle);
 
         float animTime = (float)(clock.time - _animStartTime).TotalSeconds;
         for(int y = 0; y < size.y; y++){

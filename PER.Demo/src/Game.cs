@@ -58,6 +58,13 @@ public class Game : IGame {
         resources.TryAddResource("graphics/effects/bloom", new BloomEffect());
         resources.TryAddResource("graphics/effects/maxBlendBloom", new MaxBlendBloomEffect());
 
+        _drawTextEffect = new DrawTextEffect();
+        _glitchEffect = new GlitchEffect();
+
+        Core.engine.renderer.formattingEffects.Clear();
+        Core.engine.renderer.formattingEffects.Add("none", null);
+        Core.engine.renderer.formattingEffects.Add("glitch", _glitchEffect);
+
         resources.TryAddResource("graphics/colors", new ColorsResource());
     }
 
@@ -66,14 +73,7 @@ public class Game : IGame {
            font?.font is null) return;
         Core.engine.resources.TryGetResource("graphics/icon", out IconResource? icon);
 
-        _drawTextEffect = new DrawTextEffect();
-        _glitchEffect = new GlitchEffect();
-
         Core.engine.resources.TryGetResource("graphics/effects/bloom", out _bloomEffect);
-
-        Core.engine.renderer.formattingEffects.Clear();
-        Core.engine.renderer.formattingEffects.Add("NONE", null);
-        Core.engine.renderer.formattingEffects.Add("GLITCH", _glitchEffect);
 
         if(Core.engine.resources.TryGetResource("graphics/colors", out ColorsResource? colors))
             _colors = colors!.colors;
@@ -334,43 +334,57 @@ public class Game : IGame {
 
         renderer.DrawText(new Vector2Int(0, 0),
             $"{_fps.ToString(CultureInfo.InvariantCulture)}/{_avgFPS.ToString(CultureInfo.InvariantCulture)} FPS",
-            Color.white, Color.transparent);
+            _ => new Formatting(Color.white, Color.transparent));
 
         if(input.KeyPressed(KeyCode.F)) return;
 
         renderer.DrawText(new Vector2Int(0, 1),
-            @"hello everyone! this is cf00FF00FFcbConfiGcfFFFFFFFFcb and today i'm gonna show you my eGLITCHeengineeNONEe!!
-as you can see biuit works!!1!biu
-cf000000FFbFF0000FFcthanks for watchingcfFFFFFFFFb00000000c everyone, uhit like, subscribe, good luck, bbye!!".Split('\n'),
-            Color.white, Color.transparent);
+            @"hello everyone! this is cConfiG  and today i'm gonna show you my gengine !!
+as you can see wit works!!1!
+tthanks for watching  everyone, shit like, subscribe, good luck, bbye!!",
+            flag => flag switch {
+                'c' => new Formatting(new Color(0f, 1f, 0f, 1f), Color.transparent),
+                'g' => new Formatting(Color.white, Color.transparent, RenderStyle.None, RenderOptions.Default,
+                    _glitchEffect),
+                'w' => new Formatting(Color.white, Color.transparent,
+                    RenderStyle.Bold | RenderStyle.Italic | RenderStyle.Underline),
+                't' => new Formatting(Color.black, new Color(1f, 0f, 0f, 1f)),
+                's' => new Formatting(Color.white, Color.transparent, RenderStyle.Underline),
+                'b' => new Formatting(Color.white, Color.transparent, RenderStyle.Underline | RenderStyle.Bold),
+                _ => new Formatting(Color.white, Color.transparent)
+            });
 
         renderer.DrawText(new Vector2Int(0, 4),
-            "more test", Color.black, new Color(0f, 1f, 0f, 1f));
+            "more test", _ => new Formatting(Color.black, new Color(0f, 1f, 0f, 1f)));
 
         renderer.DrawText(new Vector2Int(0, 5),
-            "ieven morei test", new Color(1f, 0f, 1f, 0.5f), new Color(0f, 1f, 0f, 1f));
+            "\fieven more\f\0 test", flag => flag switch {
+                'i' => new Formatting(new Color(1f, 0f, 1f, 0.5f), new Color(0f, 1f, 0f, 1f), RenderStyle.Italic),
+                _ => new Formatting(new Color(1f, 0f, 1f, 0.5f), new Color(0f, 1f, 0f, 1f))
+            });
 
         renderer.DrawText(new Vector2Int(10, 4),
-            "per-text effects test", Color.white, Color.transparent, HorizontalAlignment.Left, RenderStyle.None,
-            RenderOptions.Default, _glitchEffect);
+            "per-text effects test", _ => new Formatting(Color.white, Color.transparent,
+                RenderStyle.None, RenderOptions.Default, _glitchEffect));
 
         for(RenderStyle style = RenderStyle.None; style <= RenderStyle.All; style++) {
+            RenderStyle curStyle = style;
             renderer.DrawText(new Vector2Int(0, 6 + (int)style),
-                "styles test", Color.white, Color.transparent, HorizontalAlignment.Left, style);
+                "styles test", _ => new Formatting(Color.white, Color.transparent, curStyle));
         }
 
         renderer.DrawText(new Vector2Int(39, 6),
-            "left test even", Color.white, Color.transparent);
+            "left test even", _ => new Formatting(Color.white, Color.transparent));
         renderer.DrawText(new Vector2Int(39, 7),
-            "left test odd", Color.white, Color.transparent);
+            "left test odd", _ => new Formatting(Color.white, Color.transparent));
         renderer.DrawText(new Vector2Int(39, 8),
-            "middle test even", Color.white, Color.transparent, HorizontalAlignment.Middle);
+            "middle test even", _ => new Formatting(Color.white, Color.transparent), HorizontalAlignment.Middle);
         renderer.DrawText(new Vector2Int(39, 9),
-            "middle test odd", Color.white, Color.transparent, HorizontalAlignment.Middle);
+            "middle test odd", _ => new Formatting(Color.white, Color.transparent), HorizontalAlignment.Middle);
         renderer.DrawText(new Vector2Int(39, 10),
-            "-right test even", Color.white, Color.transparent, HorizontalAlignment.Right);
+            "-right test even", _ => new Formatting(Color.white, Color.transparent), HorizontalAlignment.Right);
         renderer.DrawText(new Vector2Int(39, 11),
-            "-right test odd", Color.white, Color.transparent, HorizontalAlignment.Right);
+            "-right test odd", _ => new Formatting(Color.white, Color.transparent), HorizontalAlignment.Right);
 
         if(_testProgressBar is not null &&
            input.mousePosition.InBounds(_testProgressBar.bounds) &&
