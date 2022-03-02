@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 
 namespace PER.Util;
 
@@ -6,6 +7,7 @@ public readonly struct Bounds : IEquatable<Bounds> {
     public Vector2Int min { get; }
     public Vector2Int max { get; }
 
+    [JsonConstructor]
     public Bounds(Vector2Int min, Vector2Int max) {
         this.min = min;
         this.max = max;

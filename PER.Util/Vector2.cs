@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 
 namespace PER.Util;
 
@@ -6,6 +7,7 @@ public readonly struct Vector2 : IEquatable<Vector2> {
     public float x { get; }
     public float y { get; }
 
+    [JsonConstructor]
     public Vector2(float x, float y) {
         this.x = x;
         this.y = y;
