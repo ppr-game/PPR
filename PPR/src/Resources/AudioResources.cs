@@ -13,15 +13,26 @@ public class AudioResources : IResource {
         IAudioMixer sfx = audio.CreateMixer(master);
         IAudioMixer music = audio.CreateMixer(master);
 
-        if(resources.TryGetPath(Path.Combine("audio", "sfx", "buttonClick.wav"), out string? path)) {
-            IPlayable buttonClick = audio.CreateSound(path, sfx);
-            audio.TryStorePlayable(Button.ClickSoundId, buttonClick);
-        }
+        if(resources.TryGetPath(Path.Combine("audio", "music", "mainMenu.ogg"), out string? path))
+            audio.TryStorePlayable("mainMenu", audio.CreateSound(path, music));
 
-        if(resources.TryGetPath(Path.Combine("audio", "sfx", "slider.wav"), out path)) {
-            IPlayable sliderValueChanged = audio.CreateSound(path, sfx);
-            audio.TryStorePlayable(Slider.ValueChangedSoundId, sliderValueChanged);
-        }
+        if(resources.TryGetPath(Path.Combine("audio", "sfx", $"{Button.ClickSoundId}.wav"), out path))
+            audio.TryStorePlayable(Button.ClickSoundId, audio.CreateSound(path, sfx));
+
+        if(resources.TryGetPath(Path.Combine("audio", "sfx", "fail.wav"), out path))
+            audio.TryStorePlayable("fail", audio.CreateSound(path, sfx));
+
+        if(resources.TryGetPath(Path.Combine("audio", "sfx", "hit.wav"), out path))
+            audio.TryStorePlayable("hit", audio.CreateSound(path, sfx));
+
+        if(resources.TryGetPath(Path.Combine("audio", "sfx", "pass.wav"), out path))
+            audio.TryStorePlayable("pass", audio.CreateSound(path, sfx));
+
+        if(resources.TryGetPath(Path.Combine("audio", "sfx", $"{Slider.ValueChangedSoundId}.wav"), out path))
+            audio.TryStorePlayable(Slider.ValueChangedSoundId, audio.CreateSound(path, sfx));
+
+        if(resources.TryGetPath(Path.Combine("audio", "sfx", "tick.wav"), out path))
+            audio.TryStorePlayable("tick", audio.CreateSound(path, sfx));
 
         audio.TryStoreMixer(nameof(master), master);
         audio.TryStoreMixer(nameof(sfx), sfx);
