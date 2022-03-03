@@ -1,6 +1,6 @@
-﻿using PER.Abstractions.Resources;
+﻿using System;
 
-namespace PPR.Resources;
+namespace PER.Abstractions.Resources;
 
 public abstract class JsonResourceBase<T> : IResource {
     public abstract bool Load(string id, IResources resources);

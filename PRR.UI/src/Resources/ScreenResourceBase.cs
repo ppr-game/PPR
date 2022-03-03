@@ -1,18 +1,16 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
+using PER.Abstractions;
 using PER.Abstractions.Audio;
 using PER.Abstractions.Input;
 using PER.Abstractions.Renderer;
 using PER.Abstractions.Resources;
 using PER.Abstractions.UI;
+using PER.Common.Resources;
 using PER.Util;
 
-using PPR.Screens;
-
-using PRR.UI;
-
-namespace PPR.Resources;
+namespace PRR.UI.Resources;
 
 public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, LayoutResourceElement>>, IScreen {
     protected class LayoutResourceText : LayoutResourceElement {
@@ -129,13 +127,17 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         }
     }
 
+    protected abstract IRenderer renderer { get; }
+    protected abstract IInputManager input { get; }
+    protected abstract IAudio audio { get; }
+
     protected abstract string layoutName { get; }
     protected abstract IReadOnlyDictionary<string, Type> elementTypes { get; }
 
     protected IReadOnlyDictionary<string, Element> elements { get; private set; } = new Dictionary<string, Element>();
 
     public override bool Load(string id, IResources resources) {
-        if(!Core.engine.resources.TryGetResource("graphics/colors", out ColorsResource? colors)) return false;
+        if(!resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors)) return false;
 
         Dictionary<string, LayoutResourceElement> layoutElements = new(elementTypes.Count);
         DeserializeAllJson(resources, Path.Join("layouts", $"{layoutName}.json"), layoutElements,
@@ -146,8 +148,8 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
 
         Dictionary<string, Element> elements = new();
         foreach((string elementId, LayoutResourceElement layoutElement) in layoutElements) {
-            Element element = layoutElement.GetElement(resources, Core.engine.renderer,
-                Core.engine.input, Core.engine.audio, colors!.colors, layoutName, elementId);
+            Element element = layoutElement.GetElement(resources, renderer,
+                input, audio, colors!.colors, layoutName, elementId);
             elements.Add(elementId, element);
         }
 

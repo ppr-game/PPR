@@ -5,7 +5,7 @@ using PER.Abstractions.Resources;
 using PER.Abstractions.UI;
 using PER.Util;
 
-namespace PPR.Resources;
+namespace PRR.UI.Resources;
 
 public abstract class LayoutResourceElement {
     protected bool? enabled { get; }

@@ -10,10 +10,12 @@ using PER.Abstractions.Input;
 using PER.Abstractions.Renderer;
 using PER.Abstractions.Resources;
 using PER.Abstractions.UI;
-using PER.Demo.Effects;
+using PER.Common.Effects;
+using PER.Common.Resources;
 using PER.Demo.Resources;
 using PER.Util;
 
+using PRR.Resources;
 using PRR.UI;
 
 namespace PER.Demo;
@@ -54,28 +56,27 @@ public class Game : IGame {
 
         resources.TryAddResource("audio", new AudioResources());
 
-        resources.TryAddResource("graphics/font", new FontResource());
-        resources.TryAddResource("graphics/effects/bloom", new BloomEffect());
-        resources.TryAddResource("graphics/effects/maxBlendBloom", new MaxBlendBloomEffect());
+        resources.TryAddResource(FontResource.GlobalId, new FontResource());
+        resources.TryAddResource(BloomEffect.GlobalId, new BloomEffect());
 
         _drawTextEffect = new DrawTextEffect();
-        _glitchEffect = new GlitchEffect();
+        _glitchEffect = new GlitchEffect(Core.engine.renderer);
 
         Core.engine.renderer.formattingEffects.Clear();
         Core.engine.renderer.formattingEffects.Add("none", null);
         Core.engine.renderer.formattingEffects.Add("glitch", _glitchEffect);
 
-        resources.TryAddResource("graphics/colors", new ColorsResource());
+        resources.TryAddResource(ColorsResource.GlobalId, new ColorsResource());
     }
 
     public void Loaded() {
-        if(!Core.engine.resources.TryGetResource("graphics/font", out FontResource? font) ||
+        if(!Core.engine.resources.TryGetResource(FontResource.GlobalId, out FontResource? font) ||
            font?.font is null) return;
-        Core.engine.resources.TryGetResource("graphics/icon", out IconResource? icon);
+        Core.engine.resources.TryGetResource(IconResource.GlobalId, out IconResource? icon);
 
-        Core.engine.resources.TryGetResource("graphics/effects/bloom", out _bloomEffect);
+        Core.engine.resources.TryGetResource(BloomEffect.GlobalId, out _bloomEffect);
 
-        if(Core.engine.resources.TryGetResource("graphics/colors", out ColorsResource? colors))
+        if(Core.engine.resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors))
             _colors = colors!.colors;
 
         _settings.Apply();

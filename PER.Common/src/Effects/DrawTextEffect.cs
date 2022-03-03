@@ -1,9 +1,7 @@
-﻿using System.Collections.Generic;
-
-using PER.Abstractions.Renderer;
+﻿using PER.Abstractions.Renderer;
 using PER.Util;
 
-namespace PER.Demo.Effects;
+namespace PER.Common.Effects;
 
 public class DrawTextEffect : IEffect {
     public IEnumerable<PipelineStep>? pipeline { get; } = new[] {

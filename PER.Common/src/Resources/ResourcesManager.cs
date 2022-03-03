@@ -1,5 +1,5 @@
 ﻿using PER.Abstractions.Resources;
 
-namespace PPR.Resources;
+namespace PER.Common.Resources;
 
 public class ResourcesManager : ResourcesBase { }

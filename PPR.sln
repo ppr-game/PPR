@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PER.Audio", "PER.Audio\PER.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PPR", "PPR\PPR.csproj", "{4ECA3FF6-8E9C-4001-8C7C-9D1546018972}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PER.Common", "PER.Common\PER.Common.csproj", "{AF604ACD-9741-42A4-B137-F73E9F18C064}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -113,6 +115,14 @@ Global
 		{4ECA3FF6-8E9C-4001-8C7C-9D1546018972}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4ECA3FF6-8E9C-4001-8C7C-9D1546018972}.Release|x64.ActiveCfg = Release|Any CPU
 		{4ECA3FF6-8E9C-4001-8C7C-9D1546018972}.Release|x64.Build.0 = Release|Any CPU
+		{AF604ACD-9741-42A4-B137-F73E9F18C064}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF604ACD-9741-42A4-B137-F73E9F18C064}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF604ACD-9741-42A4-B137-F73E9F18C064}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AF604ACD-9741-42A4-B137-F73E9F18C064}.Debug|x64.Build.0 = Debug|Any CPU
+		{AF604ACD-9741-42A4-B137-F73E9F18C064}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF604ACD-9741-42A4-B137-F73E9F18C064}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF604ACD-9741-42A4-B137-F73E9F18C064}.Release|x64.ActiveCfg = Release|Any CPU
+		{AF604ACD-9741-42A4-B137-F73E9F18C064}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

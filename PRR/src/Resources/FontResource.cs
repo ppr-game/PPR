@@ -2,11 +2,11 @@
 
 using PER.Abstractions.Resources;
 
-using PRR;
-
-namespace PER.Demo.Resources;
+namespace PRR.Resources;
 
 public class FontResource : IResource {
+    public const string GlobalId = "graphics/font";
+
     public Font? font { get; private set; }
 
     public bool Load(string id, IResources resources) {

@@ -1,13 +1,18 @@
-﻿using PER.Abstractions.Renderer;
+﻿using PER.Abstractions.Audio;
+using PER.Abstractions.Input;
+using PER.Abstractions.Renderer;
 using PER.Abstractions.UI;
 
-using PPR.Resources;
-
 using PRR.UI;
+using PRR.UI.Resources;
 
 namespace PPR.Screens;
 
 public class MainMenuScreen : ScreenResourceBase {
+    protected override IRenderer renderer => Core.engine.renderer;
+    protected override IInputManager input => Core.engine.input;
+    protected override IAudio audio => Core.engine.audio;
+
     protected override string layoutName => "mainMenu";
     protected override IReadOnlyDictionary<string, Type> elementTypes { get; } = new Dictionary<string, Type> {
         { "frame", typeof(LayoutResourceText) },

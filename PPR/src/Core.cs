@@ -1,5 +1,6 @@
 ﻿using PER;
 using PER.Audio.Sfml;
+using PER.Common.Resources;
 
 using PPR.Resources;
 

@@ -3,9 +3,11 @@
 using PER.Abstractions.Resources;
 using PER.Util;
 
-namespace PPR.Resources;
+namespace PER.Common.Resources;
 
 public class ColorsResource : JsonResourceBase<IDictionary<string, Color>> {
+    public const string GlobalId = "graphics/colors";
+
     public Dictionary<string, Color> colors { get; } = new();
 
     public override bool Load(string id, IResources resources) =>

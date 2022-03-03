@@ -1,4 +1,4 @@
-﻿namespace PPR.Screens;
+﻿namespace PER.Abstractions;
 
 public interface IScreen {
     public void Enter();

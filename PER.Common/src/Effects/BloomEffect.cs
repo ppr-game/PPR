@@ -1,24 +1,22 @@
-﻿using System.Collections.Generic;
-using System.IO;
-
-using PER.Abstractions.Renderer;
+﻿using PER.Abstractions.Renderer;
 using PER.Abstractions.Resources;
 using PER.Util;
 
-namespace PER.Demo.Effects;
+namespace PER.Common.Effects;
 
-public class MaxBlendBloomEffect : IEffect, IResource {
+public class BloomEffect : IEffect, IResource {
+    public const string GlobalId = "graphics/effects/bloom";
+
     public IEnumerable<PipelineStep>? pipeline { get; private set; }
-
     public bool hasModifiers => false;
     public bool drawable => false;
 
     public bool Load(string id, IResources resources) {
-        if(!Core.engine.resources.TryGetPath(Path.Join("graphics", "shaders", "default_vert.glsl"),
+        if(!resources.TryGetPath(Path.Join("graphics", "shaders", "default_vert.glsl"),
                out string? vertexPath) ||
-           !Core.engine.resources.TryGetPath(Path.Join("graphics", "shaders", "bloom_frag.glsl"),
+           !resources.TryGetPath(Path.Join("graphics", "shaders", "bloom_frag.glsl"),
                out string? fragmentPath) ||
-           !Core.engine.resources.TryGetPath(Path.Join("graphics", "shaders", "blend-max_frag.glsl"),
+           !resources.TryGetPath(Path.Join("graphics", "shaders", "bloom-blend_frag.glsl"),
                out string? blendPath))
             return false;
 
