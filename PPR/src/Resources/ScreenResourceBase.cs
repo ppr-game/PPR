@@ -14,28 +14,9 @@ using PRR.UI;
 
 namespace PPR.Resources;
 
-public abstract class ScreenResourceBase : IScreen, IResource {
-    protected abstract class LayoutElement {
-        public bool? enabled { get; }
-        public Vector2Int position { get; }
-        public Vector2Int size { get; }
-
-        protected LayoutElement(bool? enabled, Vector2Int position, Vector2Int size) {
-            this.enabled = enabled;
-            this.position = position;
-            this.size = size;
-        }
-
-        public abstract Element GetElement(IResources resources, IRenderer renderer, IInputManager input, IAudio audio,
-            Dictionary<string, Color> colors, string layoutName, string id);
-
-        protected static bool TryGetColor(Dictionary<string, Color> colors, string type, string layoutName, string id,
-            string colorName, out Color color) =>
-            colors.TryGetValue($"{type}_{layoutName}.{id}_{colorName}", out color) ||
-            colors.TryGetValue($"{type}_@{id}_{colorName}", out color);
-    }
-
-    protected class LayoutText : LayoutElement {
+public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, LayoutResourceElement>>,
+    IScreen {
+    protected class LayoutResourceText : LayoutResourceElement {
         public readonly struct TextFormatting {
             public string? foregroundColor { get; }
             public string? backgroundColor { get; }
@@ -79,7 +60,7 @@ public abstract class ScreenResourceBase : IScreen, IResource {
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public HorizontalAlignment? align { get; }
 
-        public LayoutText(bool? enabled, Vector2Int position, Vector2Int size, string? path, string? text,
+        public LayoutResourceText(bool? enabled, Vector2Int position, Vector2Int size, string? path, string? text,
             Dictionary<char, TextFormatting>? formatting, HorizontalAlignment? align) :
             base(enabled, position, size) {
             this.path = path;
@@ -110,14 +91,14 @@ public abstract class ScreenResourceBase : IScreen, IResource {
         }
     }
 
-    protected class LayoutButton : LayoutElement {
+    protected class LayoutResourceButton : LayoutResourceElement {
         public string? text { get; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public RenderStyle? style { get; }
         public bool? active { get; }
         public bool? toggled { get; }
 
-        public LayoutButton(bool? enabled, Vector2Int position, Vector2Int size, string? text,
+        public LayoutResourceButton(bool? enabled, Vector2Int position, Vector2Int size, string? text,
             RenderStyle? style, bool? active, bool? toggled) : base(enabled, position, size) {
             this.text = text;
             this.style = style;
@@ -155,20 +136,18 @@ public abstract class ScreenResourceBase : IScreen, IResource {
 
     protected IReadOnlyDictionary<string, Element> elements { get; private set; } = new Dictionary<string, Element>();
 
-    public bool Load(string id, IResources resources) {
+    public override bool Load(string id, IResources resources) {
         if(!Core.engine.resources.TryGetResource("graphics/colors", out ColorsResource? colors)) return false;
 
-        Dictionary<string, LayoutElement> layoutElements = new(elementTypes.Count);
-        foreach(string path in Core.engine.resources.GetAllPathsReverse(Path.Join("layouts", $"{layoutName}.json"))) {
-            if(!DeserializeLayout(path, layoutElements)) return false;
-            if(layoutElements.Count == elementTypes.Count) break; // already loaded all the elements
-        }
+        Dictionary<string, LayoutResourceElement> layoutElements = new(elementTypes.Count);
+        DeserializeAllJson(resources, Path.Join("layouts", $"{layoutName}.json"), layoutElements,
+            () => layoutElements.Count == elementTypes.Count);
 
         // didn't load all the elements
         if(layoutElements.Count != elementTypes.Count) return false;
 
         Dictionary<string, Element> elements = new();
-        foreach((string elementId, LayoutElement layoutElement) in layoutElements) {
+        foreach((string elementId, LayoutResourceElement layoutElement) in layoutElements) {
             Element element = layoutElement.GetElement(resources, Core.engine.renderer,
                 Core.engine.input, Core.engine.audio, colors!.colors, layoutName, elementId);
             elements.Add(elementId, element);
@@ -178,23 +157,23 @@ public abstract class ScreenResourceBase : IScreen, IResource {
         return true;
     }
 
-    private bool DeserializeLayout(string path, IDictionary<string, LayoutElement> currentValues) {
+    protected override bool DeserializeJson(string path, IDictionary<string, LayoutResourceElement> deserialized) {
         Dictionary<string, JsonElement>? layout =
             JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(File.ReadAllText(path));
         if(layout is null) return false;
 
         foreach((string? elementId, Type? type) in elementTypes) {
             if(!layout.TryGetValue(elementId, out JsonElement jsonElement) ||
-               type.BaseType != typeof(LayoutElement)) return false;
-            LayoutElement? layoutElement = (LayoutElement?)jsonElement.Deserialize(type);
+               type.BaseType != typeof(LayoutResourceElement)) return false;
+            LayoutResourceElement? layoutElement = (LayoutResourceElement?)jsonElement.Deserialize(type);
             if(layoutElement is null) return false;
-            if(!currentValues.ContainsKey(elementId)) currentValues.Add(elementId, layoutElement);
+            if(!deserialized.ContainsKey(elementId)) deserialized.Add(elementId, layoutElement);
         }
 
         return true;
     }
 
-    public bool Unload(string id, IResources resources) {
+    public override bool Unload(string id, IResources resources) {
         elements = new Dictionary<string, Element>();
         return true;
     }

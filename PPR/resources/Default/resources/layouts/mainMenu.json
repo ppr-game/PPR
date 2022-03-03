@@ -15,17 +15,20 @@
     "play": {
         "position": { "x": 38, "y": 25 },
         "size": { "x": 4, "y": 1 },
-        "text": "PLAY"
+        "text": "PLAY",
+        "active": false
     },
     "edit": {
         "position": { "x": 38, "y": 27 },
         "size": { "x": 4, "y": 1 },
-        "text": "EDIT"
+        "text": "EDIT",
+        "active": false
     },
     "settings": {
         "position": { "x": 36, "y": 29 },
         "size": { "x": 8, "y": 1 },
-        "text": "SETTINGS"
+        "text": "SETTINGS",
+        "active": false
     },
     "exit": {
         "position": { "x": 38, "y": 31 },
