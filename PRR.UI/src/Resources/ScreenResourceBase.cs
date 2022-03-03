@@ -181,9 +181,6 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         return true;
     }
 
-    public abstract void Enter();
-    public abstract void Quit();
-    public abstract bool QuitUpdate();
     public abstract void Open();
     public abstract void Close();
     public abstract void Update();

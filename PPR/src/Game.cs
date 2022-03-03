@@ -28,7 +28,17 @@ public class Game : IGame {
     private BloomEffect? _bloomEffect;
     private GlitchEffect? _glitchEffect;
 
-    private IScreen? _currentScreen;
+    private readonly FadeEffect _screenFade = new();
+
+    public IScreen? currentScreen { get; private set; }
+
+    public void SwitchScreen(IScreen? screen, float fadeOutTime, float fadeInTime) =>
+        _screenFade.Start(fadeOutTime, fadeInTime, () => {
+            currentScreen?.Close();
+            currentScreen = screen;
+            currentScreen?.Open();
+            if(currentScreen is null) Core.engine.renderer.Close();
+        });
 
     public void Unload() => _settings.Save(SettingsPath);
 
@@ -60,7 +70,8 @@ public class Game : IGame {
         Core.engine.renderer.formattingEffects.Add("none", null);
         Core.engine.renderer.formattingEffects.Add("glitch", _glitchEffect);
 
-        resources.TryAddResource("layouts/mainMenu", new MainMenuScreen());
+        resources.TryAddResource(MainMenuScreen.GlobalId, new MainMenuScreen());
+        resources.TryAddResource(SettingsScreen.GlobalId, new SettingsScreen());
     }
 
     public void Loaded() {
@@ -89,10 +100,9 @@ public class Game : IGame {
     public void Setup() {
         IRenderer renderer = Core.engine.renderer;
         renderer.closed += (_, _) => renderer.Close();
-        if(!Core.engine.resources.TryGetResource("layouts/mainMenu", out MainMenuScreen? mainMenuScreen))
+        if(!Core.engine.resources.TryGetResource(MainMenuScreen.GlobalId, out MainMenuScreen? screen))
             return;
-        _currentScreen = mainMenuScreen;
-        _currentScreen?.Enter();
+        SwitchScreen(screen, 0f, 2f);
     }
 
     public void Update() {
@@ -112,14 +122,16 @@ public class Game : IGame {
         renderer.AddEffect(_drawTextEffect);
         renderer.AddEffect(_bloomEffect);
 
-        _currentScreen?.Update();
+        if(_screenFade.fading) renderer.AddEffect(_screenFade);
+
+        currentScreen?.Update();
 
         renderer.DrawText(new Vector2Int(renderer.width - 1, renderer.height - 1),
             $"{_fps.ToString(CultureInfo.InvariantCulture)}/{_avgFPS.ToString(CultureInfo.InvariantCulture)} FPS",
             _ => new Formatting(Color.white, Color.transparent), HorizontalAlignment.Right);
     }
 
-    public void Tick() => _currentScreen?.Tick();
+    public void Tick() => currentScreen?.Tick();
 
     public void Finish() { }
 }

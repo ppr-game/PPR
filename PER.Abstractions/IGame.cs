@@ -1,6 +1,8 @@
 ﻿namespace PER.Abstractions;
 
 public interface IGame {
+    public IScreen? currentScreen { get; }
+    public void SwitchScreen(IScreen? screen, float fadeOutTime, float fadeInTime);
     public void Unload();
     public void Load();
     public void Loaded();

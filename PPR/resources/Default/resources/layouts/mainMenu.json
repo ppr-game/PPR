@@ -27,8 +27,7 @@
     "settings": {
         "position": { "x": 36, "y": 29 },
         "size": { "x": 8, "y": 1 },
-        "text": "SETTINGS",
-        "active": false
+        "text": "SETTINGS"
     },
     "exit": {
         "position": { "x": 38, "y": 31 },

@@ -39,6 +39,11 @@ public class Game : IGame {
     private readonly List<Element> _packSelector = new();
     private ProgressBar? _testProgressBar;
 
+    // ReSharper disable once UnusedAutoPropertyAccessor.Local
+    public IScreen? currentScreen { get; private set; }
+
+    public void SwitchScreen(IScreen? screen, float fadeOutTime, float fadeInTime) { }
+
     public void Unload() => _settings.Save(SettingsPath);
 
     public void Load() {
