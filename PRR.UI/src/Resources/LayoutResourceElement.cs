@@ -1,4 +1,6 @@
-﻿using PER.Abstractions.Audio;
+﻿using System.Diagnostics.CodeAnalysis;
+
+using PER.Abstractions.Audio;
 using PER.Abstractions.Input;
 using PER.Abstractions.Renderer;
 using PER.Abstractions.Resources;
@@ -7,10 +9,11 @@ using PER.Util;
 
 namespace PRR.UI.Resources;
 
+[SuppressMessage("ReSharper", "MemberCanBeProtected.Global")]
 public abstract class LayoutResourceElement {
-    protected bool? enabled { get; }
-    protected Vector2Int position { get; }
-    protected Vector2Int size { get; }
+    public bool? enabled { get; }
+    public Vector2Int position { get; }
+    public Vector2Int size { get; }
 
     protected LayoutResourceElement(bool? enabled, Vector2Int position, Vector2Int size) {
         this.enabled = enabled;

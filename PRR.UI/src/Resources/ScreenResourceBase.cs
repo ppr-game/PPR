@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using PER.Abstractions;
@@ -13,15 +14,16 @@ using PER.Util;
 namespace PRR.UI.Resources;
 
 public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, LayoutResourceElement>>, IScreen {
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     protected class LayoutResourceText : LayoutResourceElement {
         public readonly struct TextFormatting {
-            private string? foregroundColor { get; }
-            private string? backgroundColor { get; }
+            public string? foregroundColor { get; }
+            public string? backgroundColor { get; }
             [JsonConverter(typeof(JsonStringEnumConverter))]
-            private RenderStyle? style { get; }
+            public RenderStyle? style { get; }
             [JsonConverter(typeof(JsonStringEnumConverter))]
-            private RenderOptions? options { get; }
-            private string? effect { get; }
+            public RenderOptions? options { get; }
+            public string? effect { get; }
 
             [JsonConstructor]
             public TextFormatting(string? foregroundColor, string? backgroundColor, RenderStyle? style,
@@ -50,11 +52,11 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
             }
         }
 
-        private string? path { get; }
-        private string? text { get; }
-        private Dictionary<char, TextFormatting>? formatting { get; }
+        public string? path { get; }
+        public string? text { get; }
+        public Dictionary<char, TextFormatting>? formatting { get; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        private HorizontalAlignment? align { get; }
+        public HorizontalAlignment? align { get; }
 
         public LayoutResourceText(bool? enabled, Vector2Int position, Vector2Int size, string? path, string? text,
             Dictionary<char, TextFormatting>? formatting, HorizontalAlignment? align) :
@@ -87,12 +89,13 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         }
     }
 
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     protected class LayoutResourceButton : LayoutResourceElement {
-        private string? text { get; }
+        public string? text { get; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        private RenderStyle? style { get; }
-        private bool? active { get; }
-        private bool? toggled { get; }
+        public RenderStyle? style { get; }
+        public bool? active { get; }
+        public bool? toggled { get; }
 
         public LayoutResourceButton(bool? enabled, Vector2Int position, Vector2Int size, string? text,
             RenderStyle? style, bool? active, bool? toggled) : base(enabled, position, size) {
