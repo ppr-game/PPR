@@ -97,7 +97,7 @@ public abstract class ScreenResourceBase : IScreen, IResource {
             };
             if(path is not null &&
                // kill me please
-               resources.TryGetPath(Path.Join(new string[] { "graphics", "layouts" }.Concat(path.Split('/')).ToArray()),
+               resources.TryGetPath(Path.Join(path.Split('/').Prepend("layouts").ToArray()),
                    out string? filePath))
                 element.text = File.ReadAllText(filePath);
             if(enabled.HasValue) element.enabled = enabled.Value;
@@ -156,28 +156,41 @@ public abstract class ScreenResourceBase : IScreen, IResource {
     protected IReadOnlyDictionary<string, Element> elements { get; private set; } = new Dictionary<string, Element>();
 
     public bool Load(string id, IResources resources) {
-        if(!Core.engine.resources.TryGetPath(Path.Join("graphics", "layouts", $"{layoutName}.json"),
-               out string? path) ||
-           !Core.engine.resources.TryGetResource("graphics/colors", out ColorsResource? colors)) return false;
+        if(!Core.engine.resources.TryGetResource("graphics/colors", out ColorsResource? colors)) return false;
 
-        Dictionary<string, JsonElement>? layout =
-            JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(File.ReadAllText(path),
-                new JsonSerializerOptions {
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
-                });
-        if(layout is null) return false;
+        Dictionary<string, LayoutElement> layoutElements = new(elementTypes.Count);
+        foreach(string path in Core.engine.resources.GetAllPathsReverse(Path.Join("layouts", $"{layoutName}.json"))) {
+            if(!DeserializeLayout(path, layoutElements)) return false;
+            if(layoutElements.Count == elementTypes.Count) break; // already loaded all the elements
+        }
+
+        // didn't load all the elements
+        if(layoutElements.Count != elementTypes.Count) return false;
 
         Dictionary<string, Element> elements = new();
+        foreach((string elementId, LayoutElement layoutElement) in layoutElements) {
+            Element element = layoutElement.GetElement(resources, Core.engine.renderer,
+                Core.engine.input, Core.engine.audio, colors!.colors, layoutName, elementId);
+            elements.Add(elementId, element);
+        }
+
+        this.elements = elements;
+        return true;
+    }
+
+    private bool DeserializeLayout(string path, IDictionary<string, LayoutElement> currentValues) {
+        Dictionary<string, JsonElement>? layout =
+            JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(File.ReadAllText(path));
+        if(layout is null) return false;
+
         foreach((string? elementId, Type? type) in elementTypes) {
             if(!layout.TryGetValue(elementId, out JsonElement jsonElement) ||
                type.BaseType != typeof(LayoutElement)) return false;
             LayoutElement? layoutElement = (LayoutElement?)jsonElement.Deserialize(type);
-            Element? element = layoutElement?.GetElement(resources, Core.engine.renderer,
-                Core.engine.input, Core.engine.audio, colors!.colors, layoutName, elementId);
-            if(element is not null) elements.Add(elementId, element);
+            if(layoutElement is null) return false;
+            if(!currentValues.ContainsKey(elementId)) currentValues.Add(elementId, layoutElement);
         }
 
-        this.elements = elements;
         return true;
     }
 

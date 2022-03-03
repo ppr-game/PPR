@@ -57,7 +57,7 @@ public class Game : IGame {
         Core.engine.renderer.formattingEffects.Add("none", null);
         Core.engine.renderer.formattingEffects.Add("glitch", _glitchEffect);
 
-        resources.TryAddResource("graphics/layouts/mainMenu", new MainMenuScreen());
+        resources.TryAddResource("layouts/mainMenu", new MainMenuScreen());
     }
 
     public void Loaded() {
@@ -86,7 +86,7 @@ public class Game : IGame {
     public void Setup() {
         IRenderer renderer = Core.engine.renderer;
         renderer.closed += (_, _) => renderer.Close();
-        if(!Core.engine.resources.TryGetResource("graphics/layouts/mainMenu", out MainMenuScreen? mainMenuScreen))
+        if(!Core.engine.resources.TryGetResource("layouts/mainMenu", out MainMenuScreen? mainMenuScreen))
             return;
         _currentScreen = mainMenuScreen;
         _currentScreen?.Enter();
