@@ -8,9 +8,9 @@ using PER.Util;
 namespace PPR.Resources;
 
 public abstract class LayoutResourceElement {
-    public bool? enabled { get; }
-    public Vector2Int position { get; }
-    public Vector2Int size { get; }
+    protected bool? enabled { get; }
+    protected Vector2Int position { get; }
+    protected Vector2Int size { get; }
 
     protected LayoutResourceElement(bool? enabled, Vector2Int position, Vector2Int size) {
         this.enabled = enabled;

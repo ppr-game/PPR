@@ -14,17 +14,16 @@ using PRR.UI;
 
 namespace PPR.Resources;
 
-public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, LayoutResourceElement>>,
-    IScreen {
+public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, LayoutResourceElement>>, IScreen {
     protected class LayoutResourceText : LayoutResourceElement {
         public readonly struct TextFormatting {
-            public string? foregroundColor { get; }
-            public string? backgroundColor { get; }
+            private string? foregroundColor { get; }
+            private string? backgroundColor { get; }
             [JsonConverter(typeof(JsonStringEnumConverter))]
-            public RenderStyle? style { get; }
+            private RenderStyle? style { get; }
             [JsonConverter(typeof(JsonStringEnumConverter))]
-            public RenderOptions? options { get; }
-            public string? effect { get; }
+            private RenderOptions? options { get; }
+            private string? effect { get; }
 
             [JsonConstructor]
             public TextFormatting(string? foregroundColor, string? backgroundColor, RenderStyle? style,
@@ -36,8 +35,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
                 this.effect = effect;
             }
 
-            public Formatting GetFormatting(Dictionary<string, Color> colors, Dictionary<string, IEffect?> effects,
-                string layoutName, string id) {
+            public Formatting GetFormatting(Dictionary<string, Color> colors, Dictionary<string, IEffect?> effects) {
                 Color foregroundColor = Color.white;
                 Color backgroundColor = Color.transparent;
                 RenderStyle style = RenderStyle.None;
@@ -54,11 +52,11 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
             }
         }
 
-        public string? path { get; }
-        public string? text { get; }
-        public Dictionary<char, TextFormatting>? formatting { get; }
+        private string? path { get; }
+        private string? text { get; }
+        private Dictionary<char, TextFormatting>? formatting { get; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public HorizontalAlignment? align { get; }
+        private HorizontalAlignment? align { get; }
 
         public LayoutResourceText(bool? enabled, Vector2Int position, Vector2Int size, string? path, string? text,
             Dictionary<char, TextFormatting>? formatting, HorizontalAlignment? align) :
@@ -85,18 +83,18 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
             if(formatting is not null)
                 foreach((char flag, TextFormatting textFormatting) in formatting)
                     element.formatting.Add(flag,
-                        textFormatting.GetFormatting(colors, renderer.formattingEffects, layoutName, id));
+                        textFormatting.GetFormatting(colors, renderer.formattingEffects));
             if(align.HasValue) element.align = align.Value;
             return element;
         }
     }
 
     protected class LayoutResourceButton : LayoutResourceElement {
-        public string? text { get; }
+        private string? text { get; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public RenderStyle? style { get; }
-        public bool? active { get; }
-        public bool? toggled { get; }
+        private RenderStyle? style { get; }
+        private bool? active { get; }
+        private bool? toggled { get; }
 
         public LayoutResourceButton(bool? enabled, Vector2Int position, Vector2Int size, string? text,
             RenderStyle? style, bool? active, bool? toggled) : base(enabled, position, size) {
