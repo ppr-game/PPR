@@ -2,8 +2,6 @@
 using PER.Audio.Sfml;
 using PER.Common.Resources;
 
-using PPR.Resources;
-
 using PRR.Sfml;
 
 namespace PPR;
