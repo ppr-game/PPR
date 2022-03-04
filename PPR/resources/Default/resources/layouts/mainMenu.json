@@ -33,5 +33,20 @@
         "position": { "x": 38, "y": 31 },
         "size": { "x": 4, "y": 1 },
         "text": "EXIT"
+    },
+    "sfml": {
+        "text": "SFML",
+        "position": { "x": 1, "y": 1 },
+        "size": { "x": 4, "y": 1 }
+    },
+    "github": {
+        "text": "GITHUB",
+        "position": { "x": 6, "y": 1 },
+        "size": { "x": 6, "y": 1 }
+    },
+    "discord": {
+        "text": "DISCORD",
+        "position": { "x": 13, "y": 1 },
+        "size": { "x": 7, "y": 1 }
     }
 }

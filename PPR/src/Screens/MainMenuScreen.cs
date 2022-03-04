@@ -2,6 +2,7 @@
 using PER.Abstractions.Input;
 using PER.Abstractions.Renderer;
 using PER.Abstractions.UI;
+using PER.Util;
 
 using PRR.UI;
 using PRR.UI.Resources;
@@ -22,7 +23,10 @@ public class MainMenuScreen : ScreenResourceBase {
         { "play", typeof(LayoutResourceButton) },
         { "edit", typeof(LayoutResourceButton) },
         { "settings", typeof(LayoutResourceButton) },
-        { "exit", typeof(LayoutResourceButton) }
+        { "exit", typeof(LayoutResourceButton) },
+        { "sfml", typeof(LayoutResourceButton) },
+        { "github", typeof(LayoutResourceButton) },
+        { "discord", typeof(LayoutResourceButton) }
     };
 
     public override void Open() {
@@ -33,6 +37,18 @@ public class MainMenuScreen : ScreenResourceBase {
 
         if(elements["exit"] is Button exit) exit.onClick += (_, _) => {
             Core.engine.game.SwitchScreen(null, 2f, 0f);
+        };
+
+        if(elements["sfml"] is Button sfml) sfml.onClick += (_, _) => {
+            Helper.OpenUrl("https://sfml-dev.org");
+        };
+
+        if(elements["github"] is Button github) github.onClick += (_, _) => {
+            Helper.OpenUrl("https://github.com/ppr-game/PPR");
+        };
+
+        if(elements["discord"] is Button discord) discord.onClick += (_, _) => {
+            Helper.OpenUrl("https://discord.gg/AuYUVs5");
         };
     }
 
