@@ -11,9 +11,13 @@ public class FadeEffect : IEffect {
     public bool drawable => false;
 
     public bool fading => _state != State.None;
+    private float t => (float)_stopwatch.time.TotalSeconds / _state switch {
+        State.Out => _outTime,
+        State.In => _inTime,
+        _ => 0f
+    };
 
     private State _state;
-    private float _t;
     private float _outTime;
     private float _inTime;
     private Action? _callback;
@@ -28,14 +32,13 @@ public class FadeEffect : IEffect {
         _inTime = inTime;
         _callback = middleCallback;
         _state = State.Out;
-        _t = 0f;
         _speeds.Clear();
         _stopwatch.Reset();
     }
 
     public (Vector2, RenderCharacter) ApplyModifiers(Vector2Int at, Vector2 position, RenderCharacter character) {
         if(!_speeds.ContainsKey(at)) _speeds.Add(at, Random.Shared.NextSingle(MinSpeed, MaxSpeed));
-        float t = _t * _speeds[at];
+        float t = this.t * _speeds[at];
         if(_state == State.Out) t = 1f - t;
         character = new RenderCharacter(character.character,
             new Color(character.background.r, character.background.g, character.background.b,
@@ -47,26 +50,18 @@ public class FadeEffect : IEffect {
     }
 
     public void Update(bool fullscreen) {
-        if(_t >= 1f) {
-            switch(_state) {
-                case State.Out:
-                    _callback?.Invoke();
-                    _state = State.In;
-                    _speeds.Clear();
-                    _stopwatch.Reset();
-                    break;
-                case State.In:
-                    _state = State.None;
-                    break;
-            }
+        if(t < 1f) return;
+        switch(_state) {
+            case State.Out:
+                _callback?.Invoke();
+                _state = State.In;
+                _speeds.Clear();
+                _stopwatch.Reset();
+                break;
+            case State.In:
+                _state = State.None;
+                break;
         }
-
-        float time = _state switch {
-            State.Out => _outTime,
-            State.In => _inTime,
-            _ => 0f
-        };
-        _t = (float)_stopwatch.time.TotalSeconds / time;
     }
 
     public void Draw(Vector2Int position) { }

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Globalization;
 
 using PER.Abstractions;
 using PER.Abstractions.Renderer;
@@ -7,7 +6,6 @@ using PER.Abstractions.Resources;
 using PER.Common;
 using PER.Common.Effects;
 using PER.Common.Resources;
-using PER.Util;
 
 using PPR.Resources;
 using PPR.Screens;
@@ -88,7 +86,7 @@ public class Game : GameBase {
         base.Setup();
         if(!Core.engine.resources.TryGetResource(MainMenuScreen.GlobalId, out MainMenuScreen? screen))
             return;
-        SwitchScreen(screen, 0f, 2f);
+        SwitchScreen(screen);
     }
 
     public override void Update() {

@@ -24,7 +24,7 @@ public class SettingsScreen : ScreenResourceBase {
     public override void Open() {
         if(elements["back"] is Button button) button.onClick += (_, _) => {
             if(Core.engine.resources.TryGetResource(MainMenuScreen.GlobalId, out MainMenuScreen? screen))
-                Core.engine.game.SwitchScreen(screen, 0.2f, 0.2f);
+                Core.engine.game.SwitchScreen(screen);
         };
     }
 

@@ -2,6 +2,7 @@
 
 public interface IGame {
     public IScreen? currentScreen { get; }
+    public void SwitchScreen(IScreen? screen);
     public void SwitchScreen(IScreen? screen, float fadeOutTime, float fadeInTime);
     public void Unload();
     public void Load();

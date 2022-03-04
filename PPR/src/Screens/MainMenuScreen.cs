@@ -32,11 +32,11 @@ public class MainMenuScreen : ScreenResourceBase {
     public override void Open() {
         if(elements["settings"] is Button settings) settings.onClick += (_, _) => {
             if(Core.engine.resources.TryGetResource(SettingsScreen.GlobalId, out SettingsScreen? screen))
-                Core.engine.game.SwitchScreen(screen, 0.2f, 0.2f);
+                Core.engine.game.SwitchScreen(screen);
         };
 
         if(elements["exit"] is Button exit) exit.onClick += (_, _) => {
-            Core.engine.game.SwitchScreen(null, 2f, 0f);
+            Core.engine.game.SwitchScreen(null);
         };
 
         if(elements["sfml"] is Button sfml) sfml.onClick += (_, _) => {
