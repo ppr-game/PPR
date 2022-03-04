@@ -21,7 +21,7 @@ public class Game : GameBase {
     private BloomEffect? _bloomEffect;
     private GlitchEffect? _glitchEffect;
 
-    protected override double deltaTime => Core.engine.deltaTime;
+    protected override double deltaTime => _settings.showFps ? Core.engine.deltaTime : 0d;
     protected override IRenderer renderer => Core.engine.renderer;
 
     public override void Unload() => _settings.Save(SettingsPath);
@@ -55,7 +55,7 @@ public class Game : GameBase {
         renderer.formattingEffects.Add("glitch", _glitchEffect);
 
         resources.TryAddResource(MainMenuScreen.GlobalId, new MainMenuScreen());
-        resources.TryAddResource(SettingsScreen.GlobalId, new SettingsScreen());
+        resources.TryAddResource(SettingsScreen.GlobalId, new SettingsScreen(_settings));
     }
 
     public override void Loaded() {
@@ -65,13 +65,13 @@ public class Game : GameBase {
 
         Core.engine.resources.TryGetResource(BloomEffect.GlobalId, out _bloomEffect);
 
-        _settings.Apply();
+        _settings.ApplyVolumes();
 
         RendererSettings rendererSettings = new() {
             title = "Press Press Revolution",
             width = 80,
             height = 60,
-            framerate = _settings.framerate,
+            framerate = _settings.fpsLimit,
             fullscreen = _settings.fullscreen,
             font = font.font,
             icon = icon?.icon
@@ -90,7 +90,7 @@ public class Game : GameBase {
 
     public override void Update() {
         if(_drawTextEffect is not null) renderer.AddEffect(_drawTextEffect);
-        if(_bloomEffect is not null) renderer.AddEffect(_bloomEffect);
+        if(_settings.bloom && _bloomEffect is not null) renderer.AddEffect(_bloomEffect);
 
         base.Update();
     }

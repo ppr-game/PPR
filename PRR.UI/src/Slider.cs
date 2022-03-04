@@ -31,7 +31,8 @@ public class Slider : Element {
         set {
             if(_value == value) return;
             _value = value;
-            _relativeValue = (int)(width * _value);
+            float tempValue = (value - minValue) / (maxValue - minValue);
+            _relativeValue = (int)(tempValue * (width - 1));
             onValueChanged?.Invoke(this, EventArgs.Empty);
         }
     }
@@ -58,7 +59,7 @@ public class Slider : Element {
     private int _width;
 
     private int _relativeValue;
-    private float _value;
+    private float _value = float.NaN; // make first value set always work
 
     private float[] _animSpeeds = Array.Empty<float>();
     private TimeSpan _animStartTime;

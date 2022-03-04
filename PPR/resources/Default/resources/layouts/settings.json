@@ -2,9 +2,98 @@
     "frame": {
         "path": "settings.txt"
     },
+    "header.audio": {
+        "text": "[ AUDIO ]",
+        "position": { "x": 2, "y": 13 }
+    },
+    "volume.master": {
+        "position": { "x": 12, "y": 15 },
+        "width": 21,
+        "minValue": 0.0,
+        "maxValue": 1.0
+    },
+    "volume.master.label": {
+        "text": "MASTER",
+        "position": { "x": 4, "y": 15 }
+    },
+    "volume.master.value": {
+        "position": { "x": 34, "y": 15 }
+    },
+    "volume.music": {
+        "position": { "x": 12, "y": 17 },
+        "width": 21,
+        "minValue": 0.0,
+        "maxValue": 1.0
+    },
+    "volume.music.label": {
+        "text": "MUSIC",
+        "position": { "x": 4, "y": 17 }
+    },
+    "volume.music.value": {
+        "position": { "x": 34, "y": 17 }
+    },
+    "volume.sfx": {
+        "position": { "x": 12, "y": 19 },
+        "width": 21,
+        "minValue": 0.0,
+        "maxValue": 1.0
+    },
+    "volume.sfx.label": {
+        "text": "EFFECTS",
+        "position": { "x": 4, "y": 19 }
+    },
+    "volume.sfx.value": {
+        "position": { "x": 34, "y": 19 }
+    },
+    "header.video": {
+        "text": "[ VIDEO ]",
+        "position": { "x": 2, "y": 21 }
+    },
+    "bloom": {
+        "position": { "x": 4, "y": 23 },
+        "size": { "x": 5, "y": 1 },
+        "text": "BLOOM"
+    },
+    "fullscreen": {
+        "position": { "x": 4, "y": 25 },
+        "size": { "x": 10, "y": 1 },
+        "text": "FULLSCREEN"
+    },
+    "fpsLimit": {
+        "position": { "x": 14, "y": 27 },
+        "width": 19,
+        "minValue": -1,
+        "maxValue": 17
+    },
+    "fpsLimit.label": {
+        "text": "FPS LIMIT",
+        "position": { "x": 4, "y": 27 }
+    },
+    "fpsLimit.value": {
+        "position": { "x": 34, "y": 27 }
+    },
+    "uppercaseNotes": {
+        "position": { "x": 4, "y": 29 },
+        "size": { "x": 15, "y": 1 },
+        "text": "UPPERCASE NOTES"
+    },
+    "header.advanced": {
+        "text": "[ ADVANCED ]",
+        "position": { "x": 2, "y": 31 }
+    },
+    "showFps": {
+        "position": { "x": 4, "y": 33 },
+        "size": { "x": 8, "y": 1 },
+        "text": "SHOW FPS"
+    },
     "back": {
         "position": { "x": 2, "y": 57 },
         "size": { "x": 4, "y": 1 },
         "text": "BACK"
+    },
+    "apply": {
+        "position": { "x": 7, "y": 57 },
+        "size": { "x": 5, "y": 1 },
+        "text": "APPLY"
     }
 }

@@ -1,6 +1,7 @@
 ﻿using PER.Abstractions.Audio;
 using PER.Abstractions.Input;
 using PER.Abstractions.Renderer;
+using PER.Abstractions.Resources;
 using PER.Abstractions.UI;
 using PER.Util;
 
@@ -29,7 +30,9 @@ public class MainMenuScreen : ScreenResourceBase {
         { "discord", typeof(LayoutResourceButton) }
     };
 
-    public override void Open() {
+    public override bool Load(string id, IResources resources) {
+        if(!base.Load(id, resources)) return false;
+
         if(elements["settings"] is Button settings) settings.onClick += (_, _) => {
             if(Core.engine.resources.TryGetResource(SettingsScreen.GlobalId, out SettingsScreen? screen))
                 Core.engine.game.SwitchScreen(screen);
@@ -50,7 +53,11 @@ public class MainMenuScreen : ScreenResourceBase {
         if(elements["discord"] is Button discord) discord.onClick += (_, _) => {
             Helper.OpenUrl("https://discord.gg/AuYUVs5");
         };
+
+        return true;
     }
+
+    public override void Open() { }
 
     public override void Close() { }
 

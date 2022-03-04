@@ -25,7 +25,7 @@ public class InputManager : IInputManager {
 
     public InputManager(Renderer renderer) => _renderer = renderer;
 
-    public void Setup() {
+    public void Reset() {
         if(_renderer.window is null) return;
 
         _renderer.window.KeyPressed += (_, key) => UpdateKeyPressed(SfmlConverters.ToPerKey(key.Code), true);

@@ -43,13 +43,15 @@ public class Engine {
 
     public bool Reload() {
         try {
-            if(resources.loaded) {
+            bool loaded = resources.loaded;
+            if(loaded) {
                 if(!resources.Unload()) return false;
                 game.Unload();
             }
             game.Load();
             if(!resources.Load()) return false;
             game.Loaded();
+            if(loaded) input.Reset();
             return true;
         }
         catch(Exception exception) {
@@ -70,7 +72,7 @@ public class Engine {
         _clock.Reset();
 
         renderer.Setup(rendererSettings);
-        input.Setup();
+        input.Reset();
         game.Setup();
 
         logger.Info("Setup finished");
@@ -106,6 +108,7 @@ public class Engine {
 
     private void Finish() {
         resources.Unload();
+        game.Unload();
         input.Finish();
         renderer.Finish();
         game.Finish();

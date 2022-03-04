@@ -28,7 +28,7 @@ public interface IInputManager {
     public event EventHandler<TextEnteredEventArgs>? textEntered;
     public event EventHandler<IInputManager.ScrolledEventArgs>? scrolled;
 
-    public void Setup();
+    public void Reset();
     public void Update();
     public void Finish();
 

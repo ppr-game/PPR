@@ -85,6 +85,12 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
                     element.formatting.Add(flag,
                         textFormatting.GetFormatting(colors, renderer.formattingEffects));
             if(align.HasValue) element.align = align.Value;
+
+            Color foregroundColor = Color.white;
+            Color backgroundColor = Color.transparent;
+            if(TryGetColor(colors, "text", layoutName, id, "fg", out Color color)) foregroundColor = color;
+            if(TryGetColor(colors, "text", layoutName, id, "bg", out color)) backgroundColor = color;
+            element.formatting.Add('\0', new Formatting(foregroundColor, backgroundColor));
             return element;
         }
     }
@@ -125,6 +131,50 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
             if(TryGetColor(colors, "button", layoutName, id, "hover", out color))
                 element.hoverColor = color;
             if(TryGetColor(colors, "button", layoutName, id, "click", out color))
+                element.clickColor = color;
+            return element;
+        }
+    }
+
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    protected class LayoutResourceSlider : LayoutResourceElement {
+        public int? width { get; }
+        public float? value { get; }
+        public float? minValue { get; }
+        public float? maxValue { get; }
+        public bool? active { get; }
+
+        public LayoutResourceSlider(bool? enabled, Vector2Int position, Vector2Int size, int? width, float? value,
+            float? minValue, float? maxValue, bool? active) : base(enabled, position, size) {
+            this.width = width;
+            this.value = value;
+            this.minValue = minValue;
+            this.maxValue = maxValue;
+            this.active = active;
+        }
+
+        // ReSharper disable once CognitiveComplexity
+        public override Element GetElement(IResources resources, IRenderer renderer, IInputManager input, IAudio audio,
+            Dictionary<string, Color> colors, string layoutName, string id) {
+            Slider element = new(renderer, input, audio) {
+                position = position,
+                size = size
+            };
+            if(enabled.HasValue) element.enabled = enabled.Value;
+            if(width.HasValue) element.width = width.Value;
+            if(value.HasValue) element.value = value.Value;
+            if(minValue.HasValue) element.minValue = minValue.Value;
+            if(maxValue.HasValue) element.maxValue = maxValue.Value;
+            if(active.HasValue) element.active = active.Value;
+            if(TryGetColor(colors, "slider", layoutName, id, "inactive", out Color color))
+                element.inactiveColor = color;
+            if(TryGetColor(colors, "slider", layoutName, id, "inactive_toggled", out color))
+                element.inactiveToggledColor = color;
+            if(TryGetColor(colors, "slider", layoutName, id, "idle", out color))
+                element.idleColor = color;
+            if(TryGetColor(colors, "slider", layoutName, id, "hover", out color))
+                element.hoverColor = color;
+            if(TryGetColor(colors, "slider", layoutName, id, "click", out color))
                 element.clickColor = color;
             return element;
         }
