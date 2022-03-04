@@ -4,6 +4,7 @@ using System.Globalization;
 using PER.Abstractions;
 using PER.Abstractions.Renderer;
 using PER.Abstractions.Resources;
+using PER.Common;
 using PER.Common.Effects;
 using PER.Common.Resources;
 using PER.Util;
@@ -15,12 +16,7 @@ using PRR.Resources;
 
 namespace PPR;
 
-public class Game : IGame {
-    private int _fps;
-    private int _avgFPS;
-    private int _tempAvgFPS;
-    private int _tempAvgFPSCounter;
-
+public class Game : GameBase {
     private const string SettingsPath = "config.json";
     private Settings _settings = new();
 
@@ -28,21 +24,12 @@ public class Game : IGame {
     private BloomEffect? _bloomEffect;
     private GlitchEffect? _glitchEffect;
 
-    private readonly FadeEffect _screenFade = new();
+    protected override double deltaTime => Core.engine.deltaTime;
+    protected override IRenderer renderer => Core.engine.renderer;
 
-    public IScreen? currentScreen { get; private set; }
+    public override void Unload() => _settings.Save(SettingsPath);
 
-    public void SwitchScreen(IScreen? screen, float fadeOutTime, float fadeInTime) =>
-        _screenFade.Start(fadeOutTime, fadeInTime, () => {
-            currentScreen?.Close();
-            currentScreen = screen;
-            currentScreen?.Open();
-            if(currentScreen is null) Core.engine.renderer.Close();
-        });
-
-    public void Unload() => _settings.Save(SettingsPath);
-
-    public void Load() {
+    public override void Load() {
         IResources resources = Core.engine.resources;
 
         _settings = Settings.Load(SettingsPath);
@@ -59,22 +46,22 @@ public class Game : IGame {
 
         resources.TryAddResource(IconResource.GlobalId, new IconResource());
         resources.TryAddResource(FontResource.GlobalId, new FontResource());
-        resources.TryAddResource(BloomEffect.GlobalId, new BloomEffect());
 
         resources.TryAddResource(ColorsResource.GlobalId, new ColorsResource());
 
         _drawTextEffect = new DrawTextEffect();
-        _glitchEffect = new GlitchEffect(Core.engine.renderer);
+        resources.TryAddResource(BloomEffect.GlobalId, new BloomEffect());
+        _glitchEffect = new GlitchEffect(renderer);
 
-        Core.engine.renderer.formattingEffects.Clear();
-        Core.engine.renderer.formattingEffects.Add("none", null);
-        Core.engine.renderer.formattingEffects.Add("glitch", _glitchEffect);
+        renderer.formattingEffects.Clear();
+        renderer.formattingEffects.Add("none", null);
+        renderer.formattingEffects.Add("glitch", _glitchEffect);
 
         resources.TryAddResource(MainMenuScreen.GlobalId, new MainMenuScreen());
         resources.TryAddResource(SettingsScreen.GlobalId, new SettingsScreen());
     }
 
-    public void Loaded() {
+    public override void Loaded() {
         if(!Core.engine.resources.TryGetResource(FontResource.GlobalId, out FontResource? font) ||
            font?.font is null) return;
         Core.engine.resources.TryGetResource(IconResource.GlobalId, out IconResource? icon);
@@ -93,45 +80,21 @@ public class Game : IGame {
             icon = icon?.icon
         };
 
-        if(Core.engine.renderer.open) Core.engine.renderer.Reset(rendererSettings);
+        if(renderer.open) renderer.Reset(rendererSettings);
         else Core.engine.Start(rendererSettings);
     }
 
-    public void Setup() {
-        IRenderer renderer = Core.engine.renderer;
-        renderer.closed += (_, _) => renderer.Close();
+    public override void Setup() {
+        base.Setup();
         if(!Core.engine.resources.TryGetResource(MainMenuScreen.GlobalId, out MainMenuScreen? screen))
             return;
         SwitchScreen(screen, 0f, 2f);
     }
 
-    public void Update() {
-        _fps = (int)Math.Round(1d / Core.engine.deltaTime);
-        _tempAvgFPS += _fps;
-        _tempAvgFPSCounter++;
-        if(_tempAvgFPSCounter >= _avgFPS) {
-            _avgFPS = _tempAvgFPS / _tempAvgFPSCounter;
-            _tempAvgFPS = 0;
-            _tempAvgFPSCounter = 0;
-        }
+    public override void Update() {
+        if(_drawTextEffect is not null) renderer.AddEffect(_drawTextEffect);
+        if(_bloomEffect is not null) renderer.AddEffect(_bloomEffect);
 
-        if(_drawTextEffect is null || _bloomEffect is null) return;
-
-        IRenderer renderer = Core.engine.renderer;
-
-        renderer.AddEffect(_drawTextEffect);
-        renderer.AddEffect(_bloomEffect);
-
-        if(_screenFade.fading) renderer.AddEffect(_screenFade);
-
-        currentScreen?.Update();
-
-        renderer.DrawText(new Vector2Int(renderer.width - 1, renderer.height - 1),
-            $"{_fps.ToString(CultureInfo.InvariantCulture)}/{_avgFPS.ToString(CultureInfo.InvariantCulture)} FPS",
-            _ => new Formatting(Color.white, Color.transparent), HorizontalAlignment.Right);
+        base.Update();
     }
-
-    public void Tick() => currentScreen?.Tick();
-
-    public void Finish() { }
 }

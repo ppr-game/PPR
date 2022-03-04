@@ -10,6 +10,7 @@ using PER.Abstractions.Input;
 using PER.Abstractions.Renderer;
 using PER.Abstractions.Resources;
 using PER.Abstractions.UI;
+using PER.Common;
 using PER.Common.Effects;
 using PER.Common.Resources;
 using PER.Demo.Resources;
@@ -20,12 +21,7 @@ using PRR.UI;
 
 namespace PER.Demo;
 
-public class Game : IGame {
-    private int _fps;
-    private int _avgFPS;
-    private int _tempAvgFPS;
-    private int _tempAvgFPSCounter;
-
+public class Game : GameBase {
     private const string SettingsPath = "config.json";
     private Settings _settings = new();
 
@@ -39,14 +35,12 @@ public class Game : IGame {
     private readonly List<Element> _packSelector = new();
     private ProgressBar? _testProgressBar;
 
-    // ReSharper disable once UnusedAutoPropertyAccessor.Local
-    public IScreen? currentScreen { get; private set; }
+    protected override double deltaTime => Core.engine.deltaTime;
+    protected override IRenderer renderer => Core.engine.renderer;
 
-    public void SwitchScreen(IScreen? screen, float fadeOutTime, float fadeInTime) { }
+    public override void Unload() => _settings.Save(SettingsPath);
 
-    public void Unload() => _settings.Save(SettingsPath);
-
-    public void Load() {
+    public override void Load() {
         IResources resources = Core.engine.resources;
 
         _settings = Settings.Load(SettingsPath);
@@ -62,19 +56,19 @@ public class Game : IGame {
         resources.TryAddResource("audio", new AudioResources());
 
         resources.TryAddResource(FontResource.GlobalId, new FontResource());
-        resources.TryAddResource(BloomEffect.GlobalId, new BloomEffect());
-
-        _drawTextEffect = new DrawTextEffect();
-        _glitchEffect = new GlitchEffect(Core.engine.renderer);
-
-        Core.engine.renderer.formattingEffects.Clear();
-        Core.engine.renderer.formattingEffects.Add("none", null);
-        Core.engine.renderer.formattingEffects.Add("glitch", _glitchEffect);
 
         resources.TryAddResource(ColorsResource.GlobalId, new ColorsResource());
+
+        _drawTextEffect = new DrawTextEffect();
+        resources.TryAddResource(BloomEffect.GlobalId, new BloomEffect());
+        _glitchEffect = new GlitchEffect(renderer);
+
+        renderer.formattingEffects.Clear();
+        renderer.formattingEffects.Add("none", null);
+        renderer.formattingEffects.Add("glitch", _glitchEffect);
     }
 
-    public void Loaded() {
+    public override void Loaded() {
         if(!Core.engine.resources.TryGetResource(FontResource.GlobalId, out FontResource? font) ||
            font?.font is null) return;
         Core.engine.resources.TryGetResource(IconResource.GlobalId, out IconResource? icon);
@@ -86,7 +80,7 @@ public class Game : IGame {
 
         _settings.Apply();
 
-        if(Core.engine.renderer.open) Core.engine.renderer.font = font.font;
+        if(renderer.open) renderer.font = font.font;
         else {
             Core.engine.Start(new RendererSettings {
                 title = "PER Demo Pog",
@@ -100,12 +94,11 @@ public class Game : IGame {
         }
     }
 
-    public void Setup() {
-        IRenderer renderer = Core.engine.renderer;
+    public override void Setup() {
+        base.Setup();
+
         IInputManager input = Core.engine.input;
         IAudio audio = Core.engine.audio;
-
-        renderer.closed += (_, _) => renderer.Close();
 
         _ui.Add(new Panel(renderer) {
             enabled = false,
@@ -266,7 +259,7 @@ public class Game : IGame {
             y--;
         }
 
-        Button applyButton = new(Core.engine.renderer, Core.engine.input, Core.engine.audio) {
+        Button applyButton = new(renderer, Core.engine.input, Core.engine.audio) {
             position = position + new Vector2Int(0, maxY + 2),
             size = new Vector2Int(width, 1),
             text = "apply"
@@ -280,7 +273,7 @@ public class Game : IGame {
     private (Button toggleButton, Button moveUpButton, Button moveDownButton) CreatePackListEntryButtons(int index,
         Vector2Int position, int y, int width, IList<string> availablePacks, ISet<string> loadedPacks,
         string name, bool loaded, bool canToggle, bool canMoveUp, bool canMoveDown) {
-        Button toggleButton = new(Core.engine.renderer, Core.engine.input, Core.engine.audio) {
+        Button toggleButton = new(renderer, Core.engine.input, Core.engine.audio) {
             position = position + new Vector2Int(0, y),
             size = new Vector2Int(width - 2, 1),
             text = name,
@@ -293,7 +286,7 @@ public class Game : IGame {
             GenerateResourcePackSelector(position, width, availablePacks, loadedPacks);
         };
 
-        Button moveUpButton = new(Core.engine.renderer, Core.engine.input, Core.engine.audio) {
+        Button moveUpButton = new(renderer, Core.engine.input, Core.engine.audio) {
             position = position + new Vector2Int(width - 2, y),
             size = new Vector2Int(1, 1),
             text = "▲",
@@ -305,7 +298,7 @@ public class Game : IGame {
             GenerateResourcePackSelector(position, width, availablePacks, loadedPacks);
         };
 
-        Button moveDownButton = new(Core.engine.renderer, Core.engine.input, Core.engine.audio) {
+        Button moveDownButton = new(renderer, Core.engine.input, Core.engine.audio) {
             position = position + new Vector2Int(width - 1, y),
             size = new Vector2Int(1, 1),
             text = "▼",
@@ -320,31 +313,17 @@ public class Game : IGame {
         return (toggleButton, moveUpButton, moveDownButton);
     }
 
-    public void Update() {
-        _fps = (int)Math.Round(1d / Core.engine.deltaTime);
-        _tempAvgFPS += _fps;
-        _tempAvgFPSCounter++;
-        if(_tempAvgFPSCounter >= _avgFPS) {
-            _avgFPS = _tempAvgFPS / _tempAvgFPSCounter;
-            _tempAvgFPS = 0;
-            _tempAvgFPSCounter = 0;
-        }
-
+    public override void Update() {
         if(_drawTextEffect is null || _bloomEffect is null) return;
 
-        IRenderer renderer = Core.engine.renderer;
         IInputManager input = Core.engine.input;
 
         renderer.AddEffect(_drawTextEffect);
         renderer.AddEffect(_bloomEffect);
 
-        renderer.DrawText(new Vector2Int(0, 0),
-            $"{_fps.ToString(CultureInfo.InvariantCulture)}/{_avgFPS.ToString(CultureInfo.InvariantCulture)} FPS",
-            _ => new Formatting(Color.white, Color.transparent));
-
         if(input.KeyPressed(KeyCode.F)) return;
 
-        renderer.DrawText(new Vector2Int(0, 1),
+        renderer.DrawText(new Vector2Int(0, 0),
             @"hello everyone! this is cConfiG  and today i'm gonna show you my gengine !!
 as you can see wit works!!1!
 tthanks for watching  everyone, shit like, subscribe, good luck, bbye!!",
@@ -360,36 +339,36 @@ as you can see wit works!!1!
                 _ => new Formatting(Color.white, Color.transparent)
             });
 
-        renderer.DrawText(new Vector2Int(0, 4),
+        renderer.DrawText(new Vector2Int(0, 3),
             "more test", _ => new Formatting(Color.black, new Color(0f, 1f, 0f, 1f)));
 
-        renderer.DrawText(new Vector2Int(0, 5),
+        renderer.DrawText(new Vector2Int(0, 4),
             "\fieven more\f\0 test", flag => flag switch {
                 'i' => new Formatting(new Color(1f, 0f, 1f, 0.5f), new Color(0f, 1f, 0f, 1f), RenderStyle.Italic),
                 _ => new Formatting(new Color(1f, 0f, 1f, 0.5f), new Color(0f, 1f, 0f, 1f))
             });
 
-        renderer.DrawText(new Vector2Int(10, 4),
+        renderer.DrawText(new Vector2Int(10, 3),
             "per-text effects test", _ => new Formatting(Color.white, Color.transparent,
                 RenderStyle.None, RenderOptions.Default, _glitchEffect));
 
         for(RenderStyle style = RenderStyle.None; style <= RenderStyle.All; style++) {
             RenderStyle curStyle = style;
-            renderer.DrawText(new Vector2Int(0, 6 + (int)style),
+            renderer.DrawText(new Vector2Int(0, 5 + (int)style),
                 "styles test", _ => new Formatting(Color.white, Color.transparent, curStyle));
         }
 
-        renderer.DrawText(new Vector2Int(39, 6),
+        renderer.DrawText(new Vector2Int(39, 5),
             "left test even", _ => new Formatting(Color.white, Color.transparent));
-        renderer.DrawText(new Vector2Int(39, 7),
+        renderer.DrawText(new Vector2Int(39, 6),
             "left test odd", _ => new Formatting(Color.white, Color.transparent));
-        renderer.DrawText(new Vector2Int(39, 8),
+        renderer.DrawText(new Vector2Int(39, 7),
             "middle test even", _ => new Formatting(Color.white, Color.transparent), HorizontalAlignment.Middle);
-        renderer.DrawText(new Vector2Int(39, 9),
+        renderer.DrawText(new Vector2Int(39, 8),
             "middle test odd", _ => new Formatting(Color.white, Color.transparent), HorizontalAlignment.Middle);
-        renderer.DrawText(new Vector2Int(39, 10),
+        renderer.DrawText(new Vector2Int(39, 9),
             "-right test even", _ => new Formatting(Color.white, Color.transparent), HorizontalAlignment.Right);
-        renderer.DrawText(new Vector2Int(39, 11),
+        renderer.DrawText(new Vector2Int(39, 10),
             "-right test odd", _ => new Formatting(Color.white, Color.transparent), HorizontalAlignment.Right);
 
         if(_testProgressBar is not null &&
@@ -399,17 +378,16 @@ as you can see wit works!!1!
         }
 
         DrawUi();
+
+        base.Update();
     }
 
     private void DrawUi() {
         foreach(Element element in _ui) element.Update(Core.engine.clock);
+        // ReSharper disable once ForCanBeConvertedToForeach
         for(int i = 0; i < _packSelector.Count; i++) {
             Element element = _packSelector[i];
             element.Update(Core.engine.clock);
         }
     }
-
-    public void Tick() { }
-
-    public void Finish() { }
 }
