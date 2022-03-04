@@ -18,6 +18,10 @@ public class FadeEffect : IEffect {
     private float _inTime;
     private Action? _callback;
     private readonly Stopwatch _stopwatch = new();
+    private readonly Dictionary<Vector2Int, float> _speeds = new();
+
+    private const float MinSpeed = 3f;
+    private const float MaxSpeed = 5f;
 
     public void Start(float outTime, float inTime, Action middleCallback) {
         _outTime = outTime;
@@ -25,11 +29,13 @@ public class FadeEffect : IEffect {
         _callback = middleCallback;
         _state = State.Out;
         _t = 0f;
+        _speeds.Clear();
         _stopwatch.Reset();
     }
 
-    public (Vector2, RenderCharacter) ApplyModifiers(Vector2 position, RenderCharacter character) {
-        float t = _t;
+    public (Vector2, RenderCharacter) ApplyModifiers(Vector2Int at, Vector2 position, RenderCharacter character) {
+        if(!_speeds.ContainsKey(at)) _speeds.Add(at, Random.Shared.NextSingle(MinSpeed, MaxSpeed));
+        float t = _t * _speeds[at];
         if(_state == State.Out) t = 1f - t;
         character = new RenderCharacter(character.character,
             new Color(character.background.r, character.background.g, character.background.b,
@@ -46,6 +52,7 @@ public class FadeEffect : IEffect {
                 case State.Out:
                     _callback?.Invoke();
                     _state = State.In;
+                    _speeds.Clear();
                     _stopwatch.Reset();
                     break;
                 case State.In:

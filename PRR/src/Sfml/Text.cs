@@ -50,9 +50,9 @@ public class Text : IDisposable {
         uint index = 0;
         foreach((Vector2Int pos, RenderCharacter character) in text) {
             (Vector2 position, RenderCharacter character) mod = (new Vector2(pos.x, pos.y), character);
-            if(effects.TryGetValue(pos, out IEffect? effect)) IEffect.ApplyModifiers(effect, ref mod);
+            if(effects.TryGetValue(pos, out IEffect? effect)) IEffect.ApplyModifiers(effect, pos, ref mod);
             foreach(IEffect fullscreenEffect in fullscreenEffects)
-                IEffect.ApplyModifiers(fullscreenEffect, ref mod);
+                IEffect.ApplyModifiers(fullscreenEffect, pos, ref mod);
 
             Vector2f position =
                 new(mod.position.x * _charWidth + offset.X, mod.position.y * _charHeight + offset.Y);

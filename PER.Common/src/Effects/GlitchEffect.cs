@@ -14,7 +14,7 @@ public class GlitchEffect : IEffect {
 
     public GlitchEffect(IRenderer renderer) => _renderer = renderer;
 
-    public (Vector2, RenderCharacter) ApplyModifiers(Vector2 position, RenderCharacter character) {
+    public (Vector2, RenderCharacter) ApplyModifiers(Vector2Int at, Vector2 position, RenderCharacter character) {
         position = new Vector2(position.x + RandomFloat() * 0.1f, position.y);
         string mappings = _renderer.font?.mappings ?? "";
         character = new RenderCharacter(
