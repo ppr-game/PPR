@@ -42,8 +42,7 @@ public class Slider : Element {
 
     public bool active { get; set; } = true;
 
-    public Color inactiveColor { get; set; } = Color.black;
-    public Color inactiveToggledColor { get; set; } = new(0.1f, 0.1f, 0.1f, 1f);
+    public Color inactiveColor { get; set; } = new(0.1f, 0.1f, 0.1f, 1f);
     public Color idleColor { get; set; } = Color.black;
     public Color hoverColor { get; set; } = Color.white;
     public Color clickColor { get; set; } = new(0.4f, 0.4f, 0.4f, 1f);
@@ -89,7 +88,7 @@ public class Slider : Element {
 
         switch(to) {
             case State.Inactive:
-                StartAnimation(clock, inactiveColor, inactiveToggledColor, instant);
+                StartAnimation(clock, idleColor, inactiveColor, instant);
                 break;
             case State.Idle:
                 StartAnimation(clock, idleColor, hoverColor, instant);

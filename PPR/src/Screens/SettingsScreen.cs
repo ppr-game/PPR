@@ -5,6 +5,7 @@ using PER.Abstractions.Input;
 using PER.Abstractions.Renderer;
 using PER.Abstractions.Resources;
 using PER.Abstractions.UI;
+using PER.Util;
 
 using PRR.UI;
 using PRR.UI.Resources;
@@ -40,9 +41,18 @@ public class SettingsScreen : ScreenResourceBase {
         { "uppercaseNotes", typeof(LayoutResourceButton) },
         { "header.advanced", typeof(LayoutResourceText) },
         { "showFps", typeof(LayoutResourceButton) },
-        { "back", typeof(LayoutResourceButton) },
-        { "apply", typeof(LayoutResourceButton) }
+        { "header.packs", typeof(LayoutResourceText) },
+        { "pack.description", typeof(LayoutResourceText) },
+        { "template_pack.toggle", typeof(LayoutResourceButton) },
+        { "template_pack.up", typeof(LayoutResourceButton) },
+        { "template_pack.down", typeof(LayoutResourceButton) },
+        { "back", typeof(LayoutResourceButton) }
     };
+
+    private bool _reload;
+    private readonly List<Button> _packSelector = new();
+    private Bounds _packsBounds;
+    private int _packsScrollOffset;
 
     private readonly Settings _settings;
 
@@ -56,13 +66,8 @@ public class SettingsScreen : ScreenResourceBase {
         LoadAdvanced();
 
         if(elements["back"] is Button back) back.onClick += (_, _) => {
+            if(_reload) Core.engine.Reload();
             if(Core.engine.resources.TryGetResource(MainMenuScreen.GlobalId, out MainMenuScreen? screen))
-                Core.engine.game.SwitchScreen(screen);
-        };
-
-        if(elements["apply"] is Button apply) apply.onClick += (_, _) => {
-            Core.engine.Reload();
-            if(Core.engine.resources.TryGetResource(GlobalId, out SettingsScreen? screen))
                 Core.engine.game.SwitchScreen(screen);
         };
 
@@ -106,7 +111,7 @@ public class SettingsScreen : ScreenResourceBase {
         if(elements["fullscreen"] is Button fullscreen) fullscreen.onClick += (_, _) => {
             _settings.fullscreen = !_settings.fullscreen;
             fullscreen.toggled = _settings.fullscreen;
-            if(elements["apply"] is Button apply) apply.active = true;
+            _reload = true;
         };
 
         if(elements["fpsLimit"] is Slider fpsLimit)
@@ -144,13 +149,171 @@ public class SettingsScreen : ScreenResourceBase {
         if(elements["uppercaseNotes"] is Button uppercaseNotes) uppercaseNotes.toggled = _settings.uppercaseNotes;
         if(elements["showFps"] is Button showFps) showFps.toggled = _settings.showFps;
 
-        if(elements["apply"] is Button apply) apply.active = false;
+        if(elements["pack.description"] is Text text) text.text = "";
+        OpenPacks();
+
+        _reload = false;
+        Core.engine.input.scrolled += Scrolled;
     }
 
-    public override void Close() { }
+    private void OpenPacks() {
+        if(elements["template_pack.toggle"] is not Button toggleTemplate ||
+           elements["template_pack.up"] is not Button upTemplate ||
+           elements["template_pack.down"] is not Button downTemplate) return;
+        toggleTemplate.enabled = false;
+        upTemplate.enabled = false;
+        downTemplate.enabled = false;
+
+        Vector2Int minBound = new(
+            Math.Min(Math.Min(toggleTemplate.bounds.min.x, upTemplate.bounds.min.x), downTemplate.bounds.min.x),
+            Math.Min(Math.Min(toggleTemplate.bounds.min.y, upTemplate.bounds.min.y), downTemplate.bounds.min.y));
+        int maxXBound = Math.Max(Math.Max(toggleTemplate.bounds.max.x, upTemplate.bounds.max.x),
+            downTemplate.bounds.max.x);
+        _packsBounds = new Bounds(minBound, new Vector2Int(maxXBound, minBound.y + 29));
+
+        GenerateResourcePackSelector(toggleTemplate, upTemplate, downTemplate,
+            Core.engine.resources.GetUnloadedAvailablePacks(),
+            Core.engine.resources.loadedPacks);
+    }
+
+    private void GenerateResourcePackSelector(Button toggleTemplate, Button upTemplate, Button downTemplate,
+        IEnumerable<ResourcePackData> unloadedPacks, IEnumerable<ResourcePackData> loadedPacks) {
+        List<ResourcePackData> availablePacks = new();
+        availablePacks.AddRange(loadedPacks);
+        availablePacks.AddRange(unloadedPacks.Reverse());
+        GenerateResourcePackSelector(toggleTemplate, upTemplate, downTemplate, availablePacks, loadedPacks.ToHashSet());
+    }
+
+    private void GenerateResourcePackSelector(Button toggleTemplate, Button upTemplate, Button downTemplate,
+        IList<ResourcePackData> availablePacks, ISet<ResourcePackData> loadedPacks) {
+        _packSelector.Clear();
+
+        int maxY = availablePacks.Count - 1;
+        for(int i = 0; i < availablePacks.Count; i++) {
+            int y = maxY - i;
+
+            ResourcePackData current = availablePacks[i];
+            string name = current.name;
+            bool loaded = loadedPacks.Contains(current);
+            bool canUnload = loadedPacks.Count > 1 && name != Core.engine.resources.defaultPackName;
+
+            bool canToggle = canUnload || !loaded;
+            bool canMoveUp = y > 0 && name != Core.engine.resources.defaultPackName;
+            bool canMoveDown = y < maxY && availablePacks[i - 1].name != Core.engine.resources.defaultPackName;
+
+            (Button toggleButton, Button moveUpButton, Button moveDownButton) =
+                CreatePackListEntryButtons(i, toggleTemplate, upTemplate, downTemplate, y, availablePacks, loadedPacks,
+                    current, loaded, canToggle, canMoveUp, canMoveDown);
+
+            _packSelector.Add(toggleButton);
+            _packSelector.Add(moveUpButton);
+            _packSelector.Add(moveDownButton);
+        }
+    }
+
+    private (Button toggleButton, Button moveUpButton, Button moveDownButton) CreatePackListEntryButtons(int index,
+        Button toggleTemplate, Button upTemplate, Button downTemplate, int y, IList<ResourcePackData> availablePacks,
+        ISet<ResourcePackData> loadedPacks, ResourcePackData pack, bool loaded, bool canToggle,
+        bool canMoveUp, bool canMoveDown) {
+        int height = Math.Max(Math.Max(toggleTemplate.size.y, upTemplate.size.y), downTemplate.size.y);
+
+        Button toggleButton = new(renderer, Core.engine.input, Core.engine.audio) {
+            position = toggleTemplate.position + new Vector2Int(0, y * height + _packsScrollOffset),
+            size = toggleTemplate.size,
+            text = pack.name.Length > toggleTemplate.size.x ? pack.name[..toggleTemplate.size.x] : pack.name,
+            style = toggleTemplate.style,
+            inactiveColor = toggleTemplate.inactiveColor,
+            idleColor = toggleTemplate.idleColor,
+            hoverColor = toggleTemplate.hoverColor,
+            clickColor = toggleTemplate.clickColor,
+            toggled = loaded
+        };
+        toggleButton.onClick += (_, _) => {
+            if(!canToggle) return;
+            if(loaded) loadedPacks.Remove(pack);
+            else loadedPacks.Add(pack);
+            UpdatePacks();
+        };
+        toggleButton.onHover += (_, _) => {
+            if(elements["pack.description"] is Text text) text.text = pack.meta.description;
+        };
+
+        Button moveUpButton = new(renderer, Core.engine.input, Core.engine.audio) {
+            position = upTemplate.position + new Vector2Int(0, y * height + _packsScrollOffset),
+            size = upTemplate.size,
+            text = upTemplate.text,
+            style = upTemplate.style,
+            inactiveColor = upTemplate.inactiveColor,
+            idleColor = upTemplate.idleColor,
+            hoverColor = upTemplate.hoverColor,
+            clickColor = upTemplate.clickColor,
+            active = canMoveUp
+        };
+        moveUpButton.onClick += (_, _) => {
+            availablePacks.RemoveAt(index);
+            availablePacks.Insert(index + 1, pack);
+            UpdatePacks();
+        };
+
+        Button moveDownButton = new(renderer, Core.engine.input, Core.engine.audio) {
+            position = downTemplate.position + new Vector2Int(0, y * height + _packsScrollOffset),
+            size = downTemplate.size,
+            text = downTemplate.text,
+            style = downTemplate.style,
+            inactiveColor = downTemplate.inactiveColor,
+            idleColor = downTemplate.idleColor,
+            hoverColor = downTemplate.hoverColor,
+            clickColor = downTemplate.clickColor,
+            active = canMoveDown
+        };
+        moveDownButton.onClick += (_, _) => {
+            availablePacks.RemoveAt(index);
+            availablePacks.Insert(index - 1, pack);
+            UpdatePacks();
+        };
+
+        return (toggleButton, moveUpButton, moveDownButton);
+
+        void UpdatePacks() {
+            _settings.packs = availablePacks.Where(loadedPacks.Contains).Select(packData => packData.name).ToArray();
+            _reload = true;
+            GenerateResourcePackSelector(toggleTemplate, upTemplate, downTemplate, availablePacks, loadedPacks);
+        }
+    }
+
+    public override void Close() {
+        _reload = false;
+        Core.engine.input.scrolled -= Scrolled;
+    }
+
+    // ReSharper disable once CognitiveComplexity
+    private void Scrolled(object? o, IInputManager.ScrolledEventArgs args) {
+        if(!Core.engine.input.mousePosition.InBounds(_packsBounds)) return;
+
+        int lowestY = int.MaxValue;
+        int highestY = int.MinValue;
+        foreach(Button button in _packSelector) {
+            if(button.position.y < lowestY) lowestY = button.position.y;
+            if(button.position.y > highestY) highestY = button.position.y;
+        }
+
+        int delta = (int)args.delta;
+
+        if(delta < 0 && highestY + delta < _packsBounds.max.y ||
+           delta > 0 && lowestY + delta > _packsBounds.min.y) return;
+
+        _packsScrollOffset += delta;
+        foreach(Button button in _packSelector) button.position += new Vector2Int(0, delta);
+    }
 
     public override void Update() {
         foreach((string _, Element element) in elements) element.Update(Core.engine.clock);
+        // ReSharper disable once ForCanBeConvertedToForeach
+        for(int i = 0; i < _packSelector.Count; i++) {
+            Button button = _packSelector[i];
+            if(button.position.y < _packsBounds.min.y || button.position.y > _packsBounds.max.y) continue;
+            _packSelector[i].Update(Core.engine.clock);
+        }
     }
 
     public override void Tick() { }

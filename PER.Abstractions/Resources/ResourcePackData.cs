@@ -1,6 +1,8 @@
-﻿namespace PER.Abstractions.Resources;
+﻿using System;
 
-public struct ResourcePackData {
+namespace PER.Abstractions.Resources;
+
+public readonly struct ResourcePackData : IEquatable<ResourcePackData> {
     public string name { get; }
     public string fullPath { get; }
     public ResourcePackMeta meta { get; }
@@ -10,4 +12,10 @@ public struct ResourcePackData {
         this.fullPath = fullPath;
         this.meta = meta;
     }
+
+    public bool Equals(ResourcePackData other) => fullPath == other.fullPath;
+    public override bool Equals(object? obj) => obj is ResourcePackData other && Equals(other);
+    public override int GetHashCode() => fullPath.GetHashCode();
+    public static bool operator ==(ResourcePackData left, ResourcePackData right) => left.Equals(right);
+    public static bool operator !=(ResourcePackData left, ResourcePackData right) => !left.Equals(right);
 }

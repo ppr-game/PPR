@@ -118,7 +118,7 @@ public class Renderer : RendererBase, IDisposable {
         _mainRenderTexture?.Display();
         _additionalRenderTexture?.Display();
 
-        RunPipelines();
+        RunPipelines(background);
 
         window.Display();
 
@@ -126,7 +126,7 @@ public class Renderer : RendererBase, IDisposable {
         fullscreenEffects.Clear();
     }
 
-    private void RunPipelines() {
+    private void RunPipelines(SFML.Graphics.Color background) {
         // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
         foreach(IEffect effect in fullscreenEffects) {
             if(effect.pipeline is null) continue;
@@ -135,12 +135,12 @@ public class Renderer : RendererBase, IDisposable {
             // ignore because can't be null when effect.pipeline is not null
             for(int i = 0; i < cachedEffect.pipeline!.Length; i++) {
                 CachedPipelineStep step = cachedEffect.pipeline[i];
-                RunPipelineStep(step, i);
+                RunPipelineStep(step, i, background);
             }
         }
     }
 
-    private void RunPipelineStep(CachedPipelineStep step, int index) {
+    private void RunPipelineStep(CachedPipelineStep step, int index, SFML.Graphics.Color background) {
         if(window is null || currentRenderTexture is null) return;
 
         step.shader?.SetUniform("step", index);
@@ -168,7 +168,7 @@ public class Renderer : RendererBase, IDisposable {
                 _swapTextures = !_swapTextures;
                 break;
             case PipelineStep.Type.ClearBuffer:
-                currentRenderTexture?.Clear();
+                currentRenderTexture?.Clear(background);
                 break;
         }
     }

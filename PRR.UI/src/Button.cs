@@ -29,14 +29,14 @@ public class Button : Element {
     public bool active { get; set; } = true;
     public bool toggled { get; set; }
 
-    public Color inactiveColor { get; set; } = Color.black;
-    public Color inactiveToggledColor { get; set; } = new(0.1f, 0.1f, 0.1f, 1f);
+    public Color inactiveColor { get; set; } = new(0.1f, 0.1f, 0.1f, 1f);
     public Color idleColor { get; set; } = Color.black;
     public Color hoverColor { get; set; } = Color.white;
     public Color clickColor { get; set; } = new(0.4f, 0.4f, 0.4f, 1f);
 
     public IPlayable? clickSound { get; set; }
     public event EventHandler? onClick;
+    public event EventHandler? onHover;
 
     public State currentState { get; private set; } = State.None;
 
@@ -74,8 +74,8 @@ public class Button : Element {
 
         switch(to) {
             case State.Inactive:
-                StartAnimation(clock, toggled ? inactiveToggledColor : inactiveColor,
-                    toggled ? inactiveColor : inactiveToggledColor, instant);
+                StartAnimation(clock, toggled ? inactiveColor : idleColor,
+                    toggled ? idleColor : inactiveColor, instant);
                 break;
             case State.Idle:
                 if(from == State.Hotkey) Click();
@@ -86,6 +86,7 @@ public class Button : Element {
                 break;
             case State.Hovered:
                 if(from is State.Clicked or State.Hotkey) Click();
+                else onHover?.Invoke(this, EventArgs.Empty);
                 StartAnimation(clock, hoverColor, idleColor, instant);
                 break;
             case State.Clicked:

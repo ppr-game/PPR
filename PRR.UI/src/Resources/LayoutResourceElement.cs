@@ -27,5 +27,6 @@ public abstract class LayoutResourceElement {
     protected static bool TryGetColor(Dictionary<string, Color> colors, string type, string layoutName, string id,
         string colorName, out Color color) =>
         colors.TryGetValue($"{type}_{layoutName}.{id}_{colorName}", out color) ||
-        colors.TryGetValue($"{type}_@{id}_{colorName}", out color);
+        colors.TryGetValue($"{type}_@{id}_{colorName}", out color) ||
+        colors.TryGetValue($"{type}_{colorName}", out color);
 }

@@ -7,9 +7,9 @@
         "position": { "x": 39, "y": 8 },
         "align": "middle",
         "formatting": {
-            "r": { "foregroundColor": "text_@title.red_fg" },
-            "g": { "foregroundColor": "text_@title.green_fg" },
-            "b": { "foregroundColor": "text_@title.blue_fg" }
+            "r": { "foregroundColor": "line_2_fg_color" },
+            "g": { "foregroundColor": "line_3_fg_color" },
+            "b": { "foregroundColor": "line_4_fg_color" }
         }
     },
     "play": {

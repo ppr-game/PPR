@@ -124,8 +124,6 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
             if(toggled.HasValue) element.toggled = toggled.Value;
             if(TryGetColor(colors, "button", layoutName, id, "inactive", out Color color))
                 element.inactiveColor = color;
-            if(TryGetColor(colors, "button", layoutName, id, "inactive_toggled", out color))
-                element.inactiveToggledColor = color;
             if(TryGetColor(colors, "button", layoutName, id, "idle", out color))
                 element.idleColor = color;
             if(TryGetColor(colors, "button", layoutName, id, "hover", out color))
@@ -168,8 +166,6 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
             if(active.HasValue) element.active = active.Value;
             if(TryGetColor(colors, "slider", layoutName, id, "inactive", out Color color))
                 element.inactiveColor = color;
-            if(TryGetColor(colors, "slider", layoutName, id, "inactive_toggled", out color))
-                element.inactiveToggledColor = color;
             if(TryGetColor(colors, "slider", layoutName, id, "idle", out color))
                 element.idleColor = color;
             if(TryGetColor(colors, "slider", layoutName, id, "hover", out color))

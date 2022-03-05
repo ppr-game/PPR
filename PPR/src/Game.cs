@@ -5,6 +5,7 @@ using PER.Abstractions.Resources;
 using PER.Common;
 using PER.Common.Effects;
 using PER.Common.Resources;
+using PER.Util;
 
 using PPR.Resources;
 using PPR.Screens;
@@ -62,6 +63,10 @@ public class Game : GameBase {
         if(!Core.engine.resources.TryGetResource(FontResource.GlobalId, out FontResource? font) ||
            font?.font is null) return;
         Core.engine.resources.TryGetResource(IconResource.GlobalId, out IconResource? icon);
+
+        Core.engine.resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors);
+        if(colors is null || !colors.colors.TryGetValue("background", out Color backgroundColor)) return;
+        renderer.background = backgroundColor;
 
         Core.engine.resources.TryGetResource(BloomEffect.GlobalId, out _bloomEffect);
 
