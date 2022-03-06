@@ -97,7 +97,7 @@ public class Game : GameBase {
     public override void Setup() {
         base.Setup();
 
-        IInputManager input = Core.engine.input;
+        IInput input = Core.engine.input;
         IAudio audio = Core.engine.audio;
 
         _ui.Add(new Panel(renderer) {
@@ -316,7 +316,7 @@ public class Game : GameBase {
     public override void Update() {
         if(_drawTextEffect is null || _bloomEffect is null) return;
 
-        IInputManager input = Core.engine.input;
+        IInput input = Core.engine.input;
 
         renderer.AddEffect(_drawTextEffect);
         renderer.AddEffect(_bloomEffect);

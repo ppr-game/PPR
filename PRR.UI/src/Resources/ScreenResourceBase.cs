@@ -67,7 +67,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
             this.align = align;
         }
 
-        public override Element GetElement(IResources resources, IRenderer renderer, IInputManager input, IAudio audio,
+        public override Element GetElement(IResources resources, IRenderer renderer, IInput input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
             Text element = new(renderer) {
                 position = position,
@@ -111,7 +111,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
             this.toggled = toggled;
         }
 
-        public override Element GetElement(IResources resources, IRenderer renderer, IInputManager input, IAudio audio,
+        public override Element GetElement(IResources resources, IRenderer renderer, IInput input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
             Button element = new(renderer, input, audio) {
                 position = position,
@@ -152,7 +152,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         }
 
         // ReSharper disable once CognitiveComplexity
-        public override Element GetElement(IResources resources, IRenderer renderer, IInputManager input, IAudio audio,
+        public override Element GetElement(IResources resources, IRenderer renderer, IInput input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
             Slider element = new(renderer, input, audio) {
                 position = position,
@@ -177,7 +177,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
     }
 
     protected abstract IRenderer renderer { get; }
-    protected abstract IInputManager input { get; }
+    protected abstract IInput input { get; }
     protected abstract IAudio audio { get; }
 
     protected abstract string layoutName { get; }

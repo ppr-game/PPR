@@ -16,7 +16,7 @@ public class SettingsScreen : ScreenResourceBase {
     public const string GlobalId = "leyouts/setings";
 
     protected override IRenderer renderer => Core.engine.renderer;
-    protected override IInputManager input => Core.engine.input;
+    protected override IInput input => Core.engine.input;
     protected override IAudio audio => Core.engine.audio;
 
     protected override string layoutName => "settings";
@@ -287,7 +287,7 @@ public class SettingsScreen : ScreenResourceBase {
     }
 
     // ReSharper disable once CognitiveComplexity
-    private void Scrolled(object? o, IInputManager.ScrolledEventArgs args) {
+    private void Scrolled(object? o, IInput.ScrolledEventArgs args) {
         if(!Core.engine.input.mousePosition.InBounds(_packsBounds)) return;
 
         int lowestY = int.MaxValue;

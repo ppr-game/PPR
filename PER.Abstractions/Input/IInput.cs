@@ -4,7 +4,7 @@ using PER.Util;
 
 namespace PER.Abstractions.Input;
 
-public interface IInputManager {
+public interface IInput {
     public sealed class TextEnteredEventArgs : EventArgs {
         public string text { get; }
 
@@ -26,7 +26,7 @@ public interface IInputManager {
     public Vector2 previousNormalizedMousePosition { get; }
 
     public event EventHandler<TextEnteredEventArgs>? textEntered;
-    public event EventHandler<IInputManager.ScrolledEventArgs>? scrolled;
+    public event EventHandler<IInput.ScrolledEventArgs>? scrolled;
 
     public void Reset();
     public void Update();

@@ -21,7 +21,7 @@ public abstract class LayoutResourceElement {
         this.size = size;
     }
 
-    public abstract Element GetElement(IResources resources, IRenderer renderer, IInputManager input, IAudio audio,
+    public abstract Element GetElement(IResources resources, IRenderer renderer, IInput input, IAudio audio,
         Dictionary<string, Color> colors, string layoutName, string id);
 
     protected static bool TryGetColor(Dictionary<string, Color> colors, string type, string layoutName, string id,

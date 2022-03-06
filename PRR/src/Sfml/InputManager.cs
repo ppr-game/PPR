@@ -6,7 +6,7 @@ using PER.Util;
 
 namespace PRR.Sfml;
 
-public class InputManager : IInputManager {
+public class InputManager : IInput {
     public Vector2Int mousePosition { get; private set; } = new(-1, -1);
     public Vector2 accurateMousePosition { get; private set; } = new(-1f, -1f);
     public Vector2 normalizedMousePosition { get; private set; } = new(-1f, -1f);
@@ -15,8 +15,8 @@ public class InputManager : IInputManager {
     public Vector2 previousAccurateMousePosition { get; private set; } = new(-1, -1);
     public Vector2 previousNormalizedMousePosition { get; private set; } = new(-1, -1);
 
-    public event EventHandler<IInputManager.TextEnteredEventArgs>? textEntered;
-    public event EventHandler<IInputManager.ScrolledEventArgs>? scrolled;
+    public event EventHandler<IInput.TextEnteredEventArgs>? textEntered;
+    public event EventHandler<IInput.ScrolledEventArgs>? scrolled;
 
     private readonly HashSet<KeyCode> _pressedKeys = new();
     private readonly HashSet<MouseButton> _pressedMouseButtons = new();
@@ -70,7 +70,7 @@ public class InputManager : IInputManager {
         else _pressedKeys.Remove(key);
     }
 
-    private void EnterText(string text) => textEntered?.Invoke(this, new IInputManager.TextEnteredEventArgs(text));
+    private void EnterText(string text) => textEntered?.Invoke(this, new IInput.TextEnteredEventArgs(text));
 
     private void UpdateMouseButtonPressed(MouseButton button, bool pressed) {
         if(pressed) _pressedMouseButtons.Add(button);
@@ -105,5 +105,5 @@ public class InputManager : IInputManager {
                 pixelMousePosition.y / ((_renderer.text?.imageHeight ?? 0) - 1));
     }
 
-    private void ScrollMouse(float delta) => scrolled?.Invoke(this, new IInputManager.ScrolledEventArgs(delta));
+    private void ScrollMouse(float delta) => scrolled?.Invoke(this, new IInput.ScrolledEventArgs(delta));
 }

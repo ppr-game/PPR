@@ -14,7 +14,7 @@ public class MainMenuScreen : ScreenResourceBase {
     public const string GlobalId = "layouts/mainMenu";
 
     protected override IRenderer renderer => Core.engine.renderer;
-    protected override IInputManager input => Core.engine.input;
+    protected override IInput input => Core.engine.input;
     protected override IAudio audio => Core.engine.audio;
 
     protected override string layoutName => "mainMenu";

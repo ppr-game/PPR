@@ -10,7 +10,7 @@ public class Slider : Element {
     public enum State { None, Inactive, Idle, Hovered, Clicked }
     public const string ValueChangedSoundId = "slider";
 
-    public IInputManager input { get; set; }
+    public IInput input { get; set; }
     public IAudio? audio { get; set; }
 
     public override Vector2Int size {
@@ -67,7 +67,7 @@ public class Slider : Element {
     private Color _animForegroundColorStart;
     private Color _animForegroundColorEnd;
 
-    public Slider(IRenderer renderer, IInputManager input, IAudio? audio = null) : base(renderer) {
+    public Slider(IRenderer renderer, IInput input, IAudio? audio = null) : base(renderer) {
         this.input = input;
         this.audio = audio;
     }

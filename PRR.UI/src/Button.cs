@@ -10,7 +10,7 @@ public class Button : Element {
     public enum State { None, Inactive, Idle, FakeHovered, Hovered, Clicked, Hotkey }
     public const string ClickSoundId = "buttonClick";
 
-    public IInputManager input { get; set; }
+    public IInput input { get; set; }
     public IAudio? audio { get; set; }
 
     public override Vector2Int size {
@@ -52,7 +52,7 @@ public class Button : Element {
     private Color _animForegroundColorStart;
     private Color _animForegroundColorEnd;
 
-    public Button(IRenderer renderer, IInputManager input, IAudio? audio = null) : base(renderer) {
+    public Button(IRenderer renderer, IInput input, IAudio? audio = null) : base(renderer) {
         this.input = input;
         this.audio = audio;
     }

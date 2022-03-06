@@ -26,14 +26,14 @@ public class Engine {
     public IResources resources { get; }
     public IGame game { get; }
     public IRenderer renderer { get; }
-    public IInputManager input { get; }
+    public IInput input { get; }
     public IAudio audio { get; }
 
     private readonly Stopwatch _clock = new();
     private TimeSpan _prevTime;
     private double _tickAccumulator;
 
-    public Engine(IResources resources, IGame game, IRenderer renderer, IInputManager input, IAudio audio) {
+    public Engine(IResources resources, IGame game, IRenderer renderer, IInput input, IAudio audio) {
         this.resources = resources;
         this.game = game;
         this.renderer = renderer;
