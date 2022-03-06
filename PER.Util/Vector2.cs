@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace PER.Util;
 
+[JsonConverter(typeof(ArrayJsonConverter))]
 public readonly struct Vector2 : IEquatable<Vector2> {
     public float x { get; }
     public float y { get; }
@@ -35,4 +37,16 @@ public readonly struct Vector2 : IEquatable<Vector2> {
 
     public static bool operator ==(Vector2 left, Vector2 right) => left.Equals(right);
     public static bool operator !=(Vector2 left, Vector2 right) => !left.Equals(right);
+
+    public class ArrayJsonConverter : JsonConverter<Vector2> {
+        public override Vector2 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+            new(reader.GetSingle(), reader.GetSingle());
+
+        public override void Write(Utf8JsonWriter writer, Vector2 value, JsonSerializerOptions options) {
+            writer.WriteStartArray();
+            writer.WriteNumberValue(value.x);
+            writer.WriteNumberValue(value.y);
+            writer.WriteEndArray();
+        }
+    }
 }
