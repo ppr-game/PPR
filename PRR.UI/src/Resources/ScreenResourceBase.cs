@@ -176,6 +176,22 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         }
     }
 
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    protected class LayoutResourceScrollablePanel : LayoutResourceElement {
+        public LayoutResourceScrollablePanel(bool? enabled, Vector2Int position, Vector2Int size) :
+            base(enabled, position, size) { }
+
+        public override Element GetElement(IResources resources, IRenderer renderer, IInput input, IAudio audio,
+            Dictionary<string, Color> colors, string layoutName, string id) {
+            ScrollablePanel element = new(renderer, input) {
+                position = position,
+                size = size
+            };
+            if(enabled.HasValue) element.enabled = enabled.Value;
+            return element;
+        }
+    }
+
     protected abstract IRenderer renderer { get; }
     protected abstract IInput input { get; }
     protected abstract IAudio audio { get; }

@@ -4,10 +4,10 @@ using PER.Util;
 
 namespace PRR.UI;
 
-public class Panel : Element {
+public class FilledPanel : Element {
     public RenderCharacter character { get; set; }
 
-    public Panel(IRenderer renderer) : base(renderer) { }
+    public FilledPanel(IRenderer renderer) : base(renderer) { }
 
     public override void Update(IReadOnlyStopwatch clock) {
         if(!enabled) return;

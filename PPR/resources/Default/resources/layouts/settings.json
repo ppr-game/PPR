@@ -95,17 +95,21 @@
         "position": { "x": 77, "y": 46 },
         "align": "right"
     },
-    "template_pack.toggle": {
+    "packs": {
         "position": { "x": 48, "y": 15 },
+        "size": { "x": 30, "y": 30 }
+    },
+    "template_pack.toggle": {
+        "position": { "x": 0, "y": 0 },
         "size": { "x": 28, "y": 1 }
     },
     "template_pack.up": {
-        "position": { "x": 76, "y": 15 },
+        "position": { "x": 28, "y": 0 },
         "size": { "x": 1, "y": 1 },
         "text": "▲"
     },
     "template_pack.down": {
-        "position": { "x": 77, "y": 15 },
+        "position": { "x": 29, "y": 0 },
         "size": { "x": 1, "y": 1 },
         "text": "▼"
     },

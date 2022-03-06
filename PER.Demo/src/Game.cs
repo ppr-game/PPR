@@ -100,7 +100,7 @@ public class Game : GameBase {
         IInput input = Core.engine.input;
         IAudio audio = Core.engine.audio;
 
-        _ui.Add(new Panel(renderer) {
+        _ui.Add(new FilledPanel(renderer) {
             enabled = false,
             position = new Vector2Int(30, 30),
             size = new Vector2Int(10, 3),
