@@ -39,8 +39,34 @@ public readonly struct Vector2 : IEquatable<Vector2> {
     public static bool operator !=(Vector2 left, Vector2 right) => !left.Equals(right);
 
     public class ArrayJsonConverter : JsonConverter<Vector2> {
-        public override Vector2 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
-            new(reader.GetSingle(), reader.GetSingle());
+        public override Vector2 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
+            bool isObject = true;
+            if(reader.TokenType != JsonTokenType.Number) isObject = reader.TokenType == JsonTokenType.StartObject;
+            reader.Read();
+            float x = 0;
+            float y = 0;
+            if(isObject) {
+                for(int i = 0; i < 2; i++) {
+                    string? propertyType = reader.GetString();
+                    reader.Read();
+                    switch(propertyType) {
+                        case nameof(Vector2Int.x):
+                            x = reader.GetSingle();
+                            break;
+                        case nameof(Vector2Int.y):
+                            y = reader.GetSingle();
+                            break;
+                    }
+                    reader.Read();
+                }
+            }
+            else {
+                x = reader.GetSingle();
+                reader.Read();
+                y = reader.GetSingle();
+            }
+            return new Vector2(x, y);
+        }
 
         public override void Write(Utf8JsonWriter writer, Vector2 value, JsonSerializerOptions options) {
             writer.WriteStartArray();

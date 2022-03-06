@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace PER.Util;
 
-[JsonConverter(typeof(ArrayJsonConverter))]
+[JsonConverter(typeof(JsonConverter))]
 public readonly struct Vector2Int : IEquatable<Vector2Int> {
     public int x { get; }
     public int y { get; }
@@ -43,9 +43,35 @@ public readonly struct Vector2Int : IEquatable<Vector2Int> {
     public static bool operator ==(Vector2Int left, Vector2Int right) => left.Equals(right);
     public static bool operator !=(Vector2Int left, Vector2Int right) => !left.Equals(right);
 
-    public class ArrayJsonConverter : JsonConverter<Vector2Int> {
-        public override Vector2Int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
-            new(reader.GetInt32(), reader.GetInt32());
+    public class JsonConverter : JsonConverter<Vector2Int> {
+        public override Vector2Int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
+            bool isObject = true;
+            if(reader.TokenType != JsonTokenType.Number) isObject = reader.TokenType == JsonTokenType.StartObject;
+            reader.Read();
+            int x = 0;
+            int y = 0;
+            if(isObject) {
+                for(int i = 0; i < 2; i++) {
+                    string? propertyType = reader.GetString();
+                    reader.Read();
+                    switch(propertyType) {
+                        case nameof(Vector2Int.x):
+                            x = reader.GetInt32();
+                            break;
+                        case nameof(Vector2Int.y):
+                            y = reader.GetInt32();
+                            break;
+                    }
+                    reader.Read();
+                }
+            }
+            else {
+                x = reader.GetInt32();
+                reader.Read();
+                y = reader.GetInt32();
+            }
+            return new Vector2Int(x, y);
+        }
 
         public override void Write(Utf8JsonWriter writer, Vector2Int value, JsonSerializerOptions options) {
             writer.WriteStartArray();
