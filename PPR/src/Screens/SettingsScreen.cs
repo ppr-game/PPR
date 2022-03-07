@@ -13,7 +13,7 @@ using PRR.UI.Resources;
 namespace PPR.Screens;
 
 public class SettingsScreen : ScreenResourceBase {
-    public const string GlobalId = "leyouts/setings";
+    public const string GlobalId = "layouts/settings";
 
     protected override IRenderer renderer => Core.engine.renderer;
     protected override IInput input => Core.engine.input;
