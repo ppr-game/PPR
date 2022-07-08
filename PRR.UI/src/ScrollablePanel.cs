@@ -59,7 +59,7 @@ public class ScrollablePanel : Element {
            delta > 0 && lowestY + delta > bounds.min.y)
             return;
 
-        _scroll += delta;
+        scroll += delta;
     }
 
     public override void Update(IReadOnlyStopwatch clock) {
