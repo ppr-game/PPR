@@ -112,7 +112,7 @@
     "text_game.musicTime_fg": "game_music_time",
     "text_@metadata_fg": "foreground",
     "text_@metadata_bg": "background",
-    "text_@metadata.author.text.ConfiG_fg": "green",
+    "special_ConfiG": "green",
     "text_@score_fg": "foreground",
     "text_@score_bg": "background",
     "text_@score.accComboDiv_fg": "blue",

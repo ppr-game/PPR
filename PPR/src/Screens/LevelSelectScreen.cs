@@ -49,6 +49,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
 
     private Dictionary<Guid, LevelScore[]> _scores = new();
     private Button? _selectedLevelButton;
+    private Color? _metadataAuthorDefaultColor;
 
     public override void Load(string id, IResources resources) {
         base.Load(id, resources);
@@ -165,14 +166,32 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
         }
     }
 
-    private void UpdateMetadataPanel(LevelMetadata metadata) {
+    private void ResetMetadataPanel() => UpdateMetadataPanel(null);
+    private void UpdateMetadataPanel(LevelMetadata? metadata) {
         if(elements["metadata.difficulty"] is not Text difficulty ||
             elements["metadata.author"] is not Text author ||
             elements["metadata.description"] is not Text description) return;
 
-        difficulty.text = metadata.difficulty.ToString();
-        author.text = metadata.author;
-        description.text = metadata.description;
+        difficulty.text = metadata?.difficulty.ToString();
+        author.text = metadata?.author;
+        description.text = metadata?.description;
+
+        if(!author.formatting.TryGetValue('\0', out Formatting oldFormatting) || colors is null)
+            return;
+
+        _metadataAuthorDefaultColor ??= oldFormatting.foregroundColor;
+        Color newColor = _metadataAuthorDefaultColor.Value;
+        if(author.text == "ConfiG" && colors.colors.ContainsKey("special_ConfiG"))
+            newColor = colors.colors["special_ConfiG"];
+        author.formatting['\0'] = new Formatting(newColor, oldFormatting.backgroundColor, oldFormatting.style,
+            oldFormatting.options, oldFormatting.effect);
+    }
+
+    private void ResetScoresList() {
+        if(elements["scores"] is not ScrollablePanel scores)
+            return;
+        foreach(Element element in scores.elements)
+            element.enabled = false;
     }
 
     private void UpdateScoresList(Guid levelGuid, Text scoreTemplate, Text accuracyTemplate,
@@ -280,7 +299,11 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
         scores.elements.Add(divider);
     }
 
-    public override void Close() { }
+    public override void Close() {
+        _selectedLevelButton = null;
+        ResetMetadataPanel();
+        ResetScoresList();
+    }
 
     public override void Update() {
         base.Update();
