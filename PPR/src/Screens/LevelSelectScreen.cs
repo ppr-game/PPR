@@ -250,7 +250,7 @@ public class LevelSelectScreen : ScreenResourceBase {
         Text middleDividerTemplate, Text maxComboTemplate, Text missesTemplate, Text hitsTemplate,
         Text perfectHitsTemplate, Text dividerTemplate) {
         Vector2Int offset = new(scores.position.x, scores.elements.Count > 0 ?
-            scores.elements.Select(element => element.bounds.max.y).Max() + 1 :
+            scores.elements.Select(element => element.bounds.max.y).Max() + 2 :
             scores.position.y);
 
         Text score = Text.Clone(scoreTemplate);
