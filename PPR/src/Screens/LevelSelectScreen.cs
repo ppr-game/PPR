@@ -9,11 +9,10 @@ using PER.Abstractions.UI;
 using PER.Util;
 
 using PRR.UI;
-using PRR.UI.Resources;
 
 namespace PPR.Screens;
 
-public class LevelSelectScreen : ScreenResourceBase {
+public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBase {
     public const string GlobalId = "layouts/levelSelect";
 
     public PlayerMode mode { get; set; }
@@ -284,6 +283,7 @@ public class LevelSelectScreen : ScreenResourceBase {
     public override void Close() { }
 
     public override void Update() {
+        base.Update();
         foreach((string id, Element element) in elements) {
             bool isPlay = id.StartsWith("play_", StringComparison.Ordinal);
             bool isEdit = !isPlay && id.StartsWith("edit_", StringComparison.Ordinal);

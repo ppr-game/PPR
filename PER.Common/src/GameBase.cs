@@ -45,7 +45,8 @@ public abstract class GameBase : IGame {
     public virtual void Setup() => renderer.closed += (_, _) => SwitchScreen(null);
 
     public virtual void Update() {
-        if(_screenFade.fading) renderer.AddEffect(_screenFade);
+        if(_screenFade.fading)
+            renderer.AddEffect(_screenFade);
 
         currentScreen?.Update();
 

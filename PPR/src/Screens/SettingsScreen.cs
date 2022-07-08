@@ -8,11 +8,10 @@ using PER.Abstractions.UI;
 using PER.Util;
 
 using PRR.UI;
-using PRR.UI.Resources;
 
 namespace PPR.Screens;
 
-public class SettingsScreen : ScreenResourceBase {
+public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase {
     public const string GlobalId = "layouts/settings";
 
     protected override IRenderer renderer => Core.engine.renderer;
@@ -259,6 +258,7 @@ public class SettingsScreen : ScreenResourceBase {
     public override void Close() => _reload = false;
 
     public override void Update() {
+        base.Update();
         foreach((string _, Element element) in elements)
             element.Update(Core.engine.clock);
     }

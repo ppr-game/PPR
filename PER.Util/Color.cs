@@ -54,10 +54,10 @@ public readonly struct Color : IEquatable<Color> {
 
     public static Color LerpColors(Color a, Color b, float t) => t <= 0f ? a :
         t >= 1f ? b :
-        new Color(a.r + (b.r - a.r) * t,
-            a.g + (b.g - a.g) * t,
-            a.b + (b.b - a.b) * t,
-            a.a + (b.a - a.a) * t);
+        new Color(MoreMath.LerpUnclamped(a.r, b.r, t),
+            MoreMath.LerpUnclamped(a.g, b.g, t),
+            MoreMath.LerpUnclamped(a.b, b.b, t),
+            MoreMath.LerpUnclamped(a.a, b.a, t));
 
     public static Color operator +(Color left, Color right) =>
         new(left.r + right.r, left.g + right.g, left.b + right.b, left.a + right.a);

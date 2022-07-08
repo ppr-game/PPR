@@ -6,11 +6,10 @@ using PER.Abstractions.UI;
 using PER.Util;
 
 using PRR.UI;
-using PRR.UI.Resources;
 
 namespace PPR.Screens;
 
-public class MainMenuScreen : ScreenResourceBase {
+public class MainMenuScreen : MenuWithCoolBackgroundAnimationScreenResourceBase {
     public const string GlobalId = "layouts/mainMenu";
 
     protected override IRenderer renderer => Core.engine.renderer;
@@ -74,6 +73,7 @@ public class MainMenuScreen : ScreenResourceBase {
     public override void Close() { }
 
     public override void Update() {
+        base.Update();
         foreach((string _, Element element) in elements)
             element.Update(Core.engine.clock);
     }

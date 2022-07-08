@@ -17,6 +17,9 @@ public class FadeEffect : IEffect {
         _ => 0f
     };
 
+    private float _lastT;
+    private bool _callbackThisFrame; // keep screen black for a frame after we called the callback
+
     private State _state;
     private float _outTime;
     private float _inTime;
@@ -37,23 +40,31 @@ public class FadeEffect : IEffect {
     }
 
     public (Vector2, RenderCharacter) ApplyModifiers(Vector2Int at, Vector2 position, RenderCharacter character) {
-        if(!_speeds.ContainsKey(at)) _speeds.Add(at, Random.Shared.NextSingle(MinSpeed, MaxSpeed));
-        float t = this.t * _speeds[at];
-        if(_state == State.Out) t = 1f - t;
+        if(!_speeds.ContainsKey(at))
+            _speeds.Add(at, Random.Shared.NextSingle(MinSpeed, MaxSpeed));
+        float t = _lastT * _speeds[at];
+        if(_callbackThisFrame)
+            t = 0f;
+        else if(_state == State.Out)
+            t = 1f - t;
         character = new RenderCharacter(character.character,
             new Color(character.background.r, character.background.g, character.background.b,
-                Lerp(0f, character.background.a, t)),
+                MoreMath.Lerp(0f, character.background.a, t)),
             new Color(character.foreground.r, character.foreground.g, character.foreground.b,
-                Lerp(0f, character.foreground.a, t)),
+                MoreMath.Lerp(0f, character.foreground.a, t)),
             character.style);
         return (position, character);
     }
 
     public void Update(bool fullscreen) {
-        if(t < 1f) return;
+        if(_callbackThisFrame)
+            _callbackThisFrame = false;
+        _lastT = t;
+        if(_lastT < 1f) return;
         switch(_state) {
             case State.Out:
                 _callback?.Invoke();
+                _callbackThisFrame = true;
                 _state = State.In;
                 _speeds.Clear();
                 _stopwatch.Reset();
@@ -65,6 +76,4 @@ public class FadeEffect : IEffect {
     }
 
     public void Draw(Vector2Int position) { }
-
-    private static float Lerp(float a, float b, float t) => MathF.Min(MathF.Max(a + (b - a) * t, 0f), 1f);
 }

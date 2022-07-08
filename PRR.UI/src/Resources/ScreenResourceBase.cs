@@ -200,10 +200,12 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
     protected abstract IReadOnlyDictionary<string, Type> elementTypes { get; }
 
     protected IReadOnlyDictionary<string, Element> elements { get; private set; } = new Dictionary<string, Element>();
+    protected ColorsResource? colors { get; private set; }
 
     public override void Load(string id, IResources resources) {
         if(!resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors))
             throw new InvalidOperationException("Missing colors resource.");
+        this.colors = colors;
 
         Dictionary<string, LayoutResourceElement> layoutElements = new(elementTypes.Count);
         DeserializeAllJson(resources, Path.Join("layouts", $"{layoutName}.json"), layoutElements,
