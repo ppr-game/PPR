@@ -36,6 +36,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
         { "levels", typeof(LayoutResourceScrollablePanel) },
         { "template_level", typeof(LayoutResourceButton) },
         { "template_error_level", typeof(LayoutResourceButton) },
+        { "metadata.labels", typeof(LayoutResourceText) },
         { "metadata.difficulty", typeof(LayoutResourceText) },
         { "metadata.author", typeof(LayoutResourceText) },
         { "metadata.description", typeof(LayoutResourceText) },
@@ -170,10 +171,12 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
 
     private void ResetMetadataPanel() => UpdateMetadataPanel(null);
     private void UpdateMetadataPanel(LevelMetadata? metadata) {
-        if(elements["metadata.difficulty"] is not Text difficulty ||
+        if(elements["metadata.labels"] is not Text labels ||
+            elements["metadata.difficulty"] is not Text difficulty ||
             elements["metadata.author"] is not Text author ||
             elements["metadata.description"] is not Text description) return;
 
+        labels.enabled = metadata is not null;
         difficulty.text = metadata?.difficulty.ToString();
         author.text = metadata?.author;
         description.text = metadata?.description;
@@ -215,7 +218,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
                 missesTemplate, hitsTemplate, perfectHitsTemplate, dividerTemplate, currentScores, i);
     }
 
-    private static void UpdateScore(ScrollablePanel scores, Text scoreTemplate, Text accuracyTemplate,
+    private void UpdateScore(ScrollablePanel scores, Text scoreTemplate, Text accuracyTemplate,
         Text middleDividerTemplate, Text maxComboTemplate, Text missesTemplate, Text hitsTemplate,
         Text perfectHitsTemplate, Text dividerTemplate, IReadOnlyList<LevelScore> currentScores, int i) {
         LevelScore currentScore = currentScores[i];
@@ -254,6 +257,13 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
             tempVector = new Vector2Int(accuracy.text.Length, 0);
             middleDivider.position += tempVector;
             maxCombo.position += tempVector;
+
+            if(accuracy.formatting.TryGetValue('\0', out Formatting oldFormatting) && colors is not null &&
+                // TODO: move this color selection thing to a different class
+                colors.colors.TryGetValue(currentScore.accuracy >= 100 ? "accuracy_good" :
+                    currentScore.accuracy >= 70 ? "accuracy_ok" : "accuracy_bad", out Color accuracyColor))
+                accuracy.formatting['\0'] = new Formatting(accuracyColor, oldFormatting.backgroundColor,
+                    oldFormatting.style, oldFormatting.options, oldFormatting.effect);
         }
         // ReSharper disable once InvertIf
         if(scores.elements[offset + missesIndex] is Text misses &&
