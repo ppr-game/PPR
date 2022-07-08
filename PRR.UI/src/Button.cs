@@ -27,7 +27,16 @@ public class Button : Element {
     public RenderStyle style { get; set; } = RenderStyle.None;
 
     public bool active { get; set; } = true;
-    public bool toggled { get; set; }
+
+    public bool toggled {
+        get => _toggled;
+        set {
+            if(_toggled == value)
+                return;
+            _toggled = value;
+            _toggledChanged = true;
+        }
+    }
 
     public Color inactiveColor { get; set; } = new(0.1f, 0.1f, 0.1f, 1f);
     public Color idleColor { get; set; } = Color.black;
@@ -51,6 +60,8 @@ public class Button : Element {
     private Color _animBackgroundColorEnd;
     private Color _animForegroundColorStart;
     private Color _animForegroundColorEnd;
+    private bool _toggled;
+    private bool _toggledChanged;
 
     public Button(IRenderer renderer, IInput input, IAudio? audio = null) : base(renderer) {
         this.input = input;
@@ -83,7 +94,9 @@ public class Button : Element {
         currentState = active ? hotkeyPressed ? State.Hotkey :
             mouseWasOver ? mouseOver ? mouseClicked ?
                 State.Clicked : State.Hovered : State.FakeHovered : State.Idle : State.Inactive;
-        if(currentState != prevState) StateChanged(clock, prevState, currentState);
+        if(currentState != prevState || _toggledChanged)
+            StateChanged(clock, prevState, currentState);
+        _toggledChanged = false;
     }
 
     private void StateChanged(IReadOnlyStopwatch clock, State from, State to) {
