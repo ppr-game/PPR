@@ -137,7 +137,7 @@ public abstract class RendererBase : IRenderer {
     }
 
     public virtual void DrawText(Vector2Int position, string text, Func<char, Formatting> formatter,
-        HorizontalAlignment align = HorizontalAlignment.Left) {
+        HorizontalAlignment align = HorizontalAlignment.Left, int maxWidth = 0) {
         if(text.Length == 0) return;
 
         char formattingFlag = '\0';
@@ -146,19 +146,29 @@ public abstract class RendererBase : IRenderer {
         int y = 0;
         for(int i = 0; i <= text.Length; i++) {
             char currentCharacter = i >= text.Length ? '\n' : text[i];
+
+            if(maxWidth > 0 && width >= maxWidth) {
+                DrawCurrent();
+                startIndex = i;
+            }
+
             switch(currentCharacter) {
                 case '\n':
-                    int x = GetAlignOffset(align, width);
-                    DrawTextCharacter(position, text, startIndex, x, y, width, formatter, ref formattingFlag);
-
+                    DrawCurrent();
                     startIndex = i + 1;
-                    width = 0;
-                    y++;
                     break;
                 case '\f': i++; // skip 2 characters
                     break;
                 case not '\r': width++;
                     break;
+            }
+
+            void DrawCurrent() {
+                int x = GetAlignOffset(align, width);
+                DrawTextCharacter(position, text, startIndex, x, y, width, formatter, ref formattingFlag);
+
+                width = 0;
+                y++;
             }
         }
     }

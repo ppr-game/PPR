@@ -93,7 +93,9 @@
     },
     "pack.description": {
         "position": { "x": 77, "y": 46 },
-        "align": "right"
+        "size": { "x": 40, "y": 0 },
+        "align": "right",
+        "wrap": true
     },
     "packs": {
         "position": { "x": 48, "y": 15 },

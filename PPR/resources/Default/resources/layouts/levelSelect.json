@@ -67,8 +67,9 @@
         "size": { "x": 0, "y": 1 }
     },
     "metadata.description": {
-        "position": { "x": 68, "y": 14 },
-        "size": { "x": 0, "y": 1 }
+        "position": { "x": 57, "y": 15 },
+        "size": { "x": 22, "y": 1 },
+        "wrap": true
     },
     "back": {
         "position": { "x": 38, "y": 52 },

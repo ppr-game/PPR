@@ -57,14 +57,16 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         public Dictionary<char, TextFormatting>? formatting { get; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public HorizontalAlignment? align { get; }
+        public bool? wrap { get; }
 
         public LayoutResourceText(bool? enabled, Vector2Int position, Vector2Int size, string? path, string? text,
-            Dictionary<char, TextFormatting>? formatting, HorizontalAlignment? align) :
+            Dictionary<char, TextFormatting>? formatting, HorizontalAlignment? align, bool? wrap) :
             base(enabled, position, size) {
             this.path = path;
             this.text = text;
             this.formatting = formatting;
             this.align = align;
+            this.wrap = wrap;
         }
 
         public override Element GetElement(IResources resources, IRenderer renderer, IInput input, IAudio audio,
@@ -85,6 +87,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
                     element.formatting.Add(flag,
                         textFormatting.GetFormatting(colors, renderer.formattingEffects));
             if(align.HasValue) element.align = align.Value;
+            if(wrap.HasValue) element.wrap = wrap.Value;
 
             Color foregroundColor = Color.white;
             Color backgroundColor = Color.transparent;
