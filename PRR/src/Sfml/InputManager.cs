@@ -41,7 +41,12 @@ public class InputManager : IInput {
         _renderer.window.MouseWheelScrolled += (_, scroll) => ScrollMouse(scroll.Delta);
     }
 
-    public void Update() { }
+    public void Update() {
+        previousMousePosition = mousePosition;
+        previousAccurateMousePosition = accurateMousePosition;
+        previousNormalizedMousePosition = normalizedMousePosition;
+    }
+
     public void Finish() { }
 
     public bool KeyPressed(KeyCode key) => _pressedKeys.Contains(key);
@@ -79,19 +84,11 @@ public class InputManager : IInput {
 
     private void UpdateMousePosition(int mouseX, int mouseY) {
         if(!_renderer.focused) {
-            previousMousePosition = new Vector2Int(-1, -1);
-            previousAccurateMousePosition = new Vector2(-1f, -1f);
-            previousNormalizedMousePosition = new Vector2(-1f, -1f);
-
             mousePosition = new Vector2Int(-1, -1);
             accurateMousePosition = new Vector2(-1f, -1f);
             normalizedMousePosition = new Vector2(-1f, -1f);
             return;
         }
-
-        previousMousePosition = mousePosition;
-        previousAccurateMousePosition = accurateMousePosition;
-        previousNormalizedMousePosition = normalizedMousePosition;
 
         Vector2 pixelMousePosition = new(
             mouseX - _renderer.window?.Size.X * 0.5f + _renderer.text?.imageWidth * 0.5f ?? 0f,

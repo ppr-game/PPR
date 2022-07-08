@@ -79,9 +79,9 @@ public class Engine {
     }
 
     private bool Update() {
+        input.Update();
         renderer.Clear();
         renderer.Update();
-        input.Update();
         game.Update();
         TryTick();
         renderer.Draw();
