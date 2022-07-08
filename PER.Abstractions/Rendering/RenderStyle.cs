@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PER.Abstractions.Renderer;
+namespace PER.Abstractions.Rendering;
 
 [Flags]
 public enum RenderStyle : byte {

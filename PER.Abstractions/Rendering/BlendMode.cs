@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PER.Abstractions.Renderer;
+namespace PER.Abstractions.Rendering;
 
 // *i totally didn't just steal this from sfml*
 public readonly struct BlendMode : IEquatable<BlendMode> {

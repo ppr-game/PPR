@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 
 using PER.Abstractions;
-using PER.Abstractions.Renderer;
+using PER.Abstractions.Rendering;
 using PER.Common.Effects;
 using PER.Util;
 

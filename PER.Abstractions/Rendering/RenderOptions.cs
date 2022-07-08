@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PER.Abstractions.Renderer;
+namespace PER.Abstractions.Rendering;
 
 #pragma warning disable CA1069
 [Flags]

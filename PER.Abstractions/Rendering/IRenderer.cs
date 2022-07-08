@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using PER.Util;
 
-namespace PER.Abstractions.Renderer;
+namespace PER.Abstractions.Rendering;
 
 public interface IRenderer {
     public string title { get; }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
 
-using PER.Abstractions.Renderer;
+using PER.Abstractions.Rendering;
 using PER.Abstractions.Resources;
 using PER.Common;
 using PER.Common.Effects;

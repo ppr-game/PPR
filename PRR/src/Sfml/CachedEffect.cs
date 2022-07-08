@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-using PER.Abstractions.Renderer;
+using PER.Abstractions.Rendering;
 
 using SFML.Graphics;
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using PER.Abstractions.Renderer;
+using PER.Abstractions.Rendering;
 using PER.Util;
 
 using SFML.Graphics;

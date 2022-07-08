@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.IO;
 
-using PER.Abstractions.Renderer;
+using PER.Abstractions.Rendering;
 using PER.Util;
 
 using SixLabors.ImageSharp;

@@ -1,4 +1,4 @@
-﻿namespace PER.Abstractions.Renderer;
+﻿namespace PER.Abstractions.Rendering;
 
 public struct PipelineStep {
     public enum Type { Text, Screen, TemporaryText, TemporaryScreen, SwapBuffer, ClearBuffer }

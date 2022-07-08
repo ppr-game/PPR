@@ -1,6 +1,6 @@
 ﻿using PER.Util;
 
-namespace PER.Abstractions.Renderer;
+namespace PER.Abstractions.Rendering;
 
 public readonly struct Formatting {
     public Color foregroundColor { get; }

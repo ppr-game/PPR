@@ -5,7 +5,7 @@ using PER.Util;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace PER.Abstractions.Renderer;
+namespace PER.Abstractions.Rendering;
 
 public interface IFont {
     public IReadOnlyDictionary<(char, RenderStyle), Vector2[]> characters { get; }

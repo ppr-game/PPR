@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PER.Abstractions.Renderer;
+namespace PER.Abstractions.Rendering;
 
 public readonly struct RendererSettings {
     public string title { get; init; }

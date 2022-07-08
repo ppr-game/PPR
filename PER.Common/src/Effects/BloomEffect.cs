@@ -1,4 +1,4 @@
-﻿using PER.Abstractions.Renderer;
+﻿using PER.Abstractions.Rendering;
 using PER.Abstractions.Resources;
 using PER.Util;
 

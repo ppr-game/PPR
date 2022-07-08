@@ -2,7 +2,7 @@
 
 using PER.Util;
 
-namespace PER.Abstractions.Renderer;
+namespace PER.Abstractions.Rendering;
 
 public interface IEffect {
     public IEnumerable<PipelineStep>? pipeline { get; }

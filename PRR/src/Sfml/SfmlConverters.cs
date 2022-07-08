@@ -9,7 +9,7 @@ using SFML.Window;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-using BlendMode = PER.Abstractions.Renderer.BlendMode;
+using BlendMode = PER.Abstractions.Rendering.BlendMode;
 using Color = PER.Util.Color;
 
 namespace PRR.Sfml;
