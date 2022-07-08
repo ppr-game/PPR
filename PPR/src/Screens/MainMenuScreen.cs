@@ -30,8 +30,23 @@ public class MainMenuScreen : ScreenResourceBase {
         { "discord", typeof(LayoutResourceButton) }
     };
 
+    // shut up
+    // ReSharper disable once CognitiveComplexity
     public override bool Load(string id, IResources resources) {
-        if(!base.Load(id, resources)) return false;
+        if(!base.Load(id, resources))
+            return false;
+
+        if(elements["play"] is Button play) play.onClick += (_, _) => {
+            if(!Core.engine.resources.TryGetResource(LevelSelectScreen.GlobalId, out LevelSelectScreen? screen)) return;
+            screen!.mode = PlayerMode.Play;
+            Core.engine.game.SwitchScreen(screen);
+        };
+
+        if(elements["edit"] is Button edit) edit.onClick += (_, _) => {
+            if(!Core.engine.resources.TryGetResource(LevelSelectScreen.GlobalId, out LevelSelectScreen? screen)) return;
+            screen!.mode = PlayerMode.Edit;
+            Core.engine.game.SwitchScreen(screen);
+        };
 
         if(elements["settings"] is Button settings) settings.onClick += (_, _) => {
             if(Core.engine.resources.TryGetResource(SettingsScreen.GlobalId, out SettingsScreen? screen))

@@ -1,0 +1,78 @@
+﻿{
+    "frame": {
+        "path": "levelSelect.txt"
+    },
+    "scores": {
+        "position": { "x": 1, "y": 12 },
+        "size": { "x": 23, "y": 38 }
+    },
+    "template_score.score": {
+        "position": { "x": 0, "y": 0 },
+        "size": { "x": 0, "y": 1 },
+        "text": "SCORE: {0}"
+    },
+    "template_score.accuracy": {
+        "position": { "x": 0, "y": 1 },
+        "size": { "x": 0, "y": 1 },
+        "text": "{0}%"
+    },
+    "template_score.middleDivider": {
+        "position": { "x": 4, "y": 1 },
+        "size": { "x": 0, "y": 1 },
+        "text": "│"
+    },
+    "template_score.maxCombo": {
+        "position": { "x": 5, "y": 1 },
+        "size": { "x": 0, "y": 1 },
+        "text": "{0}x"
+    },
+    "template_score.mini.misses": {
+        "position": { "x": 0, "y": 2 },
+        "size": { "x": 0, "y": 1 },
+        "text": "{0}"
+    },
+    "template_score.mini.hits": {
+        "position": { "x": 0, "y": 2 },
+        "size": { "x": 0, "y": 1 },
+        "text": "{0}"
+    },
+    "template_score.mini.perfectHits": {
+        "position": { "x": 0, "y": 2 },
+        "size": { "x": 0, "y": 1 },
+        "text": "{0}"
+    },
+    "template_score.divider": {
+        "position": { "x": -1, "y": 3 },
+        "size": { "x": 0, "y": 1 },
+        "text": "├───────────────────────┤"
+    },
+    "levels": {
+        "position": { "x": 25, "y": 12 },
+        "size": { "x": 30, "y": 38 }
+    },
+    "template_level": {
+        "position": { "x": 0, "y": 0 },
+        "size": { "x": 30, "y": 1 }
+    },
+    "template_error_level": {
+        "position": { "x": 0, "y": 0 },
+        "size": { "x": 30, "y": 1 }
+    },
+    "metadata.difficulty": {
+        "position": { "x": 67, "y": 12 },
+        "size": { "x": 0, "y": 1 }
+    },
+    "metadata.author": {
+        "position": { "x": 63, "y": 13 },
+        "size": { "x": 0, "y": 1 }
+    },
+    "metadata.description": {
+        "position": { "x": 68, "y": 14 },
+        "size": { "x": 0, "y": 1 }
+    },
+    "back": {
+        "position": { "x": 38, "y": 52 },
+        "size": { "x": 4, "y": 1 },
+        "text": "BACK"
+    }
+}

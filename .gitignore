@@ -344,4 +344,5 @@ healthchecksdb
 */levels/*
 !*/levels/_template
 */config.txt
+*/scores.json
 */logs/internalLog.txt

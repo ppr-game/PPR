@@ -15,14 +15,12 @@
     "play": {
         "position": { "x": 38, "y": 25 },
         "size": { "x": 4, "y": 1 },
-        "text": "PLAY",
-        "active": false
+        "text": "PLAY"
     },
     "edit": {
         "position": { "x": 38, "y": 27 },
         "size": { "x": 4, "y": 1 },
-        "text": "EDIT",
-        "active": false
+        "text": "EDIT"
     },
     "settings": {
         "position": { "x": 36, "y": 29 },
