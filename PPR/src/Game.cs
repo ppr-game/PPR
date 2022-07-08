@@ -62,7 +62,7 @@ public class Game : GameBase {
 
     public override void Loaded() {
         if(!Core.engine.resources.TryGetResource(FontResource.GlobalId, out FontResource? font) ||
-           font?.font is null) return;
+           font.font is null) return;
         Core.engine.resources.TryGetResource(IconResource.GlobalId, out IconResource? icon);
 
         Core.engine.resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors);

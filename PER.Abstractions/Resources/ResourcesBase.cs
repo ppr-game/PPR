@@ -105,7 +105,7 @@ public abstract class ResourcesBase : IResources {
         }
     }
 
-    public bool TryGetPath(string relativePath, [MaybeNullWhen(false)] out string fullPath) {
+    public bool TryGetPath(string relativePath, [NotNullWhen(true)] out string? fullPath) {
         fullPath = null;
         if(!loaded && !_loading) return false;
 
@@ -118,11 +118,12 @@ public abstract class ResourcesBase : IResources {
         return true;
     }
 
-    public bool TryGetResource<TResource>(string id, [MaybeNullWhen(false)] out TResource resource)
+    public bool TryGetResource<TResource>(string id, [NotNullWhen(true)] out TResource? resource)
         where TResource : class?, IResource? {
         resource = null;
         if(!_resources.TryGetValue(id, out IResource? cachedResource) ||
-           cachedResource is not TResource actualResource) return false;
+           cachedResource is not TResource actualResource)
+            return false;
 
         resource = actualResource;
         return true;

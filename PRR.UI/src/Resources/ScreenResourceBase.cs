@@ -216,7 +216,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         Dictionary<string, Element> elements = new();
         foreach((string elementId, LayoutResourceElement layoutElement) in layoutElements) {
             Element element = layoutElement.GetElement(resources, renderer,
-                input, audio, colors!.colors, layoutName, elementId);
+                input, audio, colors.colors, layoutName, elementId);
             elements.Add(elementId, element);
         }
 

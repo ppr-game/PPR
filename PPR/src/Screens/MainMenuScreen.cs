@@ -37,13 +37,13 @@ public class MainMenuScreen : ScreenResourceBase {
 
         if(elements["play"] is Button play) play.onClick += (_, _) => {
             if(!Core.engine.resources.TryGetResource(LevelSelectScreen.GlobalId, out LevelSelectScreen? screen)) return;
-            screen!.mode = PlayerMode.Play;
+            screen.mode = PlayerMode.Play;
             Core.engine.game.SwitchScreen(screen);
         };
 
         if(elements["edit"] is Button edit) edit.onClick += (_, _) => {
             if(!Core.engine.resources.TryGetResource(LevelSelectScreen.GlobalId, out LevelSelectScreen? screen)) return;
-            screen!.mode = PlayerMode.Edit;
+            screen.mode = PlayerMode.Edit;
             Core.engine.game.SwitchScreen(screen);
         };
 
