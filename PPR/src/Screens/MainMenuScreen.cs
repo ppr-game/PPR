@@ -62,7 +62,8 @@ public class MainMenuScreen : ScreenResourceBase {
     public override void Close() { }
 
     public override void Update() {
-        foreach((string _, Element element) in elements) element.Update(Core.engine.clock);
+        foreach((string _, Element element) in elements)
+            element.Update(Core.engine.clock);
     }
 
     public override void Tick() { }

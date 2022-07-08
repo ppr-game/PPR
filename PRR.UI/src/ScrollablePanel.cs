@@ -24,7 +24,8 @@ public class ScrollablePanel : Element {
         set {
             int delta = value - _scroll;
             _scroll = value;
-            foreach(Element element in elements) element.position += new Vector2Int(0, delta);
+            foreach(Element element in elements)
+                element.position += new Vector2Int(0, delta);
         }
     }
 
@@ -39,31 +40,37 @@ public class ScrollablePanel : Element {
 
     // ReSharper disable once CognitiveComplexity
     private void Scrolled(object? o, IInput.ScrolledEventArgs args) {
-        if(!input.mousePosition.InBounds(bounds) || !_allowScrolling) return;
+        if(!input.mousePosition.InBounds(bounds) || !_allowScrolling)
+            return;
         _allowScrolling = false;
 
         int lowestY = int.MaxValue;
         int highestY = int.MinValue;
         foreach(Element element in elements) {
-            if(element.bounds.min.y < lowestY) lowestY = element.bounds.min.y;
-            if(element.bounds.max.y > highestY) highestY = element.bounds.max.y;
+            if(element.bounds.min.y < lowestY)
+                lowestY = element.bounds.min.y;
+            if(element.bounds.max.y > highestY)
+                highestY = element.bounds.max.y;
         }
 
         int delta = (int)args.delta;
 
         if(delta < 0 && highestY + delta < bounds.max.y ||
-           delta > 0 && lowestY + delta > bounds.min.y) return;
+           delta > 0 && lowestY + delta > bounds.min.y)
+            return;
 
         _scroll += delta;
     }
 
     public override void Update(IReadOnlyStopwatch clock) {
-        if(!enabled) return;
+        if(!enabled)
+            return;
         _allowScrolling = true;
         // ReSharper disable once ForCanBeConvertedToForeach
         for(int i = 0; i < elements.Count; i++) {
             Element element = elements[i];
-            if(element.position.y < bounds.min.y || element.position.y > bounds.max.y) continue;
+            if(element.position.y < bounds.min.y || element.position.y > bounds.max.y)
+                continue;
             elements[i].Update(clock);
         }
     }

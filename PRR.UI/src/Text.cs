@@ -12,11 +12,11 @@ public class Text : Element {
     public Text(IRenderer renderer) : base(renderer) { }
 
     public override void Update(IReadOnlyStopwatch clock) {
-        if(!enabled || text is null) return;
+        if(!enabled || text is null)
+            return;
         if(formatting.Count == 0)
             formatting.Add('\0',
                 new Formatting(Color.white, Color.transparent, RenderStyle.None, RenderOptions.Default, effect));
-        renderer.DrawText(position, text,
-            flag => formatting[flag], align);
+        renderer.DrawText(position, text, flag => formatting[flag], align);
     }
 }

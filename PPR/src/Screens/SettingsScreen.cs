@@ -227,7 +227,8 @@ public class SettingsScreen : ScreenResourceBase {
             UpdatePacks();
         };
         toggleButton.onHover += (_, _) => {
-            if(elements["pack.description"] is Text text) text.text = pack.meta.description;
+            if(elements["pack.description"] is Text text)
+                text.text = pack.meta.description;
         };
 
         Button moveUpButton = new(renderer, Core.engine.input, Core.engine.audio) {
@@ -276,7 +277,8 @@ public class SettingsScreen : ScreenResourceBase {
     public override void Close() => _reload = false;
 
     public override void Update() {
-        foreach((string _, Element element) in elements) element.Update(Core.engine.clock);
+        foreach((string _, Element element) in elements)
+            element.Update(Core.engine.clock);
     }
 
     public override void Tick() { }
