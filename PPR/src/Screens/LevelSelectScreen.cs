@@ -47,6 +47,8 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
     private const string MetadataFileName = "metadata.json";
     private const string ScoresPath = "scores.json";
 
+    private static readonly HashSet<string> contributors = new() { "sbeve" };
+
     private Dictionary<Guid, LevelScore[]> _scores = new();
     private Button? _selectedLevelButton;
     private Color? _metadataAuthorDefaultColor;
@@ -183,6 +185,8 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
         Color newColor = _metadataAuthorDefaultColor.Value;
         if(author.text == "ConfiG" && colors.colors.ContainsKey("special_ConfiG"))
             newColor = colors.colors["special_ConfiG"];
+        else if(contributors.Contains(author.text ?? string.Empty) && colors.colors.ContainsKey("special_contributor"))
+            newColor = colors.colors["special_contributor"];
         author.formatting['\0'] = new Formatting(newColor, oldFormatting.backgroundColor, oldFormatting.style,
             oldFormatting.options, oldFormatting.effect);
     }

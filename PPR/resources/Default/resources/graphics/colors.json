@@ -113,6 +113,7 @@
     "text_@metadata_fg": "foreground",
     "text_@metadata_bg": "background",
     "special_ConfiG": "green",
+    "special_contributor": "yellow",
     "text_@score_fg": "foreground",
     "text_@score_bg": "background",
     "text_@score.accComboDiv_fg": "blue",
