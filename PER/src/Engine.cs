@@ -41,7 +41,7 @@ public class Engine {
         this.audio = audio;
     }
 
-    public bool Reload() {
+    public void Reload() {
         try {
             bool loaded = resources.loaded;
             if(loaded) {
@@ -53,7 +53,6 @@ public class Engine {
             game.Loaded();
             if(loaded)
                 input.Reset();
-            return true;
         }
         catch(Exception exception) {
             logger.Error("Uncaught exception! Please, report the text below to the developer of the game.");
