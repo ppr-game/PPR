@@ -6,7 +6,7 @@ using PRR.UI;
 namespace PPR.Resources;
 
 public class AudioResources : IResource {
-    public bool Load(string id, IResources resources) {
+    public void Load(string id, IResources resources) {
         IAudio audio = Core.engine.audio;
 
         IAudioMixer master = audio.CreateMixer();
@@ -37,12 +37,7 @@ public class AudioResources : IResource {
         audio.TryStoreMixer(nameof(master), master);
         audio.TryStoreMixer(nameof(sfx), sfx);
         audio.TryStoreMixer(nameof(music), music);
-
-        return true;
     }
 
-    public bool Unload(string id, IResources resources) {
-        Core.engine.audio.Reset();
-        return true;
-    }
+    public void Unload(string id, IResources resources) => Core.engine.audio.Reset();
 }

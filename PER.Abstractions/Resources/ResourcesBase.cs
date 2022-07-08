@@ -22,36 +22,32 @@ public abstract class ResourcesBase : IResources {
     private readonly Dictionary<string, IResource> _resources = new();
     private readonly Dictionary<string, string> _cachedPaths = new();
 
-    public virtual bool Load() {
-        if(_loading) return false;
-        if(loaded) return true;
+    public virtual void Load() {
+        if(_loading)
+            throw new InvalidOperationException("Already loading.");
+        if(loaded)
+            return;
         _loading = true;
 
-        foreach((string? id, IResource? resource) in _resources) {
-            if(resource.Load(id, this)) continue;
-            _loading = false;
-            return false;
-        }
+        foreach((string? id, IResource? resource) in _resources)
+            resource.Load(id, this);
 
         _loading = false;
         loaded = true;
-        return true;
     }
 
-    public virtual bool Unload() {
-        if(!loaded) return true;
+    public virtual void Unload() {
+        if(!loaded)
+            return;
 
-        foreach((string? id, IResource? resource) in _resources) {
-            if(resource.Unload(id, this)) continue;
-            return false;
-        }
+        foreach((string? id, IResource? resource) in _resources)
+            resource.Unload(id, this);
 
         _loadedPacks.Clear();
         _cachedPaths.Clear();
         _resources.Clear();
 
         loaded = false;
-        return true;
     }
 
     public IEnumerable<ResourcePackData> GetAvailablePacks() {
@@ -71,7 +67,7 @@ public abstract class ResourcesBase : IResources {
 
     private bool TryGetPackData(string pack, out ResourcePackData data) {
         string metaPath = Path.Combine(pack, resourcePackMeta);
-        data = default;
+        data = default(ResourcePackData);
         if(!File.Exists(metaPath)) return false;
         string metaText = File.ReadAllText(metaPath);
         ResourcePackMeta meta = JsonSerializer.Deserialize<ResourcePackMeta>(metaText);

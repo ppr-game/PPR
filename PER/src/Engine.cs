@@ -42,17 +42,14 @@ public class Engine {
     }
 
     public bool Reload() {
-        // TODO: DON'T SILENTLY EXIT I JUST WASTED LIKE HALF AN HOUR TRYING TO UNDERSTAND WHY IT DIDN'T START UP
         try {
             bool loaded = resources.loaded;
             if(loaded) {
-                if(!resources.Unload())
-                    return false;
+                resources.Unload();
                 game.Unload();
             }
             game.Load();
-            if(!resources.Load())
-                return false;
+            resources.Load();
             game.Loaded();
             if(loaded)
                 input.Reset();

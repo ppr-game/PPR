@@ -201,15 +201,17 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
 
     protected IReadOnlyDictionary<string, Element> elements { get; private set; } = new Dictionary<string, Element>();
 
-    public override bool Load(string id, IResources resources) {
-        if(!resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors)) return false;
+    public override void Load(string id, IResources resources) {
+        if(!resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors))
+            throw new InvalidOperationException("Missing colors resource.");
 
         Dictionary<string, LayoutResourceElement> layoutElements = new(elementTypes.Count);
         DeserializeAllJson(resources, Path.Join("layouts", $"{layoutName}.json"), layoutElements,
             () => layoutElements.Count == elementTypes.Count);
 
         // didn't load all the elements
-        if(layoutElements.Count != elementTypes.Count) return false;
+        if(layoutElements.Count != elementTypes.Count)
+            throw new InvalidOperationException("Not all elements were loaded.");
 
         Dictionary<string, Element> elements = new();
         foreach((string elementId, LayoutResourceElement layoutElement) in layoutElements) {
@@ -219,29 +221,29 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         }
 
         this.elements = elements;
-        return true;
     }
 
-    protected override bool DeserializeJson(string path, IDictionary<string, LayoutResourceElement> deserialized) {
+    protected override void DeserializeJson(string path, IDictionary<string, LayoutResourceElement> deserialized) {
         Dictionary<string, JsonElement>? layout =
             JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(File.ReadAllText(path));
-        if(layout is null) return false;
+        if(layout is null)
+            return;
 
         foreach((string? elementId, Type? type) in elementTypes) {
-            if(!layout.TryGetValue(elementId, out JsonElement jsonElement) ||
-               type.BaseType != typeof(LayoutResourceElement)) return false;
+            if(!layout.TryGetValue(elementId, out JsonElement jsonElement))
+                throw new InvalidOperationException($"Element {elementId} is missing.");
+            if(type.BaseType != typeof(LayoutResourceElement))
+                throw new InvalidOperationException(
+                    $"Element types specs can only inherit from {nameof(LayoutResourceElement)}");
             LayoutResourceElement? layoutElement = (LayoutResourceElement?)jsonElement.Deserialize(type);
-            if(layoutElement is null) return false;
-            if(!deserialized.ContainsKey(elementId)) deserialized.Add(elementId, layoutElement);
+            if(layoutElement is null)
+                throw new InvalidOperationException($"Failed to deserialize {elementId} as {type.Name}");
+            if(!deserialized.ContainsKey(elementId))
+                deserialized.Add(elementId, layoutElement);
         }
-
-        return true;
     }
 
-    public override bool Unload(string id, IResources resources) {
-        elements = new Dictionary<string, Element>();
-        return true;
-    }
+    public override void Unload(string id, IResources resources) => elements = new Dictionary<string, Element>();
 
     public abstract void Open();
     public abstract void Close();

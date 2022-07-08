@@ -32,9 +32,8 @@ public class MainMenuScreen : ScreenResourceBase {
 
     // shut up
     // ReSharper disable once CognitiveComplexity
-    public override bool Load(string id, IResources resources) {
-        if(!base.Load(id, resources))
-            return false;
+    public override void Load(string id, IResources resources) {
+        base.Load(id, resources);
 
         if(elements["play"] is Button play) play.onClick += (_, _) => {
             if(!Core.engine.resources.TryGetResource(LevelSelectScreen.GlobalId, out LevelSelectScreen? screen)) return;
@@ -68,8 +67,6 @@ public class MainMenuScreen : ScreenResourceBase {
         if(elements["discord"] is Button discord) discord.onClick += (_, _) => {
             Helper.OpenUrl("https://discord.gg/AuYUVs5");
         };
-
-        return true;
     }
 
     public override void Open() { }

@@ -56,20 +56,19 @@ public class SettingsScreen : ScreenResourceBase {
 
     public SettingsScreen(Settings settings) => _settings = settings;
 
-    public override bool Load(string id, IResources resources) {
-        if(!base.Load(id, resources)) return false;
+    public override void Load(string id, IResources resources) {
+        base.Load(id, resources);
 
         LoadAudio();
         LoadVideo();
         LoadAdvanced();
 
         if(elements["back"] is Button back) back.onClick += (_, _) => {
-            if(_reload) Core.engine.Reload();
+            if(_reload)
+                Core.engine.Reload();
             if(Core.engine.resources.TryGetResource(MainMenuScreen.GlobalId, out MainMenuScreen? screen))
                 Core.engine.game.SwitchScreen(screen);
         };
-
-        return true;
     }
 
     // ReSharper disable once CognitiveComplexity
@@ -79,21 +78,24 @@ public class SettingsScreen : ScreenResourceBase {
         if(elements["volume.master"] is Slider volumeMaster)
             volumeMaster.onValueChanged += (_, _) => {
                 _settings.masterVolume = volumeMaster.value;
-                if(elements["volume.master.value"] is Text label) label.text = _settings.masterVolume.ToString(culture);
+                if(elements["volume.master.value"] is Text label)
+                    label.text = _settings.masterVolume.ToString(culture);
                 _settings.ApplyVolumes();
             };
 
         if(elements["volume.music"] is Slider volumeMusic)
             volumeMusic.onValueChanged += (_, _) => {
                 _settings.musicVolume = volumeMusic.value;
-                if(elements["volume.music.value"] is Text label) label.text = _settings.musicVolume.ToString(culture);
+                if(elements["volume.music.value"] is Text label)
+                    label.text = _settings.musicVolume.ToString(culture);
                 _settings.ApplyVolumes();
             };
 
         if(elements["volume.sfx"] is Slider volumeSfx)
             volumeSfx.onValueChanged += (_, _) => {
                 _settings.sfxVolume = volumeSfx.value;
-                if(elements["volume.sfx.value"] is Text label) label.text = _settings.sfxVolume.ToString(culture);
+                if(elements["volume.sfx.value"] is Text label)
+                    label.text = _settings.sfxVolume.ToString(culture);
                 _settings.ApplyVolumes();
             };
     }

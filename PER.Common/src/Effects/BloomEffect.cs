@@ -11,14 +11,14 @@ public class BloomEffect : IEffect, IResource {
     public bool hasModifiers => false;
     public bool drawable => false;
 
-    public bool Load(string id, IResources resources) {
+    public void Load(string id, IResources resources) {
         if(!resources.TryGetPath(Path.Join("graphics", "shaders", "default_vert.glsl"),
-               out string? vertexPath) ||
-           !resources.TryGetPath(Path.Join("graphics", "shaders", "bloom_frag.glsl"),
-               out string? fragmentPath) ||
-           !resources.TryGetPath(Path.Join("graphics", "shaders", "bloom-blend_frag.glsl"),
-               out string? blendPath))
-            return false;
+                out string? vertexPath) ||
+            !resources.TryGetPath(Path.Join("graphics", "shaders", "bloom_frag.glsl"),
+                out string? fragmentPath) ||
+            !resources.TryGetPath(Path.Join("graphics", "shaders", "bloom-blend_frag.glsl"),
+                out string? blendPath))
+            throw new InvalidOperationException("Missing dependencies.");
 
         pipeline = new[] {
             new PipelineStep {
@@ -60,14 +60,9 @@ public class BloomEffect : IEffect, IResource {
                 blendMode = BlendMode.alpha
             }
         };
-
-        return true;
     }
 
-    public bool Unload(string id, IResources resources) {
-        pipeline = null;
-        return true;
-    }
+    public void Unload(string id, IResources resources) => pipeline = null;
 
     public (Vector2, RenderCharacter) ApplyModifiers(Vector2Int at, Vector2 position, RenderCharacter character) =>
         (position, character);

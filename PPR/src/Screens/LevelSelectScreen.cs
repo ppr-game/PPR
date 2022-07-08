@@ -51,16 +51,13 @@ public class LevelSelectScreen : ScreenResourceBase {
     private Dictionary<Guid, LevelScore[]> _scores = new();
     private Button? _selectedLevelButton;
 
-    public override bool Load(string id, IResources resources) {
-        if(!base.Load(id, resources))
-            return false;
+    public override void Load(string id, IResources resources) {
+        base.Load(id, resources);
 
         if(elements["back"] is Button back) back.onClick += (_, _) => {
             if(Core.engine.resources.TryGetResource(MainMenuScreen.GlobalId, out MainMenuScreen? screen))
                 Core.engine.game.SwitchScreen(screen);
         };
-
-        return true;
     }
 
     public override void Open() {

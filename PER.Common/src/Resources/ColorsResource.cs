@@ -10,9 +10,9 @@ public class ColorsResource : JsonResourceBase<IDictionary<string, (string?, Col
 
     public Dictionary<string, Color> colors { get; } = new();
 
-    public override bool Load(string id, IResources resources) {
+    public override void Load(string id, IResources resources) {
         Dictionary<string, (string?, Color)> tempValues = new();
-        if(!DeserializeAllJson(resources, Path.Join("graphics", "colors.json"), tempValues, () => false)) return false;
+        DeserializeAllJson(resources, Path.Join("graphics", "colors.json"), tempValues, () => false);
 
         foreach((string key, (string? value, Color color)) in tempValues)
             if(value is null)
@@ -21,14 +21,13 @@ public class ColorsResource : JsonResourceBase<IDictionary<string, (string?, Col
         foreach((string key, (string? value, Color _)) in tempValues)
             if(value is not null && colors.TryGetValue(value, out Color color))
                 colors.Add(key, color);
-
-        return true;
     }
 
-    protected override bool DeserializeJson(string path, IDictionary<string, (string?, Color)> deserialized) {
+    protected override void DeserializeJson(string path, IDictionary<string, (string?, Color)> deserialized) {
         Dictionary<string, JsonElement>? elements =
             JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(File.ReadAllText(path));
-        if(elements is null) return false;
+        if(elements is null)
+            return;
 
         foreach((string? key, JsonElement element) in elements) {
             if(deserialized.ContainsKey(key)) continue;
@@ -37,11 +36,10 @@ public class ColorsResource : JsonResourceBase<IDictionary<string, (string?, Col
                     break;
                 case JsonValueKind.String: DeserializeString(deserialized, element, key);
                     break;
-                default: return false;
+                default:
+                    throw new InvalidOperationException("Invalid color data.");
             }
         }
-
-        return true;
     }
 
     private static void DeserializeArray(IDictionary<string, (string?, Color)> currentValues, JsonElement element,
@@ -56,8 +54,5 @@ public class ColorsResource : JsonResourceBase<IDictionary<string, (string?, Col
     private static void DeserializeString(IDictionary<string, (string?, Color)> currentValues, JsonElement element,
         string key) => currentValues.Add(key, (element.GetString() ?? "", new Color()));
 
-    public override bool Unload(string id, IResources resources) {
-        colors.Clear();
-        return true;
-    }
+    public override void Unload(string id, IResources resources) => colors.Clear();
 }

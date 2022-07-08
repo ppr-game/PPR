@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 using PER.Abstractions.Resources;
 
@@ -9,16 +10,12 @@ public class FontResource : IResource {
 
     public Font? font { get; private set; }
 
-    public bool Load(string id, IResources resources) {
+    public void Load(string id, IResources resources) {
         if(!resources.TryGetPath(Path.Join("graphics", "font", "font.png"), out string? imagePath) ||
-           !resources.TryGetPath(Path.Join("graphics", "font", "mappings.txt"), out string? mappingsPath))
-            return false;
+            !resources.TryGetPath(Path.Join("graphics", "font", "mappings.txt"), out string? mappingsPath))
+            throw new InvalidOperationException("Missing dependencies.");
         font = new Font(imagePath, mappingsPath);
-        return true;
     }
 
-    public bool Unload(string id, IResources resources) {
-        font = null;
-        return true;
-    }
+    public void Unload(string id, IResources resources) => font = null;
 }

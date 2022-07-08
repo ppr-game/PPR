@@ -9,8 +9,8 @@ public interface IResources {
     public IReadOnlyList<ResourcePackData> loadedPacks { get; }
     public string defaultPackName { get; }
 
-    public bool Load();
-    public bool Unload();
+    public void Load();
+    public void Unload();
 
     public IEnumerable<ResourcePackData> GetAvailablePacks();
     public IEnumerable<ResourcePackData> GetUnloadedAvailablePacks();
