@@ -209,17 +209,11 @@ public class SettingsScreen : ScreenResourceBase {
         bool canToggle, bool canMoveUp, bool canMoveDown) {
         int height = Math.Max(Math.Max(toggleTemplate.size.y, upTemplate.size.y), downTemplate.size.y);
 
-        Button toggleButton = new(renderer, Core.engine.input, Core.engine.audio) {
-            position = panel.position + toggleTemplate.position + new Vector2Int(0, y * height + panel.scroll),
-            size = toggleTemplate.size,
-            text = pack.name.Length > toggleTemplate.size.x ? pack.name[..toggleTemplate.size.x] : pack.name,
-            style = toggleTemplate.style,
-            inactiveColor = toggleTemplate.inactiveColor,
-            idleColor = toggleTemplate.idleColor,
-            hoverColor = toggleTemplate.hoverColor,
-            clickColor = toggleTemplate.clickColor,
-            toggled = loaded
-        };
+        Button toggleButton = Button.Clone(toggleTemplate);
+        toggleButton.enabled = true;
+        toggleButton.position = panel.position + toggleTemplate.position + new Vector2Int(0, y * height + panel.scroll);
+        toggleButton.text = pack.name.Length > toggleTemplate.size.x ? pack.name[..toggleTemplate.size.x] : pack.name;
+        toggleButton.toggled = loaded;
         toggleButton.onClick += (_, _) => {
             if(!canToggle) return;
             if(loaded) loadedPacks.Remove(pack);
@@ -231,34 +225,20 @@ public class SettingsScreen : ScreenResourceBase {
                 text.text = pack.meta.description;
         };
 
-        Button moveUpButton = new(renderer, Core.engine.input, Core.engine.audio) {
-            position = panel.position + upTemplate.position + new Vector2Int(0, y * height + panel.scroll),
-            size = upTemplate.size,
-            text = upTemplate.text,
-            style = upTemplate.style,
-            inactiveColor = upTemplate.inactiveColor,
-            idleColor = upTemplate.idleColor,
-            hoverColor = upTemplate.hoverColor,
-            clickColor = upTemplate.clickColor,
-            active = canMoveUp
-        };
+        Button moveUpButton = Button.Clone(upTemplate);
+        moveUpButton.enabled = true;
+        moveUpButton.position = panel.position + upTemplate.position + new Vector2Int(0, y * height + panel.scroll);
+        moveUpButton.active = canMoveUp;
         moveUpButton.onClick += (_, _) => {
             availablePacks.RemoveAt(index);
             availablePacks.Insert(index + 1, pack);
             UpdatePacks();
         };
 
-        Button moveDownButton = new(renderer, Core.engine.input, Core.engine.audio) {
-            position = panel.position + downTemplate.position + new Vector2Int(0, y * height + panel.scroll),
-            size = downTemplate.size,
-            text = downTemplate.text,
-            style = downTemplate.style,
-            inactiveColor = downTemplate.inactiveColor,
-            idleColor = downTemplate.idleColor,
-            hoverColor = downTemplate.hoverColor,
-            clickColor = downTemplate.clickColor,
-            active = canMoveDown
-        };
+        Button moveDownButton = Button.Clone(downTemplate);
+        moveDownButton.enabled = true;
+        moveDownButton.position = panel.position + downTemplate.position + new Vector2Int(0, y * height + panel.scroll);
+        moveDownButton.active = canMoveDown;
         moveDownButton.onClick += (_, _) => {
             availablePacks.RemoveAt(index);
             availablePacks.Insert(index - 1, pack);

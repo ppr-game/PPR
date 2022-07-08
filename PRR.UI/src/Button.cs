@@ -57,6 +57,23 @@ public class Button : Element {
         this.audio = audio;
     }
 
+    public static Button Clone(Button template) => new(template.renderer, template.input, template.audio) {
+        enabled = template.enabled,
+        position = template.position,
+        size = template.size,
+        effect = template.effect,
+        hotkey = template.hotkey,
+        text = template.text,
+        style = template.style,
+        active = template.active,
+        toggled = template.toggled,
+        inactiveColor = template.inactiveColor,
+        idleColor = template.idleColor,
+        hoverColor = template.hoverColor,
+        clickColor = template.clickColor,
+        clickSound = template.clickSound
+    };
+
     private void UpdateState(IReadOnlyStopwatch clock) {
         bool mouseWasOver = bounds.IntersectsLine(input.previousMousePosition, input.mousePosition);
         bool mouseOver = input.mousePosition.InBounds(bounds);

@@ -11,6 +11,16 @@ public class Text : Element {
 
     public Text(IRenderer renderer) : base(renderer) { }
 
+    public static Text Clone(Text template) => new(template.renderer) {
+        enabled = template.enabled,
+        position = template.position,
+        size = template.size,
+        effect = template.effect,
+        text = template.text,
+        formatting = new Dictionary<char, Formatting>(template.formatting),
+        align = template.align
+    };
+
     public override void Update(IReadOnlyStopwatch clock) {
         if(!enabled || text is null)
             return;
