@@ -13,15 +13,12 @@ public class Slider : ClickableElementBase {
 
     public override Vector2Int size {
         get => base.size;
-        set {
-            if(value.y != 1)
-                base.size = new Vector2Int(value.x, 1);
-        }
+        set => base.size = value.y != 1 ? new Vector2Int(value.x, 1) : value;
     }
 
     public int width {
         get => size.x;
-        set => size = new Vector2Int(value, size.y);
+        set => size = new Vector2Int(value, 1);
     }
 
     public float value {
