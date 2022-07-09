@@ -15,16 +15,20 @@ public class AudioResources : IResource {
         IAudioMixer sfx = audio.CreateMixer(master);
         IAudioMixer music = audio.CreateMixer(master);
 
-        if(resources.TryGetPath(Path.Combine("audio", "buttonClick.wav"), out string? path)) {
-            IPlayable buttonClick = audio.CreateSound(path, sfx);
-            audio.TryStorePlayable(Button.ClickSoundId, buttonClick);
-        }
+        if(resources.TryGetPath(Path.Combine("audio", $"{ClickableElementBase.ClickSoundId}.wav"), out string? path))
+            audio.TryStorePlayable(ClickableElementBase.ClickSoundId, audio.CreateSound(path, sfx));
 
-        // ReSharper disable once InvertIf
-        if(resources.TryGetPath(Path.Combine("audio", "slider.wav"), out path)) {
-            IPlayable sliderValueChanged = audio.CreateSound(path, sfx);
-            audio.TryStorePlayable(Slider.ValueChangedSoundId, sliderValueChanged);
-        }
+        if(resources.TryGetPath(Path.Combine("audio", $"{Slider.ValueChangedSoundId}.wav"), out path))
+            audio.TryStorePlayable(Slider.ValueChangedSoundId, audio.CreateSound(path, sfx));
+
+        if(resources.TryGetPath(Path.Combine("audio", $"{InputField.TypeSoundId}.wav"), out path))
+            audio.TryStorePlayable(InputField.TypeSoundId, audio.CreateSound(path, sfx));
+
+        if(resources.TryGetPath(Path.Combine("audio", $"{InputField.EraseSoundId}.wav"), out path))
+            audio.TryStorePlayable(InputField.EraseSoundId, audio.CreateSound(path, sfx));
+
+        if(resources.TryGetPath(Path.Combine("audio", $"{InputField.SubmitSoundId}.wav"), out path))
+            audio.TryStorePlayable(InputField.SubmitSoundId, audio.CreateSound(path, sfx));
 
         audio.TryStoreMixer(nameof(master), master);
         audio.TryStoreMixer(nameof(sfx), sfx);

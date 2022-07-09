@@ -16,8 +16,8 @@ public class AudioResources : IResource {
         if(resources.TryGetPath(Path.Combine("audio", "music", "mainMenu.ogg"), out string? path))
             audio.TryStorePlayable("mainMenu", audio.CreateSound(path, music));
 
-        if(resources.TryGetPath(Path.Combine("audio", "sfx", $"{Button.ClickSoundId}.wav"), out path))
-            audio.TryStorePlayable(Button.ClickSoundId, audio.CreateSound(path, sfx));
+        if(resources.TryGetPath(Path.Combine("audio", "sfx", $"{ClickableElementBase.ClickSoundId}.wav"), out path))
+            audio.TryStorePlayable(ClickableElementBase.ClickSoundId, audio.CreateSound(path, sfx));
 
         if(resources.TryGetPath(Path.Combine("audio", "sfx", "fail.wav"), out path))
             audio.TryStorePlayable("fail", audio.CreateSound(path, sfx));
@@ -33,6 +33,15 @@ public class AudioResources : IResource {
 
         if(resources.TryGetPath(Path.Combine("audio", "sfx", "tick.wav"), out path))
             audio.TryStorePlayable("tick", audio.CreateSound(path, sfx));
+
+        if(resources.TryGetPath(Path.Combine("audio", "sfx", $"{InputField.TypeSoundId}.wav"), out path))
+            audio.TryStorePlayable(InputField.TypeSoundId, audio.CreateSound(path, sfx));
+
+        if(resources.TryGetPath(Path.Combine("audio", "sfx", $"{InputField.EraseSoundId}.wav"), out path))
+            audio.TryStorePlayable(InputField.EraseSoundId, audio.CreateSound(path, sfx));
+
+        if(resources.TryGetPath(Path.Combine("audio", "sfx", $"{InputField.SubmitSoundId}.wav"), out path))
+            audio.TryStorePlayable(InputField.SubmitSoundId, audio.CreateSound(path, sfx));
 
         audio.TryStoreMixer(nameof(master), master);
         audio.TryStoreMixer(nameof(sfx), sfx);

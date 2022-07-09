@@ -138,6 +138,48 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
     }
 
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    protected class LayoutResourceInputField : LayoutResourceElement {
+        public string? value { get; }
+        public string? placeholder { get; }
+        public int? cursor { get; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public RenderStyle? style { get; }
+        public bool? active { get; }
+
+        public LayoutResourceInputField(bool? enabled, Vector2Int position, Vector2Int size, string? value,
+            string? placeholder, int? cursor, RenderStyle? style, bool? active) : base(enabled, position, size) {
+            this.value = value;
+            this.placeholder = placeholder;
+            this.cursor = cursor;
+            this.style = style;
+            this.active = active;
+        }
+
+        public override Element GetElement(IResources resources, IRenderer renderer, IInput input, IAudio audio,
+            Dictionary<string, Color> colors, string layoutName, string id) {
+            InputField element = new(renderer, input, audio) {
+                position = position,
+                size = size,
+                value = value,
+                placeholder = placeholder
+            };
+            if(enabled.HasValue) element.enabled = enabled.Value;
+            if(cursor.HasValue) element.cursor = cursor.Value;
+            if(style.HasValue) element.style = style.Value;
+            if(active.HasValue) element.active = active.Value;
+            if(TryGetColor(colors, "inputField", layoutName, id, "inactive", out Color color))
+                element.inactiveColor = color;
+            if(TryGetColor(colors, "inputField", layoutName, id, "idle", out color))
+                element.idleColor = color;
+            if(TryGetColor(colors, "inputField", layoutName, id, "hover", out color))
+                element.hoverColor = color;
+            if(TryGetColor(colors, "inputField", layoutName, id, "click", out color))
+                element.clickColor = color;
+            return element;
+        }
+    }
+
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     protected class LayoutResourceSlider : LayoutResourceElement {
         public int? width { get; }
         public float? value { get; }

@@ -60,7 +60,6 @@ public class Renderer : RendererBase, IDisposable {
         }
 
         window.Closed += (_, _) => closed?.Invoke(this, EventArgs.Empty);
-        window.SetKeyRepeatEnabled(false);
 
         _mainRenderTexture = new RenderTexture(videoMode.Width, videoMode.Height);
         _additionalRenderTexture = new RenderTexture(videoMode.Width, videoMode.Height);

@@ -33,7 +33,7 @@ public interface IRenderer {
     public void Draw();
     public void DrawCharacter(Vector2Int position, RenderCharacter character,
         RenderOptions options = RenderOptions.Default, IEffect? effect = null);
-    public void DrawText(Vector2Int position, string text, Func<char, Formatting> formatter,
+    public void DrawText(Vector2Int position, ReadOnlySpan<char> text, Func<char, Formatting> formatter,
         HorizontalAlignment align = HorizontalAlignment.Left, int maxWidth = 0);
 
     public RenderCharacter GetCharacter(Vector2Int position);

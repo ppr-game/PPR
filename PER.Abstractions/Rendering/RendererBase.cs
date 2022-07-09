@@ -136,7 +136,7 @@ public abstract class RendererBase : IRenderer {
         AddEffect(position, effect);
     }
 
-    public virtual void DrawText(Vector2Int position, string text, Func<char, Formatting> formatter,
+    public virtual void DrawText(Vector2Int position, ReadOnlySpan<char> text, Func<char, Formatting> formatter,
         HorizontalAlignment align = HorizontalAlignment.Left, int maxWidth = 0) {
         if(text.Length == 0) return;
 
@@ -148,13 +148,13 @@ public abstract class RendererBase : IRenderer {
             char currentCharacter = i >= text.Length ? '\n' : text[i];
 
             if(maxWidth > 0 && width >= maxWidth) {
-                DrawCurrent();
+                DrawCurrent(text);
                 startIndex = i;
             }
 
             switch(currentCharacter) {
                 case '\n':
-                    DrawCurrent();
+                    DrawCurrent(text);
                     startIndex = i + 1;
                     break;
                 case '\f': i++; // skip 2 characters
@@ -163,9 +163,9 @@ public abstract class RendererBase : IRenderer {
                     break;
             }
 
-            void DrawCurrent() {
+            void DrawCurrent(ReadOnlySpan<char> allText) {
                 int x = GetAlignOffset(align, width);
-                DrawTextCharacter(position, text, startIndex, x, y, width, formatter, ref formattingFlag);
+                DrawTextCharacter(position, allText, startIndex, x, y, width, formatter, ref formattingFlag);
 
                 width = 0;
                 y++;
@@ -173,8 +173,8 @@ public abstract class RendererBase : IRenderer {
         }
     }
 
-    private void DrawTextCharacter(Vector2Int position, string text, int startIndex, int x, int y, int width,
-        Func<char, Formatting> formatter, ref char formattingFlag) {
+    private void DrawTextCharacter(Vector2Int position, ReadOnlySpan<char> text, int startIndex, int x, int y,
+        int width, Func<char, Formatting> formatter, ref char formattingFlag) {
         for(int i = startIndex; i < startIndex + width; i++) {
             char toDraw = text[i];
             if(toDraw == '\f') {

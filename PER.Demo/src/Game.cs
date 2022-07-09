@@ -222,6 +222,12 @@ public class Game : GameBase {
             size = new Vector2Int(80, 2)
         };
         _ui.Add(_testProgressBar);
+
+        _ui.Add(new InputField(renderer, input, audio) {
+            position = new Vector2Int(0, 53),
+            size = new Vector2Int(30, 1),
+            placeholder = "type some text or smth idk"
+        });
     }
 
     private void GenerateResourcePackSelector(Vector2Int position, int width, IEnumerable<string> unloadedPacks,

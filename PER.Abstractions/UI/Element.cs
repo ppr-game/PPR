@@ -1,4 +1,5 @@
-﻿using PER.Abstractions.Rendering;
+﻿using PER.Abstractions.Audio;
+using PER.Abstractions.Rendering;
 using PER.Util;
 
 namespace PER.Abstractions.UI;
@@ -25,4 +26,11 @@ public abstract class Element {
     protected Element(IRenderer renderer) => this.renderer = renderer;
 
     public abstract void Update(IReadOnlyStopwatch clock);
+
+    protected static void PlaySound(IAudio? audio, IPlayable? playable, string defaultId) {
+        if(playable is not null)
+            playable.status = PlaybackStatus.Playing;
+        else if(audio is not null && audio.TryGetPlayable(defaultId, out playable))
+            playable.status = PlaybackStatus.Playing;
+    }
 }

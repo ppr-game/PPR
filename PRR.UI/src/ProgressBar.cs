@@ -29,10 +29,10 @@ public class ProgressBar : Element {
     }
 
     public override Vector2Int size {
-        get => _size;
+        get => base.size;
         set {
-            _size = value;
-            _anim = new AnimatedCharacter[_size.x, _size.y];
+            base.size = value;
+            _anim = new AnimatedCharacter[value.x, value.y];
             _resized = true;
         }
     }
@@ -42,7 +42,6 @@ public class ProgressBar : Element {
     public Color lowColor { get; set; } = Color.black;
     public Color highColor { get; set; } = Color.white;
 
-    private Vector2Int _size;
     private bool _resized;
     private AnimatedCharacter[,] _anim = new AnimatedCharacter[0, 0];
     private float _prevValue;

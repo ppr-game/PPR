@@ -9,9 +9,9 @@ public class ScrollablePanel : Element {
     public IInput input { get; set; }
 
     public override bool enabled {
-        get => _enabled;
+        get => base.enabled;
         set {
-            _enabled = value;
+            base.enabled = value;
             if(value) input.scrolled += Scrolled;
             else input.scrolled -= Scrolled;
         }
@@ -29,7 +29,6 @@ public class ScrollablePanel : Element {
         }
     }
 
-    private bool _enabled = true;
     private bool _allowScrolling;
     private int _scroll;
 

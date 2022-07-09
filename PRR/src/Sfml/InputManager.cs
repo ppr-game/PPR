@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using PER.Abstractions.Input;
 using PER.Util;
 
+using SFML.Window;
+
 namespace PRR.Sfml;
 
 public class InputManager : IInput {
@@ -15,18 +17,38 @@ public class InputManager : IInput {
     public Vector2 previousAccurateMousePosition { get; private set; } = new(-1, -1);
     public Vector2 previousNormalizedMousePosition { get; private set; } = new(-1, -1);
 
+    public bool keyRepeat {
+        get => _keyRepeat;
+        set {
+            if(_renderer.window is null)
+                return;
+            _keyRepeat = value;
+            _renderer.window.SetKeyRepeatEnabled(value);
+        }
+    }
+
+    public string clipboard {
+        get => Clipboard.Contents;
+        set => Clipboard.Contents = value;
+    }
+
+    public event EventHandler<IInput.KeyDownEventArgs>? keyDown;
     public event EventHandler<IInput.TextEnteredEventArgs>? textEntered;
     public event EventHandler<IInput.ScrolledEventArgs>? scrolled;
 
     private readonly HashSet<KeyCode> _pressedKeys = new();
     private readonly HashSet<MouseButton> _pressedMouseButtons = new();
+    private bool _keyRepeat;
 
     private readonly Renderer _renderer;
 
     public InputManager(Renderer renderer) => _renderer = renderer;
 
     public void Reset() {
-        if(_renderer.window is null) return;
+        if(_renderer.window is null)
+            return;
+
+        _renderer.window.SetKeyRepeatEnabled(false);
 
         _renderer.window.KeyPressed += (_, key) => UpdateKeyPressed(SfmlConverters.ToPerKey(key.Code), true);
         _renderer.window.KeyReleased += (_, key) => UpdateKeyPressed(SfmlConverters.ToPerKey(key.Code), false);
@@ -71,7 +93,10 @@ public class InputManager : IInput {
     public bool MouseButtonPressed(MouseButton button) => _pressedMouseButtons.Contains(button);
 
     private void UpdateKeyPressed(KeyCode key, bool pressed) {
-        if(pressed) _pressedKeys.Add(key);
+        if(pressed) {
+            _pressedKeys.Add(key);
+            keyDown?.Invoke(this, new IInput.KeyDownEventArgs(key));
+        }
         else _pressedKeys.Remove(key);
     }
 
