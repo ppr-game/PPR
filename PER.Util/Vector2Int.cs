@@ -53,7 +53,7 @@ public readonly struct Vector2Int : IEquatable<Vector2Int> {
             reader.Read();
             int x = 0;
             int y = 0;
-            if(isObject) {
+            if(isObject)
                 for(int i = 0; i < 2; i++) {
                     string? propertyType = reader.GetString();
                     reader.Read();
@@ -67,7 +67,6 @@ public readonly struct Vector2Int : IEquatable<Vector2Int> {
                     }
                     reader.Read();
                 }
-            }
             else {
                 x = reader.GetInt32();
                 reader.Read();

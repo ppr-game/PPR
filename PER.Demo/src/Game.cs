@@ -69,19 +69,19 @@ public class Game : GameBase {
     }
 
     public override void Loaded() {
-        if(!Core.engine.resources.TryGetResource(FontResource.GlobalId, out FontResource? font) ||
-           font?.font is null) return;
+        if(!Core.engine.resources.TryGetResource(FontResource.GlobalId, out FontResource? font) || font.font is null)
+            return;
         Core.engine.resources.TryGetResource(IconResource.GlobalId, out IconResource? icon);
 
         Core.engine.resources.TryGetResource(BloomEffect.GlobalId, out _bloomEffect);
 
         if(Core.engine.resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors))
-            _colors = colors!.colors;
+            _colors = colors.colors;
 
         _settings.Apply();
 
         if(renderer.open) renderer.font = font.font;
-        else {
+        else
             Core.engine.Start(new RendererSettings {
                 title = "PER Demo Pog",
                 width = 80,
@@ -91,7 +91,6 @@ public class Game : GameBase {
                 font = font.font,
                 icon = icon?.icon
             });
-        }
     }
 
     public override void Setup() {
@@ -379,9 +378,8 @@ as you can see wit works!!1!
 
         if(_testProgressBar is not null &&
            input.mousePosition.InBounds(_testProgressBar.bounds) &&
-           input.MouseButtonPressed(MouseButton.Left)) {
+           input.MouseButtonPressed(MouseButton.Left))
             _testProgressBar.value = input.normalizedMousePosition.x;
-        }
 
         DrawUi();
 

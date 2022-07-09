@@ -82,25 +82,39 @@ public abstract class ClickableElementBase : Element {
     private void StateChanged(IReadOnlyStopwatch clock, State from, State to) {
         bool instant = from == State.None;
 
+        ExecuteStateChangeActions(from, to);
+
         switch(to) {
             case State.Inactive:
                 StartAnimation(clock, _toggled ? inactiveColor : idleColor,
                     _toggled ? idleColor : inactiveColor, instant);
                 break;
             case State.Idle:
-                if(from == State.Hotkey) Click();
                 StartAnimation(clock, _toggled ? clickColor : idleColor, _toggled ? idleColor : hoverColor, instant);
                 break;
             case State.FakeHovered:
                 StartAnimation(clock, hoverColor, idleColor, instant);
                 break;
             case State.Hovered:
-                if(from is State.Clicked or State.Hotkey) Click();
-                else onHover?.Invoke(this, EventArgs.Empty);
                 StartAnimation(clock, hoverColor, idleColor, instant);
                 break;
             case State.Clicked:
                 StartAnimation(clock, clickColor, idleColor, instant);
+                break;
+        }
+    }
+
+    private void ExecuteStateChangeActions(State from, State to) {
+        switch(to) {
+            case State.Idle:
+                if(from == State.Hotkey)
+                    Click();
+                break;
+            case State.Hovered:
+                if(from is State.Clicked or State.Hotkey)
+                    Click();
+                else
+                    onHover?.Invoke(this, EventArgs.Empty);
                 break;
         }
     }
