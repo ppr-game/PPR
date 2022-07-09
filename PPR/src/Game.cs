@@ -55,8 +55,11 @@ public class Game : GameBase {
         renderer.formattingEffects.Add("none", null);
         renderer.formattingEffects.Add("glitch", _glitchEffect);
 
+        resources.TryAddResource(DialogBoxPaletteResource.GlobalId, new DialogBoxPaletteResource());
+
         resources.TryAddResource(MainMenuScreen.GlobalId, new MainMenuScreen());
         resources.TryAddResource(LevelSelectScreen.GlobalId, new LevelSelectScreen());
+        resources.TryAddResource(NewLevelDialogBoxScreen.GlobalId, new NewLevelDialogBoxScreen());
         resources.TryAddResource(SettingsScreen.GlobalId, new SettingsScreen(_settings));
     }
 

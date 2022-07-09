@@ -1,0 +1,47 @@
+﻿{
+    "title": {
+        "position": { "x": 39, "y": 16 },
+        "text": "CREATE LEVEL",
+        "align": "middle"
+    },
+    "labels": {
+        "position": { "x": 27, "y": 18 },
+        "text": "NAME:\n\nAUTHOR:\n\nDIFFICULTY:\n\nDESCRIPTION:"
+    },
+    "metadata.name": {
+        "position": { "x": 33, "y": 18 },
+        "size": { "x": 20, "y": 1 },
+        "placeholder": "type here..."
+    },
+    "metadata.author": {
+        "position": { "x": 35, "y": 20 },
+        "size": { "x": 18, "y": 1 },
+        "placeholder": "type here..."
+    },
+    "metadata.difficulty": {
+        "position": { "x": 39, "y": 22 },
+        "width": 10,
+        "minValue": 1,
+        "maxValue": 10
+    },
+    "metadata.difficulty.text": {
+        "position": { "x": 50, "y": 22 },
+        "text": "{0}"
+    },
+    "metadata.description": {
+        "position": { "x": 27, "y": 26 },
+        "size": { "x": 26, "y": 12 },
+        "placeholder": "type here..."
+    },
+    "cancel": {
+        "position": { "x": 30, "y": 43 },
+        "size": { "x": 6, "y": 1 },
+        "text": "CANCEL"
+    },
+    "create": {
+        "position": { "x": 44, "y": 43 },
+        "size": { "x": 6, "y": 1 },
+        "text": "CREATE",
+        "active": false
+    }
+}

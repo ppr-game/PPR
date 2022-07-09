@@ -40,6 +40,8 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
         { "metadata.difficulty", typeof(LayoutResourceText) },
         { "metadata.author", typeof(LayoutResourceText) },
         { "metadata.description", typeof(LayoutResourceText) },
+        { "play_auto", typeof(LayoutResourceButton) },
+        { "edit_new", typeof(LayoutResourceButton) },
         { "back", typeof(LayoutResourceButton) }
     };
 
@@ -54,8 +56,22 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
     private Button? _selectedLevelButton;
     private Color? _metadataAuthorDefaultColor;
 
+    private NewLevelDialogBoxScreen? _newLevelDialogBox;
+
     public override void Load(string id, IResources resources) {
         base.Load(id, resources);
+
+        if(elements["edit_new"] is Button editNew) editNew.onClick += (_, _) => {
+            if(!Core.engine.resources.TryGetResource(NewLevelDialogBoxScreen.GlobalId, out _newLevelDialogBox))
+                return;
+            _newLevelDialogBox.onCancel += () => {
+                Core.engine.game.FadeScreen(() => {
+                    _newLevelDialogBox.Close();
+                    _newLevelDialogBox = null;
+                });
+            };
+            Core.engine.game.FadeScreen(_newLevelDialogBox.Open);
+        };
 
         if(elements["back"] is Button back) back.onClick += (_, _) => {
             if(Core.engine.resources.TryGetResource(MainMenuScreen.GlobalId, out MainMenuScreen? screen))
@@ -320,6 +336,9 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
     }
 
     public override void Update() {
+        bool prevInputBlock = input.block;
+        input.block = _newLevelDialogBox is not null;
+
         base.Update();
         foreach((string id, Element element) in elements) {
             bool isPlay = id.StartsWith("play_", StringComparison.Ordinal);
@@ -327,6 +346,10 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
             if(isPlay && mode == PlayerMode.Play || isEdit && mode == PlayerMode.Edit || !isPlay && !isEdit)
                 element.Update(Core.engine.clock);
         }
+
+        input.block = prevInputBlock;
+
+        _newLevelDialogBox?.Update();
     }
 
     public override void Tick() { }

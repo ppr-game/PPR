@@ -11,6 +11,7 @@
         <Authors>ConfiG</Authors>
         <RepositoryUrl>https://github.com/ppr-game/PPR</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>

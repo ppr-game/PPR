@@ -21,6 +21,10 @@ public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : Screen
     }
 
     public override void Update() {
+        // forcefully unblock input for the effect
+        bool prevInputBlock = input.block;
+        input.block = false;
+
         float time = (float)Core.engine.clock.time.TotalSeconds * animBpm / 120f;
         for(int x = -3; x < renderer.width + 3; x++) {
             for(int y = -3; y < renderer.height + 3; y++) {
@@ -29,6 +33,8 @@ public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : Screen
                 DrawAnimationAt(x, y, time);
             }
         }
+
+        input.block = prevInputBlock;
     }
 
     private void DrawAnimationAt(int x, int y, float time) {

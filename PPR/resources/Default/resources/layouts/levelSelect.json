@@ -76,6 +76,17 @@
         "size": { "x": 22, "y": 1 },
         "wrap": true
     },
+    "play_auto": {
+        "position": { "x": 25, "y": 10 },
+        "size": { "x": 4, "y": 1 },
+        "text": "AUTO",
+        "active": false
+    },
+    "edit_new": {
+        "position": { "x": 25, "y": 10 },
+        "size": { "x": 3, "y": 1 },
+        "text": "NEW"
+    },
     "back": {
         "position": { "x": 38, "y": 52 },
         "size": { "x": 4, "y": 1 },

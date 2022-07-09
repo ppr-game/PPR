@@ -67,7 +67,7 @@ public class ScrollablePanel : Element {
     public override void Update(IReadOnlyStopwatch clock) {
         if(!enabled)
             return;
-        _allowScrolling = true;
+        _allowScrolling = !input.block;
         // ReSharper disable once ForCanBeConvertedToForeach
         for(int i = 0; i < elements.Count; i++) {
             Element element = elements[i];

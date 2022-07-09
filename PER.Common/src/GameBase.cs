@@ -28,18 +28,28 @@ public abstract class GameBase : IGame {
     private readonly FadeEffect _screenFade = new();
 
     public void SwitchScreen(IScreen? screen) {
-        if(currentScreen is null) SwitchScreen(screen, StartupWaitTime, StartupFadeTime);
-        else if(screen is null) SwitchScreen(screen, ShutdownFadeTime, 0f);
-        else SwitchScreen(screen, FadeTime, FadeTime);
+        if(currentScreen is null)
+            SwitchScreen(screen, StartupWaitTime, StartupFadeTime);
+        else if(screen is null)
+            SwitchScreen(screen, ShutdownFadeTime, 0f);
+        else
+            SwitchScreen(screen, FadeTime, FadeTime);
     }
 
     public void SwitchScreen(IScreen? screen, float fadeOutTime, float fadeInTime) =>
-        _screenFade.Start(fadeOutTime, fadeInTime, () => {
+        FadeScreen(fadeOutTime, fadeInTime, () => {
             currentScreen?.Close();
             currentScreen = screen;
             currentScreen?.Open();
-            if(currentScreen is null) renderer.Close();
+            if(currentScreen is null)
+                renderer.Close();
         });
+
+    public void FadeScreen(Action middleCallback) =>
+        _screenFade.Start(FadeTime, FadeTime, middleCallback);
+
+    public void FadeScreen(float fadeOutTime, float fadeInTime, Action middleCallback) =>
+        _screenFade.Start(fadeOutTime, fadeInTime, middleCallback);
 
     public abstract void Unload();
     public abstract void Load();

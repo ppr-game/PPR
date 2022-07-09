@@ -26,6 +26,8 @@ public interface IInput {
         public ScrolledEventArgs(float delta) => this.delta = delta;
     }
 
+    public bool block { get; set; }
+
     public Vector2Int mousePosition { get; }
     public Vector2 accurateMousePosition { get; }
     public Vector2 normalizedMousePosition { get; }
