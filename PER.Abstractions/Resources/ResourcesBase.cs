@@ -5,8 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 
+using JetBrains.Annotations;
+
 namespace PER.Abstractions.Resources;
 
+[PublicAPI]
 public abstract class ResourcesBase : IResources {
     public int currentVersion => 0;
     public bool loaded { get; private set; }

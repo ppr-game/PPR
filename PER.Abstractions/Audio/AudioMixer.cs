@@ -1,5 +1,8 @@
-﻿namespace PER.Abstractions.Audio;
+﻿using JetBrains.Annotations;
 
+namespace PER.Abstractions.Audio;
+
+[PublicAPI]
 public class AudioMixer : IAudioMixer {
     public IAudioMixer? parent { get; set; }
 

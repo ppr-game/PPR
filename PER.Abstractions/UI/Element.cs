@@ -1,9 +1,12 @@
-﻿using PER.Abstractions.Audio;
+﻿using JetBrains.Annotations;
+
+using PER.Abstractions.Audio;
 using PER.Abstractions.Rendering;
 using PER.Util;
 
 namespace PER.Abstractions.UI;
 
+[PublicAPI]
 public abstract class Element {
     public IRenderer renderer { get; set; }
     public virtual bool enabled { get; set; } = true;

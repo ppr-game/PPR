@@ -1,20 +1,26 @@
 ﻿using System;
 
+using JetBrains.Annotations;
+
 using PER.Util;
 
 namespace PER.Abstractions.Input;
 
+[PublicAPI]
 public interface IInput {
+    [PublicAPI]
     public sealed class KeyDownEventArgs : EventArgs {
         public KeyCode key { get; }
         public KeyDownEventArgs(KeyCode key) => this.key = key;
     }
 
+    [PublicAPI]
     public sealed class TextEnteredEventArgs : EventArgs {
         public string text { get; }
         public TextEnteredEventArgs(string text) => this.text = text;
     }
 
+    [PublicAPI]
     public sealed class ScrolledEventArgs : EventArgs {
         public float delta { get; }
         public ScrolledEventArgs(float delta) => this.delta = delta;

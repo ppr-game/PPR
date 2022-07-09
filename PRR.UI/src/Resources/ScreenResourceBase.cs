@@ -1,6 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+
+using JetBrains.Annotations;
 
 using PER.Abstractions;
 using PER.Abstractions.Audio;
@@ -13,9 +14,11 @@ using PER.Util;
 
 namespace PRR.UI.Resources;
 
+[PublicAPI]
 public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, LayoutResourceElement>>, IScreen {
-    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    [PublicAPI]
     protected class LayoutResourceText : LayoutResourceElement {
+        [PublicAPI]
         public readonly struct TextFormatting {
             public string? foregroundColor { get; }
             public string? backgroundColor { get; }
@@ -98,7 +101,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         }
     }
 
-    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    [PublicAPI]
     protected class LayoutResourceButton : LayoutResourceElement {
         public string? text { get; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -137,7 +140,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         }
     }
 
-    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    [PublicAPI]
     protected class LayoutResourceInputField : LayoutResourceElement {
         public string? value { get; }
         public string? placeholder { get; }
@@ -179,7 +182,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         }
     }
 
-    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    [PublicAPI]
     protected class LayoutResourceSlider : LayoutResourceElement {
         public int? width { get; }
         public float? value { get; }
@@ -221,7 +224,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         }
     }
 
-    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    [PublicAPI]
     protected class LayoutResourceScrollablePanel : LayoutResourceElement {
         public LayoutResourceScrollablePanel(bool? enabled, Vector2Int position, Vector2Int size) :
             base(enabled, position, size) { }

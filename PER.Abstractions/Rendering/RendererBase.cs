@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using JetBrains.Annotations;
+
 using PER.Util;
 
 namespace PER.Abstractions.Rendering;
 
+[PublicAPI]
 public abstract class RendererBase : IRenderer {
     public virtual string title { get; private set; } = "";
     public virtual int width { get; private set; }

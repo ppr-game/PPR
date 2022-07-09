@@ -1,10 +1,13 @@
 ﻿using System;
 using System.IO;
 
+using JetBrains.Annotations;
+
 using PER.Abstractions.Resources;
 
 namespace PRR.Resources;
 
+[PublicAPI]
 public class FontResource : IResource {
     public const string GlobalId = "graphics/font";
 

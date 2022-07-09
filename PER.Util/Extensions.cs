@@ -2,17 +2,22 @@
 using System.Collections.Generic;
 using System.Text;
 
+using JetBrains.Annotations;
+
 namespace PER.Util;
 
+[PublicAPI]
 public static class RandomExtensions {
     public static float NextSingle(this Random rng, float min, float max) => rng.NextSingle() * (max - min) + min;
 }
 
+[PublicAPI]
 public static class EnumerableExtensions {
     public static T ElementAtOrDefault<T>(this IList<T> list, int index, Func<T> @default) =>
         index >= 0 && index < list.Count ? list[index] : @default();
 }
 
+[PublicAPI]
 public static class StringExtensions {
     public static string AddSpaces(this string text) {
         if(string.IsNullOrWhiteSpace(text))

@@ -1,7 +1,10 @@
 ﻿using System;
 
+using JetBrains.Annotations;
+
 namespace PER.Abstractions.Resources;
 
+[PublicAPI]
 public readonly struct ResourcePackData : IEquatable<ResourcePackData> {
     public string name { get; }
     public string fullPath { get; }

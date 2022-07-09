@@ -1,7 +1,10 @@
 ﻿using System;
 
+using JetBrains.Annotations;
+
 namespace PER.Abstractions.Audio;
 
+[PublicAPI]
 public interface IPlayable {
     public IAudioMixer mixer { get; set; }
     public PlaybackStatus status { get; set; }

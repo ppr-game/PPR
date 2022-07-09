@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using JetBrains.Annotations;
 
 using PER.Abstractions.Audio;
 using PER.Abstractions.Input;
@@ -9,7 +9,7 @@ using PER.Util;
 
 namespace PRR.UI.Resources;
 
-[SuppressMessage("ReSharper", "MemberCanBeProtected.Global")]
+[PublicAPI]
 public abstract class LayoutResourceElement {
     public bool? enabled { get; }
     public Vector2Int position { get; }

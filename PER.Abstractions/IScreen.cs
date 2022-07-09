@@ -1,5 +1,8 @@
-﻿namespace PER.Abstractions;
+﻿using JetBrains.Annotations;
 
+namespace PER.Abstractions;
+
+[PublicAPI]
 public interface IScreen {
     public void Open();
     public void Close();

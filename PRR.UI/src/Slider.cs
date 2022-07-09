@@ -1,10 +1,13 @@
-﻿using PER.Abstractions.Audio;
+﻿using JetBrains.Annotations;
+
+using PER.Abstractions.Audio;
 using PER.Abstractions.Input;
 using PER.Abstractions.Rendering;
 using PER.Util;
 
 namespace PRR.UI;
 
+[PublicAPI]
 public class Slider : ClickableElementBase {
     public const string ValueChangedSoundId = "slider";
 

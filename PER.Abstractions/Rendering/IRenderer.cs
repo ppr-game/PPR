@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using JetBrains.Annotations;
+
 using PER.Util;
 
 namespace PER.Abstractions.Rendering;
 
+[PublicAPI]
 public interface IRenderer {
     public string title { get; }
     public int width { get; }

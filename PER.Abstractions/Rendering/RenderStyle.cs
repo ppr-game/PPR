@@ -1,7 +1,10 @@
 ﻿using System;
 
+using JetBrains.Annotations;
+
 namespace PER.Abstractions.Rendering;
 
+[PublicAPI]
 [Flags]
 public enum RenderStyle : byte {
     None = 0,

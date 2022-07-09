@@ -1,5 +1,8 @@
-﻿namespace PER.Util;
+﻿using JetBrains.Annotations;
 
+namespace PER.Util;
+
+[PublicAPI]
 public static class MoreMath {
     public static double LerpUnclamped(double a, double b, double t) => a + (b - a) * t;
     public static float LerpUnclamped(float a, float b, float t) => a + (b - a) * t;

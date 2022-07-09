@@ -1,7 +1,10 @@
 ﻿using System;
 
+using JetBrains.Annotations;
+
 namespace PER.Util;
 
+[PublicAPI]
 public class Stopwatch : IReadOnlyStopwatch {
     public double speed {
         get => _speed;

@@ -1,9 +1,12 @@
 ﻿using System.Collections.Generic;
 
+using JetBrains.Annotations;
+
 using PER.Util;
 
 namespace PER.Abstractions.Rendering;
 
+[PublicAPI]
 public interface IEffect {
     public IEnumerable<PipelineStep>? pipeline { get; }
     public bool hasModifiers { get; }

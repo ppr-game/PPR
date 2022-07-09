@@ -1,9 +1,12 @@
-﻿using PER.Abstractions.Audio;
+﻿using JetBrains.Annotations;
+
+using PER.Abstractions.Audio;
 
 using SFML.Audio;
 
 namespace PER.Audio.Sfml;
 
+[PublicAPI]
 public class Sound : IPlayable, IDisposable {
     public IAudioMixer mixer { get; set; }
 

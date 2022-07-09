@@ -1,5 +1,8 @@
-﻿namespace PER.Abstractions;
+﻿using JetBrains.Annotations;
 
+namespace PER.Abstractions;
+
+[PublicAPI]
 public interface IGame {
     public IScreen? currentScreen { get; }
     public void SwitchScreen(IScreen? screen);

@@ -1,7 +1,10 @@
 ﻿using System;
 
+using JetBrains.Annotations;
+
 namespace PER.Abstractions.Resources;
 
+[PublicAPI]
 public abstract class JsonResourceBase<T> : IResource {
     public abstract void Load(string id, IResources resources);
 

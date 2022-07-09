@@ -1,8 +1,11 @@
-﻿using PER.Abstractions.Rendering;
+﻿using JetBrains.Annotations;
+
+using PER.Abstractions.Rendering;
 using PER.Util;
 
 namespace PER.Common.Effects;
 
+[PublicAPI]
 public class GlitchEffect : IEffect {
     public IEnumerable<PipelineStep>? pipeline => null;
     public bool hasModifiers => true;

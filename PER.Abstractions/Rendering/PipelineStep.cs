@@ -1,5 +1,8 @@
-﻿namespace PER.Abstractions.Rendering;
+﻿using JetBrains.Annotations;
 
+namespace PER.Abstractions.Rendering;
+
+[PublicAPI]
 public struct PipelineStep {
     public enum Type { Text, Screen, TemporaryText, TemporaryScreen, SwapBuffer, ClearBuffer }
 

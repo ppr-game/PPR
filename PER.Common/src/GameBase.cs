@@ -1,5 +1,7 @@
 ﻿using System.Globalization;
 
+using JetBrains.Annotations;
+
 using PER.Abstractions;
 using PER.Abstractions.Rendering;
 using PER.Common.Effects;
@@ -7,6 +9,7 @@ using PER.Util;
 
 namespace PER.Common;
 
+[PublicAPI]
 public abstract class GameBase : IGame {
     private const float StartupWaitTime = 0.5f;
     private const float StartupFadeTime = 2f;

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Text.Json.Serialization;
 
+using JetBrains.Annotations;
+
 namespace PER.Util;
 
+[PublicAPI]
 public readonly struct Bounds : IEquatable<Bounds> {
     public Vector2Int min { get; }
     public Vector2Int max { get; }

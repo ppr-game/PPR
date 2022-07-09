@@ -1,9 +1,12 @@
-﻿using PER.Abstractions.Rendering;
+﻿using JetBrains.Annotations;
+
+using PER.Abstractions.Rendering;
 using PER.Abstractions.UI;
 using PER.Util;
 
 namespace PRR.UI;
 
+[PublicAPI]
 public class ProgressBar : Element {
     private struct AnimatedCharacter {
         private float speed { get; set; }

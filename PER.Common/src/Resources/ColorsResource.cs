@@ -1,10 +1,13 @@
 ﻿using System.Text.Json;
 
+using JetBrains.Annotations;
+
 using PER.Abstractions.Resources;
 using PER.Util;
 
 namespace PER.Common.Resources;
 
+[PublicAPI]
 public class ColorsResource : JsonResourceBase<IDictionary<string, (string?, Color)>> {
     public const string GlobalId = "graphics/colors";
 

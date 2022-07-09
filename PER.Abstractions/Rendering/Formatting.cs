@@ -1,7 +1,10 @@
-﻿using PER.Util;
+﻿using JetBrains.Annotations;
+
+using PER.Util;
 
 namespace PER.Abstractions.Rendering;
 
+[PublicAPI]
 public readonly struct Formatting {
     public Color foregroundColor { get; }
     public Color backgroundColor { get; }

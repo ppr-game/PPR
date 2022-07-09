@@ -1,8 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 
+using JetBrains.Annotations;
+
 namespace PER.Util;
 
+[PublicAPI]
 public static class Helper {
     public static void OpenUrl(string url) {
         try { Process.Start(url); }

@@ -1,9 +1,12 @@
-﻿using PER.Abstractions.Rendering;
+﻿using JetBrains.Annotations;
+
+using PER.Abstractions.Rendering;
 using PER.Abstractions.Resources;
 using PER.Util;
 
 namespace PER.Common.Effects;
 
+[PublicAPI]
 public class BloomEffect : IEffect, IResource {
     public const string GlobalId = "graphics/effects/bloom";
 

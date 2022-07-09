@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
+using JetBrains.Annotations;
+
 namespace PER.Abstractions.Resources;
 
+[PublicAPI]
 public interface IResources {
     public int currentVersion { get; }
     public bool loaded { get; }

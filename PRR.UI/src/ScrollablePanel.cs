@@ -1,10 +1,13 @@
-﻿using PER.Abstractions.Input;
+﻿using JetBrains.Annotations;
+
+using PER.Abstractions.Input;
 using PER.Abstractions.Rendering;
 using PER.Abstractions.UI;
 using PER.Util;
 
 namespace PRR.UI;
 
+[PublicAPI]
 public class ScrollablePanel : Element {
     public IInput input { get; set; }
 

@@ -1,6 +1,9 @@
-﻿namespace PER.Abstractions.Input;
+﻿using JetBrains.Annotations;
+
+namespace PER.Abstractions.Input;
 
 // *totally not copy-pasted from sfml either*
+[PublicAPI]
 public enum KeyCode {
     Unknown = -1, A = 0, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, Num0, Num1,
     Num2, Num3, Num4, Num5, Num6, Num7, Num8, Num9, Escape, LControl, LShift, LAlt, LSystem, RControl, RShift, RAlt,

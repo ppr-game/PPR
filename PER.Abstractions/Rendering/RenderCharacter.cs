@@ -1,9 +1,12 @@
 ﻿using System;
 
+using JetBrains.Annotations;
+
 using PER.Util;
 
 namespace PER.Abstractions.Rendering;
 
+[PublicAPI]
 public readonly struct RenderCharacter {
     public char character { get; }
     public Color background { get; }

@@ -1,7 +1,10 @@
-﻿using PER.Abstractions.Resources;
+﻿using JetBrains.Annotations;
+
+using PER.Abstractions.Resources;
 
 namespace PER.Common.Resources;
 
+[PublicAPI]
 public class IconResource : IResource {
     public const string GlobalId = "graphics/icon";
 

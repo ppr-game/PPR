@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Reflection;
 
+using JetBrains.Annotations;
+
 using NLog;
 
 using PER.Abstractions;
@@ -12,6 +14,7 @@ using PER.Util;
 
 namespace PER;
 
+[PublicAPI]
 public class Engine {
     private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 

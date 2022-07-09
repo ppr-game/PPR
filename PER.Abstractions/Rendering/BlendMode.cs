@@ -1,14 +1,19 @@
 ﻿using System;
 
+using JetBrains.Annotations;
+
 namespace PER.Abstractions.Rendering;
 
 // *i totally didn't just steal this from sfml*
+[PublicAPI]
 public readonly struct BlendMode : IEquatable<BlendMode> {
+    [PublicAPI]
     public enum Factor {
         Zero, One, SrcColor, OneMinusSrcColor, DstColor, OneMinusDstColor, SrcAlpha, OneMinusSrcAlpha, DstAlpha,
         OneMinusDstAlpha
     }
 
+    [PublicAPI]
     public enum Equation { Add, Subtract, ReverseSubtract, Min, Max }
 
     public static readonly BlendMode alpha =

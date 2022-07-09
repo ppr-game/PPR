@@ -1,8 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
+using JetBrains.Annotations;
+
 namespace PER.Abstractions.Audio;
 
+[PublicAPI]
 public interface IAudio {
     public IAudioMixer CreateMixer(IAudioMixer? parent = null);
 

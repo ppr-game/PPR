@@ -2,6 +2,8 @@
 using System.Globalization;
 using System.IO;
 
+using JetBrains.Annotations;
+
 using PER.Abstractions.Rendering;
 using PER.Util;
 
@@ -13,6 +15,7 @@ using Image = SixLabors.ImageSharp.Image;
 
 namespace PRR;
 
+[PublicAPI]
 public class Font : IFont {
     public IReadOnlyDictionary<(char, RenderStyle), Vector2[]> characters => _characters;
     public Vector2[] backgroundCharacter { get; private set; } = { new(), new(), new(), new() };

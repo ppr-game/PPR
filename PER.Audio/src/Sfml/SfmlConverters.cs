@@ -1,10 +1,13 @@
-﻿using PER.Abstractions.Audio;
+﻿using JetBrains.Annotations;
+
+using PER.Abstractions.Audio;
 
 using SFML.Audio;
 using SFML.System;
 
 namespace PER.Audio.Sfml;
 
+[PublicAPI]
 public static class SfmlConverters {
     private const long TicksPerMicrosecond = TimeSpan.TicksPerMillisecond / 1000;
 

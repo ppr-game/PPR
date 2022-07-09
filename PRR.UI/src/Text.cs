@@ -1,9 +1,12 @@
-﻿using PER.Abstractions.Rendering;
+﻿using JetBrains.Annotations;
+
+using PER.Abstractions.Rendering;
 using PER.Abstractions.UI;
 using PER.Util;
 
 namespace PRR.UI;
 
+[PublicAPI]
 public class Text : Element {
     public string? text { get; set; }
     public Dictionary<char, Formatting> formatting { get; set; } = new();

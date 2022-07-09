@@ -2,8 +2,11 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+using JetBrains.Annotations;
+
 namespace PER.Util;
 
+[PublicAPI]
 [JsonConverter(typeof(ArrayJsonConverter))]
 public readonly struct Vector2 : IEquatable<Vector2> {
     public float x { get; }

@@ -1,9 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
+using JetBrains.Annotations;
+
 using PER.Abstractions.Audio;
 
 namespace PER.Audio.Sfml;
 
+[PublicAPI]
 public class AudioManager : IAudio {
     private readonly Dictionary<string, IAudioMixer> _storedMixers = new();
 

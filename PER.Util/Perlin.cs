@@ -1,5 +1,8 @@
+using JetBrains.Annotations;
+
 namespace PER.Util;
 
+[PublicAPI]
 public class Perlin {
     private readonly int _repeat;
 

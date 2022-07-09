@@ -1,8 +1,11 @@
 ﻿using System;
 
+using JetBrains.Annotations;
+
 namespace PER.Abstractions.Rendering;
 
 #pragma warning disable CA1069
+[PublicAPI]
 [Flags]
 public enum RenderOptions : byte {
     Default = BackgroundAlphaBlending,
