@@ -62,6 +62,7 @@ public abstract class ClickableElementBase : Element {
     private Color _animForegroundColorEnd;
     private bool _toggled;
     private bool _toggledChanged;
+    private IReadOnlyStopwatch _lastClock = new Stopwatch();
 
     protected ClickableElementBase(IRenderer renderer, IInput input, IAudio? audio = null) : base(renderer) {
         this.input = input;
@@ -79,6 +80,7 @@ public abstract class ClickableElementBase : Element {
         if(currentState != prevState || _toggledChanged)
             StateChanged(clock, prevState, currentState);
         _toggledChanged = false;
+        _lastClock = clock;
     }
 
     private void StateChanged(IReadOnlyStopwatch clock, State from, State to) {
@@ -175,5 +177,6 @@ public abstract class ClickableElementBase : Element {
         if(TryGetColor(colors, type, layoutName, id, "click", special, out color) ||
             TryGetColor(colors, "clickable", layoutName, id, "click", special, out color))
             clickColor = color;
+        StateChanged(_lastClock, currentState, currentState);
     }
 }
