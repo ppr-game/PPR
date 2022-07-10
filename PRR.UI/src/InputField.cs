@@ -37,6 +37,15 @@ public class InputField : ClickableElementBase {
         }
     }
 
+    public override Vector2Int size {
+        get => base.size;
+        set {
+            base.size = value;
+            _animSpeeds = new float[value.y, value.x];
+            _animStartTimes = new TimeSpan[value.y, value.x];
+        }
+    }
+
     public string? value {
         get => _value;
         set {
@@ -81,13 +90,22 @@ public class InputField : ClickableElementBase {
     private bool typing => enabled && active && toggledSelf;
     private bool usePlaceholder => string.IsNullOrEmpty(value) && !typing;
 
+    private Vector2Int cursorPos {
+        get {
+            int cursor = _cursor - _textOffset;
+            return new Vector2Int(wrap ? cursor % size.x : cursor, wrap ? cursor / size.x : 0);
+        }
+    }
+
     private string? _value;
+    private int _cursor;
+    private int _textOffset;
 
     private IReadOnlyStopwatch _lastClock = new Stopwatch();
     private TimeSpan _lastTypeTime;
 
-    private int _cursor;
-    private int _textOffset;
+    private float[,] _animSpeeds = new float[0, 0];
+    private TimeSpan[,] _animStartTimes = new TimeSpan[0, 0];
 
     public InputField(IRenderer renderer, IInput input, IAudio? audio = null) : base(renderer, input, audio) { }
 
@@ -139,20 +157,22 @@ public class InputField : ClickableElementBase {
         RenderCharacter character = renderer.GetCharacter(position);
         char characterCharacter = character.character;
 
-        int cursor = _cursor - _textOffset;
-        int cursorX = wrap ? cursor % size.x : cursor;
-        int cursorY = wrap ? cursor / size.x : 0;
+        Vector2Int cursor = cursorPos;
+
+        bool isCursor = typing && x == cursor.x && y == cursor.y &&
+            (_lastClock.time - _lastTypeTime).TotalSeconds % 1d <= 0.5d;
 
         RenderStyle style = this.style;
-        if(typing && x == cursorX && y == cursorY && (int)(_lastClock.time - _lastTypeTime).TotalSeconds % 2 == 0) {
+        if(isCursor) {
             style |= RenderStyle.Underline;
             if(!renderer.IsCharacterDrawable(characterCharacter, style))
                 characterCharacter = ' ';
         }
 
-        if(usePlaceholder)
-            foregroundColor = new Color(foregroundColor.r, foregroundColor.g, foregroundColor.b,
-                foregroundColor.a * 0.5f);
+        float speed = _animSpeeds[y, x];
+        float t = speed == 0f ? 1f : (float)(_lastClock.time - _animStartTimes[y, x]).TotalSeconds * speed;
+        foregroundColor = new Color(foregroundColor.r, foregroundColor.g, foregroundColor.b,
+            MoreMath.Lerp(0f, foregroundColor.a, t) * (usePlaceholder ? 0.5f : 1f));
 
         character = new RenderCharacter(characterCharacter, backgroundColor, foregroundColor, style);
         renderer.DrawCharacter(position, character, RenderOptions.Default, effect);
@@ -172,18 +192,22 @@ public class InputField : ClickableElementBase {
             case KeyCode.Left:
                 cursor = Math.Clamp(cursor - 1, 0, value?.Length ?? 0);
                 _lastTypeTime = _lastClock.time;
+                Animate();
                 break;
             case KeyCode.Right:
                 cursor = Math.Clamp(cursor + 1, 0, value?.Length ?? 0);
                 _lastTypeTime = _lastClock.time;
+                Animate();
                 break;
             case KeyCode.Up:
                 cursor = wrap ? Math.Clamp(cursor - size.x, 0, value?.Length ?? 0) : 0;
                 _lastTypeTime = _lastClock.time;
+                Animate();
                 break;
             case KeyCode.Down:
                 cursor = wrap ? Math.Clamp(cursor + size.x, 0, value?.Length ?? 0) : value?.Length ?? 0;
                 _lastTypeTime = _lastClock.time;
+                Animate();
                 break;
         }
     }
@@ -238,6 +262,7 @@ public class InputField : ClickableElementBase {
         ReadOnlySpan<char> textLeft = cursor <= 0 ? ReadOnlySpan<char>.Empty : textSpan[..cursor];
         ReadOnlySpan<char> textRight = cursor >= textSpan.Length ? ReadOnlySpan<char>.Empty : textSpan[cursor..];
         value = $"{textLeft}{character}{textRight}";
+        Animate();
         cursor++;
     }
 
@@ -250,6 +275,7 @@ public class InputField : ClickableElementBase {
         ReadOnlySpan<char> textRight = cursor >= textSpan.Length ? ReadOnlySpan<char>.Empty : textSpan[cursor..];
         value = $"{textLeft}{textRight}";
         cursor--;
+        Animate();
     }
 
     private void EraseRight() {
@@ -261,11 +287,22 @@ public class InputField : ClickableElementBase {
         ReadOnlySpan<char> textRight =
             cursor >= textSpan.Length - 1 ? ReadOnlySpan<char>.Empty : textSpan[(cursor + 1)..];
         value = $"{textLeft}{textRight}";
+        Animate();
     }
 
     private void EraseAll() {
         PlaySound(audio, eraseSound, EraseSoundId);
         value = null;
         cursor = 0;
+        Animate();
+    }
+
+    private void Animate() => Animate(_lastClock, cursorPos);
+    private void Animate(IReadOnlyStopwatch clock, Vector2Int position) {
+        if(position.y < 0 || position.y >= _animSpeeds.GetLength(0) ||
+            position.x < 0 || position.x >= _animSpeeds.GetLength(1))
+            return;
+        _animSpeeds[position.y, position.x] = Random.Shared.NextSingle(MinSpeed, MaxSpeed);
+        _animStartTimes[position.y, position.x] = clock.time;
     }
 }

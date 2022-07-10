@@ -51,8 +51,8 @@ public abstract class ClickableElementBase : Element {
 
     protected abstract bool hotkeyPressed { get; }
 
-    private const float MinSpeed = 3f;
-    private const float MaxSpeed = 5f;
+    protected const float MinSpeed = 3f;
+    protected const float MaxSpeed = 5f;
 
     private float[,] _animSpeeds = new float[0, 0];
     private TimeSpan _animStartTime;
