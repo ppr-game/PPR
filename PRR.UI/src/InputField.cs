@@ -58,7 +58,7 @@ public class InputField : ClickableElementBase {
 
             int useTextOffset = wrap ? _textOffset / size.x : _textOffset;
             int useCursor = wrap ? _cursor / size.x : _cursor;
-            int useSize = wrap ? size.y + 1 : size.x;
+            int useSize = wrap ? size.y - 1 : size.x;
             int useTextLength = wrap ? (textLength - 1) / size.x : textLength;
 
             useTextOffset = Math.Clamp(useTextOffset, useCursor - useSize, useCursor);
