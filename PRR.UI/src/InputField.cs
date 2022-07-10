@@ -46,15 +46,23 @@ public class InputField : ClickableElementBase {
     public string? placeholder { get; set; }
     public RenderStyle style { get; set; } = RenderStyle.None;
 
+    public bool wrap { get; set; }
+
     public int cursor {
         get => _cursor;
         set {
-            _cursor = Math.Clamp(value, 0, this.value?.Length ?? 0);
-            int sizeX = size.x;
-            while(_cursor - _textOffset > sizeX)
-                _textOffset++;
-            while(_cursor - _textOffset < 0)
-                _textOffset--;
+            int textLength = this.value?.Length ?? 0;
+            _cursor = Math.Clamp(value, 0, textLength);
+
+            int useTextOffset = wrap ? _textOffset / size.x : _textOffset;
+            int useCursor = wrap ? _cursor / size.x : _cursor;
+            int useSize = wrap ? size.y + 1 : size.x;
+            int useTextLength = wrap ? (textLength - 1) / size.x : textLength;
+
+            useTextOffset = Math.Clamp(useTextOffset, useCursor - useSize, useCursor);
+            useTextOffset = Math.Clamp(useTextOffset, 0, Math.Max(useTextLength - useSize, 0));
+
+            _textOffset = wrap ? useTextOffset * size.x : useTextOffset;
         }
     }
 
@@ -118,9 +126,10 @@ public class InputField : ClickableElementBase {
             return;
         ReadOnlySpan<char> drawTextSpan = drawText.AsSpan();
         int textMin = Math.Clamp(_textOffset, 0, drawText.Length);
-        int textMax = Math.Clamp(_textOffset + size.x, 0, drawText.Length);
+        int textMax = Math.Clamp(_textOffset + size.x * (wrap ? size.y : 1), 0, drawText.Length);
         renderer.DrawText(position, drawTextSpan[textMin..textMax],
-            _ => new Formatting(Color.white, Color.transparent, style, RenderOptions.Default, effect));
+            _ => new Formatting(Color.white, Color.transparent, style, RenderOptions.Default, effect),
+            HorizontalAlignment.Left, wrap ? size.x : 0);
     }
 
     protected override void DrawCharacter(int x, int y, Color backgroundColor, Color foregroundColor) {
@@ -128,8 +137,12 @@ public class InputField : ClickableElementBase {
         RenderCharacter character = renderer.GetCharacter(position);
         char characterCharacter = character.character;
 
+        int cursor = _cursor - _textOffset;
+        int cursorX = wrap ? cursor % size.x : cursor;
+        int cursorY = wrap ? cursor / size.x : 0;
+
         RenderStyle style = this.style;
-        if(typing && x == cursor - _textOffset && (int)(_lastClock.time - _lastTypeTime).TotalSeconds % 2 == 0) {
+        if(typing && x == cursorX && y == cursorY && (int)(_lastClock.time - _lastTypeTime).TotalSeconds % 2 == 0) {
             style |= RenderStyle.Underline;
             if(!renderer.IsCharacterDrawable(characterCharacter, style))
                 characterCharacter = ' ';
@@ -160,6 +173,14 @@ public class InputField : ClickableElementBase {
                 break;
             case KeyCode.Right:
                 cursor = Math.Clamp(cursor + 1, 0, value?.Length ?? 0);
+                _lastTypeTime = _lastClock.time;
+                break;
+            case KeyCode.Up:
+                cursor = wrap ? Math.Clamp(cursor - size.x, 0, value?.Length ?? 0) : 0;
+                _lastTypeTime = _lastClock.time;
+                break;
+            case KeyCode.Down:
+                cursor = wrap ? Math.Clamp(cursor + size.x, 0, value?.Length ?? 0) : value?.Length ?? 0;
                 _lastTypeTime = _lastClock.time;
                 break;
         }

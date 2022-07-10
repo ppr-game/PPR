@@ -144,15 +144,18 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
     protected class LayoutResourceInputField : LayoutResourceElement {
         public string? value { get; }
         public string? placeholder { get; }
+        public bool? wrap { get; }
         public int? cursor { get; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public RenderStyle? style { get; }
         public bool? active { get; }
 
         public LayoutResourceInputField(bool? enabled, Vector2Int position, Vector2Int size, string? value,
-            string? placeholder, int? cursor, RenderStyle? style, bool? active) : base(enabled, position, size) {
+            string? placeholder, bool? wrap, int? cursor, RenderStyle? style, bool? active) :
+            base(enabled, position, size) {
             this.value = value;
             this.placeholder = placeholder;
+            this.wrap = wrap;
             this.cursor = cursor;
             this.style = style;
             this.active = active;
@@ -167,6 +170,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
                 placeholder = placeholder
             };
             if(enabled.HasValue) element.enabled = enabled.Value;
+            if(wrap.HasValue) element.wrap = wrap.Value;
             if(cursor.HasValue) element.cursor = cursor.Value;
             if(style.HasValue) element.style = style.Value;
             if(active.HasValue) element.active = active.Value;
