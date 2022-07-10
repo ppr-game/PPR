@@ -50,7 +50,7 @@ public class InputField : ClickableElementBase {
         get => _value;
         set {
             _value = value;
-            onTextChange?.Invoke(this, EventArgs.Empty);
+            onTextChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -84,7 +84,7 @@ public class InputField : ClickableElementBase {
     public IPlayable? submitSound { get; set; }
 
     public event EventHandler? onStartTyping;
-    public event EventHandler? onTextChange;
+    public event EventHandler? onTextChanged;
     public event EventHandler? onSubmit;
 
     protected override bool hotkeyPressed => false;
