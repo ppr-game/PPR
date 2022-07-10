@@ -9,6 +9,8 @@ namespace PRR.UI;
 
 [PublicAPI]
 public class Slider : ClickableElementBase {
+    protected override string type => "slider";
+
     public const string ValueChangedSoundId = "slider";
 
     public override Vector2Int size {

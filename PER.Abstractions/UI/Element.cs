@@ -1,4 +1,6 @@
-﻿using JetBrains.Annotations;
+﻿using System.Collections.Generic;
+
+using JetBrains.Annotations;
 
 using PER.Abstractions.Audio;
 using PER.Abstractions.Rendering;
@@ -36,4 +38,15 @@ public abstract class Element {
         else if(audio is not null && audio.TryGetPlayable(defaultId, out playable))
             playable.status = PlaybackStatus.Playing;
     }
+
+    public abstract void UpdateColors(Dictionary<string, Color> colors, string layoutName, string id, string? special);
+
+    protected static bool TryGetColor(Dictionary<string, Color> colors, string type, string layoutName, string id,
+        string colorName, string? special, out Color color) =>
+        special is not null && colors.TryGetValue($"{type}_{layoutName}.{id}_{colorName}_{special}", out color) ||
+        special is not null && colors.TryGetValue($"{type}_@{id}_{colorName}_{special}", out color) ||
+        special is not null && colors.TryGetValue($"{type}_{colorName}_{special}", out color) ||
+        colors.TryGetValue($"{type}_{layoutName}.{id}_{colorName}", out color) ||
+        colors.TryGetValue($"{type}_@{id}_{colorName}", out color) ||
+        colors.TryGetValue($"{type}_{colorName}", out color);
 }

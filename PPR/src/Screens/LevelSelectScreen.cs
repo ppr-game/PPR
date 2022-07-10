@@ -50,11 +50,13 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
     private const string MetadataFileName = "metadata.json";
     private const string ScoresPath = "scores.json";
 
-    private static readonly HashSet<string> contributors = new() { "sbeve" };
+    public static readonly IReadOnlyDictionary<string, string> authorToSpecial = new Dictionary<string, string> {
+        { "ConfiG", "ConfiG" },
+        { "sbeve", "contributor" }
+    };
 
     private Dictionary<Guid, LevelScore[]> _scores = new();
     private Button? _selectedLevelButton;
-    private Color? _metadataAuthorDefaultColor;
 
     private NewLevelDialogBoxScreen? _newLevelDialogBox;
 
@@ -197,17 +199,8 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
         author.text = metadata?.author;
         description.text = metadata?.description;
 
-        if(!author.formatting.TryGetValue('\0', out Formatting oldFormatting) || colors is null)
-            return;
-
-        _metadataAuthorDefaultColor ??= oldFormatting.foregroundColor;
-        Color newColor = _metadataAuthorDefaultColor.Value;
-        if(author.text == "ConfiG" && colors.colors.ContainsKey("special_ConfiG"))
-            newColor = colors.colors["special_ConfiG"];
-        else if(contributors.Contains(author.text ?? string.Empty) && colors.colors.ContainsKey("special_contributor"))
-            newColor = colors.colors["special_contributor"];
-        author.formatting['\0'] = new Formatting(newColor, oldFormatting.backgroundColor, oldFormatting.style,
-            oldFormatting.options, oldFormatting.effect);
+        author.UpdateColors(colors.colors, layoutName, "metadata.author",
+            authorToSpecial.TryGetValue(author.text ?? string.Empty, out string? special) ? special : null);
     }
 
     private void ResetScoresList() {
@@ -274,7 +267,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
             middleDivider.position += tempVector;
             maxCombo.position += tempVector;
 
-            if(accuracy.formatting.TryGetValue('\0', out Formatting oldFormatting) && colors is not null &&
+            if(accuracy.formatting.TryGetValue('\0', out Formatting oldFormatting) &&
                 // TODO: move this color selection thing to a different class
                 colors.colors.TryGetValue(currentScore.accuracy >= 100 ? "accuracy_good" :
                     currentScore.accuracy >= 70 ? "accuracy_ok" : "accuracy_bad", out Color accuracyColor))

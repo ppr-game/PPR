@@ -33,4 +33,17 @@ public class Text : Element {
                 new Formatting(Color.white, Color.transparent, RenderStyle.None, RenderOptions.Default, effect));
         renderer.DrawText(position, text, flag => formatting[flag], align, wrap ? size.x : 0);
     }
+
+    public override void UpdateColors(Dictionary<string, Color> colors, string layoutName, string id, string? special) {
+        Color foregroundColor = Color.white;
+        Color backgroundColor = Color.transparent;
+        if(TryGetColor(colors, "text", layoutName, id, "fg", special, out Color color))
+            foregroundColor = color;
+        if(TryGetColor(colors, "text", layoutName, id, "bg", special, out color))
+            backgroundColor = color;
+        formatting['\0'] = formatting.TryGetValue('\0', out Formatting oldFormatting) ?
+            new Formatting(foregroundColor, backgroundColor, oldFormatting.style, oldFormatting.options,
+                oldFormatting.effect) :
+            new Formatting(foregroundColor, backgroundColor);
+    }
 }

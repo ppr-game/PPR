@@ -9,6 +9,8 @@ namespace PRR.UI;
 
 [PublicAPI]
 public class InputField : ClickableElementBase {
+    protected override string type => "inputField";
+
     public const string TypeSoundId = "inputFieldType";
     public const string EraseSoundId = "inputFieldErase";
     public const string SubmitSoundId = "inputFieldSubmit";

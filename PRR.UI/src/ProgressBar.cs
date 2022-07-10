@@ -79,4 +79,7 @@ public class ProgressBar : Element {
                     new RenderCharacter('\0', _anim[x, y].Get(clock.time), Color.transparent), RenderOptions.Default,
                     effect);
     }
+
+    public override void UpdateColors(Dictionary<string, Color> colors, string layoutName, string id,
+        string? special) => throw new NotImplementedException();
 }

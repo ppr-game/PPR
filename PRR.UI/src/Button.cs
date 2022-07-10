@@ -9,6 +9,8 @@ namespace PRR.UI;
 
 [PublicAPI]
 public class Button : ClickableElementBase {
+    protected override string type => "button";
+
     public KeyCode? hotkey { get; set; }
 
     public string? text { get; set; }

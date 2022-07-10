@@ -18,4 +18,7 @@ public class FilledPanel : Element {
             for(int x = bounds.min.x; x <= bounds.max.x; x++)
                 renderer.DrawCharacter(new Vector2Int(x, y), character, RenderOptions.Default, effect);
     }
+
+    public override void UpdateColors(Dictionary<string, Color> colors, string layoutName, string id,
+        string? special) => throw new NotImplementedException();
 }

@@ -76,4 +76,7 @@ public class ScrollablePanel : Element {
             elements[i].Update(clock);
         }
     }
+
+    public override void UpdateColors(Dictionary<string, Color> colors, string layoutName, string id,
+        string? special) { }
 }

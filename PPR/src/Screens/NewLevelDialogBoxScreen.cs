@@ -36,6 +36,12 @@ public class NewLevelDialogBoxScreen : DialogBoxScreenResourceBase {
     public override void Load(string id, IResources resources) {
         base.Load(id, resources);
 
+        if(elements["metadata.author"] is InputField author) author.onTextChange += (_, _) => {
+            author.UpdateColors(colors.colors, layoutName, "metadata.author",
+                LevelSelectScreen.authorToSpecial.TryGetValue(
+                    author.value ?? string.Empty, out string? special) ? special : null);
+        };
+
         if(elements["cancel"] is Button cancel) cancel.onClick += (_, _) => {
             onCancel?.Invoke();
         };

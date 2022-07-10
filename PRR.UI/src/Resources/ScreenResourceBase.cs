@@ -91,12 +91,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
                         textFormatting.GetFormatting(colors, renderer.formattingEffects));
             if(align.HasValue) element.align = align.Value;
             if(wrap.HasValue) element.wrap = wrap.Value;
-
-            Color foregroundColor = Color.white;
-            Color backgroundColor = Color.transparent;
-            if(TryGetColor(colors, "text", layoutName, id, "fg", out Color color)) foregroundColor = color;
-            if(TryGetColor(colors, "text", layoutName, id, "bg", out color)) backgroundColor = color;
-            element.formatting.Add('\0', new Formatting(foregroundColor, backgroundColor));
+            element.UpdateColors(colors, layoutName, id, null);
             return element;
         }
     }
@@ -128,14 +123,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
             if(style.HasValue) element.style = style.Value;
             if(active.HasValue) element.active = active.Value;
             if(toggled.HasValue) element.toggled = toggled.Value;
-            if(TryGetColor(colors, "button", layoutName, id, "inactive", out Color color))
-                element.inactiveColor = color;
-            if(TryGetColor(colors, "button", layoutName, id, "idle", out color))
-                element.idleColor = color;
-            if(TryGetColor(colors, "button", layoutName, id, "hover", out color))
-                element.hoverColor = color;
-            if(TryGetColor(colors, "button", layoutName, id, "click", out color))
-                element.clickColor = color;
+            element.UpdateColors(colors, layoutName, id, null);
             return element;
         }
     }
@@ -174,14 +162,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
             if(cursor.HasValue) element.cursor = cursor.Value;
             if(style.HasValue) element.style = style.Value;
             if(active.HasValue) element.active = active.Value;
-            if(TryGetColor(colors, "inputField", layoutName, id, "inactive", out Color color))
-                element.inactiveColor = color;
-            if(TryGetColor(colors, "inputField", layoutName, id, "idle", out color))
-                element.idleColor = color;
-            if(TryGetColor(colors, "inputField", layoutName, id, "hover", out color))
-                element.hoverColor = color;
-            if(TryGetColor(colors, "inputField", layoutName, id, "click", out color))
-                element.clickColor = color;
+            element.UpdateColors(colors, layoutName, id, null);
             return element;
         }
     }
@@ -216,14 +197,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
             if(minValue.HasValue) element.minValue = minValue.Value;
             if(maxValue.HasValue) element.maxValue = maxValue.Value;
             if(active.HasValue) element.active = active.Value;
-            if(TryGetColor(colors, "slider", layoutName, id, "inactive", out Color color))
-                element.inactiveColor = color;
-            if(TryGetColor(colors, "slider", layoutName, id, "idle", out color))
-                element.idleColor = color;
-            if(TryGetColor(colors, "slider", layoutName, id, "hover", out color))
-                element.hoverColor = color;
-            if(TryGetColor(colors, "slider", layoutName, id, "click", out color))
-                element.clickColor = color;
+            element.UpdateColors(colors, layoutName, id, null);
             return element;
         }
     }
@@ -252,7 +226,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
     protected abstract IReadOnlyDictionary<string, Type> elementTypes { get; }
 
     protected IReadOnlyDictionary<string, Element> elements { get; private set; } = new Dictionary<string, Element>();
-    protected ColorsResource? colors { get; private set; }
+    protected ColorsResource colors { get; private set; } = new();
 
     public override void Load(string id, IResources resources) {
         if(!resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors))

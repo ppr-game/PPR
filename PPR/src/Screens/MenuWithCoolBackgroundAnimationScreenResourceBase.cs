@@ -15,7 +15,7 @@ public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : Screen
 
     public override void Load(string id, IResources resources) {
         base.Load(id, resources);
-        if(colors is null || !colors.colors.TryGetValue("menus_anim_max", out Color menusAnimMax))
+        if(!colors.colors.TryGetValue("menus_anim_max", out Color menusAnimMax))
             menusAnimMax = Color.white;
         _animMax = menusAnimMax;
     }
