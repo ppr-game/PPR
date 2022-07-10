@@ -196,9 +196,9 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
             };
             if(enabled.HasValue) element.enabled = enabled.Value;
             if(width.HasValue) element.width = width.Value;
-            if(value.HasValue) element.value = value.Value;
             if(minValue.HasValue) element.minValue = minValue.Value;
             if(maxValue.HasValue) element.maxValue = maxValue.Value;
+            if(value.HasValue) element.value = value.Value;
             if(active.HasValue) element.active = active.Value;
             element.UpdateColors(colors, layoutName, id, null);
             return element;

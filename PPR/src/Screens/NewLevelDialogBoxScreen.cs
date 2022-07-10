@@ -36,11 +36,25 @@ public class NewLevelDialogBoxScreen : DialogBoxScreenResourceBase {
     public override void Load(string id, IResources resources) {
         base.Load(id, resources);
 
-        if(elements["metadata.author"] is InputField author) author.onTextChange += (_, _) => {
+        if(elements["metadata.author"] is InputField author) author.onTextChanged += (_, _) => {
             author.UpdateColors(colors.colors, layoutName, "metadata.author",
                 LevelSelectScreen.authorToSpecial.TryGetValue(
                     author.value ?? string.Empty, out string? special) ? special : null);
         };
+
+        if(elements["metadata.difficulty"] is Slider difficulty &&
+            elements["metadata.difficulty.text"] is Text difficultyText) {
+            void ValueChanged() {
+                int difficultyValue = (int)difficulty.value;
+                // TODO: move this clamp to a separate class
+                string difficultyTextSpecial = Math.Clamp(difficultyValue, 1, 10).ToString();
+                difficultyText.text = difficultyValue.ToString();
+                difficulty.UpdateColors(colors.colors, layoutName, "metadata.difficulty", difficultyTextSpecial);
+                difficultyText.UpdateColors(colors.colors, layoutName, "metadata.difficulty", difficultyTextSpecial);
+            }
+            ValueChanged();
+            difficulty.onValueChanged += (_, _) => { ValueChanged(); };
+        }
 
         if(elements["cancel"] is Button cancel) cancel.onClick += (_, _) => {
             onCancel?.Invoke();

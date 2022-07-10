@@ -199,6 +199,9 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
         author.text = metadata?.author;
         description.text = metadata?.description;
 
+        // TODO: move this clamp to a separate class
+        difficulty.UpdateColors(colors.colors, layoutName, "metadata.difficulty",
+            Math.Clamp(metadata?.difficulty ?? 0, 1, 10).ToString());
         author.UpdateColors(colors.colors, layoutName, "metadata.author",
             authorToSpecial.TryGetValue(author.text ?? string.Empty, out string? special) ? special : null);
     }

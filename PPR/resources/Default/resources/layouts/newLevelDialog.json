@@ -21,6 +21,7 @@
     "metadata.difficulty": {
         "position": { "x": 39, "y": 22 },
         "width": 10,
+        "value": 3,
         "minValue": 1,
         "maxValue": 10
     },
