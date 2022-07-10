@@ -77,6 +77,8 @@ public class InputField : ClickableElementBase {
         }
     }
 
+    public float blinkRate { get; set; } = 1f;
+
     public IPlayable? typeSound { get; set; }
     public IPlayable? eraseSound { get; set; }
     public IPlayable? submitSound { get; set; }
@@ -160,7 +162,7 @@ public class InputField : ClickableElementBase {
         Vector2Int cursor = cursorPos;
 
         bool isCursor = typing && x == cursor.x && y == cursor.y &&
-            (_lastClock.time - _lastTypeTime).TotalSeconds % 1d <= 0.5d;
+            (_lastClock.time - _lastTypeTime).TotalSeconds * blinkRate % 1d <= 0.5d;
 
         RenderStyle style = this.style;
         if(isCursor) {

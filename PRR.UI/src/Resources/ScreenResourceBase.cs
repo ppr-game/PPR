@@ -134,17 +134,19 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         public string? placeholder { get; }
         public bool? wrap { get; }
         public int? cursor { get; }
+        public float? blinkRate { get; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public RenderStyle? style { get; }
         public bool? active { get; }
 
         public LayoutResourceInputField(bool? enabled, Vector2Int position, Vector2Int size, string? value,
-            string? placeholder, bool? wrap, int? cursor, RenderStyle? style, bool? active) :
+            string? placeholder, bool? wrap, int? cursor, float? blinkRate, RenderStyle? style, bool? active) :
             base(enabled, position, size) {
             this.value = value;
             this.placeholder = placeholder;
             this.wrap = wrap;
             this.cursor = cursor;
+            this.blinkRate = blinkRate;
             this.style = style;
             this.active = active;
         }
@@ -160,6 +162,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
             if(enabled.HasValue) element.enabled = enabled.Value;
             if(wrap.HasValue) element.wrap = wrap.Value;
             if(cursor.HasValue) element.cursor = cursor.Value;
+            if(blinkRate.HasValue) element.blinkRate = blinkRate.Value;
             if(style.HasValue) element.style = style.Value;
             if(active.HasValue) element.active = active.Value;
             element.UpdateColors(colors, layoutName, id, null);
