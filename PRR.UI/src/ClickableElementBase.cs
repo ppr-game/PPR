@@ -10,7 +10,7 @@ namespace PRR.UI;
 
 [PublicAPI]
 public abstract class ClickableElementBase : Element {
-    public enum State { None, Inactive, Idle, FakeHovered, Hovered, Clicked, Hotkey }
+    public enum State { None, Inactive, Idle, FakeHovered, Hovered, FakeClicked, Clicked, Hotkey }
     public const string ClickSoundId = "buttonClick";
 
     protected abstract string type { get; }
@@ -70,15 +70,21 @@ public abstract class ClickableElementBase : Element {
     }
 
     protected virtual void UpdateState(IReadOnlyStopwatch clock) {
+        State prevState = currentState;
+
         bool mouseWasOver = bounds.IntersectsLine(input.previousMousePosition, input.mousePosition);
         bool mouseOver = input.mousePosition.InBounds(bounds);
         bool mouseClicked = input.MouseButtonPressed(MouseButton.Left);
-        State prevState = currentState;
-        currentState = active ? hotkeyPressed ? State.Hotkey :
-            mouseWasOver ? mouseOver ? mouseClicked ?
-                State.Clicked : State.Hovered : State.FakeHovered : State.Idle : State.Inactive;
+
+        State clickedState = mouseOver ? State.Clicked : State.FakeClicked;
+        State hoveredState = mouseOver ? State.Hovered : State.FakeHovered;
+        State overState = mouseClicked ? clickedState : hoveredState;
+
+        currentState = active ? hotkeyPressed ? State.Hotkey : mouseWasOver ? overState : State.Idle : State.Inactive;
+
         if(currentState != prevState || _toggledChanged)
             StateChanged(clock, prevState, currentState);
+
         _toggledChanged = false;
         _lastClock = clock;
     }
@@ -97,11 +103,10 @@ public abstract class ClickableElementBase : Element {
                 StartAnimation(clock, _toggled ? clickColor : idleColor, _toggled ? idleColor : hoverColor, instant);
                 break;
             case State.FakeHovered:
-                StartAnimation(clock, hoverColor, idleColor, instant);
-                break;
             case State.Hovered:
                 StartAnimation(clock, hoverColor, idleColor, instant);
                 break;
+            case State.FakeClicked:
             case State.Clicked:
                 StartAnimation(clock, clickColor, idleColor, instant);
                 break;
