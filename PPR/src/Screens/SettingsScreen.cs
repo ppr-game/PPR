@@ -22,21 +22,21 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
     protected override IReadOnlyDictionary<string, Type> elementTypes { get; } = new Dictionary<string, Type> {
         { "frame", typeof(LayoutResourceText) },
         { "header.audio", typeof(LayoutResourceText) },
+        { "volume.master.value", typeof(LayoutResourceText) },
         { "volume.master", typeof(LayoutResourceSlider) },
         { "volume.master.label", typeof(LayoutResourceText) },
-        { "volume.master.value", typeof(LayoutResourceText) },
+        { "volume.music.value", typeof(LayoutResourceText) },
         { "volume.music", typeof(LayoutResourceSlider) },
         { "volume.music.label", typeof(LayoutResourceText) },
-        { "volume.music.value", typeof(LayoutResourceText) },
+        { "volume.sfx.value", typeof(LayoutResourceText) },
         { "volume.sfx", typeof(LayoutResourceSlider) },
         { "volume.sfx.label", typeof(LayoutResourceText) },
-        { "volume.sfx.value", typeof(LayoutResourceText) },
         { "header.video", typeof(LayoutResourceText) },
         { "bloom", typeof(LayoutResourceButton) },
         { "fullscreen", typeof(LayoutResourceButton) },
+        { "fpsLimit.value", typeof(LayoutResourceText) },
         { "fpsLimit", typeof(LayoutResourceSlider) },
         { "fpsLimit.label", typeof(LayoutResourceText) },
-        { "fpsLimit.value", typeof(LayoutResourceText) },
         { "uppercaseNotes", typeof(LayoutResourceButton) },
         { "header.advanced", typeof(LayoutResourceText) },
         { "showFps", typeof(LayoutResourceButton) },
@@ -62,7 +62,7 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
         LoadVideo();
         LoadAdvanced();
 
-        if(elements["back"] is Button back) back.onClick += (_, _) => {
+        GetElement<Button>("back").onClick += (_, _) => {
             if(_reload)
                 Core.engine.Reload();
             if(Core.engine.resources.TryGetResource(MainMenuScreen.GlobalId, out MainMenuScreen? screen))
@@ -74,91 +74,92 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
     private void LoadAudio() {
         CultureInfo culture = CultureInfo.InvariantCulture;
 
-        if(elements["volume.master"] is Slider volumeMaster)
-            volumeMaster.onValueChanged += (_, _) => {
-                _settings.masterVolume = volumeMaster.value;
-                if(elements["volume.master.value"] is Text label)
-                    label.text = _settings.masterVolume.ToString(culture);
-                _settings.ApplyVolumes();
-            };
+        Slider volumeMaster = GetElement<Slider>("volume.master");
+        volumeMaster.onValueChanged += (_, _) => {
+            _settings.masterVolume = volumeMaster.value;
+            GetElement<Text>("volume.master.value").text = _settings.masterVolume.ToString(culture);
+            _settings.ApplyVolumes();
+        };
 
-        if(elements["volume.music"] is Slider volumeMusic)
-            volumeMusic.onValueChanged += (_, _) => {
-                _settings.musicVolume = volumeMusic.value;
-                if(elements["volume.music.value"] is Text label)
-                    label.text = _settings.musicVolume.ToString(culture);
-                _settings.ApplyVolumes();
-            };
+        Slider volumeMusic = GetElement<Slider>("volume.music");
+        volumeMusic.onValueChanged += (_, _) => {
+            _settings.musicVolume = volumeMusic.value;
+            GetElement<Text>("volume.music.value").text = _settings.musicVolume.ToString(culture);
+            _settings.ApplyVolumes();
+        };
 
-        if(elements["volume.sfx"] is Slider volumeSfx)
-            volumeSfx.onValueChanged += (_, _) => {
-                _settings.sfxVolume = volumeSfx.value;
-                if(elements["volume.sfx.value"] is Text label)
-                    label.text = _settings.sfxVolume.ToString(culture);
-                _settings.ApplyVolumes();
-            };
+        Slider volumeSfx = GetElement<Slider>("volume.sfx");
+        volumeSfx.onValueChanged += (_, _) => {
+            _settings.sfxVolume = volumeSfx.value;
+            GetElement<Text>("volume.sfx.value").text = _settings.sfxVolume.ToString(culture);
+            _settings.ApplyVolumes();
+        };
     }
 
     private void LoadVideo() {
         CultureInfo culture = CultureInfo.InvariantCulture;
 
-        if(elements["bloom"] is Button bloom) bloom.onClick += (_, _) => {
+        Button bloom = GetElement<Button>("bloom");
+        bloom.onClick += (_, _) => {
             _settings.bloom = !_settings.bloom;
             bloom.toggled = _settings.bloom;
         };
 
-        if(elements["fullscreen"] is Button fullscreen) fullscreen.onClick += (_, _) => {
+        Button fullscreen = GetElement<Button>("fullscreen");
+        fullscreen.onClick += (_, _) => {
             _settings.fullscreen = !_settings.fullscreen;
             fullscreen.toggled = _settings.fullscreen;
             _reload = true;
         };
 
-        if(elements["fpsLimit"] is Slider fpsLimit)
-            fpsLimit.onValueChanged += (_, _) => {
-                _settings.fpsLimit = (int)fpsLimit.value * 60;
-                if(elements["fpsLimit.value"] is Text label)
-                    label.text = (int)fpsLimit.value switch {
-                        (int)ReservedFramerates.Vsync => "VSync",
-                        (int)ReservedFramerates.Unlimited => "Unlimited",
-                        _ => _settings.fpsLimit.ToString(culture)
-                    };
-                Core.engine.renderer.framerate = _settings.fpsLimit;
+        Slider fpsLimit = GetElement<Slider>("fpsLimit");
+        fpsLimit.onValueChanged += (_, _) => {
+            _settings.fpsLimit = (int)fpsLimit.value * 60;
+            Core.engine.renderer.framerate = _settings.fpsLimit;
+            GetElement<Text>("fpsLimit.value").text = (int)fpsLimit.value switch {
+                (int)ReservedFramerates.Vsync => "VSync",
+                (int)ReservedFramerates.Unlimited => "Unlimited",
+                _ => _settings.fpsLimit.ToString(culture)
             };
+        };
 
-        if(elements["uppercaseNotes"] is Button uppercaseNotes) uppercaseNotes.onClick += (_, _) => {
+        Button uppercaseNotes = GetElement<Button>("uppercaseNotes");
+        uppercaseNotes.onClick += (_, _) => {
             _settings.uppercaseNotes = !_settings.uppercaseNotes;
             uppercaseNotes.toggled = _settings.uppercaseNotes;
         };
     }
 
     private void LoadAdvanced() {
-        if(elements["showFps"] is Button showFps) showFps.onClick += (_, _) => {
+        Button showFps = GetElement<Button>("showFps");
+        showFps.onClick += (_, _) => {
             _settings.showFps = !_settings.showFps;
             showFps.toggled = _settings.showFps;
         };
     }
 
     public override void Open() {
-        if(elements["volume.master"] is Slider volumeMaster) volumeMaster.value = _settings.masterVolume;
-        if(elements["volume.music"] is Slider volumeMusic) volumeMusic.value = _settings.musicVolume;
-        if(elements["volume.sfx"] is Slider volumeSfx) volumeSfx.value = _settings.sfxVolume;
-        if(elements["bloom"] is Button bloom) bloom.toggled = _settings.bloom;
-        if(elements["fullscreen"] is Button fullscreen) fullscreen.toggled = _settings.fullscreen;
-        if(elements["fpsLimit"] is Slider fpsLimit) fpsLimit.value = _settings.fpsLimit / 60f;
-        if(elements["uppercaseNotes"] is Button uppercaseNotes) uppercaseNotes.toggled = _settings.uppercaseNotes;
-        if(elements["showFps"] is Button showFps) showFps.toggled = _settings.showFps;
+        GetElement<Slider>("volume.master").value = _settings.masterVolume;
+        GetElement<Slider>("volume.music").value = _settings.musicVolume;
+        GetElement<Slider>("volume.sfx").value = _settings.sfxVolume;
+        GetElement<Button>("bloom").toggled = _settings.bloom;
+        GetElement<Button>("fullscreen").toggled = _settings.fullscreen;
+        GetElement<Slider>("fpsLimit").value = _settings.fpsLimit / 60f;
+        GetElement<Button>("uppercaseNotes").toggled = _settings.uppercaseNotes;
+        GetElement<Button>("showFps").toggled = _settings.showFps;
 
-        if(elements["pack.description"] is Text text) text.text = "";
+        GetElement<Text>("pack.description").text = "";
         OpenPacks();
 
         _reload = false;
     }
 
     private void OpenPacks() {
-        if(elements["packs"] is not ScrollablePanel panel ||
-           elements["template_pack.toggle"] is not Button toggleTemplate ||
-           elements["template_pack.up"] is not Button upTemplate ||
-           elements["template_pack.down"] is not Button downTemplate) return;
+        ScrollablePanel panel = GetElement<ScrollablePanel>("packs");
+        Button toggleTemplate = GetElement<Button>("template_pack.toggle");
+        Button upTemplate = GetElement<Button>("template_pack.up");
+        Button downTemplate = GetElement<Button>("template_pack.down");
+
         toggleTemplate.enabled = false;
         upTemplate.enabled = false;
         downTemplate.enabled = false;
@@ -222,8 +223,7 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
             UpdatePacks();
         };
         toggleButton.onHover += (_, _) => {
-            if(elements["pack.description"] is Text text)
-                text.text = pack.meta.description;
+            GetElement<Text>("pack.description").text = pack.meta.description;
         };
 
         Button moveUpButton = Button.Clone(upTemplate);

@@ -2,7 +2,6 @@
 using PER.Abstractions.Input;
 using PER.Abstractions.Rendering;
 using PER.Abstractions.Resources;
-using PER.Common.Effects;
 using PER.Util;
 
 using PRR.UI;
@@ -26,7 +25,7 @@ public class NewLevelDialogBoxScreen : DialogBoxScreenResourceBase {
         { "metadata.description", typeof(LayoutResourceInputField) },
         { "metadata.author", typeof(LayoutResourceInputField) },
         { "metadata.difficulty", typeof(LayoutResourceSlider) },
-        { "metadata.difficulty.text", typeof(LayoutResourceText) },
+        { "metadata.difficulty.value", typeof(LayoutResourceText) },
         { "cancel", typeof(LayoutResourceButton) },
         { "create", typeof(LayoutResourceButton) }
     };
@@ -36,31 +35,29 @@ public class NewLevelDialogBoxScreen : DialogBoxScreenResourceBase {
     public override void Load(string id, IResources resources) {
         base.Load(id, resources);
 
-        if(elements["metadata.author"] is InputField author) author.onTextChanged += (_, _) => {
+        InputField author = GetElement<InputField>("metadata.author");
+        author.onTextChanged += (_, _) => {
             author.UpdateColors(colors.colors, layoutName, "metadata.author",
                 LevelSelectScreen.authorToSpecial.TryGetValue(
                     author.value ?? string.Empty, out string? special) ? special : null);
         };
 
-        if(elements["metadata.difficulty"] is Slider difficulty &&
-            elements["metadata.difficulty.text"] is Text difficultyText) {
-            void ValueChanged() {
-                int difficultyValue = (int)difficulty.value;
-                // TODO: move this clamp to a separate class
-                string difficultyTextSpecial = Math.Clamp(difficultyValue, 1, 10).ToString();
-                difficultyText.text = difficultyValue.ToString();
-                difficulty.UpdateColors(colors.colors, layoutName, "metadata.difficulty", difficultyTextSpecial);
-                difficultyText.UpdateColors(colors.colors, layoutName, "metadata.difficulty", difficultyTextSpecial);
-            }
-            ValueChanged();
-            difficulty.onValueChanged += (_, _) => { ValueChanged(); };
+        Slider difficulty = GetElement<Slider>("metadata.difficulty");
+        void DifficultyChanged() {
+            Text text = GetElement<Text>("metadata.difficulty.value");
+            int difficultyValue = (int)difficulty.value;
+            // TODO: move this clamp to a separate class
+            string special = Math.Clamp(difficultyValue, 1, 10).ToString();
+            text.text = difficultyValue.ToString();
+            difficulty.UpdateColors(colors.colors, layoutName, "metadata.difficulty", special);
+            text.UpdateColors(colors.colors, layoutName, "metadata.difficulty", special);
         }
+        DifficultyChanged();
+        difficulty.onValueChanged += (_, _) => { DifficultyChanged(); };
 
-        if(elements["cancel"] is Button cancel) cancel.onClick += (_, _) => {
-            onCancel?.Invoke();
-        };
+        GetElement<Button>("cancel").onClick += (_, _) => { onCancel?.Invoke(); };
 
-        if(elements["create"] is Button create) create.onClick += (_, _) => { };
+        GetElement<Button>("create").onClick += (_, _) => { };
     }
 
     public override void Close() {

@@ -228,8 +228,10 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
     protected abstract string layoutName { get; }
     protected abstract IReadOnlyDictionary<string, Type> elementTypes { get; }
 
-    protected IReadOnlyDictionary<string, Element> elements { get; private set; } = new Dictionary<string, Element>();
+    protected IEnumerable<KeyValuePair<string, Element>> elements => _elements;
     protected ColorsResource colors { get; private set; } = new();
+
+    private Dictionary<string, Element> _elements = new();
 
     public override void Load(string id, IResources resources) {
         if(!resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors))
@@ -244,14 +246,12 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         if(layoutElements.Count != elementTypes.Count)
             throw new InvalidOperationException("Not all elements were loaded.");
 
-        Dictionary<string, Element> elements = new();
+        _elements.Clear();
         foreach((string elementId, LayoutResourceElement layoutElement) in layoutElements) {
             Element element = layoutElement.GetElement(resources, renderer,
                 input, audio, colors.colors, layoutName, elementId);
-            elements.Add(elementId, element);
+            _elements.Add(elementId, element);
         }
-
-        this.elements = elements;
     }
 
     protected override void DeserializeJson(string path, IDictionary<string, LayoutResourceElement> deserialized) {
@@ -274,10 +274,21 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         }
     }
 
-    public override void Unload(string id, IResources resources) => elements = new Dictionary<string, Element>();
+    public override void Unload(string id, IResources resources) => _elements.Clear();
 
     public abstract void Open();
     public abstract void Close();
     public abstract void Update();
     public abstract void Tick();
+
+    protected T GetElement<T>(string id) where T : Element {
+        if(!_elements.ContainsKey(id))
+            throw new InvalidOperationException($"Element {id} does not exist.");
+
+        Element element = _elements[id];
+        if(element is not T typedElement)
+            throw new InvalidOperationException($"Element {id} is not {nameof(T)}.");
+
+        return typedElement;
+    }
 }

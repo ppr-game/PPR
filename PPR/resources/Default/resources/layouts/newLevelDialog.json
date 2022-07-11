@@ -25,7 +25,7 @@
         "minValue": 1,
         "maxValue": 10
     },
-    "metadata.difficulty.text": {
+    "metadata.difficulty.value": {
         "position": { "x": 50, "y": 22 },
         "text": "{0}"
     },

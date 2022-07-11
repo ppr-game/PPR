@@ -63,7 +63,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
     public override void Load(string id, IResources resources) {
         base.Load(id, resources);
 
-        if(elements["edit_new"] is Button editNew) editNew.onClick += (_, _) => {
+        GetElement<Button>("edit_new").onClick += (_, _) => {
             if(!Core.engine.resources.TryGetResource(NewLevelDialogBoxScreen.GlobalId, out _newLevelDialogBox))
                 return;
             _newLevelDialogBox.onCancel += () => {
@@ -75,24 +75,25 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
             Core.engine.game.FadeScreen(_newLevelDialogBox.Open);
         };
 
-        if(elements["back"] is Button back) back.onClick += (_, _) => {
+        GetElement<Button>("back").onClick += (_, _) => {
             if(Core.engine.resources.TryGetResource(MainMenuScreen.GlobalId, out MainMenuScreen? screen))
                 Core.engine.game.SwitchScreen(screen);
         };
     }
 
     public override void Open() {
-        if(elements["levels"] is not ScrollablePanel levels ||
-            elements["template_level"] is not Button levelTemplate ||
-            elements["template_error_level"] is not Button errorLevelTemplate ||
-            elements["template_score.score"] is not Text scoreTemplate ||
-            elements["template_score.accuracy"] is not Text accuracyTemplate ||
-            elements["template_score.middleDivider"] is not Text middleDividerTemplate ||
-            elements["template_score.maxCombo"] is not Text maxComboTemplate ||
-            elements["template_score.mini.misses"] is not Text missesTemplate ||
-            elements["template_score.mini.hits"] is not Text hitsTemplate ||
-            elements["template_score.mini.perfectHits"] is not Text perfectHitsTemplate ||
-            elements["template_score.divider"] is not Text dividerTemplate) return;
+        ScrollablePanel panel = GetElement<ScrollablePanel>("levels");
+        Button levelTemplate = GetElement<Button>("template_level");
+        Button errorLevelTemplate = GetElement<Button>("template_error_level");
+        Text scoreTemplate = GetElement<Text>("template_score.score");
+        Text accuracyTemplate = GetElement<Text>("template_score.accuracy");
+        Text middleDividerTemplate = GetElement<Text>("template_score.middleDivider");
+        Text maxComboTemplate = GetElement<Text>("template_score.maxCombo");
+        Text missesTemplate = GetElement<Text>("template_score.mini.misses");
+        Text hitsTemplate = GetElement<Text>("template_score.mini.hits");
+        Text perfectHitsTemplate = GetElement<Text>("template_score.mini.perfectHits");
+        Text dividerTemplate = GetElement<Text>("template_score.divider");
+
         levelTemplate.enabled = false;
         errorLevelTemplate.enabled = false;
         scoreTemplate.enabled = false;
@@ -107,7 +108,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
         if(TryReadScoreList(out Dictionary<Guid, LevelScore[]>? scores))
             _scores = scores;
 
-        GenerateLevelSelector(levels, levelTemplate, errorLevelTemplate, scoreTemplate, accuracyTemplate,
+        GenerateLevelSelector(panel, levelTemplate, errorLevelTemplate, scoreTemplate, accuracyTemplate,
             middleDividerTemplate, maxComboTemplate, missesTemplate, hitsTemplate, perfectHitsTemplate,
             dividerTemplate);
     }
@@ -126,10 +127,10 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
         return scores is not null;
     }
 
-    private void GenerateLevelSelector(ScrollablePanel levels, Button levelTemplate, Button errorLevelTemplate,
+    private void GenerateLevelSelector(ScrollablePanel panel, Button levelTemplate, Button errorLevelTemplate,
         Text scoreTemplate, Text accuracyTemplate, Text middleDividerTemplate, Text maxComboTemplate,
         Text missesTemplate, Text hitsTemplate, Text perfectHitsTemplate, Text dividerTemplate) {
-        levels.elements.Clear();
+        panel.elements.Clear();
 
         int y = 0;
         foreach((LevelMetadata metadata, string path, string? error) in ReadLevelList()) {
@@ -138,7 +139,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
             Button levelButton = Button.Clone(template);
             levelButton.enabled = true;
             levelButton.position =
-                levels.position + template.position + new Vector2Int(0, y * template.size.y + levels.scroll);
+                panel.position + template.position + new Vector2Int(0, y * template.size.y + panel.scroll);
             levelButton.text =
                 metadata.name.Length > template.size.x ? metadata.name[..template.size.x] : metadata.name;
             levelButton.toggled = false;
@@ -151,7 +152,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
                     maxComboTemplate, missesTemplate, hitsTemplate, perfectHitsTemplate, dividerTemplate);
                 _selectedLevelButton = levelButton;
             };
-            levels.elements.Add(levelButton);
+            panel.elements.Add(levelButton);
             y++;
         }
     }
@@ -189,10 +190,10 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
 
     private void ResetMetadataPanel() => UpdateMetadataPanel(null);
     private void UpdateMetadataPanel(LevelMetadata? metadata) {
-        if(elements["metadata.labels"] is not Text labels ||
-            elements["metadata.difficulty"] is not Text difficulty ||
-            elements["metadata.author"] is not Text author ||
-            elements["metadata.description"] is not Text description) return;
+        Text labels = GetElement<Text>("metadata.labels");
+        Text difficulty = GetElement<Text>("metadata.difficulty");
+        Text author = GetElement<Text>("metadata.author");
+        Text description = GetElement<Text>("metadata.description");
 
         labels.enabled = metadata is not null;
         difficulty.text = metadata?.difficulty.ToString();
@@ -207,17 +208,14 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
     }
 
     private void ResetScoresList() {
-        if(elements["scores"] is not ScrollablePanel scores)
-            return;
-        foreach(Element element in scores.elements)
+        foreach(Element element in GetElement<ScrollablePanel>("scores").elements)
             element.enabled = false;
     }
 
     private void UpdateScoresList(Guid levelGuid, Text scoreTemplate, Text accuracyTemplate,
         Text middleDividerTemplate, Text maxComboTemplate, Text missesTemplate, Text hitsTemplate,
         Text perfectHitsTemplate, Text dividerTemplate) {
-        if(elements["scores"] is not ScrollablePanel scores)
-            return;
+        ScrollablePanel scores = GetElement<ScrollablePanel>("scores");
 
         if(!_scores.TryGetValue(levelGuid, out LevelScore[]? currentScores))
             currentScores = Array.Empty<LevelScore>();

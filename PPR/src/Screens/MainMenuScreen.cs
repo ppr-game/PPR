@@ -35,40 +35,42 @@ public class MainMenuScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
     public override void Load(string id, IResources resources) {
         base.Load(id, resources);
 
-        if(elements["play"] is Button play) play.onClick += (_, _) => {
-            if(!Core.engine.resources.TryGetResource(LevelSelectScreen.GlobalId, out LevelSelectScreen? screen)) return;
+        GetElement<Button>("play").onClick += (_, _) => {
+            if(!Core.engine.resources.TryGetResource(LevelSelectScreen.GlobalId, out LevelSelectScreen? screen))
+                return;
             screen.mode = PlayerMode.Play;
             Core.engine.game.SwitchScreen(screen);
         };
 
-        if(elements["edit"] is Button edit) edit.onClick += (_, _) => {
+        GetElement<Button>("edit").onClick += (_, _) => {
             if(!Core.engine.resources.TryGetResource(LevelSelectScreen.GlobalId, out LevelSelectScreen? screen)) return;
             screen.mode = PlayerMode.Edit;
             Core.engine.game.SwitchScreen(screen);
         };
 
-        if(elements["settings"] is Button settings) settings.onClick += (_, _) => {
+        GetElement<Button>("settings").onClick += (_, _) => {
             if(Core.engine.resources.TryGetResource(SettingsScreen.GlobalId, out SettingsScreen? screen))
                 Core.engine.game.SwitchScreen(screen);
         };
 
-        if(elements["exit"] is Button exit) exit.onClick += (_, _) => {
+        GetElement<Button>("exit").onClick += (_, _) => {
             Core.engine.game.SwitchScreen(null);
         };
 
-        if(elements["sfml"] is Button sfml) sfml.onClick += (_, _) => {
+        GetElement<Button>("sfml").onClick += (_, _) => {
             Helper.OpenUrl("https://sfml-dev.org");
         };
 
-        if(elements["github"] is Button github) github.onClick += (_, _) => {
+        GetElement<Button>("github").onClick += (_, _) => {
             Helper.OpenUrl("https://github.com/ppr-game/PPR");
         };
 
-        if(elements["discord"] is Button discord) discord.onClick += (_, _) => {
+        GetElement<Button>("discord").onClick += (_, _) => {
             Helper.OpenUrl("https://discord.gg/AuYUVs5");
         };
 
-        if(elements["versions"] is Text versions) versions.text =
+        Text versions = GetElement<Text>("versions");
+        versions.text =
             string.Format(versions.text ?? string.Empty, Core.version, Core.engineVersion, Core.abstractionsVersion,
                 Core.utilVersion, Core.commonVersion, Core.audioVersion, Core.rendererVersion, Core.uiVersion);
     }
