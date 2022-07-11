@@ -233,6 +233,7 @@ public class InputField : ClickableElementBase {
                     Cut();
                     break;
                 default:
+                    PlaySound(audio, typeSound, TypeSoundId);
                     TypeDrawable(character);
                     break;
             }
@@ -244,6 +245,7 @@ public class InputField : ClickableElementBase {
     }
 
     private void Paste() {
+        PlaySound(audio, typeSound, TypeSoundId);
         foreach(char character in input.clipboard)
             TypeDrawable(character);
     }
@@ -259,7 +261,6 @@ public class InputField : ClickableElementBase {
     }
 
     private void Type(char character) {
-        PlaySound(audio, typeSound, TypeSoundId);
         ReadOnlySpan<char> textSpan = value.AsSpan();
         ReadOnlySpan<char> textLeft = cursor <= 0 ? ReadOnlySpan<char>.Empty : textSpan[..cursor];
         ReadOnlySpan<char> textRight = cursor >= textSpan.Length ? ReadOnlySpan<char>.Empty : textSpan[cursor..];
