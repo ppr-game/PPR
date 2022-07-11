@@ -5,10 +5,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <LangVersion>10</LangVersion>
         <Nullable>enable</Nullable>
-        <PackageVersion>0.1.0</PackageVersion>
-        <Authors>ConfiG</Authors>
-        <RepositoryUrl>https://github.com/ppr-game/PPR</RepositoryUrl>
-        <RepositoryType>Git</RepositoryType>
+        <Version>0.1.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,35 +16,17 @@
       <ProjectReference Include="..\PRR.UI\PRR.UI.csproj" />
       <ProjectReference Include="..\PRR\PRR.csproj" />
     </ItemGroup>
-    
+
     <ItemGroup>
-        <None Update="NLog.config">
+        <None Update="NLog.config;resources\*">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="resources\*">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="resources\graphics\blend-max_frag.glsl">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="resources\graphics\bloom_frag.glsl">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="resources\graphics\default_vert.glsl">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="resources\graphics\font\font.png">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="resources\graphics\font\mappings.txt">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
-    
+
     <ItemGroup>
       <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
     </ItemGroup>
-    
+
     <ItemGroup>
       <Folder Include="resources\Default\resources" />
       <Folder Include="resources\Some Other Resources\resources\graphics" />

@@ -26,7 +26,8 @@ public class MainMenuScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
         { "exit", typeof(LayoutResourceButton) },
         { "sfml", typeof(LayoutResourceButton) },
         { "github", typeof(LayoutResourceButton) },
-        { "discord", typeof(LayoutResourceButton) }
+        { "discord", typeof(LayoutResourceButton) },
+        { "versions", typeof(LayoutResourceText) }
     };
 
     // shut up
@@ -66,6 +67,10 @@ public class MainMenuScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
         if(elements["discord"] is Button discord) discord.onClick += (_, _) => {
             Helper.OpenUrl("https://discord.gg/AuYUVs5");
         };
+
+        if(elements["versions"] is Text versions) versions.text =
+            string.Format(versions.text ?? string.Empty, Core.version, Core.engineVersion, Core.abstractionsVersion,
+                Core.utilVersion, Core.commonVersion, Core.audioVersion, Core.rendererVersion, Core.uiVersion);
     }
 
     public override void Open() { }

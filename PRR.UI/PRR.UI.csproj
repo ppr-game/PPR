@@ -4,10 +4,8 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <PackageVersion>0.1.0</PackageVersion>
-        <Title></Title>
+        <Version>0.1.0</Version>
         <Authors>ConfiG</Authors>
-        <Copyright></Copyright>
         <RepositoryUrl>https://github.com/ppr-game/PPR</RepositoryUrl>
         <RepositoryType>Git</RepositoryType>
     </PropertyGroup>

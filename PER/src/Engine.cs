@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection;
 
 using JetBrains.Annotations;
 
@@ -18,9 +17,8 @@ namespace PER;
 public class Engine {
     private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-    public static readonly string version = Assembly.GetExecutingAssembly()
-        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-        ?.InformationalVersion ?? "0.0.0";
+    public static readonly string version = Helper.GetVersion();
+    public static readonly string abstractionsVersion = Helper.GetVersion(typeof(IGame));
 
     public IReadOnlyStopwatch clock => _clock;
     public double deltaTime { get; private set; }
