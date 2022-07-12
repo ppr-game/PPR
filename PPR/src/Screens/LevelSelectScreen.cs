@@ -6,9 +6,11 @@ using PER.Abstractions.Input;
 using PER.Abstractions.Rendering;
 using PER.Abstractions.Resources;
 using PER.Abstractions.UI;
+using PER.Common.Resources;
 using PER.Util;
 
 using PRR.UI;
+using PRR.UI.Resources;
 
 namespace PPR.Screens;
 
@@ -24,18 +26,8 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
     protected override string layoutName => "levelSelect";
     protected override IReadOnlyDictionary<string, Type> elementTypes { get; } = new Dictionary<string, Type> {
         { "frame", typeof(LayoutResourceText) },
-        { "scores", typeof(LayoutResourceScrollablePanel) },
-        { "template_score.score", typeof(LayoutResourceText) },
-        { "template_score.accuracy", typeof(LayoutResourceText) },
-        { "template_score.middleDivider", typeof(LayoutResourceText) },
-        { "template_score.maxCombo", typeof(LayoutResourceText) },
-        { "template_score.mini.misses", typeof(LayoutResourceText) },
-        { "template_score.mini.hits", typeof(LayoutResourceText) },
-        { "template_score.mini.perfectHits", typeof(LayoutResourceText) },
-        { "template_score.divider", typeof(LayoutResourceText) },
-        { "levels", typeof(LayoutResourceScrollablePanel) },
-        { "template_level", typeof(LayoutResourceButton) },
-        { "template_error_level", typeof(LayoutResourceButton) },
+        { "scores", typeof(LayoutResourceListBox<LevelScore>) },
+        { "levels", typeof(LayoutResourceListBox<LevelItem>) },
         { "metadata.labels", typeof(LayoutResourceText) },
         { "metadata.difficulty", typeof(LayoutResourceText) },
         { "metadata.author", typeof(LayoutResourceText) },
@@ -60,6 +52,11 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
 
     private NewLevelDialogBoxScreen? _newLevelDialogBox;
 
+    public LevelSelectScreen(IResources resources) {
+        resources.TryAddResource(LevelSelectorTemplate.GlobalId, new LevelSelectorTemplate());
+        resources.TryAddResource(ScoreListTemplate.GlobalId, new ScoreListTemplate());
+    }
+
     public override void Load(string id, IResources resources) {
         base.Load(id, resources);
 
@@ -82,35 +79,9 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
     }
 
     public override void Open() {
-        ScrollablePanel panel = GetElement<ScrollablePanel>("levels");
-        Button levelTemplate = GetElement<Button>("template_level");
-        Button errorLevelTemplate = GetElement<Button>("template_error_level");
-        Text scoreTemplate = GetElement<Text>("template_score.score");
-        Text accuracyTemplate = GetElement<Text>("template_score.accuracy");
-        Text middleDividerTemplate = GetElement<Text>("template_score.middleDivider");
-        Text maxComboTemplate = GetElement<Text>("template_score.maxCombo");
-        Text missesTemplate = GetElement<Text>("template_score.mini.misses");
-        Text hitsTemplate = GetElement<Text>("template_score.mini.hits");
-        Text perfectHitsTemplate = GetElement<Text>("template_score.mini.perfectHits");
-        Text dividerTemplate = GetElement<Text>("template_score.divider");
-
-        levelTemplate.enabled = false;
-        errorLevelTemplate.enabled = false;
-        scoreTemplate.enabled = false;
-        accuracyTemplate.enabled = false;
-        middleDividerTemplate.enabled = false;
-        maxComboTemplate.enabled = false;
-        missesTemplate.enabled = false;
-        hitsTemplate.enabled = false;
-        perfectHitsTemplate.enabled = false;
-        dividerTemplate.enabled = false;
-
         if(TryReadScoreList(out Dictionary<Guid, LevelScore[]>? scores))
             _scores = scores;
-
-        GenerateLevelSelector(panel, levelTemplate, errorLevelTemplate, scoreTemplate, accuracyTemplate,
-            middleDividerTemplate, maxComboTemplate, missesTemplate, hitsTemplate, perfectHitsTemplate,
-            dividerTemplate);
+        GenerateLevelSelector();
     }
 
     private static bool TryReadScoreList([NotNullWhen(true)] out Dictionary<Guid, LevelScore[]>? scores) {
@@ -127,37 +98,73 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
         return scores is not null;
     }
 
-    private void GenerateLevelSelector(ScrollablePanel panel, Button levelTemplate, Button errorLevelTemplate,
-        Text scoreTemplate, Text accuracyTemplate, Text middleDividerTemplate, Text maxComboTemplate,
-        Text missesTemplate, Text hitsTemplate, Text perfectHitsTemplate, Text dividerTemplate) {
-        panel.elements.Clear();
+    // TODO: use path
+    // ReSharper disable once NotAccessedPositionalProperty.Local
+    private record struct LevelItem(LevelMetadata metadata, string path, string? error);
 
-        int y = 0;
-        foreach((LevelMetadata metadata, string path, string? error) in ReadLevelList()) {
-            Button template = error is null ? levelTemplate : errorLevelTemplate;
+    private class LevelSelectorTemplate : ListBoxTemplateResourceBase<LevelItem> {
+        // ReSharper disable once MemberHidesStaticFromOuterClass
+        public const string GlobalId = "layouts/templates/levelItem";
 
-            Button levelButton = Button.Clone(template);
-            levelButton.enabled = true;
-            levelButton.position =
-                panel.position + template.position + new Vector2Int(0, y * template.size.y + panel.scroll);
-            levelButton.text =
-                metadata.name.Length > template.size.x ? metadata.name[..template.size.x] : metadata.name;
-            levelButton.toggled = false;
-            levelButton.onHover += (_, _) => {
-                if(_selectedLevelButton is not null)
-                    _selectedLevelButton.toggled = false;
-                levelButton.toggled = true;
-                UpdateMetadataPanel(metadata);
-                UpdateScoresList(metadata.guid, scoreTemplate, accuracyTemplate, middleDividerTemplate,
-                    maxComboTemplate, missesTemplate, hitsTemplate, perfectHitsTemplate, dividerTemplate);
-                _selectedLevelButton = levelButton;
-            };
-            panel.elements.Add(levelButton);
-            y++;
+        protected override IRenderer renderer => Core.engine.renderer;
+        protected override IInput input => Core.engine.input;
+        protected override IAudio audio => Core.engine.audio;
+
+        protected override string layoutName => "levelItem";
+
+        protected override IReadOnlyDictionary<string, Type> elementTypes { get; } = new Dictionary<string, Type> {
+            { "level", typeof(LayoutResourceButton) },
+            { "error_level", typeof(LayoutResourceButton) }
+        };
+
+        private LevelSelectScreen? _screen;
+
+        public override void Load(string id, IResources resources) {
+            base.Load(id, resources);
+            if(!resources.TryGetResource(LevelSelectScreen.GlobalId, out LevelSelectScreen? screen))
+                throw new InvalidOperationException("Missing dependency.");
+            _screen = screen;
         }
+
+        private class Template : TemplateBase {
+            private readonly LevelSelectorTemplate _resource;
+
+            public Template(LevelSelectorTemplate resource) : base(resource) => _resource = resource;
+
+            public override void UpdateWithItem(int index, LevelItem item, int width) {
+                if(_resource._screen is null)
+                    return;
+                LevelSelectScreen screen = _resource._screen;
+
+                GetElement<Button>(item.error is null ? "error_level" : "level").enabled = false;
+                Button levelButton = GetElement<Button>(item.error is null ? "level" : "error_level");
+                levelButton.enabled = true;
+                levelButton.text =
+                    item.metadata.name.Length > levelButton.size.x ? item.metadata.name[..levelButton.size.x] :
+                        item.metadata.name;
+                levelButton.toggled = false;
+                levelButton.onHover += (_, _) => {
+                    if(screen._selectedLevelButton is not null)
+                        screen._selectedLevelButton.toggled = false;
+                    levelButton.toggled = true;
+                    screen.UpdateMetadataPanel(item.metadata);
+                    screen.UpdateScoreList(item.metadata.guid);
+                    screen._selectedLevelButton = levelButton;
+                };
+            }
+        }
+
+        public override IListBoxTemplateFactory<LevelItem>.Template CreateTemplate() => new Template(this);
     }
 
-    private static IEnumerable<(LevelMetadata metadata, string path, string? error)> ReadLevelList() {
+    private void GenerateLevelSelector() {
+        ListBox<LevelItem> levels = GetElement<ListBox<LevelItem>>("levels");
+        levels.Clear();
+        foreach(LevelItem item in ReadLevelList())
+            levels.Add(item);
+    }
+
+    private static IEnumerable<LevelItem> ReadLevelList() {
         foreach(string levelDirectory in Directory.EnumerateDirectories(LevelsPath)) {
             string directoryName = Path.GetFileName(levelDirectory);
             if(directoryName == TemplateLevelName)
@@ -166,7 +173,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
             LevelMetadata metadata = new(0, Guid.Empty, directoryName, string.Empty, string.Empty, -1);
             string metadataPath = Path.Join(levelDirectory, MetadataFileName);
             if(!File.Exists(metadataPath)) {
-                yield return (metadata, levelDirectory, "Metadata file not found.");
+                yield return new LevelItem(metadata, levelDirectory, "Metadata file not found.");
                 continue;
             }
 
@@ -179,12 +186,12 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
             metadataFile.Close();
 
             if(jsonException is not null) {
-                yield return (metadata, levelDirectory,
+                yield return new LevelItem(metadata, levelDirectory,
                     $"Error in {jsonException.Path} at {jsonException.LineNumber}:\n{jsonException.Message}");
                 continue;
             }
 
-            yield return (metadata, levelDirectory, null);
+            yield return new LevelItem(metadata, levelDirectory, null);
         }
     }
 
@@ -207,126 +214,138 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
             authorToSpecial.TryGetValue(author.text ?? string.Empty, out string? special) ? special : null);
     }
 
-    private void ResetScoresList() {
+    private void ResetScoreList() {
         foreach(Element element in GetElement<ScrollablePanel>("scores").elements)
             element.enabled = false;
     }
 
-    private void UpdateScoresList(Guid levelGuid, Text scoreTemplate, Text accuracyTemplate,
-        Text middleDividerTemplate, Text maxComboTemplate, Text missesTemplate, Text hitsTemplate,
-        Text perfectHitsTemplate, Text dividerTemplate) {
-        ScrollablePanel scores = GetElement<ScrollablePanel>("scores");
+    private void UpdateScoreList(Guid levelGuid) {
+        ListBox<LevelScore> scores = GetElement<ListBox<LevelScore>>("scores");
 
         if(!_scores.TryGetValue(levelGuid, out LevelScore[]? currentScores))
             currentScores = Array.Empty<LevelScore>();
 
-        foreach(Element element in scores.elements)
-            element.enabled = false;
-
-        for(int i = 0; i < currentScores.Length; i++)
-            UpdateScore(scores, scoreTemplate, accuracyTemplate, middleDividerTemplate, maxComboTemplate,
-                missesTemplate, hitsTemplate, perfectHitsTemplate, dividerTemplate, currentScores, i);
+        scores.Clear();
+        foreach(LevelScore currentScore in currentScores)
+            scores.Add(currentScore);
     }
 
-    private void UpdateScore(ScrollablePanel scores, Text scoreTemplate, Text accuracyTemplate,
-        Text middleDividerTemplate, Text maxComboTemplate, Text missesTemplate, Text hitsTemplate,
-        Text perfectHitsTemplate, Text dividerTemplate, IReadOnlyList<LevelScore> currentScores, int i) {
-        LevelScore currentScore = currentScores[i];
+    private class ScoreListTemplate : ListBoxTemplateResourceBase<LevelScore> {
+        // ReSharper disable once MemberHidesStaticFromOuterClass
+        public const string GlobalId = "layouts/templates/scoreItem";
 
-        const int elementsPerScore = 8;
-        const int scoreIndex = 0;
-        const int accuracyIndex = 1;
-        const int middleDividerIndex = 2;
-        const int maxComboIndex = 3;
-        const int missesIndex = 4;
-        const int hitsIndex = 5;
-        const int perfectHitsIndex = 6;
+        protected override IRenderer renderer => Core.engine.renderer;
+        protected override IInput input => Core.engine.input;
+        protected override IAudio audio => Core.engine.audio;
 
-        int offset = i * elementsPerScore;
+        protected override string layoutName => "scoreItem";
+        protected override IReadOnlyDictionary<string, Type> elementTypes { get; } = new Dictionary<string, Type> {
+            { "score", typeof(LayoutResourceText) },
+            { "accuracy", typeof(LayoutResourceText) },
+            { "middleDivider", typeof(LayoutResourceText) },
+            { "maxCombo", typeof(LayoutResourceText) },
+            { "mini.misses", typeof(LayoutResourceText) },
+            { "mini.hits", typeof(LayoutResourceText) },
+            { "mini.perfectHits", typeof(LayoutResourceText) },
+            { "divider", typeof(LayoutResourceText) }
+        };
 
-        if(scores.elements.Count <= offset)
-            GenerateNewScore(scores, scoreTemplate, accuracyTemplate, middleDividerTemplate, maxComboTemplate,
-                missesTemplate, hitsTemplate, perfectHitsTemplate, dividerTemplate);
+        private ColorsResource _colors = new();
 
-        for(int j = 0; j < elementsPerScore; j++)
-            scores.elements[offset + j].enabled = true;
+        private string _scoreTemplate = "{0}";
+        private string _accuracyTemplate = "{0}";
+        private string _maxComboTemplate = "{0}";
+        private string _missesTemplate = "{0}";
+        private string _hitsTemplate = "{0}";
+        private string _perfectHitsTemplate = "{0}";
 
-        if(scores.elements[offset + scoreIndex] is Text score)
-            score.text = string.Format(scoreTemplate.text ?? "{0}", currentScore.score.ToString());
-        if(scores.elements[offset + accuracyIndex] is Text accuracy &&
-            scores.elements[offset + maxComboIndex] is Text maxCombo) {
-            Element middleDivider = scores.elements[offset + middleDividerIndex];
+        public override void Load(string id, IResources resources) {
+            base.Load(id, resources);
+            if(!resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors))
+                throw new InvalidOperationException("Missing dependency.");
+            _colors = colors;
 
-            Vector2Int tempVector = new(accuracy.text?.Length ?? 0, 0);
-            middleDivider.position -= tempVector;
-            maxCombo.position -= tempVector;
-
-            accuracy.text = string.Format(accuracyTemplate.text ?? "{0}", currentScore.accuracy.ToString());
-            maxCombo.text = string.Format(maxComboTemplate.text ?? "{0}", currentScore.maxCombo.ToString());
-
-            tempVector = new Vector2Int(accuracy.text.Length, 0);
-            middleDivider.position += tempVector;
-            maxCombo.position += tempVector;
-
-            if(accuracy.formatting.TryGetValue('\0', out Formatting oldFormatting) &&
-                // TODO: move this color selection thing to a different class
-                colors.colors.TryGetValue(currentScore.accuracy >= 100 ? "accuracy_good" :
-                    currentScore.accuracy >= 70 ? "accuracy_ok" : "accuracy_bad", out Color accuracyColor))
-                accuracy.formatting['\0'] = new Formatting(accuracyColor, oldFormatting.backgroundColor,
-                    oldFormatting.style, oldFormatting.options, oldFormatting.effect);
+            _scoreTemplate = GetElement<Text>("score").text ?? _scoreTemplate;
+            _accuracyTemplate = GetElement<Text>("accuracy").text ?? _accuracyTemplate;
+            _maxComboTemplate = GetElement<Text>("maxCombo").text ?? _maxComboTemplate;
+            _missesTemplate = GetElement<Text>("mini.misses").text ?? _maxComboTemplate;
+            _hitsTemplate = GetElement<Text>("mini.hits").text ?? _hitsTemplate;
+            _perfectHitsTemplate = GetElement<Text>("mini.perfectHits").text ?? _perfectHitsTemplate;
         }
-        // ReSharper disable once InvertIf
-        if(scores.elements[offset + missesIndex] is Text misses &&
-            scores.elements[offset + hitsIndex] is Text hits &&
-            scores.elements[offset + perfectHitsIndex] is Text perfectHits) {
-            misses.text = string.Format(missesTemplate.text ?? "{0}", currentScore.scores[0].ToString());
-            hits.text = string.Format(hitsTemplate.text ?? "{0}", currentScore.scores[1].ToString());
-            perfectHits.text = string.Format(perfectHitsTemplate.text ?? "{0}", currentScore.scores[2].ToString());
 
-            hits.position = new Vector2Int(misses.position.x + misses.text.Length + 1, hits.position.y);
-            perfectHits.position = new Vector2Int(hits.position.x + hits.text.Length + 1, perfectHits.position.y);
+        private class Template : TemplateBase {
+            private readonly ScoreListTemplate _resource;
+
+            private readonly int _middleDividerOffset;
+            private readonly int _maxComboOffset;
+            private readonly int _hitsOffset;
+            private readonly int _perfectHitsOffset;
+
+            public Template(ScoreListTemplate resource) : base(resource) {
+                height++;
+                _resource = resource;
+
+                Text accuracy = resource.GetElement<Text>("accuracy");
+                Text middleDivider = resource.GetElement<Text>("middleDivider");
+                Text maxCombo = resource.GetElement<Text>("maxCombo");
+                _middleDividerOffset = middleDivider.position.x - ((accuracy.text?.Length ?? 0) + accuracy.position.x);
+                _maxComboOffset = maxCombo.position.x - ((middleDivider.text?.Length ?? 0) + middleDivider.position.x);
+
+                Text misses = resource.GetElement<Text>("mini.misses");
+                Text hits = resource.GetElement<Text>("mini.hits");
+                Text perfectHits = resource.GetElement<Text>("mini.perfectHits");
+                _hitsOffset = hits.position.x - ((misses.text?.Length ?? 0) + misses.position.x);
+                _perfectHitsOffset = perfectHits.position.x - ((hits.text?.Length ?? 0) + hits.position.x);
+            }
+
+            public override void UpdateWithItem(int index, LevelScore item, int width) {
+                GetElement<Text>("score").text = string.Format(_resource._scoreTemplate, item.score.ToString());
+
+                Text accuracy = GetElement<Text>("accuracy");
+                Text middleDivider = GetElement<Text>("middleDivider");
+                Text maxCombo = GetElement<Text>("maxCombo");
+
+                accuracy.text = string.Format(_resource._accuracyTemplate, item.accuracy.ToString());
+                maxCombo.text = string.Format(_resource._maxComboTemplate, item.maxCombo.ToString());
+
+                offsets["middleDivider"] =
+                    new Vector2Int((accuracy.text?.Length ?? 0) + offsets["accuracy"].x + _middleDividerOffset,
+                        offsets["middleDivider"].y);
+                offsets["maxCombo"] =
+                    new Vector2Int((middleDivider.text?.Length ?? 0) + offsets["middleDivider"].x + _maxComboOffset,
+                        offsets["maxCombo"].y);
+
+                if(accuracy.formatting.TryGetValue('\0', out Formatting oldFormatting) &&
+                    // TODO: move this color selection thing to a different class
+                    _resource._colors.colors.TryGetValue(item.accuracy >= 100 ? "accuracy_good" :
+                        item.accuracy >= 70 ? "accuracy_ok" : "accuracy_bad", out Color accuracyColor))
+                    accuracy.formatting['\0'] = new Formatting(accuracyColor, oldFormatting.backgroundColor,
+                        oldFormatting.style, oldFormatting.options, oldFormatting.effect);
+
+                Text misses = GetElement<Text>("mini.misses");
+                Text hits = GetElement<Text>("mini.hits");
+                Text perfectHits = GetElement<Text>("mini.perfectHits");
+
+                misses.text = string.Format(_resource._missesTemplate, item.scores[0].ToString());
+                hits.text = string.Format(_resource._hitsTemplate, item.scores[1].ToString());
+                perfectHits.text = string.Format(_resource._perfectHitsTemplate, item.scores[2].ToString());
+
+                offsets["mini.hits"] =
+                    new Vector2Int((misses.text?.Length ?? 0) + offsets["mini.misses"].x + _hitsOffset,
+                        offsets["mini.hits"].y);
+                offsets["mini.perfectHits"] =
+                    new Vector2Int((hits.text?.Length ?? 0) + offsets["mini.hits"].x + _perfectHitsOffset,
+                        offsets["mini.perfectHits"].y);
+            }
         }
-    }
 
-    private static void GenerateNewScore(ScrollablePanel scores, Text scoreTemplate, Text accuracyTemplate,
-        Text middleDividerTemplate, Text maxComboTemplate, Text missesTemplate, Text hitsTemplate,
-        Text perfectHitsTemplate, Text dividerTemplate) {
-        Vector2Int offset = new(scores.position.x, scores.elements.Count > 0 ?
-            scores.elements.Select(element => element.bounds.max.y).Max() + 2 :
-            scores.position.y);
-
-        Text score = Text.Clone(scoreTemplate);
-        Text accuracy = Text.Clone(accuracyTemplate);
-        Text middleDivider = Text.Clone(middleDividerTemplate);
-        Text maxCombo = Text.Clone(maxComboTemplate);
-        Text misses = Text.Clone(missesTemplate);
-        Text hits = Text.Clone(hitsTemplate);
-        Text perfectHits = Text.Clone(perfectHitsTemplate);
-        Text divider = Text.Clone(dividerTemplate);
-
-        score.position += offset;
-        accuracy.position += offset;
-        middleDivider.position += offset;
-        maxCombo.position += offset;
-        misses.position += offset;
-        hits.position += offset;
-        perfectHits.position += offset;
-        divider.position += offset;
-
-        scores.elements.Add(score);
-        scores.elements.Add(accuracy);
-        scores.elements.Add(middleDivider);
-        scores.elements.Add(maxCombo);
-        scores.elements.Add(misses);
-        scores.elements.Add(hits);
-        scores.elements.Add(perfectHits);
-        scores.elements.Add(divider);
+        public override IListBoxTemplateFactory<LevelScore>.Template CreateTemplate() => new Template(this);
     }
 
     public override void Close() {
         _selectedLevelButton = null;
         ResetMetadataPanel();
-        ResetScoresList();
+        ResetScoreList();
     }
 
     public override void Update() {

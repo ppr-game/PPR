@@ -1,0 +1,16 @@
+﻿{
+    "toggle": {
+        "position": { "x": 0, "y": 0 },
+        "size": { "x": 28, "y": 1 }
+    },
+    "up": {
+        "position": { "x": 28, "y": 0 },
+        "size": { "x": 1, "y": 1 },
+        "text": "▲"
+    },
+    "down": {
+        "position": { "x": 29, "y": 0 },
+        "size": { "x": 1, "y": 1 },
+        "text": "▼"
+    }
+}

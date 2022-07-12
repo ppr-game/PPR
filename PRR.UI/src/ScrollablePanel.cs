@@ -40,6 +40,8 @@ public class ScrollablePanel : Element {
         input.scrolled += Scrolled;
     }
 
+    public override Element Clone() => throw new NotImplementedException();
+
     // ReSharper disable once CognitiveComplexity
     private void Scrolled(object? o, IInput.ScrolledEventArgs args) {
         if(!input.mousePosition.InBounds(bounds) || !_allowScrolling || elements.Count == 0)

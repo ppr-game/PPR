@@ -99,21 +99,8 @@
     },
     "packs": {
         "position": { "x": 48, "y": 15 },
-        "size": { "x": 30, "y": 30 }
-    },
-    "template_pack.toggle": {
-        "position": { "x": 0, "y": 0 },
-        "size": { "x": 28, "y": 1 }
-    },
-    "template_pack.up": {
-        "position": { "x": 28, "y": 0 },
-        "size": { "x": 1, "y": 1 },
-        "text": "▲"
-    },
-    "template_pack.down": {
-        "position": { "x": 29, "y": 0 },
-        "size": { "x": 1, "y": 1 },
-        "text": "▼"
+        "size": { "x": 30, "y": 30 },
+        "template": "resourcePackItem"
     },
     "back": {
         "position": { "x": 2, "y": 57 },

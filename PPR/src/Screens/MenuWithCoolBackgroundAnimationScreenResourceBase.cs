@@ -1,4 +1,5 @@
-﻿using PER.Abstractions.Rendering;
+﻿using PER.Abstractions;
+using PER.Abstractions.Rendering;
 using PER.Abstractions.Resources;
 using PER.Util;
 
@@ -6,7 +7,7 @@ using PRR.UI.Resources;
 
 namespace PPR.Screens;
 
-public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : ScreenResourceBase {
+public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : LayoutResourceBase, IScreen {
     // ReSharper disable once MemberCanBePrivate.Global AutoPropertyCanBeMadeGetOnly.Global
     public static int animBpm { get; set; } = 120;
 
@@ -20,7 +21,10 @@ public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : Screen
         _animMax = menusAnimMax;
     }
 
-    public override void Update() {
+    public abstract void Open();
+    public abstract void Close();
+
+    public virtual void Update() {
         // forcefully unblock input for the effect
         bool prevInputBlock = input.block;
         input.block = false;
@@ -61,4 +65,6 @@ public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : Screen
             }
         }
     }
+
+    public abstract void Tick();
 }

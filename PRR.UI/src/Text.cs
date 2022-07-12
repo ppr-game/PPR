@@ -25,6 +25,8 @@ public class Text : Element {
         align = template.align
     };
 
+    public override Element Clone() => Clone(this);
+
     public override void Update(IReadOnlyStopwatch clock) {
         if(!enabled || text is null)
             return;

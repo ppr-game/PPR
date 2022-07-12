@@ -51,6 +51,8 @@ public class ProgressBar : Element {
 
     public ProgressBar(IRenderer renderer) : base(renderer) { }
 
+    public override Element Clone() => throw new NotImplementedException();
+
     private void Animate(IReadOnlyStopwatch clock, float from, float to, Color lowColor, Color highColor) {
         int fromX = (int)MathF.Floor(size.x * MathF.Min(MathF.Max(from, 0f), 1f));
         int toX = (int)MathF.Floor(size.x * MathF.Min(MathF.Max(to, 0f), 1f));

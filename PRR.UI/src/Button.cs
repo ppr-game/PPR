@@ -3,6 +3,7 @@
 using PER.Abstractions.Audio;
 using PER.Abstractions.Input;
 using PER.Abstractions.Rendering;
+using PER.Abstractions.UI;
 using PER.Util;
 
 namespace PRR.UI;
@@ -41,6 +42,8 @@ public class Button : ClickableElementBase {
         clickColor = template.clickColor,
         clickSound = template.clickSound
     };
+
+    public override Element Clone() => Clone(this);
 
     protected override void CustomUpdate(IReadOnlyStopwatch clock) {
         if(text is null)

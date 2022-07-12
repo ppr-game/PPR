@@ -4,59 +4,13 @@
     },
     "scores": {
         "position": { "x": 1, "y": 12 },
-        "size": { "x": 23, "y": 38 }
-    },
-    "template_score.score": {
-        "position": { "x": 0, "y": 0 },
-        "size": { "x": 0, "y": 1 },
-        "text": "SCORE: {0}"
-    },
-    "template_score.accuracy": {
-        "position": { "x": 0, "y": 1 },
-        "size": { "x": 0, "y": 1 },
-        "text": "{0}%"
-    },
-    "template_score.middleDivider": {
-        "position": { "x": 4, "y": 1 },
-        "size": { "x": 0, "y": 1 },
-        "text": "│"
-    },
-    "template_score.maxCombo": {
-        "position": { "x": 5, "y": 1 },
-        "size": { "x": 0, "y": 1 },
-        "text": "{0}x"
-    },
-    "template_score.mini.misses": {
-        "position": { "x": 0, "y": 2 },
-        "size": { "x": 0, "y": 1 },
-        "text": "{0}"
-    },
-    "template_score.mini.hits": {
-        "position": { "x": 0, "y": 2 },
-        "size": { "x": 0, "y": 1 },
-        "text": "{0}"
-    },
-    "template_score.mini.perfectHits": {
-        "position": { "x": 0, "y": 2 },
-        "size": { "x": 0, "y": 1 },
-        "text": "{0}"
-    },
-    "template_score.divider": {
-        "position": { "x": -1, "y": 3 },
-        "size": { "x": 0, "y": 0 },
-        "text": "├───────────────────────┤"
+        "size": { "x": 23, "y": 38 },
+        "template": "scoreItem"
     },
     "levels": {
         "position": { "x": 25, "y": 12 },
-        "size": { "x": 30, "y": 38 }
-    },
-    "template_level": {
-        "position": { "x": 0, "y": 0 },
-        "size": { "x": 30, "y": 1 }
-    },
-    "template_error_level": {
-        "position": { "x": 0, "y": 0 },
-        "size": { "x": 30, "y": 1 }
+        "size": { "x": 30, "y": 38 },
+        "template": "levelItem"
     },
     "metadata.labels": {
         "position": { "x": 56, "y": 12 },

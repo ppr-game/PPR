@@ -58,9 +58,9 @@ public class Game : GameBase {
         resources.TryAddResource(DialogBoxPaletteResource.GlobalId, new DialogBoxPaletteResource());
 
         resources.TryAddResource(MainMenuScreen.GlobalId, new MainMenuScreen());
-        resources.TryAddResource(LevelSelectScreen.GlobalId, new LevelSelectScreen());
+        resources.TryAddResource(LevelSelectScreen.GlobalId, new LevelSelectScreen(resources));
         resources.TryAddResource(NewLevelDialogBoxScreen.GlobalId, new NewLevelDialogBoxScreen());
-        resources.TryAddResource(SettingsScreen.GlobalId, new SettingsScreen(_settings));
+        resources.TryAddResource(SettingsScreen.GlobalId, new SettingsScreen(_settings, resources));
     }
 
     public override void Loaded() {

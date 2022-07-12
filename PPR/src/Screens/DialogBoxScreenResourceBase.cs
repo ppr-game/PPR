@@ -10,7 +10,7 @@ using PRR.UI.Resources;
 
 namespace PPR.Screens;
 
-public abstract class DialogBoxScreenResourceBase : ScreenResourceBase {
+public abstract class DialogBoxScreenResourceBase : LayoutResourceBase, IScreen {
     protected Vector2Int size { get; set; }
 
     protected virtual string foregroundColorId => "dialogBox_fg";
@@ -22,18 +22,18 @@ public abstract class DialogBoxScreenResourceBase : ScreenResourceBase {
 
     protected DialogBoxScreenResourceBase(Vector2Int size) => this.size = size;
 
-    public override void Open() {
+    public virtual void Open() {
         if(!Core.engine.resources.TryGetResource(ColorsResource.GlobalId, out _colors) ||
             !Core.engine.resources.TryGetResource(DialogBoxPaletteResource.GlobalId, out _palette))
             throw new InvalidOperationException("Missing dependency.");
     }
 
-    public override void Close() {
+    public virtual void Close() {
         _colors = null;
         _palette = null;
     }
 
-    public override void Update() {
+    public virtual void Update() {
         if(_colors is null || _palette is null ||
             !_colors.colors.TryGetValue(backgroundColorId, out Color backgroundColor) ||
             !_colors.colors.TryGetValue(foregroundColorId, out Color foregroundColor))
@@ -49,4 +49,6 @@ public abstract class DialogBoxScreenResourceBase : ScreenResourceBase {
         foreach((string _, Element element) in elements)
             element.Update(Core.engine.clock);
     }
+
+    public abstract void Tick();
 }

@@ -3,6 +3,7 @@
 using PER.Abstractions.Audio;
 using PER.Abstractions.Input;
 using PER.Abstractions.Rendering;
+using PER.Abstractions.UI;
 using PER.Util;
 
 namespace PRR.UI;
@@ -46,6 +47,8 @@ public class Slider : ClickableElementBase {
     private float _value = float.NaN; // make first value set always work
 
     public Slider(IRenderer renderer, IInput input, IAudio? audio = null) : base(renderer, input, audio) { }
+
+    public override Element Clone() => throw new NotImplementedException();
 
     protected override void UpdateState(IReadOnlyStopwatch clock) {
         base.UpdateState(clock);

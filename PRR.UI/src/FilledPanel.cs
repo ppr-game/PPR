@@ -12,6 +12,8 @@ public class FilledPanel : Element {
 
     public FilledPanel(IRenderer renderer) : base(renderer) { }
 
+    public override Element Clone() => throw new NotImplementedException();
+
     public override void Update(IReadOnlyStopwatch clock) {
         if(!enabled) return;
         for(int y = bounds.min.y; y <= bounds.max.y; y++)

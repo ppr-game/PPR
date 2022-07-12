@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Collections.Immutable;
+using System.Globalization;
 
 using PER.Abstractions.Audio;
 using PER.Abstractions.Input;
@@ -8,6 +9,7 @@ using PER.Abstractions.UI;
 using PER.Util;
 
 using PRR.UI;
+using PRR.UI.Resources;
 
 namespace PPR.Screens;
 
@@ -42,10 +44,7 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
         { "showFps", typeof(LayoutResourceButton) },
         { "header.packs", typeof(LayoutResourceText) },
         { "pack.description", typeof(LayoutResourceText) },
-        { "packs", typeof(LayoutResourceScrollablePanel) },
-        { "template_pack.toggle", typeof(LayoutResourceButton) },
-        { "template_pack.up", typeof(LayoutResourceButton) },
-        { "template_pack.down", typeof(LayoutResourceButton) },
+        { "packs", typeof(LayoutResourceListBox<ResourcePackData>) },
         { "back", typeof(LayoutResourceButton) }
     };
 
@@ -53,7 +52,13 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
 
     private readonly Settings _settings;
 
-    public SettingsScreen(Settings settings) => _settings = settings;
+    private IList<ResourcePackData> _availablePacks = ImmutableList<ResourcePackData>.Empty;
+    private ISet<ResourcePackData> _loadedPacks = ImmutableHashSet<ResourcePackData>.Empty;
+
+    public SettingsScreen(Settings settings, IResources resources) {
+        _settings = settings;
+        resources.TryAddResource(ResourcePackSelectorTemplate.GlobalId, new ResourcePackSelectorTemplate());
+    }
 
     public override void Load(string id, IResources resources) {
         base.Load(id, resources);
@@ -155,104 +160,122 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
     }
 
     private void OpenPacks() {
-        ScrollablePanel panel = GetElement<ScrollablePanel>("packs");
-        Button toggleTemplate = GetElement<Button>("template_pack.toggle");
-        Button upTemplate = GetElement<Button>("template_pack.up");
-        Button downTemplate = GetElement<Button>("template_pack.down");
-
-        toggleTemplate.enabled = false;
-        upTemplate.enabled = false;
-        downTemplate.enabled = false;
-
-        GenerateResourcePackSelector(panel, toggleTemplate, upTemplate, downTemplate,
-            Core.engine.resources.GetUnloadedAvailablePacks(),
-            Core.engine.resources.loadedPacks);
-    }
-
-    private void GenerateResourcePackSelector(ScrollablePanel panel, Button toggleTemplate, Button upTemplate,
-        Button downTemplate, IEnumerable<ResourcePackData> unloadedPacks, IEnumerable<ResourcePackData> loadedPacks) {
+        _loadedPacks = Core.engine.resources.loadedPacks.ToHashSet();
         List<ResourcePackData> availablePacks = new();
-        availablePacks.AddRange(loadedPacks);
-        availablePacks.AddRange(unloadedPacks.Reverse());
-        GenerateResourcePackSelector(panel, toggleTemplate, upTemplate, downTemplate, availablePacks,
-            loadedPacks.ToHashSet());
+        availablePacks.AddRange(_loadedPacks);
+        availablePacks.AddRange(Core.engine.resources.GetUnloadedAvailablePacks().Reverse());
+        _availablePacks = availablePacks;
+        GeneratePacksList();
     }
 
-    private void GenerateResourcePackSelector(ScrollablePanel panel, Button toggleTemplate, Button upTemplate,
-        Button downTemplate, IList<ResourcePackData> availablePacks, ISet<ResourcePackData> loadedPacks) {
-        panel.elements.Clear();
-
-        int maxY = availablePacks.Count - 1;
-        for(int i = 0; i < availablePacks.Count; i++) {
-            int y = maxY - i;
-
-            ResourcePackData current = availablePacks[i];
-            string name = current.name;
-            bool loaded = loadedPacks.Contains(current);
-            bool canUnload = loadedPacks.Count > 1 && name != Core.engine.resources.defaultPackName;
-
-            bool canToggle = canUnload || !loaded;
-            bool canMoveUp = y > 0 && name != Core.engine.resources.defaultPackName;
-            bool canMoveDown = y < maxY && availablePacks[i - 1].name != Core.engine.resources.defaultPackName;
-
-            (Button toggleButton, Button moveUpButton, Button moveDownButton) =
-                CreatePackListEntryButtons(i, panel, toggleTemplate, upTemplate, downTemplate, y, availablePacks, loadedPacks,
-                    current, loaded, canToggle, canMoveUp, canMoveDown);
-
-            panel.elements.Add(toggleButton);
-            panel.elements.Add(moveUpButton);
-            panel.elements.Add(moveDownButton);
-        }
+    private void UpdatePacks() {
+        _settings.packs = _availablePacks.Where(_loadedPacks.Contains).Select(packData => packData.name).ToArray();
+        _reload = true;
+        GeneratePacksList();
     }
 
-    private (Button toggleButton, Button moveUpButton, Button moveDownButton) CreatePackListEntryButtons(int index,
-        ScrollablePanel panel, Button toggleTemplate, Button upTemplate, Button downTemplate, int y,
-        IList<ResourcePackData> availablePacks, ISet<ResourcePackData> loadedPacks, ResourcePackData pack, bool loaded,
-        bool canToggle, bool canMoveUp, bool canMoveDown) {
-        int height = Math.Max(Math.Max(toggleTemplate.size.y, upTemplate.size.y), downTemplate.size.y);
+    private void GeneratePacksList() {
+        ListBox<ResourcePackData> packs = GetElement<ListBox<ResourcePackData>>("packs");
+        packs.Clear();
+        foreach(ResourcePackData item in _availablePacks)
+            packs.Add(item);
+    }
 
-        Button toggleButton = Button.Clone(toggleTemplate);
-        toggleButton.enabled = true;
-        toggleButton.position = panel.position + toggleTemplate.position + new Vector2Int(0, y * height + panel.scroll);
-        toggleButton.text = pack.name.Length > toggleTemplate.size.x ? pack.name[..toggleTemplate.size.x] : pack.name;
-        toggleButton.toggled = loaded;
-        toggleButton.onClick += (_, _) => {
-            if(!canToggle) return;
-            if(loaded) loadedPacks.Remove(pack);
-            else loadedPacks.Add(pack);
-            UpdatePacks();
-        };
-        toggleButton.onHover += (_, _) => {
-            GetElement<Text>("pack.description").text = pack.meta.description;
-        };
+    private class ResourcePackSelectorTemplate : ListBoxTemplateResourceBase<ResourcePackData> {
+        // ok and?
+        // ReSharper disable once MemberHidesStaticFromOuterClass
+        public const string GlobalId = "layouts/templates/resourcePackItem";
 
-        Button moveUpButton = Button.Clone(upTemplate);
-        moveUpButton.enabled = true;
-        moveUpButton.position = panel.position + upTemplate.position + new Vector2Int(0, y * height + panel.scroll);
-        moveUpButton.active = canMoveUp;
-        moveUpButton.onClick += (_, _) => {
-            availablePacks.RemoveAt(index);
-            availablePacks.Insert(index + 1, pack);
-            UpdatePacks();
+        protected override IRenderer renderer => Core.engine.renderer;
+        protected override IInput input => Core.engine.input;
+        protected override IAudio audio => Core.engine.audio;
+        protected override string layoutName => "resourcePackItem";
+        protected override IReadOnlyDictionary<string, Type> elementTypes { get; } = new Dictionary<string, Type> {
+            { "toggle", typeof(LayoutResourceButton) },
+            { "up", typeof(LayoutResourceButton) },
+            { "down", typeof(LayoutResourceButton) }
         };
 
-        Button moveDownButton = Button.Clone(downTemplate);
-        moveDownButton.enabled = true;
-        moveDownButton.position = panel.position + downTemplate.position + new Vector2Int(0, y * height + panel.scroll);
-        moveDownButton.active = canMoveDown;
-        moveDownButton.onClick += (_, _) => {
-            availablePacks.RemoveAt(index);
-            availablePacks.Insert(index - 1, pack);
-            UpdatePacks();
-        };
+        private SettingsScreen? _screen;
 
-        return (toggleButton, moveUpButton, moveDownButton);
-
-        void UpdatePacks() {
-            _settings.packs = availablePacks.Where(loadedPacks.Contains).Select(packData => packData.name).ToArray();
-            _reload = true;
-            GenerateResourcePackSelector(panel, toggleTemplate, upTemplate, downTemplate, availablePacks, loadedPacks);
+        public override void Load(string id, IResources resources) {
+            base.Load(id, resources);
+            if(!resources.TryGetResource(SettingsScreen.GlobalId, out SettingsScreen? screen))
+                throw new InvalidOperationException("Missing dependency.");
+            _screen = screen;
         }
+
+        private class Template : TemplateBase {
+            private readonly ResourcePackSelectorTemplate _resource;
+
+            public Template(ResourcePackSelectorTemplate resource) : base(resource) => _resource = resource;
+
+            public override void UpdateWithItem(int index, ResourcePackData item, int width) {
+                if(_resource._screen is null)
+                    return;
+                SettingsScreen screen = _resource._screen;
+
+                int maxY = screen._availablePacks.Count - 1;
+                int y = maxY - index;
+
+                string name = item.name;
+                bool loaded = screen._loadedPacks.Contains(item);
+                bool canUnload = screen._loadedPacks.Count > 1 && name != Core.engine.resources.defaultPackName;
+
+                bool canToggle = canUnload || !loaded;
+                bool canMoveUp = y > 0 && name != Core.engine.resources.defaultPackName;
+                bool canMoveDown = y < maxY &&
+                    screen._availablePacks[index - 1].name != Core.engine.resources.defaultPackName;
+
+                Button toggleButton = GetElement<Button>("toggle");
+                toggleButton.text =
+                    item.name.Length > toggleButton.size.x ? item.name[..toggleButton.size.x] : item.name;
+                toggleButton.toggled = loaded;
+                toggleButton.onClick += (_, _) => {
+                    if(!canToggle)
+                        return;
+                    if(loaded)
+                        screen._loadedPacks.Remove(item);
+                    else
+                        screen._loadedPacks.Add(item);
+                    screen.UpdatePacks();
+                };
+                toggleButton.onHover += (_, _) => {
+                    screen.GetElement<Text>("pack.description").text = item.meta.description;
+                };
+
+                Button moveUpButton = GetElement<Button>("up");
+                moveUpButton.active = canMoveUp;
+                moveUpButton.onClick += (_, _) => {
+                    screen._availablePacks.RemoveAt(index);
+                    screen._availablePacks.Insert(index + 1, item);
+                    screen.UpdatePacks();
+                };
+
+                Button moveDownButton = GetElement<Button>("down");
+                moveDownButton.active = canMoveDown;
+                moveDownButton.onClick += (_, _) => {
+                    screen._availablePacks.RemoveAt(index);
+                    screen._availablePacks.Insert(index - 1, item);
+                    screen.UpdatePacks();
+                };
+            }
+
+            public override void MoveTo(Vector2Int origin, int index) {
+                if(_resource._screen is null) {
+                    base.MoveTo(origin, index);
+                    return;
+                }
+                SettingsScreen screen = _resource._screen;
+                int maxY = screen._availablePacks.Count - 1;
+                int y = maxY - index;
+                y *= height;
+                foreach((string id, Element element) in idElements)
+                    element.position = _resource.GetElement(id).position + origin + new Vector2Int(0, y);
+            }
+        }
+
+        public override IListBoxTemplateFactory<ResourcePackData>.Template CreateTemplate() => new Template(this);
     }
 
     public override void Close() => _reload = false;

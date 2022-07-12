@@ -1,0 +1,10 @@
+﻿{
+    "level": {
+        "position": { "x": 0, "y": 0 },
+        "size": { "x": 30, "y": 1 }
+    },
+    "error_level": {
+        "position": { "x": 0, "y": 0 },
+        "size": { "x": 30, "y": 1 }
+    }
+}

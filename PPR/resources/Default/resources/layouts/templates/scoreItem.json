@@ -1,0 +1,42 @@
+﻿{
+    "score": {
+        "position": { "x": 0, "y": 0 },
+        "size": { "x": 0, "y": 1 },
+        "text": "SCORE: {0}"
+    },
+    "accuracy": {
+        "position": { "x": 0, "y": 1 },
+        "size": { "x": 0, "y": 1 },
+        "text": "{0}%"
+    },
+    "middleDivider": {
+        "position": { "x": 4, "y": 1 },
+        "size": { "x": 0, "y": 1 },
+        "text": "│"
+    },
+    "maxCombo": {
+        "position": { "x": 5, "y": 1 },
+        "size": { "x": 0, "y": 1 },
+        "text": "{0}x"
+    },
+    "mini.misses": {
+        "position": { "x": 0, "y": 2 },
+        "size": { "x": 0, "y": 1 },
+        "text": "{0}"
+    },
+    "mini.hits": {
+        "position": { "x": 4, "y": 2 },
+        "size": { "x": 0, "y": 1 },
+        "text": "{0}"
+    },
+    "mini.perfectHits": {
+        "position": { "x": 8, "y": 2 },
+        "size": { "x": 0, "y": 1 },
+        "text": "{0}"
+    },
+    "divider": {
+        "position": { "x": -1, "y": 3 },
+        "size": { "x": 0, "y": 0 },
+        "text": "├───────────────────────┤"
+    }
+}

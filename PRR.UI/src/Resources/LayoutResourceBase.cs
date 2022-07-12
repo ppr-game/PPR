@@ -15,7 +15,7 @@ using PER.Util;
 namespace PRR.UI.Resources;
 
 [PublicAPI]
-public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, LayoutResourceElement>>, IScreen {
+public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, LayoutResourceElement>> {
     [PublicAPI]
     protected class LayoutResourceText : LayoutResourceElement {
         [PublicAPI]
@@ -217,6 +217,29 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
                 size = size
             };
             if(enabled.HasValue) element.enabled = enabled.Value;
+            element.UpdateColors(colors, layoutName, id, null);
+            return element;
+        }
+    }
+
+    [PublicAPI]
+    protected class LayoutResourceListBox<TItem> : LayoutResourceScrollablePanel {
+        public string template { get; }
+
+        public LayoutResourceListBox(bool? enabled, Vector2Int position, Vector2Int size, string template) :
+            base(enabled, position, size) => this.template = template;
+
+        public override Element GetElement(IResources resources, IRenderer renderer, IInput input, IAudio audio,
+            Dictionary<string, Color> colors, string layoutName, string id) {
+            if(!resources.TryGetResource($"layouts/templates/{template}",
+                out ListBoxTemplateResourceBase<TItem>? templateFactory))
+                throw new InvalidOperationException("Missing dependency.");
+            ListBox<TItem> element = new(renderer, input, templateFactory) {
+                position = position,
+                size = size
+            };
+            if(enabled.HasValue) element.enabled = enabled.Value;
+            element.UpdateColors(colors, layoutName, id, null);
             return element;
         }
     }
@@ -225,6 +248,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
     protected abstract IInput input { get; }
     protected abstract IAudio audio { get; }
 
+    protected virtual string layoutsPath => "layouts";
     protected abstract string layoutName { get; }
     protected abstract IReadOnlyDictionary<string, Type> elementTypes { get; }
 
@@ -239,7 +263,7 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         this.colors = colors;
 
         Dictionary<string, LayoutResourceElement> layoutElements = new(elementTypes.Count);
-        DeserializeAllJson(resources, Path.Join("layouts", $"{layoutName}.json"), layoutElements,
+        DeserializeAllJson(resources, Path.Join(layoutsPath, $"{layoutName}.json"), layoutElements,
             () => layoutElements.Count == elementTypes.Count);
 
         // didn't load all the elements
@@ -260,32 +284,37 @@ public abstract class ScreenResourceBase : JsonResourceBase<IDictionary<string, 
         if(layout is null)
             return;
 
-        foreach((string? elementId, Type? type) in elementTypes) {
+        foreach((string elementId, Type type) in elementTypes) {
             if(!layout.TryGetValue(elementId, out JsonElement jsonElement))
                 throw new InvalidOperationException($"Element {elementId} is missing.");
-            if(type.BaseType != typeof(LayoutResourceElement))
-                throw new InvalidOperationException(
-                    $"Element types specs can only inherit from {nameof(LayoutResourceElement)}");
+            CheckElementType(type);
             LayoutResourceElement? layoutElement = (LayoutResourceElement?)jsonElement.Deserialize(type);
             if(layoutElement is null)
-                throw new InvalidOperationException($"Failed to deserialize {elementId} as {type.Name}");
+                throw new InvalidOperationException($"Failed to deserialize {elementId} as {type.Name}.");
             if(!deserialized.ContainsKey(elementId))
                 deserialized.Add(elementId, layoutElement);
         }
     }
 
+    private static void CheckElementType(Type? type) {
+        do {
+            type = type?.BaseType;
+            if(type is null)
+                throw new InvalidOperationException(
+                    $"Element type specs can only inherit from {nameof(LayoutResourceElement)}.");
+        } while(type != typeof(LayoutResourceElement));
+    }
+
     public override void Unload(string id, IResources resources) => _elements.Clear();
 
-    public abstract void Open();
-    public abstract void Close();
-    public abstract void Update();
-    public abstract void Tick();
-
-    protected T GetElement<T>(string id) where T : Element {
+    protected Element GetElement(string id) {
         if(!_elements.ContainsKey(id))
             throw new InvalidOperationException($"Element {id} does not exist.");
+        return _elements[id];
+    }
 
-        Element element = _elements[id];
+    protected T GetElement<T>(string id) where T : Element {
+        Element element = GetElement(id);
         if(element is not T typedElement)
             throw new InvalidOperationException($"Element {id} is not {nameof(T)}.");
 

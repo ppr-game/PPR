@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using JetBrains.Annotations;
 
@@ -29,6 +30,8 @@ public abstract class Element {
     public IEffect? effect { get; set; }
 
     protected Element(IRenderer renderer) => this.renderer = renderer;
+
+    public abstract Element Clone();
 
     public abstract void Update(IReadOnlyStopwatch clock);
 
