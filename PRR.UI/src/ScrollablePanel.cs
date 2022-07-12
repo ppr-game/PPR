@@ -42,7 +42,7 @@ public class ScrollablePanel : Element {
 
     // ReSharper disable once CognitiveComplexity
     private void Scrolled(object? o, IInput.ScrolledEventArgs args) {
-        if(!input.mousePosition.InBounds(bounds) || !_allowScrolling)
+        if(!input.mousePosition.InBounds(bounds) || !_allowScrolling || elements.Count == 0)
             return;
         _allowScrolling = false;
 
