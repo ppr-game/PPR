@@ -1,13 +1,13 @@
 ﻿using System;
 
 using PER.Abstractions.Input;
+using PER.Abstractions.Rendering;
 using PER.Util;
+
+using QoiSharp;
 
 using SFML.System;
 using SFML.Window;
-
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 using BlendMode = PER.Abstractions.Rendering.BlendMode;
 using Color = PER.Util.Color;
@@ -45,15 +45,11 @@ public static class SfmlConverters {
                 blendMode.alphaEquation is BlendMode.Equation.Max or BlendMode.Equation.Min ?
                     BlendMode.Equation.Add : blendMode.alphaEquation));
 
-    public static SFML.Graphics.Image ToSfmlImage(Image<Rgba32> image) {
-        SFML.Graphics.Image sfmlImage = new((uint)image.Width, (uint)image.Height);
-        for(int y = 0; y < image.Height; y++) {
-            Span<Rgba32> row = image.GetPixelRowSpan(y);
-            for(int x = 0; x < row.Length; x++) {
-                Rgba32 pixel = row[x];
-                sfmlImage.SetPixel((uint)x, (uint)y, new SFML.Graphics.Color(pixel.R, pixel.G, pixel.B, pixel.A));
-            }
-        }
+    public static SFML.Graphics.Image ToSfmlImage(Image image) {
+        SFML.Graphics.Image sfmlImage = new((uint)image.width, (uint)image.height);
+        for(int y = 0; y < image.height; y++)
+            for(int x = 0; x < image.width; x++)
+                sfmlImage.SetPixel((uint)x, (uint)y, ToSfmlColor(image[x, y]));
 
         return sfmlImage;
     }

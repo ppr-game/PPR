@@ -3,6 +3,7 @@ using System.IO;
 
 using JetBrains.Annotations;
 
+using PER.Abstractions.Rendering;
 using PER.Abstractions.Resources;
 
 namespace PRR.Resources;
@@ -14,7 +15,7 @@ public class FontResource : IResource {
     public Font? font { get; private set; }
 
     public void Load(string id, IResources resources) {
-        if(!resources.TryGetPath(Path.Combine("graphics", "font", "font.png"), out string? imagePath) ||
+        if(!resources.TryGetPath(Path.Combine("graphics", "font", "font.qoi"), out string? imagePath) ||
             !resources.TryGetPath(Path.Combine("graphics", "font", "mappings.txt"), out string? mappingsPath))
             throw new InvalidOperationException("Missing dependencies.");
         font = new Font(imagePath, mappingsPath);

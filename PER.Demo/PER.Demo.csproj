@@ -24,10 +24,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Folder Include="resources\Default\resources" />
       <Folder Include="resources\Some Other Resources\resources\graphics" />
     </ItemGroup>
