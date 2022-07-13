@@ -11,7 +11,7 @@ public class IconResource : IResource {
     public string? icon { get; private set; }
 
     public void Load(string id, IResources resources) {
-        resources.TryGetPath(Path.Join("graphics", "icon.png"), out string? icon);
+        resources.TryGetPath(Path.Combine("graphics", "icon.png"), out string? icon);
         this.icon = icon;
     }
 

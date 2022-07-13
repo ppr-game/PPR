@@ -15,11 +15,11 @@ public class BloomEffect : IEffect, IResource {
     public bool drawable => false;
 
     public void Load(string id, IResources resources) {
-        if(!resources.TryGetPath(Path.Join("graphics", "shaders", "default_vert.glsl"),
+        if(!resources.TryGetPath(Path.Combine("graphics", "shaders", "default_vert.glsl"),
                 out string? vertexPath) ||
-            !resources.TryGetPath(Path.Join("graphics", "shaders", "bloom_frag.glsl"),
+            !resources.TryGetPath(Path.Combine("graphics", "shaders", "bloom_frag.glsl"),
                 out string? fragmentPath) ||
-            !resources.TryGetPath(Path.Join("graphics", "shaders", "bloom-blend_frag.glsl"),
+            !resources.TryGetPath(Path.Combine("graphics", "shaders", "bloom-blend_frag.glsl"),
                 out string? blendPath))
             throw new InvalidOperationException("Missing dependencies.");
 

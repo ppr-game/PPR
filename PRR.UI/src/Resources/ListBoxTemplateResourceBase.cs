@@ -4,7 +4,7 @@ using PER.Util;
 namespace PRR.UI.Resources;
 
 public abstract class ListBoxTemplateResourceBase<TItem> : LayoutResourceBase, IListBoxTemplateFactory<TItem> {
-    protected override string layoutsPath => Path.Join(base.layoutsPath, "templates");
+    protected override string layoutsPath => Path.Combine(base.layoutsPath, "templates");
 
     protected abstract class TemplateBase : IListBoxTemplateFactory<TItem>.Template {
         public override IEnumerable<Element> elements => idElements.Values;

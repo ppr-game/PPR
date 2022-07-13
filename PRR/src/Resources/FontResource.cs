@@ -14,8 +14,8 @@ public class FontResource : IResource {
     public Font? font { get; private set; }
 
     public void Load(string id, IResources resources) {
-        if(!resources.TryGetPath(Path.Join("graphics", "font", "font.png"), out string? imagePath) ||
-            !resources.TryGetPath(Path.Join("graphics", "font", "mappings.txt"), out string? mappingsPath))
+        if(!resources.TryGetPath(Path.Combine("graphics", "font", "font.png"), out string? imagePath) ||
+            !resources.TryGetPath(Path.Combine("graphics", "font", "mappings.txt"), out string? mappingsPath))
             throw new InvalidOperationException("Missing dependencies.");
         font = new Font(imagePath, mappingsPath);
     }

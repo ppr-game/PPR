@@ -171,7 +171,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
                 continue;
 
             LevelMetadata metadata = new(0, Guid.Empty, directoryName, string.Empty, string.Empty, -1);
-            string metadataPath = Path.Join(levelDirectory, MetadataFileName);
+            string metadataPath = Path.Combine(levelDirectory, MetadataFileName);
             if(!File.Exists(metadataPath)) {
                 yield return new LevelItem(metadata, levelDirectory, "Metadata file not found.");
                 continue;

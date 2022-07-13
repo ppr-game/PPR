@@ -15,7 +15,7 @@ public class ColorsResource : JsonResourceBase<IDictionary<string, (string?, Col
 
     public override void Load(string id, IResources resources) {
         Dictionary<string, (string?, Color)> tempValues = new();
-        DeserializeAllJson(resources, Path.Join("graphics", "colors.json"), tempValues, () => false);
+        DeserializeAllJson(resources, Path.Combine("graphics", "colors.json"), tempValues, () => false);
 
         foreach((string key, (string? value, Color color)) in tempValues)
             if(value is null)

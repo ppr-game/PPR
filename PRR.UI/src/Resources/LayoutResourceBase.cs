@@ -81,7 +81,7 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
             };
             if(path is not null &&
                // kill me please
-               resources.TryGetPath(Path.Join(path.Split('/').Prepend("layouts").ToArray()),
+               resources.TryGetPath(Path.Combine(path.Split('/').Prepend("layouts").ToArray()),
                    out string? filePath))
                 element.text = File.ReadAllText(filePath);
             if(enabled.HasValue) element.enabled = enabled.Value;
@@ -263,7 +263,7 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
         this.colors = colors;
 
         Dictionary<string, LayoutResourceElement> layoutElements = new(elementTypes.Count);
-        DeserializeAllJson(resources, Path.Join(layoutsPath, $"{layoutName}.json"), layoutElements,
+        DeserializeAllJson(resources, Path.Combine(layoutsPath, $"{layoutName}.json"), layoutElements,
             () => layoutElements.Count == elementTypes.Count);
 
         // didn't load all the elements
