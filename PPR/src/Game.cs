@@ -32,13 +32,7 @@ public class Game : GameBase {
 
         _settings = Settings.Load(SettingsPath);
 
-        ImmutableDictionary<string, ResourcePackData> availablePacks =
-            resources.GetAvailablePacks().ToImmutableDictionary(data => data.name);
-        foreach(string packName in _settings.packs) {
-            if(!availablePacks.TryGetValue(packName, out ResourcePackData data))
-                continue;
-            resources.TryAddPack(data);
-        }
+        resources.TryAddPacksByNames(_settings.packs);
 
         resources.TryAddResource("audio", new AudioResources());
 

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 using JetBrains.Annotations;
@@ -84,6 +85,18 @@ public class ResourcesManager : IResources {
 
     public bool TryAddResource<TResource>(string id, TResource resource) where TResource : class, IResource =>
         !loaded && _resources.TryAdd(id, resource);
+
+    public bool TryAddPacksByNames(params string[] names) {
+        bool success = true;
+        ImmutableDictionary<string, ResourcePackData> availablePacks =
+            GetAvailablePacks().ToImmutableDictionary(data => data.name);
+        foreach(string name in names) {
+            if(!availablePacks.TryGetValue(name, out ResourcePackData data))
+                continue;
+            success &= TryAddPack(data);
+        }
+        return success;
+    }
 
     public IEnumerable<string> GetAllPaths(string relativePath) {
         if(!loaded && !_loading) yield break;
