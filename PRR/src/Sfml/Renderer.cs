@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using PER.Abstractions.Rendering;
+using PER.Tracy;
 using PER.Util;
 
 using SFML.Graphics;
@@ -120,6 +121,7 @@ public class Renderer : RendererBase, IDisposable {
         RunPipelines(background);
 
         window.Display();
+        Profiler.FrameMark();
 
         effects.Clear();
         fullscreenEffects.Clear();

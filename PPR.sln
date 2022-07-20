@@ -15,6 +15,7 @@ ProjectSection(SolutionItems) = preProject
 	README.md = README.md
 	Screenshot-0.png = Screenshot-0.png
 	Screenshot-1.png = Screenshot-1.png
+	PER.Shared.props = PER.Shared.props
 EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PRR", "PRR\PRR.csproj", "{6CC365D3-5367-4254-A3E7-EE6052A528B7}"

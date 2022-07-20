@@ -1,0 +1,4 @@
+<Project>
+    <Import Project="PER.Shared.props" />
+    <Import Project="../PER.Shared.props" Condition="Exists('../PER.Shared.props')" />
+</Project>

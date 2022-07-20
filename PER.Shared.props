@@ -1,0 +1,9 @@
+<Project>
+    <PropertyGroup>
+        <!--<DefineConstants>TracyEnable;TracyAutoZones</DefineConstants>-->
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="PER.Tracy" Version="0.1.0-preview" />
+    </ItemGroup>
+</Project>

@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="../PER.Shared.Import.props" />
+
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <LangVersion>10</LangVersion>
