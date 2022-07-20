@@ -2,32 +2,32 @@
 
   <Import Project="../PER.Shared.Import.props" />
 
-    <PropertyGroup>
-        <OutputType>Exe</OutputType>
-        <TargetFramework>net6.0</TargetFramework>
-        <LangVersion>10</LangVersion>
-        <Nullable>enable</Nullable>
-        <Version>0.1.0</Version>
-    </PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>10</LangVersion>
+    <Nullable>enable</Nullable>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\PER.Abstractions\PER.Abstractions.csproj" />
-      <ProjectReference Include="..\PER.Audio\PER.Audio.csproj" />
-      <ProjectReference Include="..\PER.Util\PER.Util.csproj" />
-      <ProjectReference Include="..\PER\PER.csproj" />
-      <ProjectReference Include="..\PRR.UI\PRR.UI.csproj" />
-      <ProjectReference Include="..\PRR\PRR.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PER.Abstractions\PER.Abstractions.csproj" />
+    <ProjectReference Include="..\PER.Audio\PER.Audio.csproj" />
+    <ProjectReference Include="..\PER.Util\PER.Util.csproj" />
+    <ProjectReference Include="..\PER\PER.csproj" />
+    <ProjectReference Include="..\PRR.UI\PRR.UI.csproj" />
+    <ProjectReference Include="..\PRR\PRR.csproj" />
+  </ItemGroup>
 
-    <ItemGroup>
-        <None Update="NLog.config;resources\*">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
+  <ItemGroup>
+    <None Update="NLog.config;resources\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="resources\Default\resources" />
-      <Folder Include="resources\Some Other Resources\resources\graphics" />
-    </ItemGroup>
+  <ItemGroup>
+    <Folder Include="resources\Default\resources" />
+    <Folder Include="resources\Some Other Resources\resources\graphics" />
+  </ItemGroup>
 
 </Project>

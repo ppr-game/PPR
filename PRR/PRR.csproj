@@ -2,36 +2,36 @@
 
   <Import Project="../PER.Shared.Import.props" />
 
-    <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
-        <Version>0.2.0</Version>
-        <Authors>ConfiG</Authors>
-        <PackageId>PRR</PackageId>
-        <RepositoryUrl>https://github.com/ppr-game/PPR</RepositoryUrl>
-        <RepositoryType>Git</RepositoryType>
-        <Title>Press Render Revolution</Title>
-        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-        <Description>The rendering engine used in the rhythm game Press Press Revolution</Description>
-        <PackageLicenseFile>LICENSE</PackageLicenseFile>
-        <PackageTags>rendering-engine render renderer rendering 2d-graphics</PackageTags>
-        <Copyright>PPR</Copyright>
-        <PackageIcon>icon128x.png</PackageIcon>
-        <LangVersion>10</LangVersion>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Version>0.2.0</Version>
+    <Authors>ConfiG</Authors>
+    <PackageId>PRR</PackageId>
+    <RepositoryUrl>https://github.com/ppr-game/PPR</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <Title>Press Render Revolution</Title>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Description>The rendering engine used in the rhythm game Press Press Revolution</Description>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageTags>rendering-engine render renderer rendering 2d-graphics</PackageTags>
+    <Copyright>PPR</Copyright>
+    <PackageIcon>icon128x.png</PackageIcon>
+    <LangVersion>10</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <None Include="LICENSE" Pack="true" PackagePath="\" />
-        <None Include="icon128x.png" Pack="true" PackagePath="\" />
-    </ItemGroup>
+  <ItemGroup>
+    <None Include="LICENSE" Pack="true" PackagePath="\" />
+    <None Include="icon128x.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="QoiSharp" Version="1.0.0" />
-      <PackageReference Include="SFML.Net" Version="2.5.0" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="QoiSharp" Version="1.0.0" />
+    <PackageReference Include="SFML.Net" Version="2.5.0" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\PER.Abstractions\PER.Abstractions.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PER.Abstractions\PER.Abstractions.csproj" />
+  </ItemGroup>
 
 </Project>

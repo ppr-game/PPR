@@ -2,32 +2,32 @@
 
   <Import Project="../PER.Shared.Import.props" />
 
-    <PropertyGroup>
-        <OutputType>WinExe</OutputType>
-        <TargetFramework>net6.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <ApplicationIcon>icon.ico</ApplicationIcon>
-        <Version>0.11.0</Version>
-        <Authors>ConfiG</Authors>
-        <RepositoryUrl>https://github.com/ppr-game/PPR</RepositoryUrl>
-        <RepositoryType>Git</RepositoryType>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    </PropertyGroup>
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+    <Version>0.11.0</Version>
+    <Authors>ConfiG</Authors>
+    <RepositoryUrl>https://github.com/ppr-game/PPR</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <None Update="NLog.config;resources\*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
+  <ItemGroup>
+    <None Update="NLog.config;resources\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\PER.Abstractions\PER.Abstractions.csproj" />
-      <ProjectReference Include="..\PER.Audio\PER.Audio.csproj" />
-      <ProjectReference Include="..\PER.Util\PER.Util.csproj" />
-      <ProjectReference Include="..\PER\PER.csproj" />
-      <ProjectReference Include="..\PRR.UI\PRR.UI.csproj" />
-      <ProjectReference Include="..\PRR\PRR.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PER.Abstractions\PER.Abstractions.csproj" />
+    <ProjectReference Include="..\PER.Audio\PER.Audio.csproj" />
+    <ProjectReference Include="..\PER.Util\PER.Util.csproj" />
+    <ProjectReference Include="..\PER\PER.csproj" />
+    <ProjectReference Include="..\PRR.UI\PRR.UI.csproj" />
+    <ProjectReference Include="..\PRR\PRR.csproj" />
+  </ItemGroup>
 
 </Project>

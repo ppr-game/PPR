@@ -1,17 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
-        <LangVersion>10</LangVersion>
-        <Nullable>enable</Nullable>
-        <Version>0.1.0</Version>
-        <Authors>ConfiG</Authors>
-        <RepositoryUrl>https://github.com/ppr-game/PPR</RepositoryUrl>
-        <RepositoryType>Git</RepositoryType>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>10</LangVersion>
+    <Nullable>enable</Nullable>
+    <Version>0.1.0</Version>
+    <Authors>ConfiG</Authors>
+    <RepositoryUrl>https://github.com/ppr-game/PPR</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
+  </ItemGroup>
 
 </Project>

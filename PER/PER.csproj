@@ -2,23 +2,23 @@
 
   <Import Project="../PER.Shared.Import.props" />
 
-    <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
-        <LangVersion>10</LangVersion>
-        <Nullable>enable</Nullable>
-        <Version>0.1.0</Version>
-        <Title>Press Engine Revolution</Title>
-        <Authors>ConfiG</Authors>
-        <RepositoryUrl>https://github.com/ppr-game/PPR</RepositoryUrl>
-        <RepositoryType>Git</RepositoryType>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>10</LangVersion>
+    <Nullable>enable</Nullable>
+    <Version>0.1.0</Version>
+    <Title>Press Engine Revolution</Title>
+    <Authors>ConfiG</Authors>
+    <RepositoryUrl>https://github.com/ppr-game/PPR</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\PER.Abstractions\PER.Abstractions.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PER.Abstractions\PER.Abstractions.csproj" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="NLog" Version="4.7.10" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NLog" Version="4.7.10" />
+  </ItemGroup>
 
 </Project>
