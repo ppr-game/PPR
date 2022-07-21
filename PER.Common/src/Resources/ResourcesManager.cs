@@ -93,8 +93,11 @@ public class ResourcesManager : IResources {
         data = default(ResourcePackData);
         if(!File.Exists(metaPath))
             return false;
-        string metaText = File.ReadAllText(metaPath);
-        ResourcePackMeta meta = JsonSerializer.Deserialize<ResourcePackMeta>(metaText);
+
+        FileStream file = File.OpenRead(metaPath);
+        ResourcePackMeta meta = JsonSerializer.Deserialize<ResourcePackMeta>(file);
+        file.Close();
+
         data = new ResourcePackData(Path.GetFileName(pack), Path.Combine(pack, resourcesInPack), meta);
         return true;
     }

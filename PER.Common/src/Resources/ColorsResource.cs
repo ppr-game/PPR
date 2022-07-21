@@ -27,8 +27,10 @@ public class ColorsResource : JsonResourceBase<IDictionary<string, (string?, Col
     }
 
     protected override void DeserializeJson(string path, IDictionary<string, (string?, Color)> deserialized) {
-        Dictionary<string, JsonElement>? elements =
-            JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(File.ReadAllText(path));
+        FileStream file = File.OpenRead(path);
+        Dictionary<string, JsonElement>? elements = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(file);
+        file.Close();
+
         if(elements is null)
             return;
 

@@ -15,10 +15,20 @@ public class Settings {
     public bool uppercaseNotes { get; set; }
     public bool showFps { get; set; }
 
-    public static Settings Load(string path) => !File.Exists(path) ? new Settings() :
-        JsonSerializer.Deserialize<Settings>(File.ReadAllText(path)) ?? new Settings();
+    public static Settings Load(string path) {
+        if(!File.Exists(path))
+            return new Settings();
+        FileStream file = File.OpenRead(path);
+        Settings settings = JsonSerializer.Deserialize<Settings>(file) ?? new Settings();
+        file.Close();
+        return settings;
+    }
 
-    public void Save(string path) => File.WriteAllText(path, JsonSerializer.Serialize(this));
+    public void Save(string path) {
+        FileStream file = File.Open(path, FileMode.Create);
+        JsonSerializer.Serialize(file, this);
+        file.Close();
+    }
 
     public void ApplyVolumes() {
         if(Core.engine.audio.TryGetMixer("master", out IAudioMixer? mixer))

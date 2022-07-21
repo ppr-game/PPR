@@ -279,8 +279,10 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
     }
 
     protected override void DeserializeJson(string path, IDictionary<string, LayoutResourceElement> deserialized) {
-        Dictionary<string, JsonElement>? layout =
-            JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(File.ReadAllText(path));
+        FileStream file = File.OpenRead(path);
+        Dictionary<string, JsonElement>? layout = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(file);
+        file.Close();
+
         if(layout is null)
             return;
 
