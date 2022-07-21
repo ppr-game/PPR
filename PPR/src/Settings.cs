@@ -11,7 +11,7 @@ public class Settings {
     public float sfxVolume { get; set; } = 1f;
     public bool bloom { get; set; } = true;
     public bool fullscreen { get; set; }
-    public int fpsLimit { get; set; } = 4;
+    public int fpsLimit { get; set; }
     public bool uppercaseNotes { get; set; }
     public bool showFps { get; set; }
 
