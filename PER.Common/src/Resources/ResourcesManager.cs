@@ -4,12 +4,16 @@ using System.Text.Json;
 
 using JetBrains.Annotations;
 
+using NLog;
+
 using PER.Abstractions.Resources;
 
 namespace PER.Common.Resources;
 
 [PublicAPI]
 public class ResourcesManager : IResources {
+    private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
     public int currentVersion => 0;
     public bool loaded { get; private set; }
     public IReadOnlyList<ResourcePackData> loadedPacks => _loadedPacks;
@@ -31,33 +35,50 @@ public class ResourcesManager : IResources {
             return;
         _loading = true;
 
-        foreach((string? id, IResource? resource) in _resources)
+        logger.Info("Loading resources");
+
+        foreach((string id, IResource resource) in _resources) {
+            logger.Info("Loading resource {Id}", id);
             resource.Load(id, this);
+        }
 
         _loading = false;
         loaded = true;
+
+        logger.Info("Resources loaded");
     }
 
     public virtual void Unload() {
         if(!loaded)
             return;
 
-        foreach((string? id, IResource? resource) in _resources)
+        logger.Info("Unloading resources");
+
+        foreach((string id, IResource resource) in _resources) {
+            logger.Info("Unloading resource {Id}", id);
             resource.Unload(id, this);
+        }
 
         _loadedPacks.Clear();
         _cachedPaths.Clear();
         _resources.Clear();
 
         loaded = false;
+
+        logger.Info("Resources unloaded");
     }
 
     public IEnumerable<ResourcePackData> GetAvailablePacks() {
-        if(!Directory.Exists(resourcesRoot)) yield break;
+        if(!Directory.Exists(resourcesRoot)) {
+            logger.Warn("Resources directory ({Directory}) missing", Path.GetFullPath(resourcesRoot));
+            yield break;
+        }
 
         foreach(string pack in Directory.GetDirectories(resourcesRoot)) {
-            if(!TryGetPackData(pack, out ResourcePackData data)) continue;
-            if(data.meta.version != currentVersion) continue;
+            if(!TryGetPackData(pack, out ResourcePackData data) ||
+                data.meta.version != currentVersion)
+                continue;
+            logger.Info("Found pack {Name}", data.name);
             yield return data;
         }
     }
@@ -70,7 +91,8 @@ public class ResourcesManager : IResources {
     private bool TryGetPackData(string pack, out ResourcePackData data) {
         string metaPath = Path.Combine(pack, resourcePackMeta);
         data = default(ResourcePackData);
-        if(!File.Exists(metaPath)) return false;
+        if(!File.Exists(metaPath))
+            return false;
         string metaText = File.ReadAllText(metaPath);
         ResourcePackMeta meta = JsonSerializer.Deserialize<ResourcePackMeta>(metaText);
         data = new ResourcePackData(Path.GetFileName(pack), Path.Combine(pack, resourcesInPack), meta);
@@ -78,8 +100,10 @@ public class ResourcesManager : IResources {
     }
 
     public bool TryAddPack(ResourcePackData data) {
-        if(loaded || _loading) return false;
+        if(loaded || _loading)
+            return false;
         _loadedPacks.Add(data);
+        logger.Info("Enabled pack {Name}", data.name);
         return true;
     }
 

@@ -1,5 +1,7 @@
 ﻿using JetBrains.Annotations;
 
+using NLog;
+
 using PER.Abstractions.Audio;
 using PER.Abstractions.Resources;
 
@@ -7,6 +9,8 @@ namespace PER.Common.Resources;
 
 [PublicAPI]
 public abstract class AudioResourcesBase : IResource {
+    private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
     protected enum AudioType { Auto, Sfx, Music }
     protected record struct MixerDefinition(string id, AudioType defaultType, string defaultExtension);
     protected record struct AudioResource(string id, string? extension = null, string directory = "",
@@ -42,12 +46,20 @@ public abstract class AudioResourcesBase : IResource {
     public void Unload(string id, IResources resources) => audio.Reset();
 
     protected void AddSound(IResources resources, string directory, string id, string extension, IAudioMixer mixer) {
-        if(resources.TryGetPath(Path.Combine("audio", directory, $"{id}.{extension}"), out string? path))
+        if(resources.TryGetPath(Path.Combine("audio", directory, $"{id}.{extension}"), out string? path)) {
+            logger.Info("Loading sound {Id}", id);
             audio.TryStorePlayable(id, audio.CreateSound(path, mixer));
+        }
+        else
+            logger.Info("Could not find sound {Id}", id);
     }
 
     protected void AddMusic(IResources resources, string directory, string id, string extension, IAudioMixer mixer) {
-        if(resources.TryGetPath(Path.Combine("audio", directory, $"{id}.{extension}"), out string? path))
+        if(resources.TryGetPath(Path.Combine("audio", directory, $"{id}.{extension}"), out string? path)) {
+            logger.Info("Loading music {Id}", id);
             audio.TryStorePlayable(id, audio.CreateMusic(path, mixer));
+        }
+        else
+            logger.Info("Could not find music {Id}", id);
     }
 }

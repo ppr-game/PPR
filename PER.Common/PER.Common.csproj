@@ -17,4 +17,8 @@
     <ProjectReference Include="..\PER.Util\PER.Util.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="NLog" Version="5.0.1" />
+  </ItemGroup>
+
 </Project>

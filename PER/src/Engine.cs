@@ -44,6 +44,9 @@ public class Engine {
 
     public void Reload() {
         try {
+            logger.Info($"PER v{version}");
+            logger.Info("Reloading game");
+
             bool loaded = resources.loaded;
             if(loaded) {
                 resources.Unload();
@@ -54,18 +57,20 @@ public class Engine {
             game.Loaded();
             if(loaded)
                 input.Reset();
+
+            logger.Info("Reloaded game");
         }
         catch(Exception exception) {
-            logger.Error("Uncaught exception! Please, report the text below to the developer of the game.");
-            logger.Fatal(exception);
+            logger.Fatal(exception, "Uncaught exception! Please, report this file to the developer of the game.");
             throw;
         }
     }
 
     public void Start(RendererSettings rendererSettings) {
-        logger.Info($"PER v{version}");
+        logger.Info("Starting game");
         Setup(rendererSettings);
-        while(Update()) UpdateDeltaTime();
+        while(Update())
+            UpdateDeltaTime();
         Finish();
     }
 
@@ -114,5 +119,8 @@ public class Engine {
         renderer.Finish();
         game.Finish();
         audio.Finish();
+
+        logger.Info("nooooooo *dies*");
+        LogManager.Shutdown();
     }
 }
