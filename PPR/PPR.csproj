@@ -16,9 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="NLog.config;resources\*">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <Content Include="NLog.config;resources\**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Always" />
   </ItemGroup>
 
   <ItemGroup>

@@ -20,14 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="NLog.config;resources\*">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="resources\Default\resources" />
-    <Folder Include="resources\Some Other Resources\resources\graphics" />
+    <Content Include="NLog.config;resources\**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Always" />
   </ItemGroup>
 
 </Project>
