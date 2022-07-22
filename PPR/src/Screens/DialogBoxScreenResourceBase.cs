@@ -1,4 +1,6 @@
-﻿using PER.Abstractions;
+﻿using JetBrains.Annotations;
+
+using PER.Abstractions;
 using PER.Abstractions.Rendering;
 using PER.Abstractions.UI;
 using PER.Common.Resources;
@@ -10,6 +12,7 @@ using PRR.UI.Resources;
 
 namespace PPR.Screens;
 
+[PublicAPI]
 public abstract class DialogBoxScreenResourceBase : LayoutResourceBase, IScreen {
     protected Vector2Int size { get; set; }
 
