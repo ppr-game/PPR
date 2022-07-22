@@ -6,7 +6,13 @@ namespace PER.Audio.Sfml;
 
 [PublicAPI]
 public class Music : IPlayable, IDisposable {
-    public IAudioMixer mixer { get; set; }
+    public IAudioMixer mixer {
+        get => _mixer;
+        set {
+            _mixer = value;
+            UpdateVolume();
+        }
+    }
 
     public PlaybackStatus status {
         get => SfmlConverters.ToPerPlaybackStatus(_music.Status);
@@ -34,7 +40,7 @@ public class Music : IPlayable, IDisposable {
         get => _volume;
         set {
             _volume = value;
-            _music.Volume = value * mixer.volume * 100f;
+            UpdateVolume();
         }
     }
 
@@ -51,11 +57,15 @@ public class Music : IPlayable, IDisposable {
     public TimeSpan duration => SfmlConverters.ToTimeSpan(_music.Duration);
 
     private readonly SFML.Audio.Music _music;
+    private IAudioMixer _mixer;
     private float _volume = 1f;
+
+    private void UpdateVolume() => _music.Volume = volume * mixer.volume * 100f;
 
     private Music(SFML.Audio.Music music, IAudioMixer mixer) {
         _music = music;
-        this.mixer = mixer;
+        _mixer = mixer;
+        UpdateVolume();
     }
 
     public Music(string filename, IAudioMixer mixer) : this(new SFML.Audio.Music(filename), mixer) { }
