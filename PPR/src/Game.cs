@@ -69,6 +69,7 @@ public class Game : GameBase {
         Core.engine.resources.TryGetResource(BloomEffect.GlobalId, out _bloomEffect);
 
         _settings.ApplyVolumes();
+        Conductor.Start();
 
         RendererSettings rendererSettings = new() {
             title = "Press Press Revolution",
@@ -86,6 +87,8 @@ public class Game : GameBase {
 
     public override void Setup() {
         base.Setup();
+        _settings.ApplyVolumes(); // apply volumes again because the first time the window isn't created yet
+        Core.engine.renderer.focusChanged += (_, _) => _settings.ApplyVolumes();
         if(!Core.engine.resources.TryGetResource(MainMenuScreen.GlobalId, out MainMenuScreen? screen))
             return;
         SwitchScreen(screen);
@@ -95,6 +98,7 @@ public class Game : GameBase {
         if(_drawTextEffect is not null) renderer.AddEffect(_drawTextEffect);
         if(_settings.bloom && _bloomEffect is not null) renderer.AddEffect(_bloomEffect);
 
+        Conductor.Update();
         base.Update();
     }
 }

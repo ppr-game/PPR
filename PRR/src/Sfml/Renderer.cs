@@ -17,6 +17,7 @@ namespace PRR.Sfml;
 public class Renderer : RendererBase, IDisposable {
     public override bool open => window?.IsOpen ?? false;
     public override bool focused => window?.HasFocus() ?? false;
+    public override event EventHandler? focusChanged;
     public override event EventHandler? closed;
 
     public Text? text { get; private set; }
@@ -60,6 +61,8 @@ public class Renderer : RendererBase, IDisposable {
             window.SetIcon(icon.Size.X, icon.Size.Y, icon.Pixels);
         }
 
+        window.LostFocus += (_, _) => focusChanged?.Invoke(this, EventArgs.Empty);
+        window.GainedFocus += (_, _) => focusChanged?.Invoke(this, EventArgs.Empty);
         window.Closed += (_, _) => closed?.Invoke(this, EventArgs.Empty);
 
         _mainRenderTexture = new RenderTexture(videoMode.Width, videoMode.Height);

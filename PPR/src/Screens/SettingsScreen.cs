@@ -27,6 +27,9 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
         { "volume.master.value", typeof(LayoutResourceText) },
         { "volume.master", typeof(LayoutResourceSlider) },
         { "volume.master.label", typeof(LayoutResourceText) },
+        { "volume.unfocusedMaster.value", typeof(LayoutResourceText) },
+        { "volume.unfocusedMaster", typeof(LayoutResourceSlider) },
+        { "volume.unfocusedMaster.label", typeof(LayoutResourceText) },
         { "volume.music.value", typeof(LayoutResourceText) },
         { "volume.music", typeof(LayoutResourceSlider) },
         { "volume.music.label", typeof(LayoutResourceText) },
@@ -83,6 +86,14 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
         volumeMaster.onValueChanged += (_, _) => {
             _settings.masterVolume = volumeMaster.value;
             GetElement<Text>("volume.master.value").text = _settings.masterVolume.ToString(culture);
+            _settings.ApplyVolumes();
+        };
+
+        Slider volumeUnfocusedMaster = GetElement<Slider>("volume.unfocusedMaster");
+        volumeUnfocusedMaster.onValueChanged += (_, _) => {
+            _settings.unfocusedMasterVolume = volumeUnfocusedMaster.value;
+            GetElement<Text>("volume.unfocusedMaster.value").text =
+                _settings.unfocusedMasterVolume.ToString(culture);
             _settings.ApplyVolumes();
         };
 
@@ -144,7 +155,10 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
     }
 
     public override void Open() {
+        base.Open();
+
         GetElement<Slider>("volume.master").value = _settings.masterVolume;
+        GetElement<Slider>("volume.unfocusedMaster").value = _settings.unfocusedMasterVolume;
         GetElement<Slider>("volume.music").value = _settings.musicVolume;
         GetElement<Slider>("volume.sfx").value = _settings.sfxVolume;
         GetElement<Button>("bloom").toggled = _settings.bloom;
@@ -278,7 +292,10 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
         public override IListBoxTemplateFactory<ResourcePackData>.Template CreateTemplate() => new Template(this);
     }
 
-    public override void Close() => _reload = false;
+    public override void Close() {
+        base.Close();
+        _reload = false;
+    }
 
     public override void Update() {
         base.Update();

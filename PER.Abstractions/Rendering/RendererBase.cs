@@ -41,6 +41,7 @@ public abstract class RendererBase : IRenderer {
 
     public abstract bool open { get; }
     public abstract bool focused { get; }
+    public abstract event EventHandler? focusChanged;
     public abstract event EventHandler? closed;
 
     public virtual Color background { get; set; } = Color.black;

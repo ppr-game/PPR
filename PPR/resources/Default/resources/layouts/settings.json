@@ -7,7 +7,7 @@
         "position": { "x": 2, "y": 13 }
     },
     "volume.master": {
-        "position": { "x": 12, "y": 15 },
+        "position": { "x": 16, "y": 15 },
         "width": 21,
         "minValue": 0.0,
         "maxValue": 1.0
@@ -17,72 +17,85 @@
         "position": { "x": 4, "y": 15 }
     },
     "volume.master.value": {
-        "position": { "x": 34, "y": 15 }
+        "position": { "x": 38, "y": 15 }
+    },
+    "volume.unfocusedMaster": {
+        "position": { "x": 16, "y": 17 },
+        "width": 21,
+        "minValue": 0.0,
+        "maxValue": 1.0
+    },
+    "volume.unfocusedMaster.label": {
+        "text": "unfocused",
+        "position": { "x": 6, "y": 17 }
+    },
+    "volume.unfocusedMaster.value": {
+        "position": { "x": 38, "y": 17 }
     },
     "volume.music": {
-        "position": { "x": 12, "y": 17 },
+        "position": { "x": 16, "y": 19 },
         "width": 21,
         "minValue": 0.0,
         "maxValue": 1.0
     },
     "volume.music.label": {
         "text": "MUSIC",
-        "position": { "x": 4, "y": 17 }
+        "position": { "x": 4, "y": 19 }
     },
     "volume.music.value": {
-        "position": { "x": 34, "y": 17 }
+        "position": { "x": 38, "y": 19 }
     },
     "volume.sfx": {
-        "position": { "x": 12, "y": 19 },
+        "position": { "x": 16, "y": 21 },
         "width": 21,
         "minValue": 0.0,
         "maxValue": 1.0
     },
     "volume.sfx.label": {
         "text": "EFFECTS",
-        "position": { "x": 4, "y": 19 }
+        "position": { "x": 4, "y": 21 }
     },
     "volume.sfx.value": {
-        "position": { "x": 34, "y": 19 }
+        "position": { "x": 38, "y": 21 }
     },
     "header.video": {
         "text": "[ VIDEO ]",
-        "position": { "x": 2, "y": 21 }
+        "position": { "x": 2, "y": 23 }
     },
     "bloom": {
-        "position": { "x": 4, "y": 23 },
+        "position": { "x": 4, "y": 25 },
         "size": { "x": 5, "y": 1 },
         "text": "BLOOM"
     },
     "fullscreen": {
-        "position": { "x": 4, "y": 25 },
+        "position": { "x": 4, "y": 27 },
         "size": { "x": 10, "y": 1 },
         "text": "FULLSCREEN"
     },
     "fpsLimit": {
-        "position": { "x": 14, "y": 27 },
+        "position": { "x": 14, "y": 29 },
         "width": 19,
         "minValue": -1,
         "maxValue": 17
     },
     "fpsLimit.label": {
         "text": "FPS LIMIT",
-        "position": { "x": 4, "y": 27 }
+        "position": { "x": 4, "y": 29 }
     },
     "fpsLimit.value": {
-        "position": { "x": 34, "y": 27 }
+        "position": { "x": 34, "y": 29 }
     },
     "uppercaseNotes": {
-        "position": { "x": 4, "y": 29 },
+        "position": { "x": 4, "y": 31 },
         "size": { "x": 15, "y": 1 },
         "text": "UPPERCASE NOTES"
     },
     "header.advanced": {
         "text": "[ ADVANCED ]",
-        "position": { "x": 2, "y": 31 }
+        "position": { "x": 2, "y": 33 }
     },
     "showFps": {
-        "position": { "x": 4, "y": 33 },
+        "position": { "x": 4, "y": 35 },
         "size": { "x": 8, "y": 1 },
         "text": "SHOW FPS"
     },

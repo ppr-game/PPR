@@ -19,7 +19,8 @@ public interface IRenderer {
 
     public bool open { get; }
     public bool focused { get; }
-    public event EventHandler closed;
+    public event EventHandler? focusChanged;
+    public event EventHandler? closed;
 
     public Color background { get; set; }
 

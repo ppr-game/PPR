@@ -27,11 +27,15 @@ public class MainMenuScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
         { "sfml", typeof(LayoutResourceButton) },
         { "github", typeof(LayoutResourceButton) },
         { "discord", typeof(LayoutResourceButton) },
-        { "versions", typeof(LayoutResourceText) }
+        { "versions", typeof(LayoutResourceText) },
+        { "player.playPause", typeof(LayoutResourceButton) },
+        { "player.next", typeof(LayoutResourceButton) },
+        { "player.name", typeof(LayoutResourceText) }
     };
 
-    // shut up
-    // ReSharper disable once CognitiveComplexity
+    private string _playerPlayPauseTemplate = "  ";
+    private string _playerNameTemplate = string.Empty;
+
     public override void Load(string id, IResources resources) {
         base.Load(id, resources);
 
@@ -73,11 +77,26 @@ public class MainMenuScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
         versions.text =
             string.Format(versions.text ?? string.Empty, Core.version, Core.engineVersion, Core.abstractionsVersion,
                 Core.utilVersion, Core.commonVersion, Core.audioVersion, Core.rendererVersion, Core.uiVersion);
+
+        GetElement<Button>("player.playPause").onClick += (_, _) => {
+            Conductor.status = Conductor.status == PlaybackStatus.Playing ? PlaybackStatus.Paused :
+                PlaybackStatus.Playing;
+        };
+
+        GetElement<Button>("player.next").onClick += (_, _) => {
+            Conductor.NextMusic();
+        };
+
+        _playerPlayPauseTemplate = GetElement<Button>("player.playPause").text ?? _playerPlayPauseTemplate;
+        _playerNameTemplate = GetElement<Text>("player.name").text ?? _playerNameTemplate;
     }
 
-    public override void Open() { }
-
-    public override void Close() { }
+    protected override void UpdateMusic(object? sender, EventArgs args) {
+        base.UpdateMusic(sender, args);
+        GetElement<Button>("player.playPause").text =
+            _playerPlayPauseTemplate[(Conductor.status == PlaybackStatus.Playing).ToByte()].ToString();
+        GetElement<Text>("player.name").text = string.Format(_playerNameTemplate, Conductor.author, Conductor.name);
+    }
 
     public override void Update() {
         base.Update();

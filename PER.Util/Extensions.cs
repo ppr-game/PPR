@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 using JetBrains.Annotations;
@@ -31,4 +32,15 @@ public static class StringExtensions {
         }
         return newText.ToString();
     }
+}
+
+[PublicAPI]
+public static class ConversionExtensions {
+    // apparently these get inlined automatically but
+    // i'm gonna leave the attributes here just in case
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe bool ToBool(this byte value) => *(bool*)&value;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe byte ToByte(this bool value) => *(byte*)&value;
 }

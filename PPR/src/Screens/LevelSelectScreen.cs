@@ -26,8 +26,8 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
     protected override string layoutName => "levelSelect";
     protected override IReadOnlyDictionary<string, Type> elementTypes { get; } = new Dictionary<string, Type> {
         { "frame", typeof(LayoutResourceText) },
-        { "scores", typeof(LayoutResourceListBox<LevelScore>) },
-        { "levels", typeof(LayoutResourceListBox<LevelItem>) },
+        { "scores", typeof(LayoutResourceListBox<LevelSerializer.LevelScore>) },
+        { "levels", typeof(LayoutResourceListBox<LevelSerializer.LevelItem>) },
         { "metadata.labels", typeof(LayoutResourceText) },
         { "metadata.difficulty", typeof(LayoutResourceText) },
         { "metadata.author", typeof(LayoutResourceText) },
@@ -37,17 +37,12 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
         { "back", typeof(LayoutResourceButton) }
     };
 
-    private const string LevelsPath = "levels";
-    private const string TemplateLevelName = "_template";
-    private const string MetadataFileName = "metadata.json";
-    private const string ScoresPath = "scores.json";
-
     public static readonly IReadOnlyDictionary<string, string> authorToSpecial = new Dictionary<string, string> {
         { "ConfiG", "ConfiG" },
         { "sbeve", "contributor" }
     };
 
-    private Dictionary<Guid, LevelScore[]> _scores = new();
+    private Dictionary<Guid, LevelSerializer.LevelScore[]> _scores = new();
     private Button? _selectedLevelButton;
 
     private NewLevelDialogBoxScreen? _newLevelDialogBox;
@@ -79,30 +74,13 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
     }
 
     public override void Open() {
-        if(TryReadScoreList(out Dictionary<Guid, LevelScore[]>? scores))
+        base.Open();
+        if(LevelSerializer.TryReadScoreList(out Dictionary<Guid, LevelSerializer.LevelScore[]>? scores))
             _scores = scores;
         GenerateLevelSelector();
     }
 
-    private static bool TryReadScoreList([NotNullWhen(true)] out Dictionary<Guid, LevelScore[]>? scores) {
-        if(!File.Exists(ScoresPath)) {
-            scores = null;
-            return false;
-        }
-
-        FileStream scoresFile = File.OpenRead(ScoresPath);
-        try { scores = JsonSerializer.Deserialize<Dictionary<Guid, LevelScore[]>>(scoresFile); }
-        catch(JsonException) { scores = null; }
-        scoresFile.Close();
-
-        return scores is not null;
-    }
-
-    // TODO: use path
-    // ReSharper disable once NotAccessedPositionalProperty.Local
-    private record struct LevelItem(LevelMetadata metadata, string path, string? error);
-
-    private class LevelSelectorTemplate : ListBoxTemplateResourceBase<LevelItem> {
+    private class LevelSelectorTemplate : ListBoxTemplateResourceBase<LevelSerializer.LevelItem> {
         // ReSharper disable once MemberHidesStaticFromOuterClass
         public const string GlobalId = "layouts/templates/levelItem";
 
@@ -131,13 +109,13 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
 
             public Template(LevelSelectorTemplate resource) : base(resource) => _resource = resource;
 
-            public override void UpdateWithItem(int index, LevelItem item, int width) {
+            public override void UpdateWithItem(int index, LevelSerializer.LevelItem item, int width) {
                 if(_resource._screen is null)
                     return;
                 LevelSelectScreen screen = _resource._screen;
 
-                GetElement<Button>(item.error is null ? "error_level" : "level").enabled = false;
-                Button levelButton = GetElement<Button>(item.error is null ? "level" : "error_level");
+                GetElement<Button>(item.hasErrors ? "level" : "error_level").enabled = false;
+                Button levelButton = GetElement<Button>(item.hasErrors ? "error_level" : "level");
                 levelButton.enabled = true;
                 levelButton.text =
                     item.metadata.name.Length > levelButton.size.x ? item.metadata.name[..levelButton.size.x] :
@@ -150,53 +128,24 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
                     screen.UpdateMetadataPanel(item.metadata);
                     screen.UpdateScoreList(item.metadata.guid);
                     screen._selectedLevelButton = levelButton;
+                    if(!item.hasErrors)
+                        Conductor.SetMusic(item.path, item.music);
                 };
             }
         }
 
-        public override IListBoxTemplateFactory<LevelItem>.Template CreateTemplate() => new Template(this);
+        public override IListBoxTemplateFactory<LevelSerializer.LevelItem>.Template CreateTemplate() => new Template(this);
     }
 
     private void GenerateLevelSelector() {
-        ListBox<LevelItem> levels = GetElement<ListBox<LevelItem>>("levels");
+        ListBox<LevelSerializer.LevelItem> levels = GetElement<ListBox<LevelSerializer.LevelItem>>("levels");
         levels.Clear();
-        foreach(LevelItem item in ReadLevelList())
+        foreach(LevelSerializer.LevelItem item in LevelSerializer.ReadLevelList())
             levels.Add(item);
     }
 
-    private static IEnumerable<LevelItem> ReadLevelList() {
-        foreach(string levelDirectory in Directory.EnumerateDirectories(LevelsPath)) {
-            string directoryName = Path.GetFileName(levelDirectory);
-            if(directoryName == TemplateLevelName)
-                continue;
-
-            LevelMetadata metadata = new(0, Guid.Empty, directoryName, string.Empty, string.Empty, -1);
-            string metadataPath = Path.Combine(levelDirectory, MetadataFileName);
-            if(!File.Exists(metadataPath)) {
-                yield return new LevelItem(metadata, levelDirectory, "Metadata file not found.");
-                continue;
-            }
-
-            FileStream metadataFile = File.OpenRead(metadataPath);
-
-            JsonException? jsonException = null;
-            try { metadata = JsonSerializer.Deserialize<LevelMetadata>(metadataFile); }
-            catch(JsonException ex) { jsonException = ex; }
-
-            metadataFile.Close();
-
-            if(jsonException is not null) {
-                yield return new LevelItem(metadata, levelDirectory,
-                    $"Error in {jsonException.Path} at {jsonException.LineNumber}:\n{jsonException.Message}");
-                continue;
-            }
-
-            yield return new LevelItem(metadata, levelDirectory, null);
-        }
-    }
-
     private void ResetMetadataPanel() => UpdateMetadataPanel(null);
-    private void UpdateMetadataPanel(LevelMetadata? metadata) {
+    private void UpdateMetadataPanel(LevelSerializer.LevelMetadata? metadata) {
         Text labels = GetElement<Text>("metadata.labels");
         Text difficulty = GetElement<Text>("metadata.difficulty");
         Text author = GetElement<Text>("metadata.author");
@@ -220,17 +169,17 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
     }
 
     private void UpdateScoreList(Guid levelGuid) {
-        ListBox<LevelScore> scores = GetElement<ListBox<LevelScore>>("scores");
+        ListBox<LevelSerializer.LevelScore> scores = GetElement<ListBox<LevelSerializer.LevelScore>>("scores");
 
-        if(!_scores.TryGetValue(levelGuid, out LevelScore[]? currentScores))
-            currentScores = Array.Empty<LevelScore>();
+        if(!_scores.TryGetValue(levelGuid, out LevelSerializer.LevelScore[]? currentScores))
+            currentScores = Array.Empty<LevelSerializer.LevelScore>();
 
         scores.Clear();
-        foreach(LevelScore currentScore in currentScores)
+        foreach(LevelSerializer.LevelScore currentScore in currentScores)
             scores.Add(currentScore);
     }
 
-    private class ScoreListTemplate : ListBoxTemplateResourceBase<LevelScore> {
+    private class ScoreListTemplate : ListBoxTemplateResourceBase<LevelSerializer.LevelScore> {
         // ReSharper disable once MemberHidesStaticFromOuterClass
         public const string GlobalId = "layouts/templates/scoreItem";
 
@@ -298,7 +247,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
                 _perfectHitsOffset = perfectHits.position.x - ((hits.text?.Length ?? 0) + hits.position.x);
             }
 
-            public override void UpdateWithItem(int index, LevelScore item, int width) {
+            public override void UpdateWithItem(int index, LevelSerializer.LevelScore item, int width) {
                 GetElement<Text>("score").text = string.Format(_resource._scoreTemplate, item.score.ToString());
 
                 Text accuracy = GetElement<Text>("accuracy");
@@ -339,10 +288,11 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
             }
         }
 
-        public override IListBoxTemplateFactory<LevelScore>.Template CreateTemplate() => new Template(this);
+        public override IListBoxTemplateFactory<LevelSerializer.LevelScore>.Template CreateTemplate() => new Template(this);
     }
 
     public override void Close() {
+        base.Close();
         _selectedLevelButton = null;
         ResetMetadataPanel();
         ResetScoreList();

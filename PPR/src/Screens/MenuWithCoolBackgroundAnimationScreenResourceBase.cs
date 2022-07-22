@@ -8,28 +8,33 @@ using PRR.UI.Resources;
 namespace PPR.Screens;
 
 public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : LayoutResourceBase, IScreen {
-    // ReSharper disable once MemberCanBePrivate.Global AutoPropertyCanBeMadeGetOnly.Global
-    public static int animBpm { get; set; } = 120;
-
     private static readonly Perlin perlin = new();
+    private static readonly Stopwatch clock = new();
     private Color _animMax;
 
     public override void Load(string id, IResources resources) {
         base.Load(id, resources);
+        clock.Reset();
         if(!colors.colors.TryGetValue("menus_anim_max", out Color menusAnimMax))
             menusAnimMax = Color.white;
         _animMax = menusAnimMax;
     }
 
-    public abstract void Open();
-    public abstract void Close();
+    public virtual void Open() {
+        Conductor.stateChanged += UpdateMusic;
+        UpdateMusic(null, EventArgs.Empty);
+    }
+
+    public virtual void Close() => Conductor.stateChanged -= UpdateMusic;
+
+    protected virtual void UpdateMusic(object? sender, EventArgs args) => clock.speed = Conductor.bpm / 120d;
 
     public virtual void Update() {
         // forcefully unblock input for the effect
         bool prevInputBlock = input.block;
         input.block = false;
 
-        float time = (float)Core.engine.clock.time.TotalSeconds * animBpm / 120f;
+        float time = (float)clock.time.TotalSeconds;
         for(int x = -3; x < renderer.width + 3; x++) {
             for(int y = -3; y < renderer.height + 3; y++) {
                 if(x % 3 != 0 || y % 3 != 0)

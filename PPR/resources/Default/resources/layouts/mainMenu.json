@@ -50,5 +50,19 @@
     "versions": {
         "position": { "x": 1, "y": 2 },
         "text": "PPR v{0}\nEngine v{1}\nRenderer v{6}\nAudio v{5}\nUI v{7}\nAbstractions v{2}\nUtil v{3}\nCommon v{4}"
+    },
+    "player.playPause": {
+        "position": { "x": 1, "y": 58 },
+        "size": { "x": 1, "y": 1 },
+        "text": "►║"
+    },
+    "player.next": {
+        "position": { "x": 3, "y": 58 },
+        "size": { "x": 1, "y": 1 },
+        "text": "»"
+    },
+    "player.name": {
+        "position": { "x": 5, "y": 58 },
+        "text": "NOW PLAYING: {0} - {1}"
     }
 }
