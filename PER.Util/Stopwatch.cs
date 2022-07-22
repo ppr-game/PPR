@@ -10,7 +10,7 @@ public class Stopwatch : IReadOnlyStopwatch {
         get => _speed;
         set {
             long currentTime = DateTime.UtcNow.Ticks;
-            _savedTime += (DateTime.UtcNow.Ticks - currentTime) * speed;
+            _savedTime += (currentTime - _startTime) * speed;
             _startTime = currentTime;
             _speed = value;
         }
