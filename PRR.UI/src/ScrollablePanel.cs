@@ -66,7 +66,7 @@ public class ScrollablePanel : Element {
         scroll += delta;
     }
 
-    public override void Update(IReadOnlyStopwatch clock) {
+    public override void Update(TimeSpan time) {
         if(!enabled)
             return;
         _allowScrolling = !input.block;
@@ -75,7 +75,7 @@ public class ScrollablePanel : Element {
             Element element = elements[i];
             if(element.position.y < bounds.min.y || element.position.y > bounds.max.y)
                 continue;
-            elements[i].Update(clock);
+            elements[i].Update(time);
         }
     }
 

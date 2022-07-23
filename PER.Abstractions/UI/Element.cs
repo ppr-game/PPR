@@ -33,7 +33,7 @@ public abstract class Element {
 
     public abstract Element Clone();
 
-    public abstract void Update(IReadOnlyStopwatch clock);
+    public abstract void Update(TimeSpan time);
 
     protected static void PlaySound(IAudio? audio, IPlayable? playable, string defaultId) {
         if(playable is not null)

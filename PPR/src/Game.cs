@@ -90,11 +90,11 @@ public class Game : GameBase {
         SwitchScreen(screen);
     }
 
-    public override void Update() {
+    public override void Update(TimeSpan time) {
         if(_drawTextEffect is not null) renderer.AddEffect(_drawTextEffect);
         if(_settings.bloom && _bloomEffect is not null) renderer.AddEffect(_bloomEffect);
 
         Conductor.Update();
-        base.Update();
+        base.Update(time);
     }
 }

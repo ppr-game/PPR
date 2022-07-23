@@ -98,10 +98,10 @@ public class MainMenuScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
         GetElement<Text>("player.name").text = string.Format(_playerNameTemplate, Conductor.author, Conductor.name);
     }
 
-    public override void Update() {
-        base.Update();
+    public override void Update(TimeSpan time) {
+        base.Update(time);
         foreach((string _, Element element) in elements)
-            element.Update(Core.engine.clock);
+            element.Update(time);
     }
 
     public override void Tick(TimeSpan time) { }

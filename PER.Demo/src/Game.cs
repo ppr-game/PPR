@@ -313,7 +313,7 @@ public class Game : GameBase {
         return (toggleButton, moveUpButton, moveDownButton);
     }
 
-    public override void Update() {
+    public override void Update(TimeSpan time) {
         if(_drawTextEffect is null || _bloomEffect is null) return;
 
         IInput input = Core.engine.input;
@@ -376,17 +376,18 @@ as you can see wit works!!1!
            input.MouseButtonPressed(MouseButton.Left))
             _testProgressBar.value = input.normalizedMousePosition.x;
 
-        DrawUi();
+        DrawUi(time);
 
-        base.Update();
+        base.Update(time);
     }
 
-    private void DrawUi() {
-        foreach(Element element in _ui) element.Update(Core.engine.clock);
+    private void DrawUi(TimeSpan time) {
+        foreach(Element element in _ui)
+            element.Update(time);
         // ReSharper disable once ForCanBeConvertedToForeach
         for(int i = 0; i < _packSelector.Count; i++) {
             Element element = _packSelector[i];
-            element.Update(Core.engine.clock);
+            element.Update(time);
         }
     }
 }

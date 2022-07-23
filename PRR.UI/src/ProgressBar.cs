@@ -53,7 +53,7 @@ public class ProgressBar : Element {
 
     public override Element Clone() => throw new NotImplementedException();
 
-    private void Animate(IReadOnlyStopwatch clock, float from, float to, Color lowColor, Color highColor) {
+    private void Animate(TimeSpan time, float from, float to, Color lowColor, Color highColor) {
         int fromX = (int)MathF.Floor(size.x * MathF.Min(MathF.Max(from, 0f), 1f));
         int toX = (int)MathF.Floor(size.x * MathF.Min(MathF.Max(to, 0f), 1f));
         if(fromX == toX) return;
@@ -62,15 +62,15 @@ public class ProgressBar : Element {
         int max = Math.Max(fromX, toX);
         for(int x = min; x < max; x++)
             for(int y = 0; y < size.y; y++)
-                _anim[x, y].Start(clock.time, color);
+                _anim[x, y].Start(time, color);
     }
 
-    public override void Update(IReadOnlyStopwatch clock) {
+    public override void Update(TimeSpan time) {
         if(!enabled) return;
 
-        if(value != _prevValue) Animate(clock, _prevValue, value, lowColor, highColor);
+        if(value != _prevValue) Animate(time, _prevValue, value, lowColor, highColor);
         else if(_resized) {
-            Animate(clock, value, value, lowColor, highColor);
+            Animate(time, value, value, lowColor, highColor);
             _resized = false;
         }
         _prevValue = value;
@@ -78,7 +78,7 @@ public class ProgressBar : Element {
         for(int x = 0; x < size.x; x++)
             for(int y = 0; y < size.y; y++)
                 renderer.DrawCharacter(new Vector2Int(position.x + x, position.y + y),
-                    new RenderCharacter('\0', _anim[x, y].Get(clock.time), Color.transparent), RenderOptions.Default,
+                    new RenderCharacter('\0', _anim[x, y].Get(time), Color.transparent), RenderOptions.Default,
                     effect);
     }
 

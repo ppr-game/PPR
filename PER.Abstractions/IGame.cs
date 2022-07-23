@@ -17,7 +17,7 @@ public interface IGame {
     public void Load();
     public RendererSettings Loaded();
     public void Setup();
-    public void Update();
+    public void Update(TimeSpan time);
     public void Tick(TimeSpan time);
     public void Finish();
 }

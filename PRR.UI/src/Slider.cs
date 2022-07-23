@@ -50,8 +50,8 @@ public class Slider : ClickableElementBase {
 
     public override Element Clone() => throw new NotImplementedException();
 
-    protected override void UpdateState(IReadOnlyStopwatch clock) {
-        base.UpdateState(clock);
+    protected override void UpdateState(TimeSpan time) {
+        base.UpdateState(time);
         if(currentState == State.Clicked)
             UpdateValue();
     }
@@ -74,5 +74,5 @@ public class Slider : ClickableElementBase {
             RenderOptions.Default, effect);
     }
 
-    protected override void CustomUpdate(IReadOnlyStopwatch clock) { }
+    protected override void CustomUpdate(TimeSpan time) { }
 }

@@ -57,11 +57,11 @@ public abstract class GameBase : IGame {
 
     public virtual void Setup() => renderer.closed += (_, _) => SwitchScreen(null);
 
-    public virtual void Update() {
+    public virtual void Update(TimeSpan time) {
         if(_screenFade.fading)
             renderer.AddEffect(_screenFade);
 
-        currentScreen?.Update();
+        currentScreen?.Update(time);
 
         _fps = (int)Math.Round(1d / deltaTime);
         _tempAvgFPS += _fps;

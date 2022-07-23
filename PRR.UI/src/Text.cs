@@ -27,7 +27,7 @@ public class Text : Element {
 
     public override Element Clone() => Clone(this);
 
-    public override void Update(IReadOnlyStopwatch clock) {
+    public override void Update(TimeSpan time) {
         if(!enabled || text is null)
             return;
         if(formatting.Count == 0)

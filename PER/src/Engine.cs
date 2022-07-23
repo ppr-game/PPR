@@ -20,7 +20,6 @@ public class Engine {
     public static readonly string version = Helper.GetVersion();
     public static readonly string abstractionsVersion = Helper.GetVersion(typeof(IGame));
 
-    public IReadOnlyStopwatch clock => _clock;
     public double deltaTime { get; private set; }
 
     public TimeSpan tickInterval { get; set; }
@@ -72,8 +71,8 @@ public class Engine {
     private void Run(RendererSettings rendererSettings) {
         logger.Info("Starting game");
         Setup(rendererSettings);
-        while(Update())
-            UpdateDeltaTime();
+        while(Update(_clock.time))
+            UpdateDeltaTime(_clock.time);
         Finish();
     }
 
@@ -87,23 +86,23 @@ public class Engine {
         logger.Info("Setup finished");
     }
 
-    private bool Update() {
+    private bool Update(TimeSpan time) {
         input.Update();
         renderer.Clear();
         renderer.Update();
-        game.Update();
-        TryTick();
+        game.Update(time);
+        TryTick(time);
         renderer.Draw();
         return renderer.open;
     }
 
-    private void TryTick() {
+    private void TryTick(TimeSpan time) {
         if(tickInterval < TimeSpan.Zero) {
-            _lastTickTime = clock.time;
+            _lastTickTime = time;
             return;
         }
 
-        while(clock.time - _lastTickTime >= tickInterval) {
+        while(time - _lastTickTime >= tickInterval) {
             _lastTickTime += tickInterval;
             Tick(_lastTickTime);
         }
@@ -111,9 +110,8 @@ public class Engine {
 
     private void Tick(TimeSpan time) => game.Tick(time);
 
-    private void UpdateDeltaTime() {
-        TimeSpan time = clock.time;
-        deltaTime = (clock.time - _prevTime).TotalSeconds;
+    private void UpdateDeltaTime(TimeSpan time) {
+        deltaTime = (time - _prevTime).TotalSeconds;
         _prevTime = time;
     }
 

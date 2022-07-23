@@ -298,21 +298,21 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
         ResetScoreList();
     }
 
-    public override void Update() {
+    public override void Update(TimeSpan time) {
         bool prevInputBlock = input.block;
         input.block = _newLevelDialogBox is not null;
 
-        base.Update();
+        base.Update(time);
         foreach((string id, Element element) in elements) {
             bool isPlay = id.StartsWith("play_", StringComparison.Ordinal);
             bool isEdit = !isPlay && id.StartsWith("edit_", StringComparison.Ordinal);
             if(isPlay && mode == PlayerMode.Play || isEdit && mode == PlayerMode.Edit || !isPlay && !isEdit)
-                element.Update(Core.engine.clock);
+                element.Update(time);
         }
 
         input.block = prevInputBlock;
 
-        _newLevelDialogBox?.Update();
+        _newLevelDialogBox?.Update(time);
     }
 
     public override void Tick(TimeSpan time) { }

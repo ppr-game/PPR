@@ -36,7 +36,7 @@ public abstract class DialogBoxScreenResourceBase : LayoutResourceBase, IScreen 
         _palette = null;
     }
 
-    public virtual void Update() {
+    public virtual void Update(TimeSpan time) {
         if(_colors is null || _palette is null ||
             !_colors.colors.TryGetValue(backgroundColorId, out Color backgroundColor) ||
             !_colors.colors.TryGetValue(foregroundColorId, out Color foregroundColor))
@@ -50,7 +50,7 @@ public abstract class DialogBoxScreenResourceBase : LayoutResourceBase, IScreen 
                     RenderOptions.Default, frameEffect);
 
         foreach((string _, Element element) in elements)
-            element.Update(Core.engine.clock);
+            element.Update(time);
     }
 
     public abstract void Tick(TimeSpan time);

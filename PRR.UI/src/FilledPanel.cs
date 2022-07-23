@@ -14,7 +14,7 @@ public class FilledPanel : Element {
 
     public override Element Clone() => throw new NotImplementedException();
 
-    public override void Update(IReadOnlyStopwatch clock) {
+    public override void Update(TimeSpan time) {
         if(!enabled) return;
         for(int y = bounds.min.y; y <= bounds.max.y; y++)
             for(int x = bounds.min.x; x <= bounds.max.x; x++)

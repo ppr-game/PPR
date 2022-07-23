@@ -29,17 +29,17 @@ public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : Layout
 
     protected virtual void UpdateMusic(object? sender, EventArgs args) => clock.speed = Conductor.bpm / 120d;
 
-    public virtual void Update() {
+    public virtual void Update(TimeSpan time) {
         // forcefully unblock input for the effect
         bool prevInputBlock = input.block;
         input.block = false;
 
-        float time = (float)clock.time.TotalSeconds;
+        float animTime = (float)clock.time.TotalSeconds;
         for(int x = -3; x < renderer.width + 3; x++) {
             for(int y = -3; y < renderer.height + 3; y++) {
                 if(x % 3 != 0 || y % 3 != 0)
                     continue;
-                DrawAnimationAt(x, y, time);
+                DrawAnimationAt(x, y, animTime);
             }
         }
 

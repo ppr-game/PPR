@@ -45,7 +45,7 @@ public class Button : ClickableElementBase {
 
     public override Element Clone() => Clone(this);
 
-    protected override void CustomUpdate(IReadOnlyStopwatch clock) {
+    protected override void CustomUpdate(TimeSpan time) {
         if(text is null)
             return;
         renderer.DrawText(center, text,

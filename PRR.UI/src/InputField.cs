@@ -104,7 +104,7 @@ public class InputField : ClickableElementBase {
     private int _cursor;
     private int _textOffset;
 
-    private IReadOnlyStopwatch _lastClock = new Stopwatch();
+    private TimeSpan _lastTime;
     private TimeSpan _lastTypeTime;
 
     private float[,] _animSpeeds = new float[0, 0];
@@ -114,8 +114,8 @@ public class InputField : ClickableElementBase {
 
     public override Element Clone() => throw new NotImplementedException();
 
-    protected override void UpdateState(IReadOnlyStopwatch clock) {
-        base.UpdateState(clock);
+    protected override void UpdateState(TimeSpan time) {
+        base.UpdateState(time);
         if(!typing)
             return;
 
@@ -144,8 +144,8 @@ public class InputField : ClickableElementBase {
         PlaySound(audio, submitSound, SubmitSoundId);
     }
 
-    protected override void CustomUpdate(IReadOnlyStopwatch clock) {
-        _lastClock = clock;
+    protected override void CustomUpdate(TimeSpan time) {
+        _lastTime = time;
         string? drawText = usePlaceholder ? placeholder : value;
         if(drawText is null)
             return;
@@ -165,7 +165,7 @@ public class InputField : ClickableElementBase {
         Vector2Int cursor = cursorPos;
 
         bool isCursor = typing && x == cursor.x && y == cursor.y &&
-            (_lastClock.time - _lastTypeTime).TotalSeconds * blinkRate % 1d <= 0.5d;
+            (_lastTime - _lastTypeTime).TotalSeconds * blinkRate % 1d <= 0.5d;
 
         RenderStyle style = this.style;
         if(isCursor) {
@@ -175,7 +175,7 @@ public class InputField : ClickableElementBase {
         }
 
         float speed = _animSpeeds[y, x];
-        float t = speed == 0f ? 1f : (float)(_lastClock.time - _animStartTimes[y, x]).TotalSeconds * speed;
+        float t = speed == 0f ? 1f : (float)(_lastTime - _animStartTimes[y, x]).TotalSeconds * speed;
         foregroundColor = new Color(foregroundColor.r, foregroundColor.g, foregroundColor.b,
             MoreMath.Lerp(0f, foregroundColor.a, t) * (usePlaceholder ? 0.5f : 1f));
 
@@ -192,26 +192,26 @@ public class InputField : ClickableElementBase {
         switch(args.key) {
             case KeyCode.Delete:
                 EraseRight();
-                _lastTypeTime = _lastClock.time;
+                _lastTypeTime = _lastTime;
                 break;
             case KeyCode.Left:
                 cursor = Math.Clamp(cursor - 1, 0, value?.Length ?? 0);
-                _lastTypeTime = _lastClock.time;
+                _lastTypeTime = _lastTime;
                 Animate();
                 break;
             case KeyCode.Right:
                 cursor = Math.Clamp(cursor + 1, 0, value?.Length ?? 0);
-                _lastTypeTime = _lastClock.time;
+                _lastTypeTime = _lastTime;
                 Animate();
                 break;
             case KeyCode.Up:
                 cursor = wrap ? Math.Clamp(cursor - size.x, 0, value?.Length ?? 0) : 0;
-                _lastTypeTime = _lastClock.time;
+                _lastTypeTime = _lastTime;
                 Animate();
                 break;
             case KeyCode.Down:
                 cursor = wrap ? Math.Clamp(cursor + size.x, 0, value?.Length ?? 0) : value?.Length ?? 0;
-                _lastTypeTime = _lastClock.time;
+                _lastTypeTime = _lastTime;
                 Animate();
                 break;
         }
@@ -240,7 +240,7 @@ public class InputField : ClickableElementBase {
                     TypeDrawable(character);
                     break;
             }
-        _lastTypeTime = _lastClock.time;
+        _lastTypeTime = _lastTime;
     }
 
     private void Copy() {
@@ -303,12 +303,12 @@ public class InputField : ClickableElementBase {
         Animate();
     }
 
-    private void Animate() => Animate(_lastClock, cursorPos);
-    private void Animate(IReadOnlyStopwatch clock, Vector2Int position) {
+    private void Animate() => Animate(_lastTime, cursorPos);
+    private void Animate(TimeSpan time, Vector2Int position) {
         if(position.y < 0 || position.y >= _animSpeeds.GetLength(0) ||
             position.x < 0 || position.x >= _animSpeeds.GetLength(1))
             return;
         _animSpeeds[position.y, position.x] = Random.Shared.NextSingle(MinSpeed, MaxSpeed);
-        _animStartTimes[position.y, position.x] = clock.time;
+        _animStartTimes[position.y, position.x] = time;
     }
 }

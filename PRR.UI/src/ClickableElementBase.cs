@@ -62,14 +62,14 @@ public abstract class ClickableElementBase : Element {
     private Color _animForegroundColorEnd;
     private bool _toggled;
     private bool _toggledChanged;
-    private IReadOnlyStopwatch _lastClock = new Stopwatch();
+    private TimeSpan _lastTime;
 
     protected ClickableElementBase(IRenderer renderer, IInput input, IAudio? audio = null) : base(renderer) {
         this.input = input;
         this.audio = audio;
     }
 
-    protected virtual void UpdateState(IReadOnlyStopwatch clock) {
+    protected virtual void UpdateState(TimeSpan time) {
         State prevState = currentState;
 
         bool mouseWasOver = bounds.IntersectsLine(input.previousMousePosition, input.mousePosition);
@@ -83,32 +83,32 @@ public abstract class ClickableElementBase : Element {
         currentState = active ? hotkeyPressed ? State.Hotkey : mouseWasOver ? overState : State.Idle : State.Inactive;
 
         if(currentState != prevState || _toggledChanged)
-            StateChanged(clock, prevState, currentState);
+            StateChanged(time, prevState, currentState);
 
         _toggledChanged = false;
-        _lastClock = clock;
+        _lastTime = time;
     }
 
-    private void StateChanged(IReadOnlyStopwatch clock, State from, State to) {
+    private void StateChanged(TimeSpan time, State from, State to) {
         bool instant = from == State.None;
 
         ExecuteStateChangeActions(from, to);
 
         switch(to) {
             case State.Inactive:
-                StartAnimation(clock, _toggled ? inactiveColor : idleColor,
+                StartAnimation(time, _toggled ? inactiveColor : idleColor,
                     _toggled ? idleColor : inactiveColor, instant);
                 break;
             case State.Idle:
-                StartAnimation(clock, _toggled ? clickColor : idleColor, _toggled ? idleColor : hoverColor, instant);
+                StartAnimation(time, _toggled ? clickColor : idleColor, _toggled ? idleColor : hoverColor, instant);
                 break;
             case State.FakeHovered:
             case State.Hovered:
-                StartAnimation(clock, hoverColor, idleColor, instant);
+                StartAnimation(time, hoverColor, idleColor, instant);
                 break;
             case State.FakeClicked:
             case State.Clicked:
-                StartAnimation(clock, clickColor, idleColor, instant);
+                StartAnimation(time, clickColor, idleColor, instant);
                 break;
         }
     }
@@ -133,27 +133,27 @@ public abstract class ClickableElementBase : Element {
         onClick?.Invoke(this, EventArgs.Empty);
     }
 
-    private void StartAnimation(IReadOnlyStopwatch clock, Color background, Color foreground, bool instant) {
+    private void StartAnimation(TimeSpan time, Color background, Color foreground, bool instant) {
         for(int y = 0; y < size.y; y++)
             for(int x = 0; x < size.x; x++)
                 _animSpeeds[y, x] = Random.Shared.NextSingle(MinSpeed, MaxSpeed);
-        _animStartTime = clock.time;
+        _animStartTime = time;
         _animBackgroundColorStart = instant ? background : _animBackgroundColorEnd;
         _animBackgroundColorEnd = background;
         _animForegroundColorStart = instant ? foreground : _animForegroundColorEnd;
         _animForegroundColorEnd = foreground;
     }
 
-    public override void Update(IReadOnlyStopwatch clock) {
+    public override void Update(TimeSpan time) {
         if(!enabled) {
             currentState = State.None;
             return;
         }
 
-        UpdateState(clock);
-        CustomUpdate(clock);
+        UpdateState(time);
+        CustomUpdate(time);
 
-        float animTime = (float)(clock.time - _animStartTime).TotalSeconds;
+        float animTime = (float)(time - _animStartTime).TotalSeconds;
         for(int y = 0; y < size.y; y++) {
             for(int x = 0; x < size.x; x++) {
                 float t = animTime * _animSpeeds[y, x];
@@ -167,7 +167,7 @@ public abstract class ClickableElementBase : Element {
 
     protected abstract void DrawCharacter(int x, int y, Color backgroundColor, Color foregroundColor);
 
-    protected abstract void CustomUpdate(IReadOnlyStopwatch clock);
+    protected abstract void CustomUpdate(TimeSpan time);
 
     public override void UpdateColors(Dictionary<string, Color> colors, string layoutName, string id, string? special) {
         if(TryGetColor(colors, type, layoutName, id, "inactive", special, out Color color) ||
@@ -182,6 +182,9 @@ public abstract class ClickableElementBase : Element {
         if(TryGetColor(colors, type, layoutName, id, "click", special, out color) ||
             TryGetColor(colors, "clickable", layoutName, id, "click", special, out color))
             clickColor = color;
-        StateChanged(_lastClock, currentState, currentState);
+        // if UpdateColors is called from some update function,
+        // _lastTime will be time at the current frame (or at least the last frame)
+        // otherwise, it doesn't really matter
+        StateChanged(_lastTime, currentState, currentState);
     }
 }
