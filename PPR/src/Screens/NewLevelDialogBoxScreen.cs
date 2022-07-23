@@ -65,5 +65,5 @@ public class NewLevelDialogBoxScreen : DialogBoxScreenResourceBase {
         onCancel = null;
     }
 
-    public override void Tick() { }
+    public override void Tick(TimeSpan time) { }
 }

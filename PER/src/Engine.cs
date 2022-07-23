@@ -23,7 +23,7 @@ public class Engine {
     public IReadOnlyStopwatch clock => _clock;
     public double deltaTime { get; private set; }
 
-    public double tickInterval { get; set; }
+    public TimeSpan tickInterval { get; set; }
     public IResources resources { get; }
     public IGame game { get; }
     public IRenderer renderer { get; }
@@ -32,7 +32,7 @@ public class Engine {
 
     private readonly Stopwatch _clock = new();
     private TimeSpan _prevTime;
-    private double _tickAccumulator;
+    private TimeSpan _lastTickTime;
 
     public Engine(IResources resources, IGame game, IRenderer renderer, IInput input, IAudio audio) {
         this.resources = resources;
@@ -98,16 +98,18 @@ public class Engine {
     }
 
     private void TryTick() {
-        if(tickInterval <= 0d) return;
-        _tickAccumulator += deltaTime;
+        if(tickInterval < TimeSpan.Zero) {
+            _lastTickTime = clock.time;
+            return;
+        }
 
-        while(_tickAccumulator >= tickInterval) {
-            Tick();
-            _tickAccumulator -= tickInterval;
+        while(clock.time - _lastTickTime >= tickInterval) {
+            _lastTickTime += tickInterval;
+            Tick(_lastTickTime);
         }
     }
 
-    private void Tick() => game.Tick();
+    private void Tick(TimeSpan time) => game.Tick(time);
 
     private void UpdateDeltaTime() {
         TimeSpan time = clock.time;

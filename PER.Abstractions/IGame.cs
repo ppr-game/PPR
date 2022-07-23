@@ -18,6 +18,6 @@ public interface IGame {
     public RendererSettings Loaded();
     public void Setup();
     public void Update();
-    public void Tick();
+    public void Tick(TimeSpan time);
     public void Finish();
 }

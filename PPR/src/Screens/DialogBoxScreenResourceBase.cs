@@ -53,5 +53,5 @@ public abstract class DialogBoxScreenResourceBase : LayoutResourceBase, IScreen 
             element.Update(Core.engine.clock);
     }
 
-    public abstract void Tick();
+    public abstract void Tick(TimeSpan time);
 }

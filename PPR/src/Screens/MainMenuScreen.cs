@@ -104,5 +104,5 @@ public class MainMenuScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
             element.Update(Core.engine.clock);
     }
 
-    public override void Tick() { }
+    public override void Tick(TimeSpan time) { }
 }

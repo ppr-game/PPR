@@ -71,5 +71,5 @@ public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : Layout
         }
     }
 
-    public abstract void Tick();
+    public abstract void Tick(TimeSpan time);
 }

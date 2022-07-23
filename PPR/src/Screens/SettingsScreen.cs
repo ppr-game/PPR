@@ -303,5 +303,5 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
             element.Update(Core.engine.clock);
     }
 
-    public override void Tick() { }
+    public override void Tick(TimeSpan time) { }
 }

@@ -315,5 +315,5 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
         _newLevelDialogBox?.Update();
     }
 
-    public override void Tick() { }
+    public override void Tick(TimeSpan time) { }
 }

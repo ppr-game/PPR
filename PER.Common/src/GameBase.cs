@@ -78,7 +78,7 @@ public abstract class GameBase : IGame {
             _ => new Formatting(Color.white, Color.transparent), HorizontalAlignment.Right);
     }
 
-    public virtual void Tick() => currentScreen?.Tick();
+    public virtual void Tick(TimeSpan time) => currentScreen?.Tick(time);
 
     public virtual void Finish() { }
 }
