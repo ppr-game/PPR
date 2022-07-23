@@ -54,11 +54,14 @@ public class Engine {
             }
             game.Load();
             resources.Load();
-            game.Loaded();
+            RendererSettings rendererSettings = game.Loaded();
             if(loaded)
                 input.Reset();
 
-            logger.Info("Reloaded game");
+            if(renderer.open)
+                renderer.Reset(rendererSettings);
+            else
+                Run(rendererSettings);
         }
         catch(Exception exception) {
             logger.Fatal(exception, "Uncaught exception! Please, report this file to the developer of the game.");
@@ -66,7 +69,7 @@ public class Engine {
         }
     }
 
-    public void Start(RendererSettings rendererSettings) {
+    private void Run(RendererSettings rendererSettings) {
         logger.Info("Starting game");
         Setup(rendererSettings);
         while(Update())

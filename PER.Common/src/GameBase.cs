@@ -53,7 +53,7 @@ public abstract class GameBase : IGame {
 
     public abstract void Unload();
     public abstract void Load();
-    public abstract void Loaded();
+    public abstract RendererSettings Loaded();
 
     public virtual void Setup() => renderer.closed += (_, _) => SwitchScreen(null);
 

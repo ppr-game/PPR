@@ -2,6 +2,8 @@
 
 using JetBrains.Annotations;
 
+using PER.Abstractions.Rendering;
+
 namespace PER.Abstractions;
 
 [PublicAPI]
@@ -13,7 +15,7 @@ public interface IGame {
     public void FadeScreen(float fadeOutTime, float fadeInTime, Action middleCallback);
     public void Unload();
     public void Load();
-    public void Loaded();
+    public RendererSettings Loaded();
     public void Setup();
     public void Update();
     public void Tick();

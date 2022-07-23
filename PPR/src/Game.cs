@@ -1,6 +1,4 @@
-﻿using System.Collections.Immutable;
-
-using PER.Abstractions.Rendering;
+﻿using PER.Abstractions.Rendering;
 using PER.Abstractions.Resources;
 using PER.Common;
 using PER.Common.Effects;
@@ -57,13 +55,14 @@ public class Game : GameBase {
         resources.TryAddResource(SettingsScreen.GlobalId, new SettingsScreen(_settings, resources));
     }
 
-    public override void Loaded() {
-        if(!Core.engine.resources.TryGetResource(FontResource.GlobalId, out FontResource? font) ||
-           font.font is null) return;
+    public override RendererSettings Loaded() {
+        if(!Core.engine.resources.TryGetResource(FontResource.GlobalId, out FontResource? font) || font.font is null)
+            throw new InvalidOperationException("Missing font.");
         Core.engine.resources.TryGetResource(IconResource.GlobalId, out IconResource? icon);
 
-        Core.engine.resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors);
-        if(colors is null || !colors.colors.TryGetValue("background", out Color backgroundColor)) return;
+        if(!Core.engine.resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors) ||
+            !colors.colors.TryGetValue("background", out Color backgroundColor))
+            throw new InvalidOperationException("Missing colors or background color.");
         renderer.background = backgroundColor;
 
         Core.engine.resources.TryGetResource(BloomEffect.GlobalId, out _bloomEffect);
@@ -71,7 +70,7 @@ public class Game : GameBase {
         _settings.ApplyVolumes();
         Conductor.Start();
 
-        RendererSettings rendererSettings = new() {
+        return new RendererSettings {
             title = "Press Press Revolution",
             width = 80,
             height = 60,
@@ -80,9 +79,6 @@ public class Game : GameBase {
             font = font.font,
             icon = icon?.icon
         };
-
-        if(renderer.open) renderer.Reset(rendererSettings);
-        else Core.engine.Start(rendererSettings);
     }
 
     public override void Setup() {

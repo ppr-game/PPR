@@ -62,29 +62,30 @@ public class Game : GameBase {
         renderer.formattingEffects.Add("glitch", _glitchEffect);
     }
 
-    public override void Loaded() {
+    public override RendererSettings Loaded() {
         if(!Core.engine.resources.TryGetResource(FontResource.GlobalId, out FontResource? font) || font.font is null)
-            return;
+            throw new InvalidOperationException("Missing font.");
         Core.engine.resources.TryGetResource(IconResource.GlobalId, out IconResource? icon);
+
+        if(!Core.engine.resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors) ||
+            !colors.colors.TryGetValue("background", out Color backgroundColor))
+            throw new InvalidOperationException("Missing colors or background color.");
+        renderer.background = backgroundColor;
+        _colors = colors.colors;
 
         Core.engine.resources.TryGetResource(BloomEffect.GlobalId, out _bloomEffect);
 
-        if(Core.engine.resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors))
-            _colors = colors.colors;
-
         _settings.Apply();
 
-        if(renderer.open) renderer.font = font.font;
-        else
-            Core.engine.Start(new RendererSettings {
-                title = "PER Demo Pog",
-                width = 80,
-                height = 60,
-                framerate = 0,
-                fullscreen = false,
-                font = font.font,
-                icon = icon?.icon
-            });
+        return new RendererSettings {
+            title = "PER Demo Pog",
+            width = 80,
+            height = 60,
+            framerate = 0,
+            fullscreen = false,
+            font = font.font,
+            icon = icon?.icon
+        };
     }
 
     public override void Setup() {
