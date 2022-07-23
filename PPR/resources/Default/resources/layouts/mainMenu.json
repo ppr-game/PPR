@@ -1,6 +1,11 @@
 ﻿{
-    "frame": {
-        "path": "mainMenu.txt"
+    "frameLeft": {
+        "path": "mainMenuLeft.txt"
+    },
+    "frameRight": {
+        "path": "mainMenuRight.txt",
+        "position": { "x": 79, "y": 0 },
+        "align": "right"
     },
     "title": {
         "text": "\frPRE\fgSS \frPRE\fgSS \frRE\fbV\frO\fgL\frUTIO\fbN",

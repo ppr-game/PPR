@@ -88,7 +88,7 @@ public class Renderer : RendererBase, IDisposable {
     }
 
     protected override void CreateText() =>
-        text = new Text(font, new Vector2Int(width, height), display);
+        text = new Text(font, new Vector2Int(width, height), display, displayUsed);
 
     public override void AddEffect(IEffect effect) {
         base.AddEffect(effect);

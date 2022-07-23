@@ -244,3 +244,7 @@ resharper_web_config_wrong_module_highlighting=warning
 
 [{*.csproj,*.vcxproj}]
 indent_size=2
+
+[*.txt]
+trim_trailing_whitespace=false
+insert_final_newline=false

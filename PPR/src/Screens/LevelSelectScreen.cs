@@ -25,7 +25,8 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
 
     protected override string layoutName => "levelSelect";
     protected override IReadOnlyDictionary<string, Type> elementTypes { get; } = new Dictionary<string, Type> {
-        { "frame", typeof(LayoutResourceText) },
+        { "frameLeft", typeof(LayoutResourceText) },
+        { "frameRight", typeof(LayoutResourceText) },
         { "scores", typeof(LayoutResourceListBox<LevelSerializer.LevelScore>) },
         { "levels", typeof(LayoutResourceListBox<LevelSerializer.LevelItem>) },
         { "metadata.labels", typeof(LayoutResourceText) },

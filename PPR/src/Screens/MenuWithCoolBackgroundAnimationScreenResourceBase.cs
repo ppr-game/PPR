@@ -8,7 +8,6 @@ using PRR.UI.Resources;
 namespace PPR.Screens;
 
 public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : LayoutResourceBase, IScreen {
-    private static readonly Perlin perlin = new();
     private static readonly Stopwatch clock = new();
     private Color _animMax;
 
@@ -27,7 +26,7 @@ public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : Layout
 
     public virtual void Close() => Conductor.stateChanged -= UpdateMusic;
 
-    protected virtual void UpdateMusic(object? sender, EventArgs args) => clock.speed = Conductor.bpm / 120d;
+    protected virtual void UpdateMusic(object? sender, EventArgs args) => clock.speed = Conductor.bpm / 240d;
 
     public virtual void Update(TimeSpan time) {
         // forcefully unblock input for the effect
@@ -35,23 +34,27 @@ public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : Layout
         input.block = false;
 
         float animTime = (float)clock.time.TotalSeconds;
+        float mouseX = input.accurateMousePosition.x / renderer.width - 0.5f;
+        float mouseY = input.accurateMousePosition.y / renderer.width - 0.5f;
         for(int x = -3; x < renderer.width + 3; x++) {
             for(int y = -3; y < renderer.height + 3; y++) {
                 if(x % 3 != 0 || y % 3 != 0)
                     continue;
-                DrawAnimationAt(x, y, animTime);
+                DrawAnimationAt(x, y, mouseX, mouseY, animTime);
             }
         }
 
         input.block = prevInputBlock;
     }
 
-    private void DrawAnimationAt(int x, int y, float time) {
-        float noiseX = (float)perlin.Get(x / 10f, y / 10f, time / 2f) - 0.5f;
-        float noiseY = (float)perlin.Get(x / 10f, y / 10f, time / 2f + 100f) - 0.5f;
+    private void DrawAnimationAt(int x, int y, float mouseX, float mouseY, float time) {
+        float scaledX = x / 10f;
+        float scaledY = y / 10f;
+        float noiseX = Perlin.Get(scaledX, scaledY, time) - 0.5f;
+        float noiseY = Perlin.Get(scaledX, scaledY, time + 100f) - 0.5f;
         float noise = MathF.Abs(noiseX * noiseY);
-        float xOffset = (input.accurateMousePosition.x / renderer.width - 0.5f) * noise * -100f;
-        float yOffset = (input.accurateMousePosition.y / renderer.width - 0.5f) * noise * -100f;
+        float xOffset = mouseX * noise * -100f;
+        float yOffset = mouseY * noise * -100f;
         Color useColor = new(_animMax.r, _animMax.g, _animMax.b, MoreMath.Lerp(0f, _animMax.a, noise * 30f));
         float xPos = x + noiseX * 10f + xOffset;
         float yPos = y + noiseY * 10f + yOffset;

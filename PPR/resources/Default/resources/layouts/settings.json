@@ -1,6 +1,11 @@
 ﻿{
-    "frame": {
-        "path": "settings.txt"
+    "frameLeft": {
+        "path": "settingsLeft.txt"
+    },
+    "frameRight": {
+        "path": "settingsRight.txt",
+        "position": { "x": 79, "y": 0 },
+        "align": "right"
     },
     "header.audio": {
         "text": "[ AUDIO ]",

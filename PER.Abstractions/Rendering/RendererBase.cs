@@ -50,7 +50,9 @@ public abstract class RendererBase : IRenderer {
 
     protected List<IEffect> fullscreenEffects { get; private set; } = new();
 
-    protected Dictionary<Vector2Int, RenderCharacter> display { get; private set; } = new();
+    protected RenderCharacter[,] display { get; private set; } = new RenderCharacter[0, 0];
+    protected HashSet<Vector2Int> displayUsed { get; private set; } = new();
+
     protected Dictionary<Vector2Int, IEffect> effects { get; private set; } = new();
 
     private int _framerate;
@@ -84,7 +86,8 @@ public abstract class RendererBase : IRenderer {
     public virtual void Reset() => Reset(new RendererSettings(this));
 
     protected virtual void UpdateFont() {
-        display = new Dictionary<Vector2Int, RenderCharacter>(width * height);
+        display = new RenderCharacter[height, width];
+        displayUsed = new HashSet<Vector2Int>(width * height);
         effects = new Dictionary<Vector2Int, IEffect>(width * height);
         fullscreenEffects = new List<IEffect>();
 
@@ -93,7 +96,7 @@ public abstract class RendererBase : IRenderer {
 
     protected abstract void CreateText();
 
-    public virtual void Clear() => display.Clear();
+    public virtual void Clear() => displayUsed.Clear();
     public abstract void Draw();
 
     protected void DrawAllEffects() {
@@ -121,7 +124,13 @@ public abstract class RendererBase : IRenderer {
 
     public virtual void DrawCharacter(Vector2Int position, RenderCharacter character,
         RenderOptions options = RenderOptions.Default, IEffect? effect = null) {
-        if(position.x < 0 || position.y < 0 || position.x >= width || position.y >= height) return;
+        if(position.x < 0 || position.y < 0 || position.x >= width || position.y >= height)
+            return;
+
+        if(IsCharacterEmpty(character)) {
+            AddEffect(position, effect);
+            return;
+        }
 
         if((options & RenderOptions.BackgroundAlphaBlending) != 0) {
             RenderCharacter currentCharacter = GetCharacter(position);
@@ -135,8 +144,13 @@ public abstract class RendererBase : IRenderer {
                 Color.white - currentCharacter.background, character.style);
         }
 
-        if(IsCharacterEmpty(character)) display.Remove(position);
-        else display[position] = character;
+        if(IsCharacterEmpty(character))
+            displayUsed.Remove(position);
+        else {
+            display[position.y, position.x] = character;
+            displayUsed.Add(position);
+        }
+
         AddEffect(position, effect);
     }
 
@@ -204,7 +218,7 @@ public abstract class RendererBase : IRenderer {
     };
 
     public virtual RenderCharacter GetCharacter(Vector2Int position) => IsCharacterEmpty(position) ?
-        new RenderCharacter('\0', Color.transparent, Color.transparent) : display[position];
+        new RenderCharacter('\0', Color.transparent, Color.transparent) : display[position.y, position.x];
 
     public virtual void AddEffect(IEffect effect) => fullscreenEffects.Add(effect);
 
@@ -216,7 +230,7 @@ public abstract class RendererBase : IRenderer {
         effects[position] = effect;
     }
 
-    public virtual bool IsCharacterEmpty(Vector2Int position) => !display.ContainsKey(position);
+    public virtual bool IsCharacterEmpty(Vector2Int position) => !displayUsed.Contains(position);
 
     public virtual bool IsCharacterEmpty(RenderCharacter renderCharacter) =>
         renderCharacter.background.a == 0f &&

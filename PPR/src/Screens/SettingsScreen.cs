@@ -22,7 +22,8 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
 
     protected override string layoutName => "settings";
     protected override IReadOnlyDictionary<string, Type> elementTypes { get; } = new Dictionary<string, Type> {
-        { "frame", typeof(LayoutResourceText) },
+        { "frameLeft", typeof(LayoutResourceText) },
+        { "frameRight", typeof(LayoutResourceText) },
         { "header.audio", typeof(LayoutResourceText) },
         { "volume.master.value", typeof(LayoutResourceText) },
         { "volume.master", typeof(LayoutResourceSlider) },

@@ -18,7 +18,8 @@ public class MainMenuScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
 
     protected override string layoutName => "mainMenu";
     protected override IReadOnlyDictionary<string, Type> elementTypes { get; } = new Dictionary<string, Type> {
-        { "frame", typeof(LayoutResourceText) },
+        { "frameLeft", typeof(LayoutResourceText) },
+        { "frameRight", typeof(LayoutResourceText) },
         { "title", typeof(LayoutResourceText) },
         { "play", typeof(LayoutResourceButton) },
         { "edit", typeof(LayoutResourceButton) },
