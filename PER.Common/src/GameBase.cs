@@ -71,11 +71,15 @@ public abstract class GameBase : IGame {
         string frameTime = this.frameTime.frameTime.TotalMilliseconds.ToString("F2", culture);
         string avgFrameTime = this.frameTime.averageFrameTime.TotalMilliseconds.ToString("F2", culture);
         renderer.DrawText(new Vector2Int(renderer.width - 1, renderer.height - 2),
-            $"{fps}/{avgFps} FPS", _ => new Formatting(Color.white, Color.transparent), HorizontalAlignment.Right);
+            $"\f1{frameTime}\f\0/\f2{avgFrameTime}\f\0 ms", flag => FrameTimeFormatter(this.frameTime, flag),
+            HorizontalAlignment.Right);
         renderer.DrawText(new Vector2Int(renderer.width - 1, renderer.height - 1),
-            $"{frameTime}/{avgFrameTime} ms", _ => new Formatting(Color.white, Color.transparent),
+            $"\fa{fps}\f\0/\fb{avgFps}\f\0 FPS", flag => FrameTimeFormatter(this.frameTime, flag),
             HorizontalAlignment.Right);
     }
+
+    protected virtual Formatting FrameTimeFormatter(FrameTime frameTime, char flag) =>
+        new(Color.white, Color.transparent);
 
     public virtual void Tick(TimeSpan time) => currentScreen?.Tick(time);
 

@@ -24,6 +24,15 @@ public class Game : GameBase {
     protected override FrameTime? frameTime => _settings.showFps ? Core.engine.frameTime : null;
     protected override IRenderer renderer => Core.engine.renderer;
 
+    // 59 instead of 60 because time measuring isn't exactly perfect
+    // so it may be a little more or less than 60 every frame
+    private static readonly TimeSpan fpsGood = TimeSpan.FromSeconds(1d / 59d);
+    private static readonly TimeSpan fpsOk = TimeSpan.FromSeconds(1d / 30d);
+
+    private Color _fpsGoodColor;
+    private Color _fpsOkColor;
+    private Color _fpsBadColor;
+
     public override void Unload() => _settings.Save(SettingsPath);
 
     public override void Load() {
@@ -65,6 +74,12 @@ public class Game : GameBase {
             !colors.colors.TryGetValue("background", out Color backgroundColor))
             throw new InvalidOperationException("Missing colors or background color.");
         renderer.background = backgroundColor;
+        if(!colors.colors.TryGetValue("fps_good", out _fpsGoodColor))
+            _fpsGoodColor = Color.white;
+        if(!colors.colors.TryGetValue("fps_ok", out _fpsOkColor))
+            _fpsOkColor = Color.white;
+        if(!colors.colors.TryGetValue("fps_bad", out _fpsBadColor))
+            _fpsBadColor = Color.white;
 
         Core.engine.resources.TryGetResource(BloomEffect.GlobalId, out _bloomEffect);
 
@@ -98,4 +113,12 @@ public class Game : GameBase {
         Conductor.Update();
         base.Update(time);
     }
+
+    protected override Formatting FrameTimeFormatter(FrameTime frameTime, char flag) => flag switch {
+        '1' or 'a' => new Formatting(frameTime.frameTime > fpsOk ? _fpsBadColor :
+            frameTime.frameTime > fpsGood ? _fpsOkColor : _fpsGoodColor, Color.transparent),
+        '2' or 'b' => new Formatting(frameTime.averageFrameTime > fpsOk ? _fpsBadColor :
+            frameTime.averageFrameTime > fpsGood ? _fpsOkColor : _fpsGoodColor, Color.transparent),
+        _ => base.FrameTimeFormatter(frameTime, flag)
+    };
 }
