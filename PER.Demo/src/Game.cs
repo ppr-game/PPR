@@ -35,7 +35,7 @@ public class Game : GameBase {
     private readonly List<Element> _packSelector = new();
     private ProgressBar? _testProgressBar;
 
-    protected override double deltaTime => Core.engine.deltaTime;
+    protected override FrameTime frameTime => Core.engine.frameTime;
     protected override IRenderer renderer => Core.engine.renderer;
 
     public override void Unload() => _settings.Save(SettingsPath);

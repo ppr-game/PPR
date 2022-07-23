@@ -16,12 +16,7 @@ public abstract class GameBase : IGame {
     private const float ShutdownFadeTime = 2f;
     private const float FadeTime = 0.3f;
 
-    private int _fps;
-    private int _avgFPS;
-    private int _tempAvgFPS;
-    private int _tempAvgFPSCounter;
-
-    protected abstract double deltaTime { get; }
+    protected abstract FrameTime? frameTime { get; }
     protected abstract IRenderer renderer { get; }
 
     public IScreen? currentScreen { get; private set; }
@@ -63,19 +58,23 @@ public abstract class GameBase : IGame {
 
         currentScreen?.Update(time);
 
-        _fps = (int)Math.Round(1d / deltaTime);
-        _tempAvgFPS += _fps;
-        _tempAvgFPSCounter++;
-        if(_tempAvgFPSCounter >= _avgFPS) {
-            _avgFPS = _tempAvgFPS / _tempAvgFPSCounter;
-            _tempAvgFPS = 0;
-            _tempAvgFPSCounter = 0;
-        }
+        if(currentScreen != null)
+            DrawFrameTime();
+    }
 
-        if(deltaTime == 0d || currentScreen == null) return;
+    private void DrawFrameTime() {
+        if(this.frameTime is null)
+            return;
+        CultureInfo culture = CultureInfo.InvariantCulture;
+        string fps = this.frameTime.fps.ToString("F1", culture);
+        string avgFps = this.frameTime.averageFps.ToString("F1", culture);
+        string frameTime = this.frameTime.frameTime.TotalMilliseconds.ToString("F2", culture);
+        string avgFrameTime = this.frameTime.averageFrameTime.TotalMilliseconds.ToString("F2", culture);
+        renderer.DrawText(new Vector2Int(renderer.width - 1, renderer.height - 2),
+            $"{fps}/{avgFps} FPS", _ => new Formatting(Color.white, Color.transparent), HorizontalAlignment.Right);
         renderer.DrawText(new Vector2Int(renderer.width - 1, renderer.height - 1),
-            $"{_fps.ToString(CultureInfo.InvariantCulture)}/{_avgFPS.ToString(CultureInfo.InvariantCulture)} FPS",
-            _ => new Formatting(Color.white, Color.transparent), HorizontalAlignment.Right);
+            $"{frameTime}/{avgFrameTime} ms", _ => new Formatting(Color.white, Color.transparent),
+            HorizontalAlignment.Right);
     }
 
     public virtual void Tick(TimeSpan time) => currentScreen?.Tick(time);

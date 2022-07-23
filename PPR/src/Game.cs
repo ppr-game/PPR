@@ -1,4 +1,5 @@
-﻿using PER.Abstractions.Rendering;
+﻿using PER.Abstractions;
+using PER.Abstractions.Rendering;
 using PER.Abstractions.Resources;
 using PER.Common;
 using PER.Common.Effects;
@@ -20,7 +21,7 @@ public class Game : GameBase {
     private BloomEffect? _bloomEffect;
     private GlitchEffect? _glitchEffect;
 
-    protected override double deltaTime => _settings.showFps ? Core.engine.deltaTime : 0d;
+    protected override FrameTime? frameTime => _settings.showFps ? Core.engine.frameTime : null;
     protected override IRenderer renderer => Core.engine.renderer;
 
     public override void Unload() => _settings.Save(SettingsPath);

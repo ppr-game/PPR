@@ -20,7 +20,7 @@ public class Engine {
     public static readonly string version = Helper.GetVersion();
     public static readonly string abstractionsVersion = Helper.GetVersion(typeof(IGame));
 
-    public double deltaTime { get; private set; }
+    public FrameTime frameTime { get; } = new();
 
     public TimeSpan tickInterval { get; set; }
     public IResources resources { get; }
@@ -30,7 +30,6 @@ public class Engine {
     public IAudio audio { get; }
 
     private readonly Stopwatch _clock = new();
-    private TimeSpan _prevTime;
     private TimeSpan _lastTickTime;
 
     public Engine(IResources resources, IGame game, IRenderer renderer, IInput input, IAudio audio) {
@@ -71,8 +70,7 @@ public class Engine {
     private void Run(RendererSettings rendererSettings) {
         logger.Info("Starting game");
         Setup(rendererSettings);
-        while(Update(_clock.time))
-            UpdateDeltaTime(_clock.time);
+        while(Update(_clock.time)) { }
         Finish();
     }
 
@@ -93,6 +91,7 @@ public class Engine {
         game.Update(time);
         TryTick(time);
         renderer.Draw();
+        frameTime.Update(time);
         return renderer.open;
     }
 
@@ -109,11 +108,6 @@ public class Engine {
     }
 
     private void Tick(TimeSpan time) => game.Tick(time);
-
-    private void UpdateDeltaTime(TimeSpan time) {
-        deltaTime = (time - _prevTime).TotalSeconds;
-        _prevTime = time;
-    }
 
     private void Finish() {
         resources.Unload();
