@@ -99,7 +99,7 @@ public class Renderer : RendererBase, IDisposable {
     }
 
     protected override void CreateText() =>
-        text = new Text(font, new Vector2Int(width, height), display, displayUsed);
+        text = new Text(font, new Vector2Int(width, height), globalModEffects, display, displayUsed, effects);
 
     public override void AddEffect(IEffect effect) {
         base.AddEffect(effect);
@@ -114,7 +114,7 @@ public class Renderer : RendererBase, IDisposable {
 
         DrawAllEffects();
 
-        text?.RebuildQuads(_textPosition, globalEffects, effects);
+        text?.RebuildQuads(_textPosition);
 
         window.Clear(_background);
         _mainRenderTexture?.Clear(_background);

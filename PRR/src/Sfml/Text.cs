@@ -18,8 +18,10 @@ public class Text : IDisposable {
     public uint imageWidth { get; }
     public uint imageHeight { get; }
 
+    private readonly List<IEffect> _globalModEffects;
     private readonly RenderCharacter[,] _display;
     private readonly HashSet<Vector2Int> _displayUsed;
+    private readonly Dictionary<Vector2Int, IEffect> _effects;
     private readonly uint _charWidth;
     private readonly uint _charHeight;
     private readonly Vector2f _charBottomRight;
@@ -32,9 +34,12 @@ public class Text : IDisposable {
 
     private uint _quadCount;
 
-    public Text(IFont? font, Vector2Int size, RenderCharacter[,] display, HashSet<Vector2Int> displayUsed) {
+    public Text(IFont? font, Vector2Int size, List<IEffect> globalModEffects, RenderCharacter[,] display,
+        HashSet<Vector2Int> displayUsed, Dictionary<Vector2Int, IEffect> effects) {
+        _globalModEffects = globalModEffects;
         _display = display;
         _displayUsed = displayUsed;
+        _effects = effects;
         _texture = font is null ? new Texture(0, 0) : new Texture(SfmlConverters.ToSfmlImage(font.image));
         _charWidth = (uint)(font?.size.x ?? 0);
         _charHeight = (uint)(font?.size.y ?? 0);
@@ -53,17 +58,17 @@ public class Text : IDisposable {
                       new Dictionary<(char, RenderStyle), Vector2f[]>();
     }
 
-    public void RebuildQuads(Vector2f offset, List<IEffect> globalModEffects, Dictionary<Vector2Int, IEffect> effects) {
+    public void RebuildQuads(Vector2f offset) {
         uint index = 0;
         foreach(Vector2Int pos in _displayUsed) {
             RenderCharacter character = _display[pos.y, pos.x];
             Vector2 modPosition = new(pos.x, pos.y);
 
-            if(effects.TryGetValue(pos, out IEffect? effect) && effect.hasModifiers)
+            if(_effects.TryGetValue(pos, out IEffect? effect) && effect.hasModifiers)
                 effect.ApplyModifiers(pos, ref modPosition, ref character);
 
             // ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
-            foreach(IEffect globalEffect in globalModEffects)
+            foreach(IEffect globalEffect in _globalModEffects)
                 globalEffect.ApplyModifiers(pos, ref modPosition, ref character);
 
             Vector2f position = new(modPosition.x * _charWidth + offset.X, modPosition.y * _charHeight + offset.Y);

@@ -90,7 +90,9 @@ public abstract class RendererBase : IRenderer {
         display = new RenderCharacter[height, width];
         displayUsed = new HashSet<Vector2Int>(width * height);
         effects = new Dictionary<Vector2Int, IEffect>(width * height);
-        globalEffects = new List<IEffect>();
+
+        globalEffects.Clear();
+        globalModEffects.Clear();
 
         CreateText();
     }
