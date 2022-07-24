@@ -53,20 +53,21 @@ public class Text : IDisposable {
                       new Dictionary<(char, RenderStyle), Vector2f[]>();
     }
 
-    public void RebuildQuads(Vector2f offset, List<IEffect> fullscreenEffects,
-        Dictionary<Vector2Int, IEffect> effects) {
+    public void RebuildQuads(Vector2f offset, List<IEffect> globalModEffects, Dictionary<Vector2Int, IEffect> effects) {
         uint index = 0;
         foreach(Vector2Int pos in _displayUsed) {
             RenderCharacter character = _display[pos.y, pos.x];
-            (Vector2 position, RenderCharacter character) mod = (new Vector2(pos.x, pos.y), character);
-            if(effects.TryGetValue(pos, out IEffect? effect))
-                IEffect.ApplyModifiers(effect, pos, ref mod);
-            foreach(IEffect fullscreenEffect in fullscreenEffects)
-                IEffect.ApplyModifiers(fullscreenEffect, pos, ref mod);
+            Vector2 modPosition = new(pos.x, pos.y);
 
-            Vector2f position =
-                new(mod.position.x * _charWidth + offset.X, mod.position.y * _charHeight + offset.Y);
-            Color background = SfmlConverters.ToSfmlColor(mod.character.background);
+            if(effects.TryGetValue(pos, out IEffect? effect) && effect.hasModifiers)
+                effect.ApplyModifiers(pos, ref modPosition, ref character);
+
+            // ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
+            foreach(IEffect globalEffect in globalModEffects)
+                globalEffect.ApplyModifiers(pos, ref modPosition, ref character);
+
+            Vector2f position = new(modPosition.x * _charWidth + offset.X, modPosition.y * _charHeight + offset.Y);
+            Color background = SfmlConverters.ToSfmlColor(character.background);
 
             _quads[index].Position = position;
             _quads[index].Color = background;
@@ -84,32 +85,33 @@ public class Text : IDisposable {
             _quads[index + 3].Color = background;
             _quads[index + 3].TexCoords = _backgroundCharacter[3];
 
-            if(_characters.TryGetValue((mod.character.character, mod.character.style & RenderStyle.AllPerFont),
-                   out Vector2f[]? texCoords)) {
-                bool italic = (mod.character.style & RenderStyle.Italic) != 0;
-                Vector2f italicOffset = new(italic.ToByte(), 0f);
-                Color foreground = SfmlConverters.ToSfmlColor(mod.character.foreground);
+            index += 4;
 
-                _quads[index + 4].Position = position + italicOffset;
-                _quads[index + 4].Color = foreground;
-                _quads[index + 4].TexCoords = texCoords[0];
+            if(!_characters.TryGetValue((character.character, character.style & RenderStyle.AllPerFont),
+                out Vector2f[]? texCoords))
+                continue;
 
-                _quads[index + 5].Position = position + _charBottomRight + italicOffset;
-                _quads[index + 5].Color = foreground;
-                _quads[index + 5].TexCoords = texCoords[1];
+            bool italic = (character.style & RenderStyle.Italic) != 0;
+            Vector2f italicOffset = new(italic.ToByte(), 0f);
+            Color foreground = SfmlConverters.ToSfmlColor(character.foreground);
 
-                _quads[index + 6].Position = position + _charTopRight;
-                _quads[index + 6].Color = foreground;
-                _quads[index + 6].TexCoords = texCoords[2];
+            _quads[index].Position = position + italicOffset;
+            _quads[index].Color = foreground;
+            _quads[index].TexCoords = texCoords[0];
 
-                _quads[index + 7].Position = position + _charTopLeft;
-                _quads[index + 7].Color = foreground;
-                _quads[index + 7].TexCoords = texCoords[3];
+            _quads[index + 1].Position = position + _charBottomRight + italicOffset;
+            _quads[index + 1].Color = foreground;
+            _quads[index + 1].TexCoords = texCoords[1];
 
-                index += 8;
-            }
-            else
-                index += 4;
+            _quads[index + 2].Position = position + _charTopRight;
+            _quads[index + 2].Color = foreground;
+            _quads[index + 2].TexCoords = texCoords[2];
+
+            _quads[index + 3].Position = position + _charTopLeft;
+            _quads[index + 3].Color = foreground;
+            _quads[index + 3].TexCoords = texCoords[3];
+
+            index += 4;
         }
         _quadCount = index;
     }

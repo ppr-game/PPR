@@ -48,7 +48,8 @@ public abstract class RendererBase : IRenderer {
 
     public Dictionary<string, IEffect?> formattingEffects { get; } = new();
 
-    protected List<IEffect> fullscreenEffects { get; private set; } = new();
+    protected List<IEffect> globalEffects { get; private set; } = new();
+    protected List<IEffect> globalModEffects { get; private set; } = new();
 
     protected RenderCharacter[,] display { get; private set; } = new RenderCharacter[0, 0];
     protected HashSet<Vector2Int> displayUsed { get; private set; } = new();
@@ -89,7 +90,7 @@ public abstract class RendererBase : IRenderer {
         display = new RenderCharacter[height, width];
         displayUsed = new HashSet<Vector2Int>(width * height);
         effects = new Dictionary<Vector2Int, IEffect>(width * height);
-        fullscreenEffects = new List<IEffect>();
+        globalEffects = new List<IEffect>();
 
         CreateText();
     }
@@ -101,19 +102,19 @@ public abstract class RendererBase : IRenderer {
 
     protected void DrawAllEffects() {
         DrawEffects();
-        DrawFullscreenEffects();
+        DrawGlobalEffects();
     }
 
     private void DrawEffects() {
         foreach((Vector2Int position, IEffect effect) in effects) {
             effect.Update(false);
-            if(!effect.drawable) continue;
-            effect.Draw(position);
+            if(effect.drawable)
+                effect.Draw(position);
         }
     }
 
-    private void DrawFullscreenEffects() {
-        foreach(IEffect effect in fullscreenEffects) {
+    private void DrawGlobalEffects() {
+        foreach(IEffect effect in globalEffects) {
             effect.Update(true);
             if(!effect.drawable) continue;
             for(int y = 0; y < height; y++)
@@ -220,7 +221,11 @@ public abstract class RendererBase : IRenderer {
     public virtual RenderCharacter GetCharacter(Vector2Int position) => IsCharacterEmpty(position) ?
         new RenderCharacter('\0', Color.transparent, Color.transparent) : display[position.y, position.x];
 
-    public virtual void AddEffect(IEffect effect) => fullscreenEffects.Add(effect);
+    public virtual void AddEffect(IEffect effect) {
+        globalEffects.Add(effect);
+        if(effect.hasModifiers)
+            globalModEffects.Add(effect);
+    }
 
     public virtual void AddEffect(Vector2Int position, IEffect? effect) {
         if(effect is null) {

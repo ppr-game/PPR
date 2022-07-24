@@ -113,7 +113,7 @@ public class Renderer : RendererBase, IDisposable {
 
         DrawAllEffects();
 
-        text?.RebuildQuads(_textPosition, fullscreenEffects, effects);
+        text?.RebuildQuads(_textPosition, globalEffects, effects);
 
         window.Clear(background);
         _mainRenderTexture?.Clear(background);
@@ -127,12 +127,13 @@ public class Renderer : RendererBase, IDisposable {
         Profiler.FrameMark();
 
         effects.Clear();
-        fullscreenEffects.Clear();
+        globalEffects.Clear();
+        globalModEffects.Clear();
     }
 
     private void RunPipelines(SFML.Graphics.Color background) {
         // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-        foreach(IEffect effect in fullscreenEffects) {
+        foreach(IEffect effect in globalEffects) {
             if(effect.pipeline is null) continue;
 
             CachedEffect cachedEffect = _cachedFullscreenEffects[effect];

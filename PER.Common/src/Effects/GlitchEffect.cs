@@ -17,7 +17,7 @@ public class GlitchEffect : IEffect {
 
     public GlitchEffect(IRenderer renderer) => _renderer = renderer;
 
-    public (Vector2, RenderCharacter) ApplyModifiers(Vector2Int at, Vector2 position, RenderCharacter character) {
+    public void ApplyModifiers(Vector2Int at, ref Vector2 position, ref RenderCharacter character) {
         position = new Vector2(position.x + RandomFloat() * 0.1f, position.y);
         string mappings = _renderer.font?.mappings ?? "";
         character = new RenderCharacter(
@@ -25,7 +25,6 @@ public class GlitchEffect : IEffect {
             RandomizeColor(character.background), RandomizeColor(character.foreground),
             RandomNonNegativeFloat() <= 0.95f ? character.style :
                 (RenderStyle)Random.Shared.Next((int)RenderStyle.None, (int)RenderStyle.All));
-        return (position, character);
     }
 
     public void Update(bool fullscreen) { }

@@ -67,8 +67,7 @@ public class BloomEffect : IEffect, IResource {
 
     public void Unload(string id, IResources resources) => pipeline = null;
 
-    public (Vector2, RenderCharacter) ApplyModifiers(Vector2Int at, Vector2 position, RenderCharacter character) =>
-        (position, character);
+    public void ApplyModifiers(Vector2Int at, ref Vector2 position, ref RenderCharacter character) { }
 
     public void Update(bool fullscreen) { }
 

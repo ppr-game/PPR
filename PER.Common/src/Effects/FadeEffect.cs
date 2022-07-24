@@ -42,7 +42,7 @@ public class FadeEffect : IEffect {
         _stopwatch.Reset();
     }
 
-    public (Vector2, RenderCharacter) ApplyModifiers(Vector2Int at, Vector2 position, RenderCharacter character) {
+    public void ApplyModifiers(Vector2Int at, ref Vector2 position, ref RenderCharacter character) {
         if(!_speeds.ContainsKey(at))
             _speeds.Add(at, Random.Shared.NextSingle(MinSpeed, MaxSpeed));
         float t = _lastT * _speeds[at];
@@ -56,7 +56,6 @@ public class FadeEffect : IEffect {
             new Color(character.foreground.r, character.foreground.g, character.foreground.b,
                 MoreMath.Lerp(0f, character.foreground.a, t)),
             character.style);
-        return (position, character);
     }
 
     public void Update(bool fullscreen) {
