@@ -131,13 +131,37 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
 
         private class Template : TemplateBase {
             private readonly LevelSelectorTemplate _resource;
+            private LevelSerializer.LevelItem _item;
 
-            public Template(LevelSelectorTemplate resource) : base(resource) => _resource = resource;
+            public Template(LevelSelectorTemplate resource) : base(resource) {
+                _resource = resource;
+
+                void LevelHover(object? caller, EventArgs eventArgs) {
+                    if(_resource._screen is null)
+                        return;
+                    LevelSelectScreen screen = _resource._screen;
+                    if(caller is not Button levelButton)
+                        throw new InvalidOperationException("wtf??");
+
+                    if(screen._selectedLevelButton is not null)
+                        screen._selectedLevelButton.toggled = false;
+                    levelButton.toggled = true;
+                    screen.UpdateMetadataPanel(_item.metadata);
+                    screen.UpdateScoreList(_item.metadata.guid);
+                    screen._selectedLevelButton = levelButton;
+                    if(!_item.hasErrors)
+                        Conductor.SetMusic(_item.path, _item.music);
+                }
+
+                GetElement<Button>("level").onHover += LevelHover;
+                GetElement<Button>("error_level").onHover += LevelHover;
+            }
 
             public override void UpdateWithItem(int index, LevelSerializer.LevelItem item, int width) {
                 if(_resource._screen is null)
                     return;
                 LevelSelectScreen screen = _resource._screen;
+                _item = item;
 
                 GetElement<Button>(item.hasErrors ? "level" : "error_level").enabled = false;
                 Button levelButton = GetElement<Button>(item.hasErrors ? "error_level" : "level");
@@ -146,16 +170,6 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
                     item.metadata.name.Length > levelButton.size.x ? item.metadata.name[..levelButton.size.x] :
                         item.metadata.name;
                 levelButton.toggled = false;
-                levelButton.onHover += (_, _) => {
-                    if(screen._selectedLevelButton is not null)
-                        screen._selectedLevelButton.toggled = false;
-                    levelButton.toggled = true;
-                    screen.UpdateMetadataPanel(item.metadata);
-                    screen.UpdateScoreList(item.metadata.guid);
-                    screen._selectedLevelButton = levelButton;
-                    if(!item.hasErrors)
-                        Conductor.SetMusic(item.path, item.music);
-                };
             }
         }
 

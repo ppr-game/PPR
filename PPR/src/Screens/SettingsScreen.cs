@@ -246,58 +246,72 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
 
         private class Template : TemplateBase {
             private readonly ResourcePackSelectorTemplate _resource;
+            private int _index;
+            private ResourcePackData _item;
+            private bool _loaded;
 
-            public Template(ResourcePackSelectorTemplate resource) : base(resource) => _resource = resource;
+            public Template(ResourcePackSelectorTemplate resource) : base(resource) {
+                _resource = resource;
+                if(_resource._screen is null)
+                    return;
+                SettingsScreen screen = _resource._screen;
+
+                Button toggleButton = GetElement<Button>("toggle");
+                toggleButton.onClick += (_, _) => {
+                    bool canUnload = screen._loadedPacks.Count > 1 &&
+                        _item.name != Core.engine.resources.defaultPackName;
+                    if(!canUnload && _loaded)
+                        return;
+
+                    if(toggleButton.toggled)
+                        screen._loadedPacks.Remove(_item);
+                    else
+                        screen._loadedPacks.Add(_item);
+                    screen.UpdatePacks();
+                };
+                toggleButton.onHover += (_, _) => {
+                    screen.GetElement<Text>("pack.description").text = _item.meta.description;
+                };
+
+                GetElement<Button>("up").onClick += (_, _) => {
+                    screen._availablePacks.RemoveAt(_index);
+                    screen._availablePacks.Insert(_index + 1, _item);
+                    screen.UpdatePacks();
+                };
+
+                GetElement<Button>("down").onClick += (_, _) => {
+                    screen._availablePacks.RemoveAt(_index);
+                    screen._availablePacks.Insert(_index - 1, _item);
+                    screen.UpdatePacks();
+                };
+            }
 
             public override void UpdateWithItem(int index, ResourcePackData item, int width) {
                 if(_resource._screen is null)
                     return;
                 SettingsScreen screen = _resource._screen;
+                _index = index;
+                _item = item;
 
                 int maxY = screen._availablePacks.Count - 1;
                 int y = maxY - index;
 
-                string name = item.name;
-                bool loaded = screen._loadedPacks.Contains(item);
-                bool canUnload = screen._loadedPacks.Count > 1 && name != Core.engine.resources.defaultPackName;
+                _loaded = screen._loadedPacks.Contains(item);
 
-                bool canToggle = canUnload || !loaded;
-                bool canMoveUp = y > 0 && name != Core.engine.resources.defaultPackName;
+                bool canMoveUp = y > 0 && item.name != Core.engine.resources.defaultPackName;
                 bool canMoveDown = y < maxY &&
                     screen._availablePacks[index - 1].name != Core.engine.resources.defaultPackName;
 
                 Button toggleButton = GetElement<Button>("toggle");
                 toggleButton.text =
                     item.name.Length > toggleButton.size.x ? item.name[..toggleButton.size.x] : item.name;
-                toggleButton.toggled = loaded;
-                toggleButton.onClick += (_, _) => {
-                    if(!canToggle)
-                        return;
-                    if(loaded)
-                        screen._loadedPacks.Remove(item);
-                    else
-                        screen._loadedPacks.Add(item);
-                    screen.UpdatePacks();
-                };
-                toggleButton.onHover += (_, _) => {
-                    screen.GetElement<Text>("pack.description").text = item.meta.description;
-                };
+                toggleButton.toggled = _loaded;
 
                 Button moveUpButton = GetElement<Button>("up");
                 moveUpButton.active = canMoveUp;
-                moveUpButton.onClick += (_, _) => {
-                    screen._availablePacks.RemoveAt(index);
-                    screen._availablePacks.Insert(index + 1, item);
-                    screen.UpdatePacks();
-                };
 
                 Button moveDownButton = GetElement<Button>("down");
                 moveDownButton.active = canMoveDown;
-                moveDownButton.onClick += (_, _) => {
-                    screen._availablePacks.RemoveAt(index);
-                    screen._availablePacks.Insert(index - 1, item);
-                    screen.UpdatePacks();
-                };
             }
 
             public override void MoveTo(Vector2Int origin, int index) {
