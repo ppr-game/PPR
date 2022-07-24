@@ -36,13 +36,9 @@ public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : Layout
         float animTime = (float)clock.time.TotalSeconds;
         float mouseX = input.accurateMousePosition.x / renderer.width - 0.5f;
         float mouseY = input.accurateMousePosition.y / renderer.width - 0.5f;
-        for(int x = -3; x < renderer.width + 3; x++) {
-            for(int y = -3; y < renderer.height + 3; y++) {
-                if(x % 3 != 0 || y % 3 != 0)
-                    continue;
+        for(int x = -3; x < renderer.width + 3; x += 3)
+            for(int y = -3; y < renderer.height + 3; y += 3)
                 DrawAnimationAt(x, y, mouseX, mouseY, animTime);
-            }
-        }
 
         input.block = prevInputBlock;
     }
@@ -50,27 +46,44 @@ public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : Layout
     private void DrawAnimationAt(int x, int y, float mouseX, float mouseY, float time) {
         float scaledX = x / 10f;
         float scaledY = y / 10f;
+
         float noiseX = Perlin.Get(scaledX, scaledY, time) - 0.5f;
         float noiseY = Perlin.Get(scaledX, scaledY, time + 100f) - 0.5f;
         float noise = MathF.Abs(noiseX * noiseY);
+
         float xOffset = mouseX * noise * -100f;
         float yOffset = mouseY * noise * -100f;
         Color useColor = new(_animMax.r, _animMax.g, _animMax.b, MoreMath.Lerp(0f, _animMax.a, noise * 30f));
+
         float xPos = x + noiseX * 10f + xOffset;
         float yPos = y + noiseY * 10f + yOffset;
+
         int flooredX = (int)xPos;
         int flooredY = (int)yPos;
-        for(int useX = flooredX; useX <= flooredX + 1; useX++) {
-            for(int useY = flooredY; useY <= flooredY + 1; useY++) {
-                float percentX = 1f - MathF.Abs(xPos - useX);
-                float percentY = 1f - MathF.Abs(yPos - useY);
-                float percent = percentX * percentY;
-                Color posColor = new(useColor.r, useColor.g, useColor.b, MoreMath.Lerp(0f, useColor.a, percent));
-                Vector2Int pos = new(useX, useY);
-                RenderCharacter character = renderer.GetCharacter(pos);
-                renderer.DrawCharacter(pos,
-                    new RenderCharacter(character.character, posColor, character.foreground));
-            }
+
+        Span<Vector2Int> positions = stackalloc Vector2Int[] {
+            new(flooredX, flooredY),
+            new(flooredX + 1, flooredY),
+            new(flooredX, flooredY + 1),
+            new(flooredX + 1, flooredY + 1)
+        };
+
+        float percentRight = xPos - flooredX;
+        float percentLeft = 1f - percentRight;
+        float percentBottom = yPos - flooredY;
+        float percentTop = 1f - percentBottom;
+
+        Span<Color> colors = stackalloc Color[] {
+            new(useColor.r, useColor.g, useColor.b, MoreMath.Lerp(0f, useColor.a, percentLeft * percentTop)),
+            new(useColor.r, useColor.g, useColor.b, MoreMath.Lerp(0f, useColor.a, percentRight * percentTop)),
+            new(useColor.r, useColor.g, useColor.b, MoreMath.Lerp(0f, useColor.a, percentLeft * percentBottom)),
+            new(useColor.r, useColor.g, useColor.b, MoreMath.Lerp(0f, useColor.a, percentRight * percentBottom))
+        };
+
+        for(int i = 0; i < 4; i++) {
+            Vector2Int pos = positions[i];
+            RenderCharacter character = renderer.GetCharacter(pos);
+            renderer.DrawCharacter(pos, new RenderCharacter(character.character, colors[i], character.foreground));
         }
     }
 
