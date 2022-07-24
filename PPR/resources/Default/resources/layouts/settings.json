@@ -1,9 +1,6 @@
 ﻿{
-    "frameLeft": {
-        "path": "settingsLeft.txt"
-    },
+    "frameLeft": { },
     "frameRight": {
-        "path": "settingsRight.txt",
         "position": { "x": 79, "y": 0 },
         "align": "right"
     },

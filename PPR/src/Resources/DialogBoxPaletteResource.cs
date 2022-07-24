@@ -3,15 +3,18 @@ using PER.Util;
 
 namespace PPR.Resources;
 
-public class DialogBoxPaletteResource : IResource {
+public class DialogBoxPaletteResource : ResourceBase {
     public const string GlobalId = "layouts/dialogBoxPalette";
-    private const string PaletteFilePath = "layouts/dialogBox.txt";
+
+    protected override IEnumerable<KeyValuePair<string, string>> paths { get; } = new Dictionary<string, string> {
+        { "palette", "layouts/dialogBox.txt" }
+    };
 
     // ReSharper disable once MemberCanBePrivate.Global
     public string palette { get; private set; } = "                ";
 
-    public void Load(string id, IResources resources) {
-        if(!resources.TryGetPath(PaletteFilePath, out string? palettePath))
+    public override void Load(string id) {
+        if(!TryGetPath("palette", out string? palettePath))
             return;
         string palette = File.ReadAllText(palettePath);
         if(palette.Length < 16)
@@ -19,7 +22,7 @@ public class DialogBoxPaletteResource : IResource {
         this.palette = palette;
     }
 
-    public void Unload(string id, IResources resources) { }
+    public override void Unload(string id) { }
 
     public char Get(int x, int y, Vector2Int size) =>
         Get(x == 0, x == size.x - 1, y == 0, y == size.y - 1);

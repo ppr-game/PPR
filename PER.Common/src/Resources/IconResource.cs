@@ -5,15 +5,19 @@ using PER.Abstractions.Resources;
 namespace PER.Common.Resources;
 
 [PublicAPI]
-public class IconResource : IResource {
+public class IconResource : ResourceBase {
     public const string GlobalId = "graphics/icon";
+
+    protected override IEnumerable<KeyValuePair<string, string>> paths { get; } = new Dictionary<string, string> {
+        { "icon", "graphics/icon.png" }
+    };
 
     public string? icon { get; private set; }
 
-    public void Load(string id, IResources resources) {
-        resources.TryGetPath(Path.Combine("graphics", "icon.png"), out string? icon);
-        this.icon = icon;
+    public override void Load(string id) {
+        if(TryGetPath("icon", out string? icon))
+            this.icon = icon;
     }
 
-    public void Unload(string id, IResources resources) => icon = null;
+    public override void Unload(string id) => icon = null;
 }

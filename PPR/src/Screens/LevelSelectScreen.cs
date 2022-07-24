@@ -38,6 +38,24 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
         { "back", typeof(LayoutResourceButton) }
     };
 
+    protected override IEnumerable<KeyValuePair<string, Type>> dependencyTypes {
+        get {
+            foreach(KeyValuePair<string, Type> pair in base.dependencyTypes)
+                yield return pair;
+            yield return new KeyValuePair<string, Type>(LevelSelectorTemplate.GlobalId, typeof(LevelSelectorTemplate));
+            yield return new KeyValuePair<string, Type>(ScoreListTemplate.GlobalId, typeof(ScoreListTemplate));
+        }
+    }
+
+    protected override IEnumerable<KeyValuePair<string, string>> paths {
+        get {
+            foreach(KeyValuePair<string, string> pair in base.paths)
+                yield return pair;
+            yield return new KeyValuePair<string, string>("frameLeft.text", $"{layoutsPath}/{layoutName}Left.txt");
+            yield return new KeyValuePair<string, string>("frameRight.text", $"{layoutsPath}/{layoutName}Right.txt");
+        }
+    }
+
     public static readonly IReadOnlyDictionary<string, string> authorToSpecial = new Dictionary<string, string> {
         { "ConfiG", "ConfiG" },
         { "sbeve", "contributor" }
@@ -53,8 +71,8 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
         resources.TryAddResource(ScoreListTemplate.GlobalId, new ScoreListTemplate());
     }
 
-    public override void Load(string id, IResources resources) {
-        base.Load(id, resources);
+    public override void Load(string id) {
+        base.Load(id);
 
         GetElement<Button>("edit_new").onClick += (_, _) => {
             if(!Core.engine.resources.TryGetResource(NewLevelDialogBoxScreen.GlobalId, out _newLevelDialogBox))
@@ -96,13 +114,19 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
             { "error_level", typeof(LayoutResourceButton) }
         };
 
+        protected override IEnumerable<KeyValuePair<string, Type>> dependencyTypes {
+            get {
+                foreach(KeyValuePair<string, Type> pair in base.dependencyTypes)
+                    yield return pair;
+                yield return new KeyValuePair<string, Type>(LevelSelectScreen.GlobalId, typeof(LevelSelectScreen));
+            }
+        }
+
         private LevelSelectScreen? _screen;
 
-        public override void Load(string id, IResources resources) {
-            base.Load(id, resources);
-            if(!resources.TryGetResource(LevelSelectScreen.GlobalId, out LevelSelectScreen? screen))
-                throw new InvalidOperationException("Missing dependency.");
-            _screen = screen;
+        public override void Load(string id) {
+            base.Load(id);
+            _screen = GetDependency<LevelSelectScreen>(LevelSelectScreen.GlobalId);
         }
 
         private class Template : TemplateBase {
@@ -200,8 +224,6 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
             { "divider", typeof(LayoutResourceText) }
         };
 
-        private ColorsResource _colors = new();
-
         private string _scoreTemplate = "{0}";
         private string _accuracyTemplate = "{0}";
         private string _maxComboTemplate = "{0}";
@@ -209,12 +231,8 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
         private string _hitsTemplate = "{0}";
         private string _perfectHitsTemplate = "{0}";
 
-        public override void Load(string id, IResources resources) {
-            base.Load(id, resources);
-            if(!resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors))
-                throw new InvalidOperationException("Missing dependency.");
-            _colors = colors;
-
+        public override void Load(string id) {
+            base.Load(id);
             _scoreTemplate = GetElement<Text>("score").text ?? _scoreTemplate;
             _accuracyTemplate = GetElement<Text>("accuracy").text ?? _accuracyTemplate;
             _maxComboTemplate = GetElement<Text>("maxCombo").text ?? _maxComboTemplate;
@@ -267,7 +285,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBa
 
                 if(accuracy.formatting.TryGetValue('\0', out Formatting oldFormatting) &&
                     // TODO: move this color selection thing to a different class
-                    _resource._colors.colors.TryGetValue(item.accuracy >= 100 ? "accuracy_good" :
+                    _resource.colors.colors.TryGetValue(item.accuracy >= 100 ? "accuracy_good" :
                         item.accuracy >= 70 ? "accuracy_ok" : "accuracy_bad", out Color accuracyColor))
                     accuracy.formatting['\0'] = new Formatting(accuracyColor, oldFormatting.backgroundColor,
                         oldFormatting.style, oldFormatting.options, oldFormatting.effect);

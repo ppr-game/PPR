@@ -8,7 +8,7 @@ using PER.Abstractions.Resources;
 namespace PER.Common.Resources;
 
 [PublicAPI]
-public abstract class AudioResourcesBase : IResource {
+public abstract class AudioResourcesBase : ResourceBase {
     private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
     protected enum AudioType { Auto, Sfx, Music }
@@ -19,21 +19,23 @@ public abstract class AudioResourcesBase : IResource {
     protected abstract IAudio audio { get; }
     protected abstract IReadOnlyDictionary<MixerDefinition, AudioResource[]> sounds { get; }
 
-    public virtual void Load(string id, IResources resources) {
+    protected override IEnumerable<KeyValuePair<string, string>> paths => sounds.SelectMany(pair =>
+        pair.Value.Select(resource => new KeyValuePair<string, string>(resource.id,
+            $"audio/{pair.Key.id}/{resource.directory}/{resource.id}.{resource.extension ?? pair.Key.defaultExtension}")));
+
+    public override void Load(string id) {
         IAudioMixer master = audio.CreateMixer();
 
         foreach((MixerDefinition mixerDefinition, AudioResource[] audioResources) in sounds) {
             IAudioMixer mixer = audio.CreateMixer(master);
 
-            foreach((string audioId, string? extension, string directory, AudioType type) in audioResources)
+            foreach((string audioId, _, _, AudioType type) in audioResources)
                 switch(type == AudioType.Auto ? mixerDefinition.defaultType : type) {
                     case AudioType.Sfx:
-                        AddSound(resources, Path.Combine(mixerDefinition.id, directory), audioId,
-                            extension ?? mixerDefinition.defaultExtension, mixer);
+                        AddSound(audioId, mixer);
                         break;
                     case AudioType.Music:
-                        AddMusic(resources, Path.Combine(mixerDefinition.id, directory), audioId,
-                            extension ?? mixerDefinition.defaultExtension, mixer);
+                        AddMusic(audioId, mixer);
                         break;
                 }
 
@@ -43,10 +45,10 @@ public abstract class AudioResourcesBase : IResource {
         audio.TryStoreMixer(nameof(master), master);
     }
 
-    public void Unload(string id, IResources resources) => audio.Reset();
+    public override void Unload(string id) => audio.Reset();
 
-    protected void AddSound(IResources resources, string directory, string id, string extension, IAudioMixer mixer) {
-        if(resources.TryGetPath(Path.Combine("audio", directory, $"{id}.{extension}"), out string? path)) {
+    protected void AddSound(string id, IAudioMixer mixer) {
+        if(TryGetPath(id, out string? path)) {
             logger.Info("Loading sound {Id}", id);
             audio.TryStorePlayable(id, audio.CreateSound(path, mixer));
         }
@@ -54,8 +56,8 @@ public abstract class AudioResourcesBase : IResource {
             logger.Info("Could not find sound {Id}", id);
     }
 
-    protected void AddMusic(IResources resources, string directory, string id, string extension, IAudioMixer mixer) {
-        if(resources.TryGetPath(Path.Combine("audio", directory, $"{id}.{extension}"), out string? path)) {
+    protected void AddMusic(string id, IAudioMixer mixer) {
+        if(TryGetPath(id, out string? path)) {
             logger.Info("Loading music {Id}", id);
             audio.TryStorePlayable(id, audio.CreateMusic(path, mixer));
         }

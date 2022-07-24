@@ -32,8 +32,8 @@ public class NewLevelDialogBoxScreen : DialogBoxScreenResourceBase {
 
     public NewLevelDialogBoxScreen() : base(new Vector2Int(30, 32)) { }
 
-    public override void Load(string id, IResources resources) {
-        base.Load(id, resources);
+    public override void Load(string id) {
+        base.Load(id);
 
         InputField author = GetElement<InputField>("metadata.author");
         author.onTextChanged += (_, _) => {

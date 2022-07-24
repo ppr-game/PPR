@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Collections.Immutable;
+using System.Text.Json;
 
 using JetBrains.Annotations;
 
@@ -11,11 +12,15 @@ namespace PER.Common.Resources;
 public class ColorsResource : JsonResourceBase<IDictionary<string, (string?, Color)>> {
     public const string GlobalId = "graphics/colors";
 
+    protected override IEnumerable<KeyValuePair<string, string>> paths { get; } = new Dictionary<string, string> {
+        { "colors", "graphics/colors.json" }
+    };
+
     public Dictionary<string, Color> colors { get; } = new();
 
-    public override void Load(string id, IResources resources) {
+    public override void Load(string id) {
         Dictionary<string, (string?, Color)> tempValues = new();
-        DeserializeAllJson(resources, Path.Combine("graphics", "colors.json"), tempValues, () => false);
+        DeserializeAllJson("colors", tempValues, () => false);
 
         foreach((string key, (string? value, Color color)) in tempValues)
             if(value is null)
@@ -59,5 +64,5 @@ public class ColorsResource : JsonResourceBase<IDictionary<string, (string?, Col
     private static void DeserializeString(IDictionary<string, (string?, Color)> currentValues, JsonElement element,
         string key) => currentValues.Add(key, (element.GetString() ?? "", new Color()));
 
-    public override void Unload(string id, IResources resources) => colors.Clear();
+    public override void Unload(string id) => colors.Clear();
 }

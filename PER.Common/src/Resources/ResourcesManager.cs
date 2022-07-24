@@ -25,7 +25,7 @@ public class ResourcesManager : IResources {
     private bool _loading;
 
     private readonly List<ResourcePackData> _loadedPacks = new();
-    private readonly Dictionary<string, IResource> _resources = new();
+    private readonly Dictionary<string, ResourceBase> _resources = new();
     private readonly Dictionary<string, string> _cachedPaths = new();
 
     public virtual void Load() {
@@ -37,9 +37,11 @@ public class ResourcesManager : IResources {
 
         logger.Info("Loading resources");
 
-        foreach((string id, IResource resource) in _resources) {
+        foreach((string id, ResourceBase resource) in _resources) {
             logger.Info("Loading resource {Id}", id);
-            resource.Load(id, this);
+            resource.ResolveDependencies(this);
+            resource.ResolvePaths(this);
+            resource.Load(id);
         }
 
         _loading = false;
@@ -54,9 +56,9 @@ public class ResourcesManager : IResources {
 
         logger.Info("Unloading resources");
 
-        foreach((string id, IResource resource) in _resources) {
+        foreach((string id, ResourceBase resource) in _resources) {
             logger.Info("Unloading resource {Id}", id);
-            resource.Unload(id, this);
+            resource.Unload(id);
         }
 
         _loadedPacks.Clear();
@@ -110,7 +112,7 @@ public class ResourcesManager : IResources {
         return true;
     }
 
-    public bool TryAddResource<TResource>(string id, TResource resource) where TResource : class, IResource =>
+    public bool TryAddResource<TResource>(string id, TResource resource) where TResource : ResourceBase =>
         !loaded && _resources.TryAdd(id, resource);
 
     public bool TryAddPacksByNames(params string[] names) {
@@ -126,43 +128,20 @@ public class ResourcesManager : IResources {
     }
 
     public IEnumerable<string> GetAllPaths(string relativePath) {
-        if(!loaded && !_loading) yield break;
-
-        foreach(ResourcePackData data in loadedPacks) {
-            string resourcePath = Path.Combine(data.fullPath, relativePath);
-            if(!File.Exists(resourcePath)) continue;
-            yield return resourcePath;
-        }
-    }
-
-    public IEnumerable<string> GetAllPathsReverse(string relativePath) {
-        if(!loaded && !_loading) yield break;
+        if(!loaded && !_loading)
+            yield break;
 
         for(int i = loadedPacks.Count - 1; i >= 0; i--) {
-            ResourcePackData data = loadedPacks[i];
-            string resourcePath = Path.Combine(data.fullPath, relativePath);
-            if(!File.Exists(resourcePath)) continue;
-            yield return resourcePath;
+            string resourcePath = Path.Combine(loadedPacks[i].fullPath, relativePath);
+            if(File.Exists(resourcePath))
+                yield return resourcePath;
         }
-    }
-
-    public bool TryGetPath(string relativePath, [NotNullWhen(true)] out string? fullPath) {
-        fullPath = null;
-        if(!loaded && !_loading) return false;
-
-        if(_cachedPaths.TryGetValue(relativePath, out fullPath))
-            return true;
-
-        fullPath = GetAllPathsReverse(relativePath).FirstOrDefault((string?)null);
-        if(fullPath is null) return false;
-        _cachedPaths.Add(relativePath, fullPath);
-        return true;
     }
 
     public bool TryGetResource<TResource>(string id, [NotNullWhen(true)] out TResource? resource)
-        where TResource : class?, IResource? {
+        where TResource : ResourceBase? {
         resource = null;
-        if(!_resources.TryGetValue(id, out IResource? cachedResource) ||
+        if(!_resources.TryGetValue(id, out ResourceBase? cachedResource) ||
            cachedResource is not TResource actualResource)
             return false;
 

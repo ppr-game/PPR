@@ -1,6 +1,5 @@
 ﻿using PER.Abstractions;
 using PER.Abstractions.Rendering;
-using PER.Abstractions.Resources;
 using PER.Util;
 
 using PRR.UI.Resources;
@@ -11,8 +10,8 @@ public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : Layout
     private static readonly Stopwatch clock = new();
     private Color _animMax;
 
-    public override void Load(string id, IResources resources) {
-        base.Load(id, resources);
+    public override void Load(string id) {
+        base.Load(id);
         clock.Reset();
         if(!colors.colors.TryGetValue("menus_anim_max", out Color menusAnimMax))
             menusAnimMax = Color.white;

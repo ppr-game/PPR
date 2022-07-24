@@ -55,34 +55,29 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
             }
         }
 
-        public string? path { get; }
         public string? text { get; }
         public Dictionary<char, TextFormatting>? formatting { get; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public HorizontalAlignment? align { get; }
         public bool? wrap { get; }
 
-        public LayoutResourceText(bool? enabled, Vector2Int position, Vector2Int size, string? path, string? text,
+        public LayoutResourceText(bool? enabled, Vector2Int position, Vector2Int size, string? text,
             Dictionary<char, TextFormatting>? formatting, HorizontalAlignment? align, bool? wrap) :
             base(enabled, position, size) {
-            this.path = path;
             this.text = text;
             this.formatting = formatting;
             this.align = align;
             this.wrap = wrap;
         }
 
-        public override Element GetElement(IResources resources, IRenderer renderer, IInput input, IAudio audio,
+        public override Element GetElement(LayoutResourceBase resource, IRenderer renderer, IInput input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
             Text element = new(renderer) {
                 position = position,
                 size = size,
                 text = text
             };
-            if(path is not null &&
-               // kill me please
-               resources.TryGetPath(Path.Combine(path.Split('/').Prepend("layouts").ToArray()),
-                   out string? filePath))
+            if(text is null && resource.TryGetPath($"{id}.text", out string? filePath))
                 element.text = File.ReadAllText(filePath);
             if(enabled.HasValue) element.enabled = enabled.Value;
             if(formatting is not null)
@@ -112,7 +107,7 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
             this.toggled = toggled;
         }
 
-        public override Element GetElement(IResources resources, IRenderer renderer, IInput input, IAudio audio,
+        public override Element GetElement(LayoutResourceBase resource, IRenderer renderer, IInput input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
             Button element = new(renderer, input, audio) {
                 position = position,
@@ -151,7 +146,7 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
             this.active = active;
         }
 
-        public override Element GetElement(IResources resources, IRenderer renderer, IInput input, IAudio audio,
+        public override Element GetElement(LayoutResourceBase resource, IRenderer renderer, IInput input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
             InputField element = new(renderer, input, audio) {
                 position = position,
@@ -188,7 +183,7 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
         }
 
         // ReSharper disable once CognitiveComplexity
-        public override Element GetElement(IResources resources, IRenderer renderer, IInput input, IAudio audio,
+        public override Element GetElement(LayoutResourceBase resource, IRenderer renderer, IInput input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
             Slider element = new(renderer, input, audio) {
                 position = position,
@@ -210,7 +205,7 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
         public LayoutResourceScrollablePanel(bool? enabled, Vector2Int position, Vector2Int size) :
             base(enabled, position, size) { }
 
-        public override Element GetElement(IResources resources, IRenderer renderer, IInput input, IAudio audio,
+        public override Element GetElement(LayoutResourceBase resource, IRenderer renderer, IInput input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
             ScrollablePanel element = new(renderer, input) {
                 position = position,
@@ -229,11 +224,10 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
         public LayoutResourceListBox(bool? enabled, Vector2Int position, Vector2Int size, string template) :
             base(enabled, position, size) => this.template = template;
 
-        public override Element GetElement(IResources resources, IRenderer renderer, IInput input, IAudio audio,
+        public override Element GetElement(LayoutResourceBase resource, IRenderer renderer, IInput input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
-            if(!resources.TryGetResource($"layouts/templates/{template}",
-                out ListBoxTemplateResourceBase<TItem>? templateFactory))
-                throw new InvalidOperationException("Missing dependency.");
+            ListBoxTemplateResourceBase<TItem> templateFactory =
+                resource.GetDependency<ListBoxTemplateResourceBase<TItem>>($"layouts/templates/{template}");
             ListBox<TItem> element = new(renderer, input, templateFactory) {
                 position = position,
                 size = size
@@ -252,19 +246,28 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
     protected abstract string layoutName { get; }
     protected abstract IReadOnlyDictionary<string, Type> elementTypes { get; }
 
+    protected override IEnumerable<KeyValuePair<string, Type>> dependencyTypes {
+        get {
+            yield return new KeyValuePair<string, Type>(ColorsResource.GlobalId, typeof(ColorsResource));
+        }
+    }
+
+    protected override IEnumerable<KeyValuePair<string, string>> paths {
+        get {
+            yield return new KeyValuePair<string, string>("layout", $"{layoutsPath}/{layoutName}.json");
+        }
+    }
+
     protected IEnumerable<KeyValuePair<string, Element>> elements => _elements;
     protected ColorsResource colors { get; private set; } = new();
 
     private Dictionary<string, Element> _elements = new();
 
-    public override void Load(string id, IResources resources) {
-        if(!resources.TryGetResource(ColorsResource.GlobalId, out ColorsResource? colors))
-            throw new InvalidOperationException("Missing colors resource.");
-        this.colors = colors;
+    public override void Load(string id) {
+        colors = GetDependency<ColorsResource>(ColorsResource.GlobalId);
 
         Dictionary<string, LayoutResourceElement> layoutElements = new(elementTypes.Count);
-        DeserializeAllJson(resources, Path.Combine(layoutsPath, $"{layoutName}.json"), layoutElements,
-            () => layoutElements.Count == elementTypes.Count);
+        DeserializeAllJson("layout", layoutElements, () => layoutElements.Count == elementTypes.Count);
 
         // didn't load all the elements
         if(layoutElements.Count != elementTypes.Count)
@@ -272,8 +275,8 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
 
         _elements.Clear();
         foreach((string elementId, LayoutResourceElement layoutElement) in layoutElements) {
-            Element element = layoutElement.GetElement(resources, renderer,
-                input, audio, colors.colors, layoutName, elementId);
+            Element element =
+                layoutElement.GetElement(this, renderer, input, audio, colors.colors, layoutName, elementId);
             _elements.Add(elementId, element);
         }
     }
@@ -307,12 +310,12 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
         } while(type != typeof(LayoutResourceElement));
     }
 
-    public override void Unload(string id, IResources resources) => _elements.Clear();
+    public override void Unload(string id) => _elements.Clear();
 
     protected Element GetElement(string id) {
-        if(!_elements.ContainsKey(id))
+        if(!_elements.TryGetValue(id, out Element? element))
             throw new InvalidOperationException($"Element {id} does not exist.");
-        return _elements[id];
+        return element;
     }
 
     protected T GetElement<T>(string id) where T : Element {

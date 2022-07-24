@@ -1,9 +1,6 @@
 ﻿{
-    "frameLeft": {
-        "path": "levelSelectLeft.txt"
-    },
+    "frameLeft": { },
     "frameRight": {
-        "path": "levelSelectRight.txt",
         "position": { "x": 79, "y": 0 },
         "align": "right"
     },

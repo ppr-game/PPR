@@ -1,9 +1,6 @@
 ﻿{
-    "frameLeft": {
-        "path": "mainMenuLeft.txt"
-    },
+    "frameLeft": { },
     "frameRight": {
-        "path": "mainMenuRight.txt",
         "position": { "x": 79, "y": 0 },
         "align": "right"
     },

@@ -45,19 +45,18 @@ public class Engine {
             logger.Info($"PER v{version}");
             logger.Info("Reloading game");
 
-            bool loaded = resources.loaded;
-            if(loaded) {
+            if(resources.loaded) {
                 resources.Unload();
                 game.Unload();
             }
             game.Load();
             resources.Load();
             RendererSettings rendererSettings = game.Loaded();
-            if(loaded)
-                input.Reset();
 
-            if(renderer.open)
+            if(renderer.open) {
                 renderer.Reset(rendererSettings);
+                input.Reset();
+            }
             else
                 Run(rendererSettings);
         }

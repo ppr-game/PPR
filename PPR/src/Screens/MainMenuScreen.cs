@@ -34,11 +34,20 @@ public class MainMenuScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
         { "player.name", typeof(LayoutResourceText) }
     };
 
+    protected override IEnumerable<KeyValuePair<string, string>> paths {
+        get {
+            foreach(KeyValuePair<string, string> pair in base.paths)
+                yield return pair;
+            yield return new KeyValuePair<string, string>("frameLeft.text", $"{layoutsPath}/{layoutName}Left.txt");
+            yield return new KeyValuePair<string, string>("frameRight.text", $"{layoutsPath}/{layoutName}Right.txt");
+        }
+    }
+
     private string _playerPlayPauseTemplate = "  ";
     private string _playerNameTemplate = string.Empty;
 
-    public override void Load(string id, IResources resources) {
-        base.Load(id, resources);
+    public override void Load(string id) {
+        base.Load(id);
 
         GetElement<Button>("play").onClick += (_, _) => {
             if(!Core.engine.resources.TryGetResource(LevelSelectScreen.GlobalId, out LevelSelectScreen? screen))

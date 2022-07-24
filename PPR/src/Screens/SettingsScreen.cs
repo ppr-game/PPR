@@ -52,6 +52,24 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
         { "back", typeof(LayoutResourceButton) }
     };
 
+    protected override IEnumerable<KeyValuePair<string, Type>> dependencyTypes {
+        get {
+            foreach(KeyValuePair<string, Type> pair in base.dependencyTypes)
+                yield return pair;
+            yield return new KeyValuePair<string, Type>(ResourcePackSelectorTemplate.GlobalId,
+                typeof(ResourcePackSelectorTemplate));
+        }
+    }
+
+    protected override IEnumerable<KeyValuePair<string, string>> paths {
+        get {
+            foreach(KeyValuePair<string, string> pair in base.paths)
+                yield return pair;
+            yield return new KeyValuePair<string, string>("frameLeft.text", $"{layoutsPath}/{layoutName}Left.txt");
+            yield return new KeyValuePair<string, string>("frameRight.text", $"{layoutsPath}/{layoutName}Right.txt");
+        }
+    }
+
     private bool _reload;
 
     private readonly Settings _settings;
@@ -64,8 +82,8 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
         resources.TryAddResource(ResourcePackSelectorTemplate.GlobalId, new ResourcePackSelectorTemplate());
     }
 
-    public override void Load(string id, IResources resources) {
-        base.Load(id, resources);
+    public override void Load(string id) {
+        base.Load(id);
 
         LoadAudio();
         LoadVideo();
@@ -211,13 +229,19 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
             { "down", typeof(LayoutResourceButton) }
         };
 
+        protected override IEnumerable<KeyValuePair<string, Type>> dependencyTypes {
+            get {
+                foreach(KeyValuePair<string, Type> pair in base.dependencyTypes)
+                    yield return pair;
+                yield return new KeyValuePair<string, Type>(SettingsScreen.GlobalId, typeof(SettingsScreen));
+            }
+        }
+
         private SettingsScreen? _screen;
 
-        public override void Load(string id, IResources resources) {
-            base.Load(id, resources);
-            if(!resources.TryGetResource(SettingsScreen.GlobalId, out SettingsScreen? screen))
-                throw new InvalidOperationException("Missing dependency.");
-            _screen = screen;
+        public override void Load(string id) {
+            base.Load(id);
+            _screen = GetDependency<SettingsScreen>(SettingsScreen.GlobalId);
         }
 
         private class Template : TemplateBase {
