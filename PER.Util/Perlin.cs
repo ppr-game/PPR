@@ -40,13 +40,13 @@ public static class Perlin {
         float w = Fade(zf);
 
         int aaa = p[p[p[xi] + yi] + zi];
-        int aba = p[p[p[xi] + ++yi] + zi];
-        int aab = p[p[p[xi] + yi] + ++zi];
-        int abb = p[p[p[xi] + ++yi] + ++zi];
-        int baa = p[p[p[++xi] + yi] + zi];
-        int bba = p[p[p[++xi] + ++yi] + zi];
-        int bab = p[p[p[++xi] + yi] + ++zi];
-        int bbb = p[p[p[++xi] + ++yi] + ++zi];
+        int aba = p[p[p[xi] + yi + 1] + zi];
+        int aab = p[p[p[xi] + yi] + zi + 1];
+        int abb = p[p[p[xi] + yi + 1] + zi + 1];
+        int baa = p[p[p[xi + 1] + yi] + zi];
+        int bba = p[p[p[xi + 1] + yi + 1] + zi];
+        int bab = p[p[p[xi + 1] + yi] + zi + 1];
+        int bbb = p[p[p[xi + 1] + yi + 1] + zi + 1];
 
         // The gradient function calculates the dot product between a pseudorandom
         // gradient vector and the vector from the input coordinate to the 8
