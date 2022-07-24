@@ -122,8 +122,6 @@ public class Text : IDisposable {
             new RenderStates(blendMode, Transform.Identity, _texture, shader));
     }
 
-    public void DrawFont(RenderTarget target) => target.Draw(new Sprite(_texture));
-
     public void Dispose() {
         _texture.Dispose();
         GC.SuppressFinalize(this);
