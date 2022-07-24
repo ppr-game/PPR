@@ -100,7 +100,8 @@ public class Renderer : RendererBase, IDisposable {
     public override void Draw() => Draw(false);
 
     private void Draw(bool drawFont) {
-        if(window is null) return;
+        if(window is null)
+            return;
 
         SFML.Graphics.Color background = SfmlConverters.ToSfmlColor(this.background);
 
@@ -125,10 +126,6 @@ public class Renderer : RendererBase, IDisposable {
 
         window.Display();
         Profiler.FrameMark();
-
-        effects.Clear();
-        globalEffects.Clear();
-        globalModEffects.Clear();
     }
 
     private void RunPipelines(SFML.Graphics.Color background) {

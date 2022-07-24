@@ -97,7 +97,13 @@ public abstract class RendererBase : IRenderer {
 
     protected abstract void CreateText();
 
-    public virtual void Clear() => displayUsed.Clear();
+    public virtual void Clear() {
+        displayUsed.Clear();
+        effects.Clear();
+        globalEffects.Clear();
+        globalModEffects.Clear();
+    }
+
     public abstract void Draw();
 
     protected void DrawAllEffects() {
