@@ -10,6 +10,7 @@ using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
+using Color = PER.Util.Color;
 using Shader = SFML.Graphics.Shader;
 
 namespace PRR.Sfml;
@@ -19,6 +20,14 @@ public class Renderer : RendererBase, IDisposable {
     public override bool focused => window?.HasFocus() ?? false;
     public override event EventHandler? focusChanged;
     public override event EventHandler? closed;
+
+    public override Color background {
+        get => base.background;
+        set {
+            base.background = value;
+            _background = SfmlConverters.ToSfmlColor(value);
+        }
+    }
 
     public Text? text { get; private set; }
     public RenderWindow? window { get; private set; }
@@ -31,6 +40,8 @@ public class Renderer : RendererBase, IDisposable {
     private RenderTexture? otherRenderTexture => _swapTextures ? _mainRenderTexture : _additionalRenderTexture;
     private Sprite? currentSprite => _swapTextures ? _additionalSprite : _mainSprite;
     private Sprite? otherSprite => _swapTextures ? _mainSprite : _additionalSprite;
+
+    private SFML.Graphics.Color _background = SFML.Graphics.Color.Black;
 
     private RenderTexture? _mainRenderTexture;
     private RenderTexture? _additionalRenderTexture;
@@ -97,38 +108,27 @@ public class Renderer : RendererBase, IDisposable {
         _cachedFullscreenEffects.Add(effect, cachedEffect);
     }
 
-    public override void Draw() => Draw(false);
-
-    private void Draw(bool drawFont) {
+    public override void Draw() {
         if(window is null)
             return;
-
-        SFML.Graphics.Color background = SfmlConverters.ToSfmlColor(this.background);
-
-        if(drawFont) {
-            window.Clear(background);
-            text?.DrawFont(window);
-            window.Display();
-            return;
-        }
 
         DrawAllEffects();
 
         text?.RebuildQuads(_textPosition, globalEffects, effects);
 
-        window.Clear(background);
-        _mainRenderTexture?.Clear(background);
-        _additionalRenderTexture?.Clear(background);
+        window.Clear(_background);
+        _mainRenderTexture?.Clear(_background);
+        _additionalRenderTexture?.Clear(_background);
         _mainRenderTexture?.Display();
         _additionalRenderTexture?.Display();
 
-        RunPipelines(background);
+        RunPipelines();
 
         window.Display();
         Profiler.FrameMark();
     }
 
-    private void RunPipelines(SFML.Graphics.Color background) {
+    private void RunPipelines() {
         // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
         foreach(IEffect effect in globalEffects) {
             if(effect.pipeline is null) continue;
@@ -137,12 +137,12 @@ public class Renderer : RendererBase, IDisposable {
             // ignore because can't be null when effect.pipeline is not null
             for(int i = 0; i < cachedEffect.pipeline!.Length; i++) {
                 CachedPipelineStep step = cachedEffect.pipeline[i];
-                RunPipelineStep(step, i, background);
+                RunPipelineStep(step, i);
             }
         }
     }
 
-    private void RunPipelineStep(CachedPipelineStep step, int index, SFML.Graphics.Color background) {
+    private void RunPipelineStep(CachedPipelineStep step, int index) {
         if(window is null || currentRenderTexture is null) return;
 
         step.shader?.SetUniform("step", index);
@@ -170,7 +170,7 @@ public class Renderer : RendererBase, IDisposable {
                 _swapTextures = !_swapTextures;
                 break;
             case PipelineStep.Type.ClearBuffer:
-                currentRenderTexture?.Clear(background);
+                currentRenderTexture?.Clear(_background);
                 break;
         }
     }
