@@ -54,6 +54,9 @@ public abstract class ClickableElementBase : Element {
     protected const float MinSpeed = 3f;
     protected const float MaxSpeed = 5f;
 
+    private bool _clickLocked;
+    private Vector2Int _clickPosition;
+
     private float[,] _animSpeeds = new float[0, 0];
     private TimeSpan _animStartTime;
     private Color _animBackgroundColorStart;
@@ -72,9 +75,15 @@ public abstract class ClickableElementBase : Element {
     protected virtual void UpdateState(TimeSpan time) {
         State prevState = currentState;
 
-        bool mouseWasOver = bounds.IntersectsLine(input.previousMousePosition, input.mousePosition);
-        bool mouseOver = input.mousePosition.InBounds(bounds);
         bool mouseClicked = input.MouseButtonPressed(MouseButton.Left);
+
+        if(mouseClicked && !_clickLocked)
+            _clickPosition = input.mousePosition;
+        _clickLocked = mouseClicked;
+
+        bool mouseOver = (_clickLocked ? _clickPosition : input.mousePosition).InBounds(bounds);
+        bool mouseWasOver = bounds.IntersectsLine(input.previousMousePosition, input.mousePosition) ||
+            _clickLocked && mouseOver;
 
         State clickedState = mouseOver ? State.Clicked : State.FakeClicked;
         State hoveredState = mouseOver ? State.Hovered : State.FakeHovered;

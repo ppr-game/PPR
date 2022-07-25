@@ -58,11 +58,11 @@ public class Slider : ClickableElementBase {
 
     private void UpdateValue() {
         int prevRelativeValue = _relativeValue;
-        _relativeValue = input.mousePosition.x - position.x;
+        _relativeValue = Math.Clamp(input.mousePosition.x - position.x, 0, width - 1);
         if(prevRelativeValue == _relativeValue) return;
         float tempValue = (float)_relativeValue / (width - 1);
         tempValue = minValue + tempValue * (maxValue - minValue);
-        value = Math.Min(Math.Max(tempValue, minValue), maxValue);
+        value = Math.Clamp(tempValue, minValue, maxValue);
 
         PlaySound(audio, valueChangedSound, ValueChangedSoundId);
     }
