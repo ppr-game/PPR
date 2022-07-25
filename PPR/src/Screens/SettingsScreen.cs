@@ -1,15 +1,14 @@
-﻿using System.Collections.Immutable;
-using System.Globalization;
+﻿using System.Globalization;
 
 using PER.Abstractions.Audio;
 using PER.Abstractions.Input;
 using PER.Abstractions.Rendering;
 using PER.Abstractions.Resources;
 using PER.Abstractions.UI;
-using PER.Util;
+
+using PPR.Screens.Templates;
 
 using PRR.UI;
-using PRR.UI.Resources;
 
 namespace PPR.Screens;
 
@@ -74,12 +73,13 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
 
     private readonly Settings _settings;
 
-    private IList<ResourcePackData> _availablePacks = ImmutableList<ResourcePackData>.Empty;
-    private ISet<ResourcePackData> _loadedPacks = ImmutableHashSet<ResourcePackData>.Empty;
+    private readonly List<ResourcePackData> _availablePacks = new();
+    private readonly HashSet<ResourcePackData> _loadedPacks = new();
 
     public SettingsScreen(Settings settings, IResources resources) {
         _settings = settings;
-        resources.TryAddResource(ResourcePackSelectorTemplate.GlobalId, new ResourcePackSelectorTemplate());
+        resources.TryAddResource(ResourcePackSelectorTemplate.GlobalId,
+            new ResourcePackSelectorTemplate(this, _availablePacks, _loadedPacks));
     }
 
     public override void Load(string id) {
@@ -193,142 +193,31 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase 
     }
 
     private void OpenPacks() {
-        _loadedPacks = Core.engine.resources.loadedPacks.ToHashSet();
-        List<ResourcePackData> availablePacks = new();
-        availablePacks.AddRange(_loadedPacks);
-        availablePacks.AddRange(Core.engine.resources.GetUnloadedAvailablePacks().Reverse());
-        _availablePacks = availablePacks;
+        _loadedPacks.Clear();
+        _availablePacks.Clear();
+
+        foreach(ResourcePackData data in Core.engine.resources.loadedPacks)
+            _loadedPacks.Add(data);
+
+        _availablePacks.AddRange(_loadedPacks);
+        _availablePacks.AddRange(Core.engine.resources.GetUnloadedAvailablePacks().Reverse());
+
         GeneratePacksList();
     }
 
-    private void UpdatePacks() {
+    public void UpdatePacks() {
         _settings.packs = _availablePacks.Where(_loadedPacks.Contains).Select(packData => packData.name).ToArray();
         _reload = true;
         GeneratePacksList();
     }
+
+    public void UpdatePackDescription(string text) => GetElement<Text>("pack.description").text = text;
 
     private void GeneratePacksList() {
         ListBox<ResourcePackData> packs = GetElement<ListBox<ResourcePackData>>("packs");
         packs.Clear();
         foreach(ResourcePackData item in _availablePacks)
             packs.Add(item);
-    }
-
-    private class ResourcePackSelectorTemplate : ListBoxTemplateResourceBase<ResourcePackData> {
-        // ok and?
-        // ReSharper disable once MemberHidesStaticFromOuterClass
-        public const string GlobalId = "layouts/templates/resourcePackItem";
-
-        protected override IRenderer renderer => Core.engine.renderer;
-        protected override IInput input => Core.engine.input;
-        protected override IAudio audio => Core.engine.audio;
-        protected override string layoutName => "resourcePackItem";
-        protected override IReadOnlyDictionary<string, Type> elementTypes { get; } = new Dictionary<string, Type> {
-            { "toggle", typeof(LayoutResourceButton) },
-            { "up", typeof(LayoutResourceButton) },
-            { "down", typeof(LayoutResourceButton) }
-        };
-
-        protected override IEnumerable<KeyValuePair<string, Type>> dependencyTypes {
-            get {
-                foreach(KeyValuePair<string, Type> pair in base.dependencyTypes)
-                    yield return pair;
-                yield return new KeyValuePair<string, Type>(SettingsScreen.GlobalId, typeof(SettingsScreen));
-            }
-        }
-
-        private SettingsScreen? _screen;
-
-        public override void Load(string id) {
-            base.Load(id);
-            _screen = GetDependency<SettingsScreen>(SettingsScreen.GlobalId);
-        }
-
-        private class Template : TemplateBase {
-            private readonly ResourcePackSelectorTemplate _resource;
-            private int _index;
-            private ResourcePackData _item;
-            private bool _loaded;
-
-            public Template(ResourcePackSelectorTemplate resource) : base(resource) {
-                _resource = resource;
-                if(_resource._screen is null)
-                    return;
-                SettingsScreen screen = _resource._screen;
-
-                Button toggleButton = GetElement<Button>("toggle");
-                toggleButton.onClick += (_, _) => {
-                    bool canUnload = screen._loadedPacks.Count > 1 &&
-                        _item.name != Core.engine.resources.defaultPackName;
-                    if(!canUnload && _loaded)
-                        return;
-
-                    if(toggleButton.toggled)
-                        screen._loadedPacks.Remove(_item);
-                    else
-                        screen._loadedPacks.Add(_item);
-                    screen.UpdatePacks();
-                };
-                toggleButton.onHover += (_, _) => {
-                    screen.GetElement<Text>("pack.description").text = _item.meta.description;
-                };
-
-                GetElement<Button>("up").onClick += (_, _) => {
-                    screen._availablePacks.RemoveAt(_index);
-                    screen._availablePacks.Insert(_index + 1, _item);
-                    screen.UpdatePacks();
-                };
-
-                GetElement<Button>("down").onClick += (_, _) => {
-                    screen._availablePacks.RemoveAt(_index);
-                    screen._availablePacks.Insert(_index - 1, _item);
-                    screen.UpdatePacks();
-                };
-            }
-
-            public override void UpdateWithItem(int index, ResourcePackData item, int width) {
-                if(_resource._screen is null)
-                    return;
-                SettingsScreen screen = _resource._screen;
-                _index = index;
-                _item = item;
-
-                int maxY = screen._availablePacks.Count - 1;
-                int y = maxY - index;
-
-                _loaded = screen._loadedPacks.Contains(item);
-
-                bool canMoveUp = y > 0 && item.name != Core.engine.resources.defaultPackName;
-                bool canMoveDown = y < maxY &&
-                    screen._availablePacks[index - 1].name != Core.engine.resources.defaultPackName;
-
-                Button toggleButton = GetElement<Button>("toggle");
-                toggleButton.text =
-                    item.name.Length > toggleButton.size.x ? item.name[..toggleButton.size.x] : item.name;
-                toggleButton.toggled = _loaded;
-
-                Button moveUpButton = GetElement<Button>("up");
-                moveUpButton.active = canMoveUp;
-
-                Button moveDownButton = GetElement<Button>("down");
-                moveDownButton.active = canMoveDown;
-            }
-
-            public override void MoveTo(Vector2Int origin, int index) {
-                if(_resource._screen is null) {
-                    base.MoveTo(origin, index);
-                    return;
-                }
-                SettingsScreen screen = _resource._screen;
-                int maxY = screen._availablePacks.Count - 1;
-                int y = maxY - index;
-                y *= height;
-                foreach((string id, Element element) in idElements)
-                    element.position = _resource.GetElement(id).position + origin + new Vector2Int(0, y);
-            }
-        }
-
-        public override IListBoxTemplateFactory<ResourcePackData>.Template CreateTemplate() => new Template(this);
     }
 
     public override void Close() {
