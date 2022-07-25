@@ -76,12 +76,11 @@ public class Sound : IPlayable, IDisposable {
         UpdateVolume();
     }
 
-    internal static void Reset() {
-        foreach((string? _, SoundBuffer? buffer) in cachedBuffers) buffer.Dispose();
+    public static void Reset() {
+        foreach((string? _, SoundBuffer? buffer) in cachedBuffers)
+            buffer.Dispose();
         cachedBuffers.Clear();
     }
-
-    internal static void Finish() => Reset();
 
     public void Dispose() {
         _sound.Dispose();

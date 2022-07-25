@@ -54,10 +54,19 @@ public class Renderer : BasicRenderer, IDisposable {
 
     public override void Close() => window?.Close();
 
-    public override void Finish() { }
+    public override void Finish() {
+        if(window?.IsOpen ?? false)
+            window.Close();
+        Dispose();
+        text = null;
+        window = null;
+        _mainRenderTexture = null;
+        _additionalRenderTexture = null;
+        _mainSprite = null;
+        _additionalSprite = null;
+    }
 
     protected override void CreateWindow() {
-        if(window?.IsOpen ?? false) window.Close();
         UpdateFont();
 
         VideoMode videoMode = fullscreen ? VideoMode.FullscreenModes[0] :
@@ -67,9 +76,9 @@ public class Renderer : BasicRenderer, IDisposable {
         window.SetView(new View(new Vector2f(videoMode.Width / 2f, videoMode.Height / 2f),
             new Vector2f(videoMode.Width, videoMode.Height)));
 
-        if(File.Exists(this.icon)) {
-            SFML.Graphics.Image icon = new(this.icon);
-            window.SetIcon(icon.Size.X, icon.Size.Y, icon.Pixels);
+        if(File.Exists(icon)) {
+            SFML.Graphics.Image iconImage = new(icon);
+            window.SetIcon(iconImage.Size.X, iconImage.Size.Y, iconImage.Pixels);
         }
 
         window.LostFocus += (_, _) => focusChanged?.Invoke(this, EventArgs.Empty);
@@ -88,7 +97,8 @@ public class Renderer : BasicRenderer, IDisposable {
     }
 
     protected override void UpdateFramerate() {
-        if(window is null) return;
+        if(window is null)
+            return;
         window.SetFramerateLimit(framerate <= 0 ? 0 : (uint)framerate);
         window.SetVerticalSyncEnabled(framerate == (int)ReservedFramerates.Vsync);
     }
@@ -176,12 +186,12 @@ public class Renderer : BasicRenderer, IDisposable {
     }
 
     public void Dispose() {
-        _mainRenderTexture?.Dispose();
-        _additionalRenderTexture?.Dispose();
-        _mainSprite?.Dispose();
         _additionalSprite?.Dispose();
-        text?.Dispose();
+        _mainSprite?.Dispose();
+        _additionalRenderTexture?.Dispose();
+        _mainRenderTexture?.Dispose();
         window?.Dispose();
+        text?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

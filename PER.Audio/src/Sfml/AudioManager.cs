@@ -33,7 +33,8 @@ public class AudioManager : IAudio {
         _storedPlayables.TryGetValue(id, out playable);
 
     public void UpdateVolumes() {
-        foreach(IPlayable playable in _allPlayables) playable.volume = playable.volume;
+        foreach(IPlayable playable in _allPlayables)
+            playable.volume = playable.volume;
     }
 
     public void Reset() {
@@ -46,8 +47,5 @@ public class AudioManager : IAudio {
         _storedMixers.Clear();
     }
 
-    public void Finish() {
-        Sound.Finish();
-        Reset();
-    }
+    public void Finish() => Reset();
 }
