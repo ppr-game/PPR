@@ -32,7 +32,7 @@ public class Renderer : BasicRenderer, IDisposable {
     public Text? text { get; private set; }
     public RenderWindow? window { get; private set; }
 
-    private readonly Dictionary<IEffect, CachedEffect> _cachedFullscreenEffects = new();
+    private readonly Dictionary<IEffect, CachedEffect> _cachedGlobalEffects = new();
 
     private bool _swapTextures;
 
@@ -66,6 +66,18 @@ public class Renderer : BasicRenderer, IDisposable {
         _additionalSprite = null;
     }
 
+    public override bool Reset(RendererSettings settings) {
+        if(base.Reset(settings))
+            return true;
+        // rebuild global effects cache on incremental reload
+        _cachedGlobalEffects.Clear();
+        foreach(IEffect effect in globalEffects) {
+            CachedEffect cachedEffect = new() { effect = effect };
+            _cachedGlobalEffects.Add(effect, cachedEffect);
+        }
+        return false;
+    }
+
     protected override void CreateWindow() {
         UpdateFont();
 
@@ -76,10 +88,7 @@ public class Renderer : BasicRenderer, IDisposable {
         window.SetView(new View(new Vector2f(videoMode.Width / 2f, videoMode.Height / 2f),
             new Vector2f(videoMode.Width, videoMode.Height)));
 
-        if(File.Exists(icon)) {
-            SFML.Graphics.Image iconImage = new(icon);
-            window.SetIcon(iconImage.Size.X, iconImage.Size.Y, iconImage.Pixels);
-        }
+        UpdateIcon();
 
         window.LostFocus += (_, _) => focusChanged?.Invoke(this, EventArgs.Empty);
         window.GainedFocus += (_, _) => focusChanged?.Invoke(this, EventArgs.Empty);
@@ -103,8 +112,21 @@ public class Renderer : BasicRenderer, IDisposable {
         window.SetVerticalSyncEnabled(framerate == (int)ReservedFramerates.Vsync);
     }
 
+    protected override void UpdateTitle() => window?.SetTitle(title);
+
+    protected override void UpdateIcon() {
+        if(window is null)
+            return;
+        if(!File.Exists(icon)) {
+            window.SetIcon(0, 0, Array.Empty<byte>());
+            return;
+        }
+        SFML.Graphics.Image iconImage = new(icon);
+        window.SetIcon(iconImage.Size.X, iconImage.Size.Y, iconImage.Pixels);
+    }
+
     protected override void UpdateFont() {
-        _cachedFullscreenEffects.Clear();
+        _cachedGlobalEffects.Clear();
         base.UpdateFont();
     }
 
@@ -113,9 +135,9 @@ public class Renderer : BasicRenderer, IDisposable {
 
     public override void AddEffect(IEffect effect) {
         base.AddEffect(effect);
-        if(_cachedFullscreenEffects.ContainsKey(effect)) return;
+        if(_cachedGlobalEffects.ContainsKey(effect)) return;
         CachedEffect cachedEffect = new() { effect = effect };
-        _cachedFullscreenEffects.Add(effect, cachedEffect);
+        _cachedGlobalEffects.Add(effect, cachedEffect);
     }
 
     public override void Draw() {
@@ -143,7 +165,7 @@ public class Renderer : BasicRenderer, IDisposable {
         foreach(IEffect effect in globalEffects) {
             if(effect.pipeline is null) continue;
 
-            CachedEffect cachedEffect = _cachedFullscreenEffects[effect];
+            CachedEffect cachedEffect = _cachedGlobalEffects[effect];
             // ignore because can't be null when effect.pipeline is not null
             for(int i = 0; i < cachedEffect.pipeline!.Length; i++) {
                 CachedPipelineStep step = cachedEffect.pipeline[i];

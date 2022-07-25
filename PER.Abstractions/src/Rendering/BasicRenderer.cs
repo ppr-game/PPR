@@ -9,7 +9,14 @@ namespace PER.Abstractions.Rendering;
 
 [PublicAPI]
 public abstract class BasicRenderer : IRenderer {
-    public virtual string title { get; private set; } = "";
+    public virtual string title {
+        get => _title;
+        set {
+            _title = value;
+            UpdateTitle();
+        }
+    }
+
     public virtual int width { get; private set; }
     public virtual int height { get; private set; }
 
@@ -37,7 +44,13 @@ public abstract class BasicRenderer : IRenderer {
         }
     }
 
-    public virtual string? icon { get; set; }
+    public virtual string? icon {
+        get => _icon;
+        set {
+            _icon = value;
+            UpdateIcon();
+        }
+    }
 
     public abstract bool open { get; }
     public abstract bool focused { get; }
@@ -59,32 +72,44 @@ public abstract class BasicRenderer : IRenderer {
     private int _framerate;
     private bool _fullscreen;
     private IFont? _font;
+    private string _title = "";
+    private string? _icon;
 
     public virtual void Setup(RendererSettings settings) {
-        title = settings.title;
+        _title = settings.title;
         width = settings.width;
         height = settings.height;
         _framerate = settings.framerate;
         _fullscreen = settings.fullscreen;
         _font = settings.font;
-        icon = settings.icon;
+        _icon = settings.icon;
 
         CreateWindow();
     }
 
     protected abstract void CreateWindow();
     protected abstract void UpdateFramerate();
+    protected abstract void UpdateTitle();
+    protected abstract void UpdateIcon();
 
     public abstract void Update();
     public abstract void Close();
     public abstract void Finish();
 
-    public virtual void Reset(RendererSettings settings) {
-        Finish();
-        Setup(settings);
+    public virtual bool Reset(RendererSettings settings) {
+        if(settings.width != width || settings.height != height || settings.font != _font ||
+            settings.fullscreen != _fullscreen) {
+            Finish();
+            Setup(settings);
+            return true;
+        }
+        title = settings.title;
+        framerate = settings.framerate;
+        icon = settings.icon;
+        return false;
     }
 
-    public virtual void Reset() => Reset(new RendererSettings(this));
+    protected bool Reset() => Reset(new RendererSettings(this));
 
     protected virtual void UpdateFont() {
         display = new RenderCharacter[height, width];

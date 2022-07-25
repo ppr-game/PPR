@@ -36,8 +36,8 @@ public static class Conductor {
     private static LevelSerializer.MusicMetadata? _currentMusicMetadata;
 
     public static void Start() {
-        _currentMusic = null;
-        _currentMusicMetadata = null;
+        if(_currentMusic is not null)
+            return;
         if(!TryGetDefaultMusic(out IPlayable? playable, out LevelSerializer.MusicMetadata metadata) &&
             !TryGetRandomMusic(out playable, out metadata))
             return;
@@ -64,6 +64,12 @@ public static class Conductor {
         if(!TryGetPlayable(levelDirectory, metadata, out IPlayable? playable))
             return;
         SetMusic(playable, metadata);
+    }
+
+    public static void StopMusic() {
+        _currentMusic?.StopPlayback();
+        _currentMusic = null;
+        _currentMusicMetadata = null;
     }
 
     private static bool TryGetDefaultMusic([NotNullWhen(true)] out IPlayable? playable,

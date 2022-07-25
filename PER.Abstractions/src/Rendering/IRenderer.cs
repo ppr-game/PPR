@@ -9,7 +9,7 @@ namespace PER.Abstractions.Rendering;
 
 [PublicAPI]
 public interface IRenderer {
-    public string title { get; }
+    public string title { get; set; }
     public int width { get; }
     public int height { get; }
     public int framerate { get; set; }
@@ -30,8 +30,7 @@ public interface IRenderer {
     public void Update();
     public void Close();
     public void Finish();
-    public void Reset();
-    public void Reset(RendererSettings settings);
+    public bool Reset(RendererSettings settings);
 
     public void Clear();
     public void Draw();

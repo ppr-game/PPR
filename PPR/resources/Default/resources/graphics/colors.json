@@ -303,5 +303,7 @@
     "button_resourcePackItem.down_hover": "foreground",
     "button_resourcePackItem.down_click": "gray",
     "button_settings.apply_hover": "settings",
-    "button_settings.apply_click": "dark_settings"
+    "button_settings.apply_click": "dark_settings",
+    "button_settings.reload_hover": "settings",
+    "button_settings.reload_click": "dark_settings"
 }

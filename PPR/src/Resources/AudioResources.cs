@@ -6,6 +6,8 @@ using PRR.UI;
 namespace PPR.Resources;
 
 public class AudioResources : AudioResourcesLoader {
+    public const string GlobalId = "audio";
+
     protected override IAudio audio => Core.engine.audio;
     protected override IReadOnlyDictionary<MixerDefinition, AudioResource[]> sounds { get; } =
         new Dictionary<MixerDefinition, AudioResource[]> {
@@ -24,4 +26,9 @@ public class AudioResources : AudioResourcesLoader {
                 new AudioResource(InputField.SubmitSoundId)
             } }
         };
+
+    public override void Unload(string id) {
+        Conductor.StopMusic();
+        base.Unload(id);
+    }
 }

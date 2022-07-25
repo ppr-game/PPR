@@ -42,7 +42,7 @@ public class Game : ScreenGame {
 
         resources.TryAddPacksByNames(_settings.packs);
 
-        resources.TryAddResource("audio", new AudioResources());
+        resources.TryAddResource(AudioResources.GlobalId, new AudioResources());
 
         resources.TryAddResource(IconResource.GlobalId, new IconResource());
         resources.TryAddResource(FontResource.GlobalId, new FontResource());

@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 using JetBrains.Annotations;
 
@@ -41,8 +42,18 @@ public abstract class Resource {
         }
     }
 
+    public int GetPathsHash() {
+        StringBuilder builder = new();
+        foreach((_, IEnumerable<string> paths) in _fullPaths)
+            foreach(string path in paths)
+                builder.Append(path);
+        return builder.ToString().GetHashCode();
+    }
+
     public abstract void Load(string id);
     public abstract void Unload(string id);
+
+    public bool HasDependency(string id) => _dependencies.ContainsKey(id);
 
     protected Resource GetDependency(string id) {
         if(!_dependencies.TryGetValue(id, out Resource? dependency))

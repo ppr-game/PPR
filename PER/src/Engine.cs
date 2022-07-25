@@ -53,10 +53,8 @@ public class Engine {
             resources.Load();
             RendererSettings rendererSettings = game.Loaded();
 
-            if(renderer.open) {
-                renderer.Reset(rendererSettings);
+            if(renderer.open && renderer.Reset(rendererSettings))
                 input.Reset();
-            }
             else
                 Run(rendererSettings);
         }
@@ -64,6 +62,14 @@ public class Engine {
             logger.Fatal(exception, "Uncaught exception! Please, report this file to the developer of the game.");
             throw;
         }
+    }
+
+    public void IncrementalReload() {
+        logger.Info("Starting incremental reload");
+        resources.Reload();
+        RendererSettings rendererSettings = game.Loaded();
+        if(renderer.open && renderer.Reset(rendererSettings))
+            input.Reset();
     }
 
     private void Run(RendererSettings rendererSettings) {

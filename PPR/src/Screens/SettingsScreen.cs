@@ -49,7 +49,8 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResource {
         { "pack.description", typeof(LayoutResourceText) },
         { "packs", typeof(LayoutResourceListBox<ResourcePackData>) },
         { "back", typeof(LayoutResourceButton) },
-        { "apply", typeof(LayoutResourceButton) }
+        { "apply", typeof(LayoutResourceButton) },
+        { "reload", typeof(LayoutResourceButton) }
     };
 
     protected override IEnumerable<KeyValuePair<string, Type>> dependencyTypes {
@@ -80,6 +81,7 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResource {
     }
 
     private bool _reload;
+    private bool _reloadScheduled;
 
     private readonly Settings _settings;
 
@@ -101,12 +103,18 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResource {
 
         GetElement<Button>("back").onClick += (_, _) => {
             if(reload)
-                Core.engine.Reload();
+                _reloadScheduled = true;
             if(Core.engine.resources.TryGetResource(MainMenuScreen.GlobalId, out MainMenuScreen? screen))
                 Core.engine.game.SwitchScreen(screen);
         };
 
         GetElement<Button>("apply").onClick += (_, _) => {
+            _reloadScheduled = true;
+            if(Core.engine.resources.TryGetResource(GlobalId, out SettingsScreen? screen))
+                Core.engine.game.SwitchScreen(screen);
+        };
+
+        GetElement<Button>("reload").onClick += (_, _) => {
             Core.engine.Reload();
             if(Core.engine.resources.TryGetResource(GlobalId, out SettingsScreen? screen))
                 Core.engine.game.SwitchScreen(screen);
@@ -245,6 +253,13 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResource {
         base.Update(time);
         foreach((string _, Element element) in elements)
             element.Update(time);
+
+        if(!_reloadScheduled)
+            return;
+        _reloadScheduled = false;
+        Core.engine.resources.RemoveAllPacks();
+        Core.engine.resources.TryAddPacksByNames(_settings.packs);
+        Core.engine.IncrementalReload();
     }
 
     public override void Tick(TimeSpan time) { }

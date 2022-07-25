@@ -14,14 +14,17 @@ public interface IResources {
 
     public void Load();
     public void Unload();
+    public void Reload();
 
     public IEnumerable<ResourcePackData> GetAvailablePacks();
     public IEnumerable<ResourcePackData> GetUnloadedAvailablePacks();
 
     public bool TryAddPack(ResourcePackData data);
-    public bool TryAddResource<TResource>(string id, TResource resource) where TResource : Resource;
-
     public bool TryAddPacksByNames(params string[] names);
+    public bool TryRemovePack(ResourcePackData data);
+    public void RemoveAllPacks();
+
+    public bool TryAddResource<TResource>(string id, TResource resource) where TResource : Resource;
 
     public IEnumerable<string> GetAllPaths(string relativePath);
     public bool TryGetResource<TResource>(string id, [NotNullWhen(true)] out TResource? resource)
