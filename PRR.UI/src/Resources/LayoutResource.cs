@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using JetBrains.Annotations;
@@ -311,17 +312,26 @@ public abstract class LayoutResource : JsonResource<IDictionary<string, LayoutRe
 
     public override void Unload(string id) => _elements.Clear();
 
+    protected bool TryGetElement(string id, [NotNullWhen(true)] out Element? element) =>
+        _elements.TryGetValue(id, out element);
+
+    protected bool TryGetElement<T>(string id, [NotNullWhen(true)] out T? element) where T : Element {
+        element = null;
+        if(!TryGetElement(id, out Element? untypedElement) || untypedElement is not T typedElement)
+            return false;
+        element = typedElement;
+        return true;
+    }
+
     protected Element GetElement(string id) {
-        if(!_elements.TryGetValue(id, out Element? element))
+        if(!TryGetElement(id, out Element? element))
             throw new InvalidOperationException($"Element {id} does not exist.");
         return element;
     }
 
     protected T GetElement<T>(string id) where T : Element {
-        Element element = GetElement(id);
-        if(element is not T typedElement)
+        if(GetElement(id) is not T typedElement)
             throw new InvalidOperationException($"Element {id} is not {nameof(T)}.");
-
         return typedElement;
     }
 }

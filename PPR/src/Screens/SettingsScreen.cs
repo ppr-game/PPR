@@ -48,7 +48,8 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResource {
         { "header.packs", typeof(LayoutResourceText) },
         { "pack.description", typeof(LayoutResourceText) },
         { "packs", typeof(LayoutResourceListBox<ResourcePackData>) },
-        { "back", typeof(LayoutResourceButton) }
+        { "back", typeof(LayoutResourceButton) },
+        { "apply", typeof(LayoutResourceButton) }
     };
 
     protected override IEnumerable<KeyValuePair<string, Type>> dependencyTypes {
@@ -66,6 +67,15 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResource {
                 yield return pair;
             yield return new KeyValuePair<string, string>("frameLeft.text", $"{layoutsPath}/{layoutName}Left.txt");
             yield return new KeyValuePair<string, string>("frameRight.text", $"{layoutsPath}/{layoutName}Right.txt");
+        }
+    }
+
+    private bool reload {
+        get => _reload;
+        set {
+            _reload = value;
+            if(TryGetElement("apply", out Button? apply))
+                apply.active = value;
         }
     }
 
@@ -90,9 +100,15 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResource {
         LoadAdvanced();
 
         GetElement<Button>("back").onClick += (_, _) => {
-            if(_reload)
+            if(reload)
                 Core.engine.Reload();
             if(Core.engine.resources.TryGetResource(MainMenuScreen.GlobalId, out MainMenuScreen? screen))
+                Core.engine.game.SwitchScreen(screen);
+        };
+
+        GetElement<Button>("apply").onClick += (_, _) => {
+            Core.engine.Reload();
+            if(Core.engine.resources.TryGetResource(GlobalId, out SettingsScreen? screen))
                 Core.engine.game.SwitchScreen(screen);
         };
     }
@@ -144,7 +160,7 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResource {
         fullscreen.onClick += (_, _) => {
             _settings.fullscreen = !_settings.fullscreen;
             fullscreen.toggled = _settings.fullscreen;
-            _reload = true;
+            reload = true;
         };
 
         Slider fpsLimit = GetElement<Slider>("fpsLimit");
@@ -189,7 +205,7 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResource {
         GetElement<Text>("pack.description").text = "";
         OpenPacks();
 
-        _reload = false;
+        reload = false;
     }
 
     private void OpenPacks() {
@@ -207,7 +223,7 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResource {
 
     public void UpdatePacks() {
         _settings.packs = _availablePacks.Where(_loadedPacks.Contains).Select(packData => packData.name).ToArray();
-        _reload = true;
+        reload = true;
         GeneratePacksList();
     }
 
@@ -222,7 +238,7 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResource {
 
     public override void Close() {
         base.Close();
-        _reload = false;
+        reload = false;
     }
 
     public override void Update(TimeSpan time) {
