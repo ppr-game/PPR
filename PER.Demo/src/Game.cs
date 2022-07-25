@@ -21,7 +21,7 @@ using PRR.UI;
 
 namespace PER.Demo;
 
-public class Game : GameBase {
+public class Game : ScreenGame {
     private const string SettingsPath = "config.json";
     private Settings _settings = new();
 

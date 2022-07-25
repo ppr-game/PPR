@@ -10,7 +10,7 @@ using PER.Abstractions.Resources;
 namespace PRR.Resources;
 
 [PublicAPI]
-public class FontResource : ResourceBase {
+public class FontResource : Resource {
     public const string GlobalId = "graphics/font";
 
     protected override IEnumerable<KeyValuePair<string, string>> paths { get; } = new Dictionary<string, string> {

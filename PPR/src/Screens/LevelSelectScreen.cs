@@ -10,7 +10,7 @@ using PRR.UI;
 
 namespace PPR.Screens;
 
-public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResourceBase {
+public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResource {
     public const string GlobalId = "layouts/levelSelect";
 
     public PlayerMode mode { get; set; }

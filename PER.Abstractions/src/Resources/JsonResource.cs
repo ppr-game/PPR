@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 namespace PER.Abstractions.Resources;
 
 [PublicAPI]
-public abstract class JsonResourceBase<T> : ResourceBase {
+public abstract class JsonResource<T> : Resource {
     protected void DeserializeAllJson(string id, T deserialized, Func<bool> done) {
         foreach(string path in GetPaths(id)) {
             DeserializeJson(path, deserialized);

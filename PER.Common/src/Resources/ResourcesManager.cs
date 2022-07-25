@@ -25,7 +25,7 @@ public class ResourcesManager : IResources {
     private bool _loading;
 
     private readonly List<ResourcePackData> _loadedPacks = new();
-    private readonly Dictionary<string, ResourceBase> _resources = new();
+    private readonly Dictionary<string, Resource> _resources = new();
     private readonly Dictionary<string, string> _cachedPaths = new();
 
     public virtual void Load() {
@@ -37,7 +37,7 @@ public class ResourcesManager : IResources {
 
         logger.Info("Loading resources");
 
-        foreach((string id, ResourceBase resource) in _resources) {
+        foreach((string id, Resource resource) in _resources) {
             logger.Info("Loading resource {Id}", id);
             resource.ResolveDependencies(this);
             resource.ResolvePaths(this);
@@ -56,7 +56,7 @@ public class ResourcesManager : IResources {
 
         logger.Info("Unloading resources");
 
-        foreach((string id, ResourceBase resource) in _resources) {
+        foreach((string id, Resource resource) in _resources) {
             logger.Info("Unloading resource {Id}", id);
             resource.Unload(id);
         }
@@ -112,7 +112,7 @@ public class ResourcesManager : IResources {
         return true;
     }
 
-    public bool TryAddResource<TResource>(string id, TResource resource) where TResource : ResourceBase =>
+    public bool TryAddResource<TResource>(string id, TResource resource) where TResource : Resource =>
         !loaded && _resources.TryAdd(id, resource);
 
     public bool TryAddPacksByNames(params string[] names) {
@@ -139,9 +139,9 @@ public class ResourcesManager : IResources {
     }
 
     public bool TryGetResource<TResource>(string id, [NotNullWhen(true)] out TResource? resource)
-        where TResource : ResourceBase? {
+        where TResource : Resource? {
         resource = null;
-        if(!_resources.TryGetValue(id, out ResourceBase? cachedResource) ||
+        if(!_resources.TryGetValue(id, out Resource? cachedResource) ||
            cachedResource is not TResource actualResource)
             return false;
 

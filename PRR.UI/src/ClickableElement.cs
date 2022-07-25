@@ -9,7 +9,7 @@ using PER.Util;
 namespace PRR.UI;
 
 [PublicAPI]
-public abstract class ClickableElementBase : Element {
+public abstract class ClickableElement : Element {
     public enum State { None, Inactive, Idle, FakeHovered, Hovered, FakeClicked, Clicked, Hotkey }
     public const string ClickSoundId = "buttonClick";
 
@@ -67,7 +67,7 @@ public abstract class ClickableElementBase : Element {
     private bool _toggledChanged;
     private TimeSpan _lastTime;
 
-    protected ClickableElementBase(IRenderer renderer, IInput input, IAudio? audio = null) : base(renderer) {
+    protected ClickableElement(IRenderer renderer, IInput input, IAudio? audio = null) : base(renderer) {
         this.input = input;
         this.audio = audio;
     }

@@ -9,7 +9,7 @@ using PER.Util;
 namespace PRR.UI;
 
 [PublicAPI]
-public class Button : ClickableElementBase {
+public class Button : ClickableElement {
     protected override string type => "button";
 
     public KeyCode? hotkey { get; set; }

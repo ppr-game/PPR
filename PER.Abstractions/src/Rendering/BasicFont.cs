@@ -9,7 +9,7 @@ using PER.Util;
 namespace PER.Abstractions.Rendering;
 
 [PublicAPI]
-public abstract class FontBase : IFont {
+public abstract class BasicFont : IFont {
     public IReadOnlyDictionary<(char, RenderStyle), Vector2[]> characters => _characters;
     public Vector2[] backgroundCharacter { get; private set; } = { new(), new(), new(), new() };
     public Vector2Int size { get; }
@@ -19,7 +19,7 @@ public abstract class FontBase : IFont {
     private readonly HashSet<(char, RenderStyle)> _drawable = new();
     private readonly Dictionary<(char, RenderStyle), Vector2[]> _characters = new();
 
-    protected FontBase(string imagePath, string mappingsPath) {
+    protected BasicFont(string imagePath, string mappingsPath) {
         string[] fontMappingsLines = File.ReadAllLines(mappingsPath);
         string[] fontSizeStr = fontMappingsLines[0].Split(',');
         mappings = fontMappingsLines[1];
@@ -29,7 +29,7 @@ public abstract class FontBase : IFont {
         Setup(imagePath, fontSizeStr[2][0]);
     }
 
-    protected FontBase(Image image, string mappings, Vector2Int size, char backgroundCharacter) {
+    protected BasicFont(Image image, string mappings, Vector2Int size, char backgroundCharacter) {
         this.image = image;
         this.size = size;
         this.mappings = mappings;

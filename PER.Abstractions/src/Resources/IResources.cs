@@ -19,11 +19,11 @@ public interface IResources {
     public IEnumerable<ResourcePackData> GetUnloadedAvailablePacks();
 
     public bool TryAddPack(ResourcePackData data);
-    public bool TryAddResource<TResource>(string id, TResource resource) where TResource : ResourceBase;
+    public bool TryAddResource<TResource>(string id, TResource resource) where TResource : Resource;
 
     public bool TryAddPacksByNames(params string[] names);
 
     public IEnumerable<string> GetAllPaths(string relativePath);
     public bool TryGetResource<TResource>(string id, [NotNullWhen(true)] out TResource? resource)
-        where TResource : ResourceBase?;
+        where TResource : Resource?;
 }

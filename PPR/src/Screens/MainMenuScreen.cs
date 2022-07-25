@@ -8,7 +8,7 @@ using PRR.UI;
 
 namespace PPR.Screens;
 
-public class MainMenuScreen : MenuWithCoolBackgroundAnimationScreenResourceBase {
+public class MainMenuScreen : MenuWithCoolBackgroundAnimationScreenResource {
     public const string GlobalId = "layouts/mainMenu";
 
     protected override IRenderer renderer => Core.engine.renderer;

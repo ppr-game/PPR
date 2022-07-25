@@ -8,7 +8,7 @@ using PRR.UI.Resources;
 
 namespace PPR.Screens.Templates;
 
-public class ScoreListTemplate : ListBoxTemplateResourceBase<LevelSerializer.LevelScore> {
+public class ScoreListTemplate : ListBoxTemplateResource<LevelSerializer.LevelScore> {
     public const string GlobalId = "layouts/templates/scoreItem";
 
     protected override IRenderer renderer => Core.engine.renderer;
@@ -44,7 +44,7 @@ public class ScoreListTemplate : ListBoxTemplateResourceBase<LevelSerializer.Lev
         _perfectHitsTemplate = GetElement<Text>("mini.perfectHits").text ?? _perfectHitsTemplate;
     }
 
-    private class Template : TemplateBase {
+    private class Template : BasicTemplate {
         private readonly ScoreListTemplate _resource;
 
         private readonly int _middleDividerOffset;

@@ -7,7 +7,7 @@ using PRR.UI.Resources;
 
 namespace PPR.Screens.Templates;
 
-public class LevelSelectorTemplate : ListBoxTemplateResourceBase<LevelSerializer.LevelItem> {
+public class LevelSelectorTemplate : ListBoxTemplateResource<LevelSerializer.LevelItem> {
     public const string GlobalId = "layouts/templates/levelItem";
 
     protected override IRenderer renderer => Core.engine.renderer;
@@ -25,7 +25,7 @@ public class LevelSelectorTemplate : ListBoxTemplateResourceBase<LevelSerializer
 
     public LevelSelectorTemplate(LevelSelectScreen screen) => _screen = screen;
 
-    private class Template : TemplateBase {
+    private class Template : BasicTemplate {
         private readonly LevelSelectorTemplate _resource;
         private LevelSerializer.LevelItem _item;
         private Button? _selectedLevelButton;

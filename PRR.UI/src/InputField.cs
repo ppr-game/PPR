@@ -9,7 +9,7 @@ using PER.Util;
 namespace PRR.UI;
 
 [PublicAPI]
-public class InputField : ClickableElementBase {
+public class InputField : ClickableElement {
     protected override string type => "inputField";
 
     public const string TypeSoundId = "inputFieldType";

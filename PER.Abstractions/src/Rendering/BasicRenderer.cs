@@ -8,7 +8,7 @@ using PER.Util;
 namespace PER.Abstractions.Rendering;
 
 [PublicAPI]
-public abstract class RendererBase : IRenderer {
+public abstract class BasicRenderer : IRenderer {
     public virtual string title { get; private set; } = "";
     public virtual int width { get; private set; }
     public virtual int height { get; private set; }

@@ -13,7 +13,7 @@ using PRR.UI.Resources;
 namespace PPR.Screens;
 
 [PublicAPI]
-public abstract class DialogBoxScreenResourceBase : LayoutResourceBase, IScreen {
+public abstract class DialogBoxScreenResource : LayoutResource, IScreen {
     protected Vector2Int size { get; set; }
 
     protected virtual string foregroundColorId => "dialogBox_fg";
@@ -23,7 +23,7 @@ public abstract class DialogBoxScreenResourceBase : LayoutResourceBase, IScreen 
     private ColorsResource? _colors;
     private DialogBoxPaletteResource? _palette;
 
-    protected DialogBoxScreenResourceBase(Vector2Int size) => this.size = size;
+    protected DialogBoxScreenResource(Vector2Int size) => this.size = size;
 
     public virtual void Open() {
         if(!Core.engine.resources.TryGetResource(ColorsResource.GlobalId, out _colors) ||

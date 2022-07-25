@@ -9,7 +9,7 @@ using PER.Util;
 namespace PRR.UI;
 
 [PublicAPI]
-public class Slider : ClickableElementBase {
+public class Slider : ClickableElement {
     protected override string type => "slider";
 
     public const string ValueChangedSoundId = "slider";

@@ -5,7 +5,7 @@ using PER.Abstractions.Resources;
 namespace PER.Common.Resources;
 
 [PublicAPI]
-public class IconResource : ResourceBase {
+public class IconResource : Resource {
     public const string GlobalId = "graphics/icon";
 
     protected override IEnumerable<KeyValuePair<string, string>> paths { get; } = new Dictionary<string, string> {

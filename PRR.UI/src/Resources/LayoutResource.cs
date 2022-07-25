@@ -3,7 +3,6 @@ using System.Text.Json.Serialization;
 
 using JetBrains.Annotations;
 
-using PER.Abstractions;
 using PER.Abstractions.Audio;
 using PER.Abstractions.Input;
 using PER.Abstractions.Rendering;
@@ -15,7 +14,7 @@ using PER.Util;
 namespace PRR.UI.Resources;
 
 [PublicAPI]
-public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, LayoutResourceElement>> {
+public abstract class LayoutResource : JsonResource<IDictionary<string, LayoutResourceElement>> {
     [PublicAPI]
     protected class LayoutResourceText : LayoutResourceElement {
         [PublicAPI]
@@ -70,7 +69,7 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
             this.wrap = wrap;
         }
 
-        public override Element GetElement(LayoutResourceBase resource, IRenderer renderer, IInput input, IAudio audio,
+        public override Element GetElement(LayoutResource resource, IRenderer renderer, IInput input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
             Text element = new(renderer) {
                 position = position,
@@ -107,7 +106,7 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
             this.toggled = toggled;
         }
 
-        public override Element GetElement(LayoutResourceBase resource, IRenderer renderer, IInput input, IAudio audio,
+        public override Element GetElement(LayoutResource resource, IRenderer renderer, IInput input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
             Button element = new(renderer, input, audio) {
                 position = position,
@@ -146,7 +145,7 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
             this.active = active;
         }
 
-        public override Element GetElement(LayoutResourceBase resource, IRenderer renderer, IInput input, IAudio audio,
+        public override Element GetElement(LayoutResource resource, IRenderer renderer, IInput input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
             InputField element = new(renderer, input, audio) {
                 position = position,
@@ -183,7 +182,7 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
         }
 
         // ReSharper disable once CognitiveComplexity
-        public override Element GetElement(LayoutResourceBase resource, IRenderer renderer, IInput input, IAudio audio,
+        public override Element GetElement(LayoutResource resource, IRenderer renderer, IInput input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
             Slider element = new(renderer, input, audio) {
                 position = position,
@@ -205,7 +204,7 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
         public LayoutResourceScrollablePanel(bool? enabled, Vector2Int position, Vector2Int size) :
             base(enabled, position, size) { }
 
-        public override Element GetElement(LayoutResourceBase resource, IRenderer renderer, IInput input, IAudio audio,
+        public override Element GetElement(LayoutResource resource, IRenderer renderer, IInput input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
             ScrollablePanel element = new(renderer, input) {
                 position = position,
@@ -224,10 +223,10 @@ public abstract class LayoutResourceBase : JsonResourceBase<IDictionary<string, 
         public LayoutResourceListBox(bool? enabled, Vector2Int position, Vector2Int size, string template) :
             base(enabled, position, size) => this.template = template;
 
-        public override Element GetElement(LayoutResourceBase resource, IRenderer renderer, IInput input, IAudio audio,
+        public override Element GetElement(LayoutResource resource, IRenderer renderer, IInput input, IAudio audio,
             Dictionary<string, Color> colors, string layoutName, string id) {
-            ListBoxTemplateResourceBase<TItem> templateFactory =
-                resource.GetDependency<ListBoxTemplateResourceBase<TItem>>($"layouts/templates/{template}");
+            ListBoxTemplateResource<TItem> templateFactory =
+                resource.GetDependency<ListBoxTemplateResource<TItem>>($"layouts/templates/{template}");
             ListBox<TItem> element = new(renderer, input, templateFactory) {
                 position = position,
                 size = size

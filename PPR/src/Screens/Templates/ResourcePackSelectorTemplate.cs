@@ -10,7 +10,7 @@ using PRR.UI.Resources;
 
 namespace PPR.Screens.Templates;
 
-public class ResourcePackSelectorTemplate : ListBoxTemplateResourceBase<ResourcePackData> {
+public class ResourcePackSelectorTemplate : ListBoxTemplateResource<ResourcePackData> {
     public const string GlobalId = "layouts/templates/resourcePackItem";
 
     protected override IRenderer renderer => Core.engine.renderer;
@@ -34,7 +34,7 @@ public class ResourcePackSelectorTemplate : ListBoxTemplateResourceBase<Resource
         _loadedPacks = loadedPacks;
     }
 
-    private class Template : TemplateBase {
+    private class Template : BasicTemplate {
         private readonly ResourcePackSelectorTemplate _resource;
         private int _index;
         private ResourcePackData _item;

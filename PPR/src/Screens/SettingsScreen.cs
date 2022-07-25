@@ -12,7 +12,7 @@ using PRR.UI;
 
 namespace PPR.Screens;
 
-public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResourceBase {
+public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResource {
     public const string GlobalId = "layouts/settings";
 
     protected override IRenderer renderer => Core.engine.renderer;

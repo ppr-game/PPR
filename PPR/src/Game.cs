@@ -13,7 +13,7 @@ using PRR.Resources;
 
 namespace PPR;
 
-public class Game : GameBase {
+public class Game : ScreenGame {
     private const string SettingsPath = "config.json";
     private Settings _settings = new();
 

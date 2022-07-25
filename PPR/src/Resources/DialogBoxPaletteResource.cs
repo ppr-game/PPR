@@ -3,7 +3,7 @@ using PER.Util;
 
 namespace PPR.Resources;
 
-public class DialogBoxPaletteResource : ResourceBase {
+public class DialogBoxPaletteResource : Resource {
     public const string GlobalId = "layouts/dialogBoxPalette";
 
     protected override IEnumerable<KeyValuePair<string, string>> paths { get; } = new Dictionary<string, string> {

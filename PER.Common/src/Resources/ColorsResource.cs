@@ -9,7 +9,7 @@ using PER.Util;
 namespace PER.Common.Resources;
 
 [PublicAPI]
-public class ColorsResource : JsonResourceBase<IDictionary<string, (string?, Color)>> {
+public class ColorsResource : JsonResource<IDictionary<string, (string?, Color)>> {
     public const string GlobalId = "graphics/colors";
 
     protected override IEnumerable<KeyValuePair<string, string>> paths { get; } = new Dictionary<string, string> {

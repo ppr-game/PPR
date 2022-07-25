@@ -8,7 +8,7 @@ using PER.Abstractions.Resources;
 namespace PER.Common.Resources;
 
 [PublicAPI]
-public abstract class AudioResourcesBase : ResourceBase {
+public abstract class AudioResourcesLoader : Resource {
     private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
     protected enum AudioType { Auto, Sfx, Music }

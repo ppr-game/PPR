@@ -1,18 +1,22 @@
-﻿using PER.Abstractions.UI;
+﻿using JetBrains.Annotations;
+
+using PER.Abstractions.UI;
 using PER.Util;
 
 namespace PRR.UI.Resources;
 
-public abstract class ListBoxTemplateResourceBase<TItem> : LayoutResourceBase, IListBoxTemplateFactory<TItem> {
+[PublicAPI]
+public abstract class ListBoxTemplateResource<TItem> : LayoutResource, IListBoxTemplateFactory<TItem> {
     protected override string layoutsPath => $"{base.layoutsPath}/templates";
 
-    protected abstract class TemplateBase : IListBoxTemplateFactory<TItem>.Template {
+    [PublicAPI]
+    protected abstract class BasicTemplate : IListBoxTemplateFactory<TItem>.Template {
         public override IEnumerable<Element> elements => idElements.Values;
         protected IReadOnlyDictionary<string, Element> idElements { get; }
         protected Dictionary<string, Vector2Int> offsets { get; }
         protected int height { get; init; }
 
-        protected TemplateBase(ListBoxTemplateResourceBase<TItem> resource) {
+        protected BasicTemplate(ListBoxTemplateResource<TItem> resource) {
             Dictionary<string, Element> elements = new();
             Dictionary<string, Vector2Int> offsets = new();
 

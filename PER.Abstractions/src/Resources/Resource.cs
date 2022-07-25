@@ -10,13 +10,13 @@ using JetBrains.Annotations;
 namespace PER.Abstractions.Resources;
 
 [PublicAPI]
-public abstract class ResourceBase {
+public abstract class Resource {
     protected virtual IEnumerable<KeyValuePair<string, Type>> dependencyTypes =>
         ImmutableDictionary<string, Type>.Empty;
 
     protected virtual IEnumerable<KeyValuePair<string, string>> paths => ImmutableDictionary<string, string>.Empty;
 
-    private Dictionary<string, ResourceBase> _dependencies = new();
+    private Dictionary<string, Resource> _dependencies = new();
     private Dictionary<string, IEnumerable<string>> _fullPaths = new();
 
     public void ResolveDependencies(IResources resources) {
@@ -24,7 +24,7 @@ public abstract class ResourceBase {
         foreach((string id, Type type) in dependencyTypes) {
             if(_dependencies.ContainsKey(id))
                 throw new InvalidOperationException($"Dependency {id} already registered.");
-            if(!resources.TryGetResource(id, out ResourceBase? dependency))
+            if(!resources.TryGetResource(id, out Resource? dependency))
                 throw new InvalidOperationException($"Resource {id} does not exist.");
             if(dependency.GetType() != type)
                 throw new InvalidOperationException($"Resource {id} is not {type}.");
@@ -44,14 +44,14 @@ public abstract class ResourceBase {
     public abstract void Load(string id);
     public abstract void Unload(string id);
 
-    protected ResourceBase GetDependency(string id) {
-        if(!_dependencies.TryGetValue(id, out ResourceBase? dependency))
+    protected Resource GetDependency(string id) {
+        if(!_dependencies.TryGetValue(id, out Resource? dependency))
             throw new InvalidOperationException($"Resource {id} is not registered as a dependency.");
         return dependency;
     }
 
-    protected T GetDependency<T>(string id) where T : ResourceBase {
-        ResourceBase dependency = GetDependency(id);
+    protected T GetDependency<T>(string id) where T : Resource {
+        Resource dependency = GetDependency(id);
         if(dependency is not T typedDependency)
             throw new InvalidOperationException($"Resource {id} is not {nameof(T)}.");
 

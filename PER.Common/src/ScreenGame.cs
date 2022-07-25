@@ -10,7 +10,7 @@ using PER.Util;
 namespace PER.Common;
 
 [PublicAPI]
-public abstract class GameBase : IGame {
+public abstract class ScreenGame : IGame {
     private const float StartupWaitTime = 0.5f;
     private const float StartupFadeTime = 2f;
     private const float ShutdownFadeTime = 2f;

@@ -9,7 +9,7 @@ using PER.Util;
 namespace PER.Common.Effects;
 
 [PublicAPI]
-public class BloomEffect : ResourceBase, IEffect {
+public class BloomEffect : Resource, IEffect {
     public const string GlobalId = "graphics/effects/bloom";
 
     protected override IEnumerable<KeyValuePair<string, string>> paths { get; } = new Dictionary<string, string> {

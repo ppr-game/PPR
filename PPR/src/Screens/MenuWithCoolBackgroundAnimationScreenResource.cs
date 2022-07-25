@@ -6,7 +6,7 @@ using PRR.UI.Resources;
 
 namespace PPR.Screens;
 
-public abstract class MenuWithCoolBackgroundAnimationScreenResourceBase : LayoutResourceBase, IScreen {
+public abstract class MenuWithCoolBackgroundAnimationScreenResource : LayoutResource, IScreen {
     private static readonly Stopwatch clock = new();
     private Color _animMax;
 

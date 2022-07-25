@@ -5,7 +5,7 @@ using PRR.UI;
 
 namespace PPR.Resources;
 
-public class AudioResources : AudioResourcesBase {
+public class AudioResources : AudioResourcesLoader {
     protected override IAudio audio => Core.engine.audio;
     protected override IReadOnlyDictionary<MixerDefinition, AudioResource[]> sounds { get; } =
         new Dictionary<MixerDefinition, AudioResource[]> {
@@ -13,7 +13,7 @@ public class AudioResources : AudioResourcesBase {
                 new AudioResource("mainMenu")
             } },
             { new MixerDefinition("sfx", AudioType.Sfx, "wav"), new [] {
-                new AudioResource(ClickableElementBase.ClickSoundId),
+                new AudioResource(ClickableElement.ClickSoundId),
                 new AudioResource("fail"),
                 new AudioResource("hit"),
                 new AudioResource("pass"),

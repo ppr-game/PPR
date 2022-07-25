@@ -8,7 +8,7 @@ using PRR.UI;
 
 namespace PPR.Screens;
 
-public class NewLevelDialogBoxScreen : DialogBoxScreenResourceBase {
+public class NewLevelDialogBoxScreen : DialogBoxScreenResource {
     public const string GlobalId = "layouts/newLevelDialog";
 
     public Action? onCancel { get; set; }

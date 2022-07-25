@@ -15,7 +15,7 @@ using Shader = SFML.Graphics.Shader;
 
 namespace PRR.Sfml;
 
-public class Renderer : RendererBase, IDisposable {
+public class Renderer : BasicRenderer, IDisposable {
     public override bool open => window?.IsOpen ?? false;
     public override bool focused => window?.HasFocus() ?? false;
     public override event EventHandler? focusChanged;
