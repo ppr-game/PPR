@@ -22,13 +22,13 @@ public class LevelSelectorTemplate : ListBoxTemplateResource<LevelSerializer.Lev
     };
 
     private readonly LevelSelectScreen _screen;
+    private Button? _selectedLevelButton;
 
     public LevelSelectorTemplate(LevelSelectScreen screen) => _screen = screen;
 
     private class Template : BasicTemplate {
         private readonly LevelSelectorTemplate _resource;
         private LevelSerializer.LevelItem _item;
-        private Button? _selectedLevelButton;
 
         public Template(LevelSelectorTemplate resource) : base(resource) {
             _resource = resource;
@@ -37,12 +37,12 @@ public class LevelSelectorTemplate : ListBoxTemplateResource<LevelSerializer.Lev
                 if(caller is not Button levelButton)
                     throw new InvalidOperationException("wtf??");
 
-                if(_selectedLevelButton is not null)
-                    _selectedLevelButton.toggled = false;
+                if(_resource._selectedLevelButton is not null)
+                    _resource._selectedLevelButton.toggled = false;
                 levelButton.toggled = true;
                 _resource._screen.UpdateMetadataPanel(_item.metadata);
                 _resource._screen.UpdateScoreList(_item.metadata.guid);
-                _selectedLevelButton = levelButton;
+                _resource._selectedLevelButton = levelButton;
                 if(!_item.hasErrors)
                     Conductor.SetMusic(_item.path, _item.music);
             }
