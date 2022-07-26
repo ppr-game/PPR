@@ -14,7 +14,7 @@ public interface IResources {
 
     public void Load();
     public void Unload();
-    public void Reload();
+    public void SoftReload();
 
     public IEnumerable<ResourcePackData> GetAvailablePacks();
     public IEnumerable<ResourcePackData> GetUnloadedAvailablePacks();

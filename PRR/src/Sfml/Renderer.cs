@@ -69,7 +69,7 @@ public class Renderer : BasicRenderer, IDisposable {
     public override bool Reset(RendererSettings settings) {
         if(base.Reset(settings))
             return true;
-        // rebuild global effects cache on incremental reload
+        // rebuild global effects cache on soft reload
         _cachedGlobalEffects.Clear();
         foreach(IEffect effect in globalEffects) {
             CachedEffect cachedEffect = new() { effect = effect };

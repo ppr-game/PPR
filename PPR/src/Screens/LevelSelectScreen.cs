@@ -167,7 +167,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResource {
         if(!_reloadScheduled)
             return;
         _reloadScheduled = false;
-        Core.engine.IncrementalReload();
+        Core.engine.SoftReload();
     }
 
     public override void Tick(TimeSpan time) { }

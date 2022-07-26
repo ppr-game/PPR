@@ -64,9 +64,9 @@ public class Engine {
         }
     }
 
-    public void IncrementalReload() {
-        logger.Info("Starting incremental reload");
-        resources.Reload();
+    public void SoftReload() {
+        logger.Info("Starting soft reload");
+        resources.SoftReload();
         RendererSettings rendererSettings = game.Loaded();
         if(renderer.open && renderer.Reset(rendererSettings))
             input.Reset();

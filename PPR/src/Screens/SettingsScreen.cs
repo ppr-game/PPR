@@ -259,7 +259,7 @@ public class SettingsScreen : MenuWithCoolBackgroundAnimationScreenResource {
         _reloadScheduled = false;
         Core.engine.resources.RemoveAllPacks();
         Core.engine.resources.TryAddPacksByNames(_settings.packs);
-        Core.engine.IncrementalReload();
+        Core.engine.SoftReload();
     }
 
     public override void Tick(TimeSpan time) { }

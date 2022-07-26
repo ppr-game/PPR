@@ -76,7 +76,7 @@ public class ResourcesManager : IResources {
         logger.Info("Resources unloaded");
     }
 
-    public void Reload() {
+    public void SoftReload() {
         if(_loading)
             throw new InvalidOperationException("Already loading.");
         if(!loaded)
