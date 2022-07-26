@@ -32,6 +32,11 @@
         "size": { "x": 22, "y": 1 },
         "wrap": true
     },
+    "metadata.effectHeavy": {
+        "enabled": false,
+        "position": { "x": 56, "y": 49 },
+        "text": "○ Effect-heavy"
+    },
     "play_auto": {
         "position": { "x": 25, "y": 10 },
         "size": { "x": 4, "y": 1 },

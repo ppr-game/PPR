@@ -128,6 +128,7 @@
     "text_game.musicTime_fg": "game_music_time",
     "text_@metadata_fg": "foreground",
     "text_@metadata_bg": "background",
+    "text_@metadata.effectHeavy_fg": "blue",
     "text_@metadata.author_fg_ConfiG": "green",
     "text_@metadata.author_fg_contributor": "yellow",
     "clickable_@metadata.author_hover_ConfiG": "green",

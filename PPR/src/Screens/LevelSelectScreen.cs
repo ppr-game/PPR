@@ -29,6 +29,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResource {
         { "metadata.difficulty", typeof(LayoutResourceText) },
         { "metadata.author", typeof(LayoutResourceText) },
         { "metadata.description", typeof(LayoutResourceText) },
+        { "metadata.effectHeavy", typeof(LayoutResourceText) },
         { "play_auto", typeof(LayoutResourceButton) },
         { "edit_new", typeof(LayoutResourceButton) },
         { "back", typeof(LayoutResourceButton) }
@@ -119,6 +120,8 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResource {
         author.text = metadata?.author;
         description.text = metadata?.description;
 
+        GetElement("metadata.effectHeavy").enabled = metadata?.effectHeavy ?? false;
+
         // TODO: move this clamp to a separate class
         difficulty.UpdateColors(colors.colors, layoutName, "metadata.difficulty",
             Math.Clamp(metadata?.difficulty ?? 0, 1, 10).ToString());
@@ -170,7 +173,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResource {
     public override void Tick(TimeSpan time) { }
 
     public void PlayLevel(LevelSerializer.LevelItem level) {
-        if(level.metadata.heavyEffects && Core.engine.resources.loadedPacks.Any(pack => pack.meta.major))
+        if(level.metadata.effectHeavy && Core.engine.resources.loadedPacks.Any(pack => pack.meta.major))
             ShowEffectsWarning(level, EnterLevel);
         else
             EnterLevel(level, false);

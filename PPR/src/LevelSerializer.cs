@@ -17,7 +17,7 @@ public static class LevelSerializer {
     private const string ScoresPath = "scores.json";
 
     public record struct LevelMetadata(uint version, Guid guid, string name, string description, string author,
-        int difficulty, bool heavyEffects);
+        int difficulty, bool effectHeavy);
 
 
     public record struct MusicMetadata(string fileName, string author, string name, MusicMetadata.Bpm[] bpm) {
