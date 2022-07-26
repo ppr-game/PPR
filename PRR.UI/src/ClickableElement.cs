@@ -36,6 +36,8 @@ public abstract class ClickableElement : Element {
     public IPlayable? clickSound { get; set; }
     public event EventHandler? onClick;
     public event EventHandler? onHover;
+    public event EventHandler? onHold;
+    public event EventHandler? onRelease;
 
     public State currentState { get; private set; } = State.None;
 
@@ -124,17 +126,21 @@ public abstract class ClickableElement : Element {
 
     private void ExecuteStateChangeActions(State from, State to) {
         switch(to) {
-            case State.Idle:
-                if(from == State.Hotkey)
-                    Click();
+            case State.Idle when from is State.Hotkey:
+            case State.Hovered when from is State.Clicked or State.Hotkey:
+                Click();
                 break;
             case State.Hovered:
-                if(from is State.Clicked or State.Hotkey)
-                    Click();
-                else
-                    onHover?.Invoke(this, EventArgs.Empty);
+                onHover?.Invoke(this, EventArgs.Empty);
+                break;
+            case State.Clicked when from is not State.Clicked and not State.Hotkey:
+            case State.Hotkey when from is not State.Clicked and not State.Hotkey:
+                onHold?.Invoke(this, EventArgs.Empty);
                 break;
         }
+
+        if(to is not State.Clicked and not State.Hotkey && from is State.Clicked or State.Hotkey)
+            onRelease?.Invoke(this, EventArgs.Empty);
     }
 
     protected virtual void Click() {
