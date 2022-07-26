@@ -36,11 +36,10 @@ public class ResourcesManager : IResources {
             return;
         _loading = true;
 
+        logger.Info("Loading resources");
+
         _loadedPacks.Clear();
         _loadedPacks.AddRange(_futureLoadedPacks);
-        _futureLoadedPacks.Clear();
-
-        logger.Info("Loading resources");
 
         foreach((string id, Resource resource) in _resources) {
             logger.Info("Loading resource {Id}", id);
@@ -84,11 +83,10 @@ public class ResourcesManager : IResources {
             return;
         _loading = true;
 
+        logger.Info("Reloading resources");
+
         _loadedPacks.Clear();
         _loadedPacks.AddRange(_futureLoadedPacks);
-        _futureLoadedPacks.Clear();
-
-        logger.Info("Reloading resources");
 
         logger.Info("Searching for changed resources");
 

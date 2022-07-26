@@ -60,8 +60,14 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResource {
     private Dictionary<Guid, LevelSerializer.LevelScore[]> _scores = new();
 
     private NewLevelDialogBoxScreen? _newLevelDialogBox;
+    private EffectsWarningDialogBoxScreen? _effectsWarningDialogBox;
 
-    public LevelSelectScreen(IResources resources) {
+    // ReSharper disable once NotAccessedField.Local TODO
+    private readonly Settings _settings;
+    private bool _reloadScheduled;
+
+    public LevelSelectScreen(Settings settings, IResources resources) {
+        _settings = settings;
         resources.TryAddResource(LevelSelectorTemplate.GlobalId, new LevelSelectorTemplate(this));
         resources.TryAddResource(ScoreListTemplate.GlobalId, new ScoreListTemplate());
     }
@@ -140,7 +146,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResource {
 
     public override void Update(TimeSpan time) {
         bool prevInputBlock = input.block;
-        input.block = _newLevelDialogBox is not null;
+        input.block = _newLevelDialogBox is not null || _effectsWarningDialogBox is not null;
 
         base.Update(time);
         foreach((string id, Element element) in elements) {
@@ -153,7 +159,61 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResource {
         input.block = prevInputBlock;
 
         _newLevelDialogBox?.Update(time);
+        _effectsWarningDialogBox?.Update(time);
+
+        if(!_reloadScheduled)
+            return;
+        _reloadScheduled = false;
+        Core.engine.IncrementalReload();
     }
 
     public override void Tick(TimeSpan time) { }
+
+    public void PlayLevel(LevelSerializer.LevelItem level) {
+        if(level.metadata.heavyEffects && Core.engine.resources.loadedPacks.Any(pack => pack.meta.major))
+            ShowEffectsWarning(level, EnterLevel);
+        else
+            EnterLevel(level, false);
+    }
+
+    // ReSharper disable once MemberCanBeMadeStatic.Local
+    private void EnterLevel(LevelSerializer.LevelItem level, bool removeMajorPacks) {
+        // TODO: implement the game
+        /*Core.engine.resources.RemoveAllPacks();
+        Core.engine.resources.TryAddPacksByNames(_settings.packs);
+        _reloadScheduled = true;*/
+        IResources resources = Core.engine.resources;
+        if(removeMajorPacks) {
+            foreach(ResourcePackData pack in resources.loadedPacks.Where(pack => pack.meta.major))
+                resources.TryRemovePack(pack);
+            _reloadScheduled = true;
+            // TODO: switch to game screen
+            if(resources.TryGetResource(GlobalId, out LevelSelectScreen? screen))
+                Core.engine.game.SwitchScreen(screen, CloseEffectsWarning);
+            else
+                Core.engine.game.FadeScreen(CloseEffectsWarning);
+        }
+        else {
+            // TODO: switch to game screen
+            if(resources.TryGetResource(GlobalId, out LevelSelectScreen? screen))
+                Core.engine.game.SwitchScreen(screen, CloseEffectsWarning);
+        }
+    }
+
+    private void ShowEffectsWarning(LevelSerializer.LevelItem level, Action<LevelSerializer.LevelItem, bool> onPlay) {
+        if(!Core.engine.resources.TryGetResource(EffectsWarningDialogBoxScreen.GlobalId,
+            out _effectsWarningDialogBox)) {
+            onPlay(level, false);
+            return;
+        }
+        _effectsWarningDialogBox.onCancel += () => { Core.engine.game.FadeScreen(CloseEffectsWarning); };
+        _effectsWarningDialogBox.onPlay += () => { onPlay(level, false); };
+        _effectsWarningDialogBox.onDisableAndPlay += () => { onPlay(level, true); };
+        Core.engine.game.FadeScreen(_effectsWarningDialogBox.Open);
+    }
+
+    private void CloseEffectsWarning() {
+        _effectsWarningDialogBox?.Close();
+        _effectsWarningDialogBox = null;
+    }
 }

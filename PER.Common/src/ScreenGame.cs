@@ -22,17 +22,18 @@ public abstract class ScreenGame : IGame {
     public IScreen? currentScreen { get; private set; }
     private readonly FadeEffect _screenFade = new();
 
-    public void SwitchScreen(IScreen? screen) {
+    public void SwitchScreen(IScreen? screen, Action? middleCallback = null) {
         if(currentScreen is null)
-            SwitchScreen(screen, StartupWaitTime, StartupFadeTime);
+            SwitchScreen(screen, StartupWaitTime, StartupFadeTime, middleCallback);
         else if(screen is null)
-            SwitchScreen(screen, ShutdownFadeTime, 0f);
+            SwitchScreen(screen, ShutdownFadeTime, 0f, middleCallback);
         else
-            SwitchScreen(screen, FadeTime, FadeTime);
+            SwitchScreen(screen, FadeTime, FadeTime, middleCallback);
     }
 
-    public void SwitchScreen(IScreen? screen, float fadeOutTime, float fadeInTime) =>
+    public void SwitchScreen(IScreen? screen, float fadeOutTime, float fadeInTime, Action? middleCallback = null) =>
         FadeScreen(fadeOutTime, fadeInTime, () => {
+            middleCallback?.Invoke();
             currentScreen?.Close();
             currentScreen = screen;
             currentScreen?.Open();

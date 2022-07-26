@@ -17,7 +17,7 @@ public static class LevelSerializer {
     private const string ScoresPath = "scores.json";
 
     public record struct LevelMetadata(uint version, Guid guid, string name, string description, string author,
-        int difficulty);
+        int difficulty, bool heavyEffects);
 
 
     public record struct MusicMetadata(string fileName, string author, string name, MusicMetadata.Bpm[] bpm) {
@@ -50,7 +50,7 @@ public static class LevelSerializer {
 
     public static bool TryReadLevelMetadata(string levelDirectory, out LevelMetadata metadata) {
         string directoryName = Path.GetFileName(levelDirectory);
-        metadata = new LevelMetadata(0, Guid.Empty, directoryName, string.Empty, string.Empty, -1);
+        metadata = new LevelMetadata(0, Guid.Empty, directoryName, string.Empty, string.Empty, -1, false);
 
         string metadataPath = Path.Combine(levelDirectory, LevelMetadataFileName);
         if(!File.Exists(metadataPath)) {

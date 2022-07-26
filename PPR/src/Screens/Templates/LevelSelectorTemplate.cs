@@ -33,6 +33,11 @@ public class LevelSelectorTemplate : ListBoxTemplateResource<LevelSerializer.Lev
         public Template(LevelSelectorTemplate resource) : base(resource) {
             _resource = resource;
 
+            Button level = GetElement<Button>("level");
+            level.onClick += (_, _) => { _resource._screen.PlayLevel(_item); };
+            level.onHover += LevelHover;
+            GetElement<Button>("error_level").onHover += LevelHover;
+
             void LevelHover(object? caller, EventArgs eventArgs) {
                 if(caller is not Button levelButton)
                     throw new InvalidOperationException("wtf??");
@@ -46,9 +51,6 @@ public class LevelSelectorTemplate : ListBoxTemplateResource<LevelSerializer.Lev
                 if(!_item.hasErrors)
                     Conductor.SetMusic(_item.path, _item.music);
             }
-
-            GetElement<Button>("level").onHover += LevelHover;
-            GetElement<Button>("error_level").onHover += LevelHover;
         }
 
         public override void UpdateWithItem(int index, LevelSerializer.LevelItem item, int width) {

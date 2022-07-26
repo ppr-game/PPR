@@ -60,8 +60,9 @@ public class Game : ScreenGame {
         resources.TryAddResource(DialogBoxPaletteResource.GlobalId, new DialogBoxPaletteResource());
 
         resources.TryAddResource(MainMenuScreen.GlobalId, new MainMenuScreen());
-        resources.TryAddResource(LevelSelectScreen.GlobalId, new LevelSelectScreen(resources));
+        resources.TryAddResource(LevelSelectScreen.GlobalId, new LevelSelectScreen(_settings, resources));
         resources.TryAddResource(NewLevelDialogBoxScreen.GlobalId, new NewLevelDialogBoxScreen());
+        resources.TryAddResource(EffectsWarningDialogBoxScreen.GlobalId, new EffectsWarningDialogBoxScreen());
         resources.TryAddResource(SettingsScreen.GlobalId, new SettingsScreen(_settings, resources));
     }
 
