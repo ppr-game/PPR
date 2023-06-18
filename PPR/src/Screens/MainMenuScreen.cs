@@ -51,13 +51,14 @@ public class MainMenuScreen : MenuWithCoolBackgroundAnimationScreenResource {
         GetElement<Button>("play").onClick += (_, _) => {
             if(!Core.engine.resources.TryGetResource(LevelSelectScreen.GlobalId, out LevelSelectScreen? screen))
                 return;
-            screen.mode = PlayerMode.Play;
+            screen.mode = LevelSelectScreen.Mode.Play;
             Core.engine.game.SwitchScreen(screen);
         };
 
         GetElement<Button>("edit").onClick += (_, _) => {
-            if(!Core.engine.resources.TryGetResource(LevelSelectScreen.GlobalId, out LevelSelectScreen? screen)) return;
-            screen.mode = PlayerMode.Edit;
+            if(!Core.engine.resources.TryGetResource(LevelSelectScreen.GlobalId, out LevelSelectScreen? screen))
+                return;
+            screen.mode = LevelSelectScreen.Mode.Edit;
             Core.engine.game.SwitchScreen(screen);
         };
 

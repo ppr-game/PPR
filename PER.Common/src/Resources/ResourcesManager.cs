@@ -143,8 +143,7 @@ public class ResourcesManager : IResources {
         }
 
         foreach(string pack in Directory.GetDirectories(resourcesRoot)) {
-            if(!TryGetPackData(pack, out ResourcePackData data) ||
-                data.meta.version != currentVersion)
+            if(!TryGetPackData(pack, out ResourcePackData data) || data.meta.version != currentVersion)
                 continue;
             yield return data;
         }
@@ -155,7 +154,7 @@ public class ResourcesManager : IResources {
         return GetAvailablePacks().Where(data => !loadedPackNames.Contains(data.name));
     }
 
-    private bool TryGetPackData(string pack, out ResourcePackData data) {
+    public bool TryGetPackData(string pack, out ResourcePackData data) {
         string metaPath = Path.Combine(pack, resourcePackMeta);
         data = default(ResourcePackData);
         if(!File.Exists(metaPath))

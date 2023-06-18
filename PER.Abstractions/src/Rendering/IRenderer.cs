@@ -8,7 +8,7 @@ using PER.Util;
 namespace PER.Abstractions.Rendering;
 
 [PublicAPI]
-public interface IRenderer {
+public interface IRenderer : IUpdatable {
     public string title { get; set; }
     public int width { get; }
     public int height { get; }
@@ -27,7 +27,6 @@ public interface IRenderer {
     public Dictionary<string, IEffect?> formattingEffects { get; }
 
     public void Setup(RendererSettings settings);
-    public void Update();
     public void Close();
     public void Finish();
     public bool Reset(RendererSettings settings);

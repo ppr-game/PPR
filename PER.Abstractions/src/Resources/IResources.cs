@@ -18,6 +18,7 @@ public interface IResources {
 
     public IEnumerable<ResourcePackData> GetAvailablePacks();
     public IEnumerable<ResourcePackData> GetUnloadedAvailablePacks();
+    public bool TryGetPackData(string pack, out ResourcePackData data);
 
     public bool TryAddPack(ResourcePackData data);
     public bool TryAddPacksByNames(params string[] names);

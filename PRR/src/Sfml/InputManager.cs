@@ -72,7 +72,7 @@ public class InputManager : IInput {
         _renderer.window.MouseWheelScrolled += (_, scroll) => ScrollMouse(scroll.Delta);
     }
 
-    public void Update() {
+    public void Update(TimeSpan time) {
         _previousMousePosition = _mousePosition;
         _previousAccurateMousePosition = _accurateMousePosition;
         _previousNormalizedMousePosition = _normalizedMousePosition;

@@ -16,6 +16,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="levels\test level 2\levelResources\metadata.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
     <Content Include="NLog.config;resources\**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Always" />
   </ItemGroup>
 
@@ -26,6 +30,10 @@
     <ProjectReference Include="..\PER\PER.csproj" />
     <ProjectReference Include="..\PRR.UI\PRR.UI.csproj" />
     <ProjectReference Include="..\PRR\PRR.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="src\Environment" />
   </ItemGroup>
 
 </Project>

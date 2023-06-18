@@ -2,7 +2,7 @@
 
 namespace PER.Abstractions;
 
-public class FrameTime {
+public class FrameTime : IUpdatable {
     public TimeSpan frameTime { get; private set; }
     public TimeSpan averageFrameTime { get; private set; }
 

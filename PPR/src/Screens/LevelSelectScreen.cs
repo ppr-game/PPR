@@ -13,7 +13,8 @@ namespace PPR.Screens;
 public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResource {
     public const string GlobalId = "layouts/levelSelect";
 
-    public PlayerMode mode { get; set; }
+    public enum Mode { Play, Edit }
+    public Mode mode { get; set; }
 
     protected override IRenderer renderer => Core.engine.renderer;
     protected override IInput input => Core.engine.input;
@@ -65,7 +66,6 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResource {
 
     // ReSharper disable once NotAccessedField.Local TODO
     private readonly Settings _settings;
-    private bool _reloadScheduled;
 
     public LevelSelectScreen(Settings settings, IResources resources) {
         _settings = settings;
@@ -155,7 +155,7 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResource {
         foreach((string id, Element element) in elements) {
             bool isPlay = id.StartsWith("play_", StringComparison.Ordinal);
             bool isEdit = !isPlay && id.StartsWith("edit_", StringComparison.Ordinal);
-            if(isPlay && mode == PlayerMode.Play || isEdit && mode == PlayerMode.Edit || !isPlay && !isEdit)
+            if(isPlay && mode == Mode.Play || isEdit && mode == Mode.Edit || !isPlay && !isEdit)
                 element.Update(time);
         }
 
@@ -163,11 +163,6 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResource {
 
         _newLevelDialogBox?.Update(time);
         _effectsWarningDialogBox?.Update(time);
-
-        if(!_reloadScheduled)
-            return;
-        _reloadScheduled = false;
-        Core.engine.SoftReload();
     }
 
     public override void Tick(TimeSpan time) { }
@@ -179,28 +174,28 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResource {
             EnterLevel(level, false);
     }
 
-    // ReSharper disable once MemberCanBeMadeStatic.Local
     private void EnterLevel(LevelSerializer.LevelItem level, bool removeMajorPacks) {
         // TODO: implement the game
         /*Core.engine.resources.RemoveAllPacks();
         Core.engine.resources.TryAddPacksByNames(_settings.packs);
         _reloadScheduled = true;*/
+
         IResources resources = Core.engine.resources;
+        if(!resources.TryGetResource(mode == Mode.Play ? PlayScreen.GlobalId : EditScreen.GlobalId,
+            out GameScreen? screen)) {
+            CloseEffectsWarning();
+            return;
+        }
+
         if(removeMajorPacks) {
             foreach(ResourcePackData pack in resources.loadedPacks.Where(pack => pack.meta.major))
                 resources.TryRemovePack(pack);
-            _reloadScheduled = true;
-            // TODO: switch to game screen
-            if(resources.TryGetResource(GlobalId, out LevelSelectScreen? screen))
-                Core.engine.game.SwitchScreen(screen, CloseEffectsWarning);
-            else
-                Core.engine.game.FadeScreen(CloseEffectsWarning);
+            Core.engine.game.SwitchScreen(screen, () => {
+                CloseEffectsWarning();
+                screen.LoadLevel(level, true);
+            });
         }
-        else {
-            // TODO: switch to game screen
-            if(resources.TryGetResource(GlobalId, out LevelSelectScreen? screen))
-                Core.engine.game.SwitchScreen(screen, CloseEffectsWarning);
-        }
+        else Core.engine.game.SwitchScreen(screen, () => screen.LoadLevel(level, false));
     }
 
     private void ShowEffectsWarning(LevelSerializer.LevelItem level, Action<LevelSerializer.LevelItem, bool> onPlay) {
@@ -209,9 +204,9 @@ public class LevelSelectScreen : MenuWithCoolBackgroundAnimationScreenResource {
             onPlay(level, false);
             return;
         }
-        _effectsWarningDialogBox.onCancel += () => { Core.engine.game.FadeScreen(CloseEffectsWarning); };
-        _effectsWarningDialogBox.onPlay += () => { onPlay(level, false); };
-        _effectsWarningDialogBox.onDisableAndPlay += () => { onPlay(level, true); };
+        _effectsWarningDialogBox.onCancel += () => Core.engine.game.FadeScreen(CloseEffectsWarning);
+        _effectsWarningDialogBox.onPlay += () => onPlay(level, false);
+        _effectsWarningDialogBox.onDisableAndPlay += () => onPlay(level, true);
         Core.engine.game.FadeScreen(_effectsWarningDialogBox.Open);
     }
 

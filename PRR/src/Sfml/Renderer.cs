@@ -50,7 +50,7 @@ public class Renderer : BasicRenderer, IDisposable {
 
     private Vector2f _textPosition;
 
-    public override void Update() => window?.DispatchEvents();
+    public override void Update(TimeSpan time) => window?.DispatchEvents();
 
     public override void Close() => window?.Close();
 

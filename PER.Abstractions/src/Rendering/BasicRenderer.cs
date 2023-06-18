@@ -92,7 +92,7 @@ public abstract class BasicRenderer : IRenderer {
     protected abstract void UpdateTitle();
     protected abstract void UpdateIcon();
 
-    public abstract void Update();
+    public abstract void Update(TimeSpan time);
     public abstract void Close();
     public abstract void Finish();
 

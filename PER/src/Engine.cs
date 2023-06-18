@@ -90,11 +90,13 @@ public class Engine {
     }
 
     private bool Update(TimeSpan time) {
-        input.Update();
         renderer.Clear();
-        renderer.Update();
+
+        input.Update(time);
+        renderer.Update(time);
         game.Update(time);
         TryTick(time);
+
         renderer.Draw();
         frameTime.Update(time);
         return renderer.open;

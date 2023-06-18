@@ -10,7 +10,7 @@ using PER.Util;
 namespace PER.Abstractions.UI;
 
 [PublicAPI]
-public abstract class Element {
+public abstract class Element : IUpdatable {
     public IRenderer renderer { get; set; }
     public virtual bool enabled { get; set; } = true;
     public virtual Vector2Int position { get; set; }

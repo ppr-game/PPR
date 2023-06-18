@@ -7,7 +7,7 @@ using PER.Abstractions.Rendering;
 namespace PER.Abstractions;
 
 [PublicAPI]
-public interface IGame {
+public interface IGame : IUpdatable, ITickable {
     public IScreen? currentScreen { get; }
     public void SwitchScreen(IScreen? screen, Action? middleCallback = null);
     public void SwitchScreen(IScreen? screen, float fadeOutTime, float fadeInTime, Action? middleCallback = null);
@@ -17,7 +17,5 @@ public interface IGame {
     public void Load();
     public RendererSettings Loaded();
     public void Setup();
-    public void Update(TimeSpan time);
-    public void Tick(TimeSpan time);
     public void Finish();
 }

@@ -15,6 +15,7 @@ public static class LevelSerializer {
     private const string LevelMetadataFileName = "metadata.json";
     private const string MusicMetadataFileName = "music.json";
     private const string ScoresPath = "scores.json";
+    private const string LevelObjectsFileName = "objects.json";
 
     public record struct LevelMetadata(uint version, Guid guid, string name, string description, string author,
         int difficulty, bool effectHeavy);
@@ -109,5 +110,10 @@ public static class LevelSerializer {
         scoresFile.Close();
 
         return scores is not null;
+    }
+
+    public static bool TryReadLevelObjects(LevelItem levelItem) {
+        string path = Path.Combine(levelItem.path, LevelObjectsFileName);
+        // i never finished writing this i guess.. lol
     }
 }

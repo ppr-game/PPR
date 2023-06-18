@@ -1,13 +1,9 @@
-﻿using System;
-
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 
 namespace PER.Abstractions;
 
 [PublicAPI]
-public interface IScreen {
+public interface IScreen : IUpdatable, ITickable {
     public void Open();
     public void Close();
-    public void Update(TimeSpan time);
-    public void Tick(TimeSpan time);
 }
